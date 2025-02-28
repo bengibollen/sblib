@@ -17,8 +17,9 @@ public void setup_error_handling() {
 public void setup_uid_management() {
     set_driver_hook(H_LOAD_UIDS, #'load_uid);
     set_driver_hook(H_CLONE_UIDS, #'clone_uid);
-    set_driver_hook(H_CREATE_SUPER, #'create_super);
-    set_driver_hook(H_CREATE_OB, #'create_object);
+    set_driver_hook(H_CREATE_SUPER, "create");
+    set_driver_hook(H_CREATE_OB, "create");
+    set_driver_hook(H_CREATE_CLONE, "create");
 }
 
 public void setup_all() {

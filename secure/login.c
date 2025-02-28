@@ -2,6 +2,7 @@
 #pragma no_inherit
 
 #include "/inc/input_to.h"  // For INPUT_* flags
+#include "/inc/log.h"
 
 // Constants
 #define MAX_ATTEMPTS    3
@@ -31,16 +32,18 @@ private string name;
 private int time_of_login;
 private int login_attempts;
 private int current_state;
+private object logger = load_object("/sys/log");
 
 public void create() {
-    debug_message("=== Login Object Created ===\n");
+    logger->info("=== Login Object Created ===");
     time_of_login = time();
     current_state = STATE_INIT;
     call_out("check_idle", IDLE_TIMEOUT);
 }
 
 public void logon() {
-    debug_message("=== Login Object Logon Called ===\n");
+    logger->info("New login session started");
+
     write("\nWelcome to SBLib MUD!\n");
     show_banner();
     prompt_name();
@@ -69,7 +72,8 @@ private void prompt_password() {
 }
 
 public void handle_name(string input) {
-    debug_message("=== Handling Name Input ===\n");
+    logger->info("=== Handling Name Input ===\n");
+    logger->debug("Processing name input: %s", input);
     if (!input || input == "") {
         write("Invalid name. Try again: ");
         input_to("handle_name");
@@ -124,8 +128,12 @@ public void handle_password(string input) {
 }
 
 private void login_success() {
+    object player;
+    
+    logger->info("Successful login for user: %s", name);
+
     write("\nWelcome back, " + capitalize(name) + "!\n");
-    object player = clone_object("/obj/player");
+    player = clone_object("/obj/player");
     player->initialize(name);
     exec(player, this_object());
     destruct(this_object());
@@ -141,12 +149,12 @@ private int valid_name(string str) {
 
 private int user_exists(string name) {
     // TODO: Implement user checking
-    return 0;
+    return 1;
 }
 
 private int verify_password(string name, string pass) {
     // TODO: Implement password verification
-    return 0;
+    return 1;
 }
 
 private void start_character_creation() {

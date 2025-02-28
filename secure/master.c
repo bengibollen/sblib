@@ -15,6 +15,8 @@ string clone_uid(string file);
 string create_super(string file);
 string create_object(string file);
 
+private object logger;  // We'll initialize this later
+
 #include "/secure/master/config.c"
 
 // Global variables
@@ -25,22 +27,42 @@ string get_master_uid() {
     return "ROOT";
 }
 
-void inaugurate_master(int arg) {
+void inaugurate_master(int arg)
+{ 
+    // Use debug_message until logger is ready
     debug_message("\n=== Master Initialization Starting ===\n");
     debug_message(sprintf("Master object loaded (arg: %d)\n", arg));
-    setup_all();  // Direct call instead of loading
+    
+    setup_all();
+    
+    // Now it's safe to initialize the logger
+    string err;
+    if (err = catch(logger = load_object("/sys/log"))) {
+        debug_message("Failed to initialize logger: " + err + "\n");
+    } else {
+        logger->info("MASTER", "Logger system initialized");
+    }
+    
     debug_message("=== Master Initialization Complete ===\n");
+}
+
+// For all logging calls, add error checking
+private void log_message(string type, string msg, varargs mixed *args) {
+    if (logger) {
+        catch(logger->log_message(type, "MASTER", msg, args...));
+    } else {
+        debug_message(sprintf("%s: %s\n", type, sprintf(msg, args...)));
+    }
 }
 
 // ---------- MANDATORY: Error Handling ----------
 void log_error(string file, string err, int warn, int line) {
-    debug_message(sprintf("[%s:%d] %s: %s\n", file, line, 
-                         warn ? "Warning" : "Error", err));
+    log_message(warn ? "WARN" : "ERROR", "[%s:%d] %s", file, line, err);
 }
 
 void runtime_error(string err, string prog, string obj, int line, mixed culprit, int caught) {
-    debug_message(sprintf("Runtime error in %s (%s) line %d: %s\n", 
-                         obj || "?", prog || "?", line, err));
+    logger->error("Runtime error in %s (%s) line %d: %s", 
+                 obj || "?", prog || "?", line, err);
 }
 
 // ---------- MANDATORY: File Security ----------
@@ -80,29 +102,26 @@ public object connect() {
     string ip = interactive_info(this_player(), II_IP_NUMBER);
     int now = time();
     
-    debug_message(sprintf("New connection attempt from %s\n", ip));
+    logger->info("New connection attempt from %s", ip);
     
-    // Cleanup old entries every minute
     if (now > cleanup_time) {
-        debug_message("Cleaning connection throttle map\n");
+        logger->debug("Cleaning connection throttle map");
         connection_throttle = ([]);
         cleanup_time = now + 60;
     }
     
-    // Allow local connections
     if (member(({"127.0.0.1", "::1", "::ffff:127.0.0.1"}), ip) >= 0) {
-        debug_message(sprintf("Allowing local connection from %s\n", ip));
+        logger->info("Allowing local connection from %s", ip);
         return clone_object("/secure/login");
     }
     
-    // Simple throttling
     if (connection_throttle[ip] > 3) {
-        debug_message(sprintf("Throttling connection from %s (too many attempts)\n", ip));
+        logger->warn("Throttling connection from %s (too many attempts)", ip);
         return 0;
     }
     
-    debug_message(sprintf("Connection accepted from %s (attempt %d)\n", 
-                         ip, connection_throttle[ip] + 1));
+    logger->info("Connection accepted from %s (attempt %d)", 
+                ip, connection_throttle[ip] + 1);
     connection_throttle[ip] = connection_throttle[ip] + 1;
     return clone_object("/secure/login");
 }
@@ -173,7 +192,7 @@ string printf_obj_name(object obj) {
 }
 
 mixed prepare_destruct(object obj) {
-    return 1;  // Allow destruction
+    return 0;  // Allow destruction
 }
 
 void quota_demon() {
@@ -189,18 +208,18 @@ void slow_shut_down(int minutes) {
 }
 
 void notify_shutdown() {
-    debug_message("System shutdown initiated\n");
+    logger->info("System shutdown initiated");
 }
 
 // ---------- Optional: Error Handling ----------
 void dangling_lfun_closure() {
-    debug_message("Dangling lfun closure detected\n");
+    logger->warn("Dangling lfun closure detected");
 }
 
 mixed heart_beat_error(object culprit, string err, string prog, 
                       string curobj, int line, int caught) {
-    debug_message(sprintf("Heart beat error in %O: %s\n", culprit, err));
-    return 0;  // Don't restart heart beat
+    logger->error("Heart beat error in %O: %s", culprit, err);
+    return 0;
 }
 
 // ---------- Optional: Security ----------
