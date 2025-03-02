@@ -4,8 +4,8 @@ public void setup_filesystem() {
 
 public void setup_include_dirs() {
     set_driver_hook(H_INCLUDE_DIRS, ({
-        "/inc",         // mudlib includes
-        "/sys/inc",     // system includes
+        "/inc/",         // mudlib includes
+        "/sys/",     // system includes
     }));
 }
 
@@ -20,6 +20,7 @@ public void setup_uid_management() {
     set_driver_hook(H_CREATE_SUPER, "create");
     set_driver_hook(H_CREATE_OB, "create");
     set_driver_hook(H_CREATE_CLONE, "create");
+    set_driver_hook(H_TELNET_NEG, "got_telnet");
 }
 
 public void setup_all() {

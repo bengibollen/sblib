@@ -84,8 +84,8 @@ mixed include_file(string file, string compiled_file, int sys_include) {
     if (sys_include) {
         if (file_size("/inc/" + file) > 0)
             return "/inc/" + file;
-        if (file_size("/sys/inc/" + file) > 0)
-            return "/sys/inc/" + file;
+        if (file_size("/sys/" + file) > 0)
+            return "/sys/" + file;
     }
     string dir = compiled_file[..strrstr(compiled_file, "/")];
     if (file_size(dir + file) > 0)
@@ -133,19 +133,19 @@ string get_bb_uid() {
 
 // ---------- MANDATORY: UID Management ----------
 string load_uid(string file) {
-    return "ROOT";  // For now, everything gets ROOT uid
+    return ROOT_UID;  // For now, everything gets ROOT uid
 }
 
 string clone_uid(string file) {
-    return "ROOT";  // For now, everything gets ROOT uid
+    return ROOT_UID;  // For now, everything gets ROOT uid
 }
 
 string create_super(string file) {
-    return "ROOT";  // For now, everything gets ROOT uid
+    return ROOT_UID;  // For now, everything gets ROOT uid
 }
 
 string create_object(string file) {
-    return "ROOT";  // For now, everything gets ROOT uid
+    return ROOT_UID;  // For now, everything gets ROOT uid
 }
 
 // ---------- Optional: Initialization ----------

@@ -14,6 +14,8 @@ private void show_entrance();
 
 public void create() {
     logger = load_object("/sys/log");
+    logger->info("Player object created");
+    logger->debug("Object name: %s", object_name(this_object()));
     commands = PLAYER_COMMANDS;  // Load basic commands
     state = PLAYER_STATE_LOADING;
 }
@@ -21,7 +23,8 @@ public void create() {
 public void initialize(string player_name) {
     name = player_name;
     state = PLAYER_STATE_PLAYING;
-    logger->info("PLAYER", "Player %s initialized", name);
+    logger->info("Player %s initialized", name);
+    logger->debug("Object name: %s", object_name(this_object()));
     show_entrance();
 }
 
@@ -48,11 +51,14 @@ public int command(string cmd) {
     if (member(commands, verb)) {
         int result;
         string command = commands[verb];
-        object ob = this_object();
-        
+        string ob = object_name(this_object());
+
+        result = ({int})this_object()->(commands[verb])(args);
         // Call the command and ensure we get an int back
-        result = (int)call_other(ob, command, args);
+        // result = (int)this_object()->(command)(args);
         if (intp(result)) return result;
+
+        logger->warn("Command %s in %s did not return an int", command, ob);
         return 0;  // Non-integer results are treated as failure
     }
     
@@ -62,7 +68,7 @@ public int command(string cmd) {
 // Basic commands
 public int cmd_quit(string arg) {
     write("Goodbye!\n");
-    logger->info("PLAYER", "Player %s quit", name);
+    logger->info("Player %s quit", name);
     destruct(this_object());
     return 1;
 }

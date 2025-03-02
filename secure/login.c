@@ -1,8 +1,11 @@
 #pragma strict_types
 #pragma no_inherit
 
-#include "/inc/input_to.h"  // For INPUT_* flags
+#include <input_to.h>  // For INPUT_* flags
 #include "/inc/log.h"
+
+inherit "/lib/telnetneg.c";
+
 
 // Constants
 #define MAX_ATTEMPTS    3
@@ -36,6 +39,7 @@ private object logger = load_object("/sys/log");
 
 public void create() {
     logger->info("=== Login Object Created ===");
+    logger->debug("Object name: %s", object_name(this_object()));
     time_of_login = time();
     current_state = STATE_INIT;
     call_out("check_idle", IDLE_TIMEOUT);
@@ -43,7 +47,9 @@ public void create() {
 
 public void logon() {
     logger->info("New login session started");
-
+    logger->debug("Object name: %s", object_name(this_object()));
+    set_telnet(WILL, TELOPT_ECHO);
+    set_telnet(WONT, TELOPT_ECHO);
     write("\nWelcome to SBLib MUD!\n");
     show_banner();
     prompt_name();
@@ -73,6 +79,7 @@ private void prompt_password() {
 
 public void handle_name(string input) {
     logger->info("=== Handling Name Input ===\n");
+    logger->debug("Object name: %s", object_name(this_object()));
     logger->debug("Processing name input: %s", input);
     if (!input || input == "") {
         write("Invalid name. Try again: ");
@@ -131,11 +138,32 @@ private void login_success() {
     object player;
     
     logger->info("Successful login for user: %s", name);
+    logger->debug("Object name: %s", object_name(this_object()));
+    logger->debug("This player object name: %s", object_name(this_player()));
 
     write("\nWelcome back, " + capitalize(name) + "!\n");
     player = clone_object("/obj/player");
+    logger->info("Cloning player object: %s", object_name(player));
     player->initialize(name);
-    exec(player, this_object());
+    if (!player)
+    {
+        write("Sorry, there was an error during login.\n");
+        destruct(this_object());
+        return;
+    }
+
+    logger->info("Successfully cloned player object: %s", object_name(player));
+    
+    if (!exec(player, this_player()))
+    {
+        logger->error("Failed to exec player object");
+        destruct(player);
+        destruct(this_object());
+        return;
+    }
+
+    logger->info("Player object exec'd successfully");
+
     destruct(this_object());
 }
 

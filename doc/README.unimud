@@ -1,0 +1,51 @@
+This is the Basic Mudlib of UNItopia.
+
+WARNING: To start the Driver correctly, you must first
+run the shell script:
+
+        doc/driver/setup_mudlib
+
+This script creates several required directories.
+
+After that, you can start the Driver.
+This is done with:
+<driver> -m<mudlib-dir> -u<udp-port> <port>
+
+for example:
+/home/mud/bin/driver -m/home/mud/lib -u3335 3333
+
+If you use -u-1 instead of -u3335, UDP won't be started, meaning
+the Mudlink won't work.
+
+Once you've started the mud, you can log in.
+Then you should log out and edit the playerfile in
+/var/players/... to set the level to 25 and add your
+name to the admin array (ADMINS) in /sys/config.h.
+After that, log in, get a magic wand using the 'zauberstab'
+command and enter:
+'zc /apps/help_tool->do_read()'
+(this creates the database for the Encyclopedia)
+
+
+Overview:
+doc:    Documentation
+
+sys:    Header files for the base mudlib
+i:      Inherit files
+obj:    Basic objects ready for cloning
+map:    Contains the map system
+room:   Some example/management rooms...
+apps:   Objects necessary for mud administration
+secure: Houses the Master Object, Simul_efun and other critical things
+
+d:      Contains the domains, i.e., the areas of the Mud
+w:      Contains working directories of the gods
+p:      Contains objects provided by other gods for reuse
+z:      Contains games, puzzles, guilds and other community projects
+
+var:    Data modifiable by the base mudlib
+static: Data not modifiable by the base mudlib
+log:    All mud logfiles should end up here
+save:   Data area writable by all gods
+pub:    The publicly accessible area of the mudlib via mudftp
+
