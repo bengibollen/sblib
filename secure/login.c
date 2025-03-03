@@ -2,9 +2,10 @@
 #pragma no_inherit
 
 #include <input_to.h>  // For INPUT_* flags
-#include "/inc/log.h"
+#include <log.h>
+#include <telnet.h>
 
-inherit "/lib/telnetneg.c";
+inherit "/lib/telnet_neg.c";
 
 
 // Constants
@@ -42,7 +43,7 @@ public void create() {
     logger->debug("Object name: %s", object_name(this_object()));
     time_of_login = time();
     current_state = STATE_INIT;
-    call_out("check_idle", IDLE_TIMEOUT);
+//    call_out("check_idle", IDLE_TIMEOUT);
 }
 
 public void logon() {

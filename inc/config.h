@@ -6,6 +6,8 @@
 #define ADMINS   ({ "danne" })
 #define HOST_NAME "localhost"
 
+#define EMAIL "admin@localhost"
+
 // GMCP paths
 #define GMCP_SOUND_URL       "http://www." HOST_NAME "/sound"
 #define GMCP_FILES_BASE_URL     "https://www." HOST_NAME "/gmcp/file?token="

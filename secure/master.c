@@ -8,6 +8,7 @@
 #include "/inc/configuration.h"  // For DC_* constants
 #include "/inc/driver_hooks.h"    // For H_* constants
 #include "/inc/interactive_info.h"
+#include "/sys/simul_efuns.h"
 
 // Forward declarations for functions used in config
 string load_uid(string file);
@@ -18,6 +19,7 @@ string create_object(string file);
 private object logger;  // We'll initialize this later
 
 #include "/secure/master/config.c"
+#include "/secure/master/util.c"
 
 // Global variables
 string mudlib_version = "SBLib v0.1";

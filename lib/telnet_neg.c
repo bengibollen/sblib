@@ -1,32 +1,23 @@
-//
-// Wunderland Mudlib
-//
-// secure/telnetneg.c  --  Manage telnet negotations
+// This file is part of UNItopia Mudlib (based on Wunderland Mudlib). 
+// ------------------------------------------------------------------
+// File:        /i/player/telnet_neg.c
+// Description: Telnet-Negotiations
+// Author:      Fiona@Wunderland
 //
 // This telnet implementation is 'unconditionally compliant'
 // to RFC 1143 and so follows all rules of the telnet protocol RFC 854.
 // The driver itself is not quite compliant.
-//
-// Find the newest version of this file at
-//   http://wl.mud.de/mud/doc/wwwstd/standardobjekte.html
-//
-// $Log: telnetneg.c,v $
-// Revision 1.25  2003/07/07 07:08:52  Fiona
-// LM_SLC more save against protocol violations
-//
 
 #pragma strict_types
 
 #include <input_to.h>            // INPUT_*
-#include <config.h>              // ROOTID
-#include <configuration.h>       // IC_*
-//#include <stdproperties.h>          // P_* macros
-#define NEED_PROTOTYPES
-// #include <thing/properties.h>    // SetProp() proto
-#define NEED_PRIVATE_PROTOTYPES
-#include <telnetneg.h>
+#include <telnet_neg.h>
+//#include <telnetneg.h>
+#include <configuration.h>
+#include <config.h>
+#include <driver_info.h>
 
-#define GET_ALL_TTYPES
+#include "/secure/master/util.c"
 
 // ******************** Telnet State Machine ********************
 //
@@ -34,14 +25,14 @@
 // machine as suggested with RFC 1143.
 //
 // The machine is used with three functions:
-//   set_telnet()    requests a change in the telnet state
+//   set_telnet()    requests a change in the telnet state 
 //   set_callback()  sets our prefered telnet states and a callback
 //                   function which is called on telnet state changes
 //   query_telnet()  query state and sb info
 //
 // The driver communicates with the engine through the H_TELNET_NEG
 // and got_telnet().
-//
+// 
 // Do this in logon() to turn IAC quoting on:
 //   set_connection_charset(({255})*32, 1);
 //
@@ -51,17 +42,196 @@
 // alternatively you could do the following, which is not as robust
 //   set_telnet(WILL, TELOPT_EOR);
 
-nosave mapping ts; // Complete telnet negotation state
+// Access to mapping ts
+#define TS_STATE        0 // option state (yes, no, want yes, want no, Q)
+#define TS_SB           1 // sb infos (option specific)
+#define TS_R_AGREE      2 // preference or decision callback (remote state)
+#define TS_L_AGREE      3 // preference or decision callback (local state)
+#define TS_CB           4 // option state change callback (yes, no)
+#define TS_SBCB         5 // option sb callback
+#define TS_SIZE         6
 
-// Set preferences and callbacks
-//
-// r_a_cb is the preference for the state on the remote side. It could be
-//   DO, DONT or a callback closure which decides if we get a request.
-// l_a_cb is the same for the local side.
-// change_cb is called if the state changes to NO or YES (real change)
-// sb_cb is called with incoming subnegotiations.
-private void set_callback(int opt, mixed r_a_cb, mixed l_a_cb,
+// Each option could be in one of the following four states. There
+// is also a one element queue for each option. Mind that each option
+// could have different states for the lokal and the remote system.
+// Six bits of TS_STATE are used.
+#define NO           0x00 // option is deactivated
+#define YES          0x01 // option is activated
+#define WANT_NO      0x02 // option is activated, negotiating to switch off
+#define WANT_YES     0x03 // option is deactivated, negotiating to switch on
+#define Q_EMPTY      0x00 // no entry in queue
+#define Q_OPPOSITE   0x04 // request to toggle state in queue
+#define REJECTED     0x08 // option denied, don't retry
+
+// State and queue on the remote side (DO + DONT) (bits 0-3)
+#define Q_REMOTE(x)       ((x)  &  0x03)
+#define S_REMOTE(x, y)    (((x) & ~0x03) | (y))
+#define Q_REMOTEQ(x)      ((x)  &  0x04)
+#define S_REMOTEQ(x, y)   (((x) & ~0x04) | (y))
+#define Q_REMOTER(x)      ((x)  &  0x08)
+#define S_REMOTER(x, y)   (((x) & ~0x08) | (y))
+// State and queue on this side (WILL + WONT) (bits 4-7)
+#define Q_LOCAL(x)        (((x) &  0x30) >> 4)
+#define S_LOCAL(x,y)      (((x) & ~0x30) | ((y) << 4))
+#define Q_LOCALQ(x)       (((x) &  0x40) >> 4)
+#define S_LOCALQ(x, y)    (((x) & ~0x40) | ((y) << 4))
+#define Q_LOCALR(x)       (((x) &  0x80) >> 4)
+#define S_LOCALR(x, y)    (((x) & ~0x80) | ((y) << 4))
+
+// To have everything in one place we have one special key in ts
+#define TS_EXTRA       -1 // key
+#define TSE_STATE       0 // input_to's INPUT_NOECHO and/or INPUT_CHARMODE
+#define TSE_TELNETNEG   1 // 1: client answered a negotiation
+                          // 0: didn't try any negotation yet
+			  // -1: client didn't answer
+#define TSE_LOG         2 // negotiation log
+#define TSE_ENCODING    3 // negotiated encoding
+
+#define ECHO_WORKAROUND
+#define CLIENT_PING_WORKAROUND
+
+nosave mapping ts = ([:TS_SIZE]); // Complete telnet negotation state
+
+#ifdef CLIENT_PING_WORKAROUND
+#define PING_WORKAROUND_CLIENTS "mushclient", "kildclient", "tintin++"
+nosave int needs_ping_workaround;
+#endif
+
+private string client_encoding; // Configured charset
+
+protected void update_encoding();
+
+// TODO: it's not quite complete
+private string telnet_to_text(int command, int option, int* args) {
+  string d_txt;
+  int i, j;
+
+  d_txt = TELCMD2STRING(IAC) + " " +
+    TELCMD2STRING(command) + " " + TELOPT2STRING(option);
+  if (args && sizeof(args)) {
+    if (command == SB && option == TELOPT_LINEMODE) {
+      switch (args[0]) {
+        case LM_MODE:
+          if (sizeof(args) > 1) {
+            d_txt += " MODE" +
+              (args[1] & MODE_EDIT ? " EDIT" : " NOEDIT") +
+              (args[1] & MODE_TRAPSIG ? " TRAPSIG" : "") +
+              (args[1] & MODE_SOFT_TAB ? " SOFT_TAB" : "") +
+              (args[1] & MODE_LIT_ECHO ? " LIT_ECHO" : "") +
+              (args[1] & MODE_ACK ? " ACK" : "");
+            if (sizeof(args) == 2) return d_txt;
+            args = args[2..];
+          }
+          break;
+
+        case WILL: case WONT: case DO: case DONT:
+          d_txt += " " + TELCMD2STRING(args[0]);
+          args = args[1..];
+          if (sizeof(args) > 0 && args[0] == LM_FORWARDMASK) {
+            d_txt += " FORWARDMASK";
+            args = args[1..];
+          }
+          break;
+
+        case LM_SLC:
+          j = sizeof(args) - 2;
+          d_txt += " SLC";
+          for (i = 1; i < j; i += 3) {
+            d_txt += "\n          ";
+            d_txt += sprintf("%-6s %-23s %02x",
+              SLC2STRING(args[i]),
+               SLC_FLAGNAMES[args[i+1] & SLC_LEVELBITS] +
+               (args[i+1] & SLC_FLUSHOUT ? " FOUT" : "") +
+               (args[i+1] & SLC_FLUSHIN  ? " FIN"  : "") +
+               (args[i+1] & SLC_ACK      ? " ACK"      : ""),
+               args[i+2]);
+          }
+          if (i > j) return d_txt;
+          args = args[i-3..]; // dump rest (is error)
+          break;
+          
+      }
+
+    }
+    if (command == SB && option == TELOPT_CHARSET) {
+      d_txt += " " + CS_FLAGNAME(args[0]);
+      if (sizeof(args) > 1) d_txt += " (" + 
+        implode(map(args[1..], (: sprintf("%02x", $1) :)), ",") + ")";
+    } else
+    if (command == SB && option != TELOPT_NAWS && option != TELOPT_LINEMODE) {
+      d_txt += " " + TELQUAL2STRING(args[0]);
+      if (sizeof(args) > 1) d_txt += " (" + 
+        implode(map(args[1..], (: sprintf("%02x", $1) :)), ",") + ")";
+    }
+    else if (sizeof(args)) d_txt +=
+      " (" + implode(map(args, (: sprintf("%02x", $1) :)), ",") + ")";
+  }
+  return d_txt;
+}    
+
+// All telnet negotations are sent through this function
+private int send(int* x) {
+  string log;
+  int *y, i, j;
+
+  if (x[1] != SB) y = x[3..];
+  else {
+    y = x[3..<3];
+    j = sizeof(y) - 1;
+    for (i = 0; i < j; ++i) { // undo 0xff quoting
+      if (y[i] == IAC && y[i+1] == 0xff) {
+        y[i..i+1] = ({ 0xff });
+        --j;
+      }
+    } 
+  }
+
+  log = ts[TS_EXTRA, TSE_LOG];
+  if (sizeof(log) > 4000) log = "..." + log[<3800..];
+  log += "sent " + telnet_to_text(x[1], x[2], y) +"\n";
+  ts[TS_EXTRA, TSE_LOG] = log;
+
+  return efun::binary_message(x);
+}
+
+/*
+FUNKTION: set_callback
+DEKLARATION: protected void set_callback(int opt, mixed r_a_cb, mixed l_a_cb, closure change_cb, closure sb_cb)
+BESCHREIBUNG:
+Diese Funktion setzt die Praeferenzen und Callbacks fuer bestimmte Telnet-Optionen.
+
+Parameter:
+    int opt            Die Telnet-Option (eine der TELOPT-Defines).
+
+    mixed r_a_cb       Das ist der Wunsch, wie wir den Kommunikationspartner
+                       gern haetten. Entweder DO, DONT oder eine
+		       Closure, die aufgerufen wird, wenn wir eine
+		       entsprechende Anfrage erhalten. Die Closure
+		       erhaelt zwei Parameter, der erste ist der
+		       Zustand (WILL, WONT, DO, DONT) und die zweite
+		       ist die Telnet-Option, und sollte 0 liefern,
+		       wenn es nicht unterstuetzt wird (also ein
+		       WONT oder DONT verlangt wird), 1 anderenfalls.
+
+    mixed l_a_cb       Das ist der Zustand, den wir selbst gern haetten.
+                       Entweder WILL, WONT oder eine Closure.
+		       
+    closure change_cb  Diese Closure wird bei Aenderung dieser Option
+                       lokal oder entfernt aufgerufen. Die Closure
+		       erhaelt zwei Parameter, der erste ist der
+		       Zustand (WILL, WONT, DO, DONT) und die zweite
+		       ist die Telnet-Option.
+    
+    closure sb_cb      Diese Closure wird fuer Subnegotiations (SB TELOPT)
+                       aufgerufen, sie erhaelt als ersten Parameter das SB,
+		       als zweiten die Telnet-Option und als dritten
+		       Parameter ein Byte-Array mit den zusaetzlichen Daten.
+
+GRUPPEN: telnet
+*/
+protected void set_callback(int opt, mixed r_a_cb, mixed l_a_cb,
     closure change_cb, closure sb_cb) {
+
   if (r_a_cb == DO) r_a_cb = 1;
   else if (r_a_cb == DONT) r_a_cb = 0;
   if (l_a_cb == WILL) l_a_cb = 1;
@@ -73,13 +243,40 @@ private void set_callback(int opt, mixed r_a_cb, mixed l_a_cb,
   ts[opt, TS_SBCB] = sb_cb;
 }
 
-// Try to change an option
-// True is returned if the option indeed changes
-static int set_telnet(int command, int option) {
+/*
+FUNKTION: set_telnet
+DEKLARATION: nomask static int set_telnet(int command, int option)
+BESCHREIBUNG:
+Diese Funktion verlangt einen bestimmten Telnetzustand.
+'command' ist entweder DO, DONT (fuer die Gegenseite)
+                  oder WILL, WONT (fuer unseren Zustand),
+'option' eine der Telnet-Optionen (TELOPT-Defines).
+
+Die Funktion liefert 0, wenn keine Aenderung stattfindet (entweder
+wir sind bereits in diesem Zustand oder wir haben eine entsprechende
+Anforderung schon gesendet oder unsere Anforderung wurde schon einmal
+abgelehnt), 1 anderenfalls.
+GRUPPEN: telnet
+*/
+nomask static int set_telnet(int command, int option) {
   int state, ok;
-  debug_message("ts = " + sprintf("%O", ts));
 
   state = ts[option, TS_STATE];
+
+#ifdef ECHO_WORKAROUND
+  // Workaround fuer TELOPT_ECHO, da einige
+  // MUD-Clients (Mushclient z.B.) es nicht bestaetigen.
+  // Wir muessen es daher einfach immer senden.
+  if(option == TELOPT_ECHO)
+  {
+    // Immer senden.
+    if(Q_LOCAL(state) != (command==WILL?WANT_YES:WANT_NO))
+      send(({IAC, command, option}));
+    state = S_LOCAL(state, command==WILL?WANT_YES:WANT_NO);
+    ok = 1;
+  }
+  else
+#endif
   switch (command) {
     case DO:
       if (Q_REMOTER(state) == REJECTED) break;
@@ -134,7 +331,7 @@ static int set_telnet(int command, int option) {
           } else {
 	    // ignore, request sent already
           }
-          break;
+          break; 
       }
       break;
 
@@ -160,7 +357,7 @@ static int set_telnet(int command, int option) {
           if (Q_LOCALQ(state) == Q_EMPTY) {
 	    // ignore, request sent already
           } else {
-            state = S_LOCALQ(state, Q_EMPTY);
+              state = S_LOCALQ(state, Q_EMPTY);
             ok = 1;
           }
           break;
@@ -180,7 +377,7 @@ static int set_telnet(int command, int option) {
           if (Q_LOCALQ(state) == Q_EMPTY) {
 	    // ignore, request sent already
           } else {
-            state = S_LOCALQ(state, Q_EMPTY);
+              state = S_LOCALQ(state, Q_EMPTY);
             ok = 1;
           }
           break;
@@ -191,7 +388,7 @@ static int set_telnet(int command, int option) {
           } else {
 	    // ignore, request sent already
           }
-          break;
+          break; 
       }
       break;
   }
@@ -200,13 +397,45 @@ static int set_telnet(int command, int option) {
 }
 
 // Request information on an option. sb has to be called by reference.
-public int query_telnet(int option, mixed sb) {
+static int query_telnet(int option, mixed sb) {
   if (!intp(option) || option < 0 || !member(ts, option)) {
     sb = 0;
     return 0;
   }
   sb = copy(ts[option, TS_SB]);
   return ts[option, TS_STATE];
+}
+
+static int has_telnet_option(int option, int remote)
+{
+    return remote ? (Q_REMOTE(ts[option, TS_STATE]) == YES) : (Q_LOCAL(ts[option, TS_STATE]) == YES);
+}
+
+// Telnet protocoll violations end up here
+private void tel_error(string err) {
+  string log;
+
+  log = ts[TS_EXTRA, TSE_LOG];
+  if (sizeof(log) > 4000) log = "..." + log[<3800..];
+  log += "ERR " + err + "\n";
+  ts[TS_EXTRA, TSE_LOG] = log;
+}
+
+// Full negotiation tries to set all our preferences
+// Options with closures as preference are not actively enabled.
+private void start_telnetsrv();
+private void start_telnetneg() {
+  int opt, *options;
+
+  ts[TS_EXTRA, TSE_TELNETNEG] = 1;
+
+  options = m_indices(ts) - ({ TS_EXTRA });
+  foreach (opt : options) {
+    if (ts[opt, TS_R_AGREE] == 1) set_telnet(DO, opt);
+    if (ts[opt, TS_L_AGREE] == 1) set_telnet(WILL, opt);
+  }
+  
+  start_telnetsrv();
 }
 
 // Got telnet negotations from the driver
@@ -221,13 +450,22 @@ void got_telnet(int command, int option, int *optargs) {
   // Make shure it's a driver apply. Hope this never breaks ;)
   if (caller_stack_depth()) return;
 
-
+  
   log = ts[TS_EXTRA, TSE_LOG];
   if (sizeof(log) > 4000) log = "..." + log[<3800..];
   log += "got  " + telnet_to_text(command, option, optargs) + "\n";
   ts[TS_EXTRA, TSE_LOG] = log;
 
   state = ts[option, TS_STATE];
+#ifdef ECHO_WORKAROUND
+  // Workaround fuer ECHO wegen buggy MUD-Clients
+  if(option == TELOPT_ECHO)
+  {
+    // Wir machen nix.
+    funcall(ts[option, TS_CB], command, option);
+  }
+  else
+#endif
   switch (command) {
     case WILL:
       switch (Q_REMOTE(state)) {
@@ -296,15 +534,14 @@ void got_telnet(int command, int option, int *optargs) {
           }
           break;
         case WANT_YES:
-          if (option == TELOPT_TM) {
+          if (option != TELOPT_TM)
             // *sigh* TM is not as all other options are
-            agree = ts[option, TS_CB];
-            if (closurep(agree)) funcall(agree, command, option);
-          }
-          else state = S_REMOTER(state, REJECTED);
+	    state = S_REMOTER(state, REJECTED);
           state = S_REMOTE(state, NO);
           state = S_REMOTEQ(state, Q_EMPTY);
           ts[option, TS_STATE] = state;
+          agree = ts[option, TS_CB];
+          if (closurep(agree)) funcall(agree, command, option);
           break;
       }
       break;
@@ -346,7 +583,7 @@ void got_telnet(int command, int option, int *optargs) {
             state = S_LOCAL(state, WANT_NO);
             state = S_LOCALQ(state, Q_EMPTY);
             ts[option, TS_STATE] = state;
-            send(({ IAC, WONT, option }));
+	    send(({ IAC, WONT, option }));
           }
           break;
       }
@@ -380,6 +617,8 @@ void got_telnet(int command, int option, int *optargs) {
           state = S_LOCALQ(state, Q_EMPTY);
           state = S_LOCALR(state, REJECTED);
           ts[option, TS_STATE] = state;
+          agree = ts[option, TS_CB];
+          if (closurep(agree)) agree = funcall(agree, command, option);
           break;
       }
       break;
@@ -388,15 +627,17 @@ void got_telnet(int command, int option, int *optargs) {
     agree = ts[option, TS_SBCB];
     if (closurep(agree)) funcall(agree, command, option, optargs);
     break;
-
+      
   }
 
   // Do full negotation only if client can telnetneg, means we got some
   // telnetneg message from it. If we never got one we assume it can't
   // do it. The negotiation is triggered by one single telnetneg request
   // in the login process.
-  if (!ts[TS_EXTRA, TSE_TELNETNEG]) start_telnetneg();
+  if (ts[TS_EXTRA, TSE_TELNETNEG]<=0) start_telnetneg();
 }
+
+// ******************** End Telnet State Machine ********************
 
 // This function is used to transfer the telnet state engine's state
 // from one object to an other, used for player renew and so on
@@ -419,121 +660,15 @@ mapping transfer_ts(mapping old_ts) {
 
   ts = old_ts;
 
+#ifdef CLIENT_PING_WORKAROUND
+  if(member(ts, TELOPT_TTYPE) &&
+     sizeof(ts[TELOPT_TTYPE, TS_SB])>1 &&
+     sizeof(ts[TELOPT_TTYPE, TS_SB][1]) &&
+     member(([ PING_WORKAROUND_CLIENTS ]), ts[TELOPT_TTYPE, TS_SB][1][0]))
+       needs_ping_workaround = 1;
+#endif
+
   return 0;
-}
-
-// All telnet negotations are sent through this function
-private int send(int* x) {
-  string log;
-  int *y, i, j;
-
-  if (x[1] != SB) y = x[3..];
-  else {
-    y = x[3..<3];
-    j = sizeof(y) - 1;
-    for (i = 0; i < j; ++i) { // undo 0xff quoting
-      if (y[i] == IAC && y[i+1] == 0xff) {
-        y[i..i+1] = ({ 0xff });
-        --j;
-      }
-    }
-  }
-
-  log = ts[TS_EXTRA, TSE_LOG];
-  if (sizeof(log) > 4000) log = "..." + log[<3800..];
-  log += "sent " + telnet_to_text(x[1], x[2], y) +"\n";
-  ts[TS_EXTRA, TSE_LOG] = log;
-
-  return efun::binary_message(x);
-}
-
-// TODO: it's not quite complete
-private string telnet_to_text(int command, int option, int* args) {
-  string d_txt;
-  int i, j;
-
-  d_txt = TELCMD2STRING(IAC) + " " +
-    TELCMD2STRING(command) + " " + TELOPT2STRING(option);
-  if (args && sizeof(args)) {
-    if (command == SB && option == TELOPT_LINEMODE) {
-      switch (args[0]) {
-        case LM_MODE:
-          if (sizeof(args) > 1) {
-            d_txt += " MODE" +
-              (args[1] & MODE_EDIT ? " EDIT" : " NOEDIT") +
-              (args[1] & MODE_TRAPSIG ? " TRAPSIG" : "") +
-              (args[1] & MODE_SOFT_TAB ? " SOFT_TAB" : "") +
-              (args[1] & MODE_LIT_ECHO ? " LIT_ECHO" : "") +
-              (args[1] & MODE_ACK ? " ACK" : "");
-            if (sizeof(args) == 2) return d_txt;
-            args = args[2..];
-          }
-          break;
-
-        case WILL: case WONT: case DO: case DONT:
-          d_txt += " " + TELCMD2STRING(args[0]);
-          args = args[1..];
-          if (sizeof(args) > 0 && args[0] == LM_FORWARDMASK) {
-            d_txt += " FORWARDMASK";
-            args = args[1..];
-          }
-          break;
-
-        case LM_SLC:
-          j = sizeof(args) - 2;
-          d_txt += " SLC";
-          for (i = 1; i < j; i += 3) {
-            d_txt += "\n          ";
-            d_txt += sprintf("%-6s %-23s %02x",
-              SLC2STRING(args[i]),
-               SLC_FLAGNAME[args[i+1] & SLC_LEVELBITS] +
-               (args[i+1] & SLC_FLUSHOUT ? " FOUT" : "") +
-               (args[i+1] & SLC_FLUSHIN  ? " FIN"  : "") +
-               (args[i+1] & SLC_ACK      ? " ACK"      : ""),
-               args[i+2]);
-          }
-          if (i > j) return d_txt;
-          args = args[i-3..]; // dump rest (is error)
-          break;
-
-      }
-
-    }
-
-    if (command == SB && option != TELOPT_NAWS && option != TELOPT_LINEMODE) {
-      d_txt += " " + TELQUAL2STRING(args[0]);
-      if (sizeof(args) > 1) d_txt += " (" +
-        implode(map(args[1..], (: sprintf("%02x", $1) :)), ",") + ")";
-    }
-    else if (sizeof(args)) d_txt +=
-      " (" + implode(map(args, (: sprintf("%02x", $1) :)), ",") + ")";
-  }
-  return d_txt;
-}
-
-// Full negotiation tries to set all our preferences
-// Options with closures as preference are not actively enabled.
-private void start_telnetneg() {
-  int opt, *options;
-
-  ts[TS_EXTRA, TSE_TELNETNEG] = 1;
-
-  options = m_indices(ts) - ({ TS_EXTRA });
-  foreach (opt : options) {
-    if (ts[opt, TS_R_AGREE] == 1) set_telnet(DO, opt);
-    if (ts[opt, TS_L_AGREE] == 1) set_telnet(WILL, opt);
-  }
-
-}
-
-// Telnet protocoll violations end up here
-private void tel_error(string err) {
-  string log;
-
-  log = ts[TS_EXTRA, TSE_LOG];
-  if (sizeof(log) > 4000) log = "..." + log[<3800..];
-  log += "ERR " + err + "\n";
-  ts[TS_EXTRA, TSE_LOG] = log;
 }
 
 // ******************** Telnet Server Engine ********************
@@ -548,45 +683,30 @@ private void tel_error(string err) {
 //
 // Here is defined how the mud will act in the negotiation.
 
+#undef NOECHO_AFTER_CHARMODE
+#undef GET_ALL_TTYPES
+
 nosave int* tm_t;
+nosave int pending_noecho;
+nosave int last_noecho;
 
-void create() {
-  if (!ts) {
-    ts = m_allocate(7, TS_SIZE);
-    ts[TS_EXTRA, TSE_LOG] = "";
-  }
+// Bits used for the charmode and noecho state of the connection
+// Bits 0 + 1 used for TSE_NOECHO (set for noecho mode)
+// Bits 2 + 3 used for TSE_SGA_CHAR (set for charmode using SGA)
+// Bits 4 + 5 used for TSE_LM_CHAR (set for charmode using LINEMODE)
+// each representing the state with NO, YES, WANT_NO and WANT_YES
+#define Q_TSE_NOECHO      ((ts[TS_EXTRA, TSE_STATE])  &  0x03)
+#define S_TSE_NOECHO(y)   (ts[TS_EXTRA, TSE_STATE] = \
+                            ((ts[TS_EXTRA, TSE_STATE]) & ~0x03) | (y))
+#define Q_TSE_SGA_CHAR    (((ts[TS_EXTRA, TSE_STATE]) &  0x0c) >> 2)
+#define S_TSE_SGA_CHAR(y) (ts[TS_EXTRA, TSE_STATE] = \
+                            ((ts[TS_EXTRA, TSE_STATE]) & ~0x0c) | ((y) << 2))
+#define Q_TSE_LM_CHAR     (((ts[TS_EXTRA, TSE_STATE]) &  0x30) >> 4)
+#define S_TSE_LM_CHAR(y)  (ts[TS_EXTRA, TSE_STATE] = \
+                            ((ts[TS_EXTRA, TSE_STATE]) & ~0x30) | ((y) << 4))
 
-  // set how we would like the options' states
-  set_callback(TELOPT_NAWS,     DO,   WONT, 0,           #'sb_naws);
-  set_callback(TELOPT_STATUS  , DONT, WILL, 0,           #'sb_status);
-  set_callback(TELOPT_TTYPE,    DO,   WONT, #'start_sb,  #'sb_ttype);
-  set_callback(TELOPT_TSPEED,   DO,   WONT, #'start_sb,  #'sb_tspeed);
-  set_callback(TELOPT_NEWENV,   DO,   WONT, #'start_sb,  #'sb_env);
-  set_callback(TELOPT_ENVIRON,  DO,   WONT, #'start_sb,  #'sb_env);
-  set_callback(TELOPT_XDISPLOC, DO,   WONT, #'start_sb,  #'sb_xdisp);
-
-  set_callback(TELOPT_EOR,      DONT, WILL, #'start_eor, 0);
-  set_callback(TELOPT_LINEMODE, DO,   WONT, #'start_lm,  #'sb_line);
-  set_callback(TELOPT_TM ,      #'neg_tm, #'neg_tm, #'neg_tm, 0);
-  set_callback(TELOPT_BINARY,   #'neg_bin, #'neg_bin, 0, 0);
-
-  set_callback(TELOPT_SGA,      #'neg_sga, #'neg_sga, #'cb_sga, 0);
-  set_callback(TELOPT_ECHO,     #'neg_echo, WONT, #'cb_echo, 0);
-
-#ifdef __MCCP__
-  set_callback(TELOPT_COMPRESS2, DONT,      WILL,       #'start_mccp, 0);
-  set_callback(TELOPT_COMPRESS,  DONT,      #'neg_mccp, #'start_mccp, 0);
-#endif
-
-#ifdef __TLS__
-  if (tls_available())
-  {
-    set_callback(TELOPT_STARTTLS,       DO, WONT,       0,            #'sb_tls);
-    set_callback(TELOPT_AUTHENTICATION, DO, WONT,       #'start_auth, #'sb_auth);
-  }
-#endif
-}
-
+void send_telopt_tm();
+										    
 // Change the NOECHO and CHARMODE state, called indirectly thru input_to()
 void set_noecho(int flag) {
   // Security check needs H_NOECHO to be specified as follows,
@@ -596,13 +716,29 @@ void set_noecho(int flag) {
   //
   //   void noecho_hook(int flag, int ob) {
   //     if (ob) ob->set_noecho(flag);
-  //   }
+  //   } 
   int i, j;
 
-  if (object_name(previous_object()) != __MASTER_OBJECT__) return;
-  if (!ts[TS_EXTRA, TSE_TELNETNEG]) return; // client does not telnetneg
-
+  // Called by start_telnetsrv or the driver hook.
+  if (extern_call() && object_name(previous_object()) != __MASTER_OBJECT__)
+    return;
+    
+  if (!ts[TS_EXTRA, TSE_TELNETNEG])
+  {
+    // Try one.
+    ts[TS_EXTRA, TSE_TELNETNEG] = -1;
+    send_telopt_tm();
+    pending_noecho = flag;
+    return;
+  }
+  else if(ts[TS_EXTRA, TSE_TELNETNEG]<0)
+  {
+    pending_noecho = flag;
+    return;
+  }
+    
   flag &= 255;
+  last_noecho = flag;
 
   i = Q_TSE_NOECHO;
 
@@ -612,10 +748,17 @@ void set_noecho(int flag) {
       S_TSE_NOECHO(WANT_YES);
       // If CHARMODE and NOECHO are requested (as usual), enter NOECHO
       // only if we could enter CHARMODE, else the player would be blind.
+#ifdef NOECHO_AFTER_CHARMODE
       if (!(flag & INPUT_CHARMODE)) {
         ts[TS_EXTRA, TSE_LOG] += "* trying to get NOECHO\n";
         set_telnet(WILL, TELOPT_ECHO);
       }
+      else
+        ts[TS_EXTRA, TSE_LOG] += "* waiting for CHARMODE to activate NOECHO\n";
+#else
+      ts[TS_EXTRA, TSE_LOG] += "* trying to get NOECHO\n";
+      set_telnet(WILL, TELOPT_ECHO);
+#endif
     }
   } else {
     if (i == YES || i == WANT_YES) {
@@ -634,10 +777,10 @@ void set_noecho(int flag) {
     if (i != YES && j != YES && i != WANT_YES && j != WANT_YES) {
       ts[TS_EXTRA, TSE_LOG] += "* trying to get CHARMODE\n";
 
-      if (Q_REMOTE(ts[TELOPT_LINEMODE, TS_STATE] == YES)) {
+      if (Q_REMOTE(ts[TELOPT_LINEMODE, TS_STATE]) == YES) {
         S_TSE_LM_CHAR(WANT_YES);
         send(({ IAC, SB, TELOPT_LINEMODE, LM_MODE,
-          MODE_SOFT_TAB | MODE_LIT_ECHO, IAC, SE }));
+          MODE_SOFT_TAB, IAC, SE }));
       } else {
         S_TSE_SGA_CHAR(WANT_YES);
         set_telnet(WILL, TELOPT_SGA);
@@ -651,7 +794,7 @@ void set_noecho(int flag) {
       if (j == YES || j == WANT_YES) {
         S_TSE_LM_CHAR(WANT_NO);
         send(({ IAC, SB, TELOPT_LINEMODE, LM_MODE,
-          MODE_EDIT | MODE_SOFT_TAB | MODE_LIT_ECHO, IAC, SE }));
+          MODE_EDIT | MODE_SOFT_TAB, IAC, SE }));
       }
       if (i == YES || i == WANT_YES) {
         S_TSE_SGA_CHAR(WANT_NO);
@@ -660,6 +803,45 @@ void set_noecho(int flag) {
       }
     }
   }
+}
+
+private void start_telnetsrv()
+{
+  ts[TS_EXTRA, TSE_LOG] += "* Start Telnet Server\n";
+    
+   if(pending_noecho)
+   {
+  ts[TS_EXTRA, TSE_LOG] += "* Pending\n";
+     set_noecho(pending_noecho);
+     pending_noecho = 0;
+   }
+}
+
+
+// H_PRINT_PROMPT driver hook.
+void print_prompt(mixed str)
+{
+    int state;
+
+    if (extern_call() && object_name(previous_object()) != __MASTER_OBJECT__ &&
+	this_player() != this_object())
+       return;
+
+    this_object()->receive_message_low(str);    
+
+    state = Q_LOCAL(ts[TELOPT_EOR, TS_STATE]);
+    if (state == YES || state == WANT_NO)
+	efun::binary_message(({ IAC, EOR }), 1);
+    else if(sizeof(str) && str[<1]!='\n')
+	this_object()->set_active_prompt(1);
+}
+
+protected void set_eor_protokoll(int act)
+{
+    int state = Q_LOCAL(ts[TELOPT_EOR, TS_STATE]);
+    
+    if((state == YES || state == WANT_NO) == !act)
+	set_telnet(act?WILL:WONT, TELOPT_EOR);
 }
 
 //
@@ -733,26 +915,22 @@ private int neg_tm(int command, int option) {
     ts[option, TS_STATE] = i;
 
     // got an answer
-    t = utime();
-    i = (t[0]-tm_t[0])*1000 + (t[1]-tm_t[1])/1000;
-    tm_t = 0;
-    i -= 11; // interne Verzoegerung (muss man messen!)
-    if (i < 1) i = 1;
-    tell_object(this_object(), "Hurrikap teilt Dir mit: "
-      "Daten benoetigen von Dir zum Mud und zurueck "+i+" ms.\n");
+    if(tm_t)
+    {
+      t = utime();
+      i = (t[0]-tm_t[0])*1000 + (t[1]-tm_t[1])/1000;
+      tm_t = 0;
+      ts[TS_EXTRA, TSE_LOG] += "* Ping answer: "+i+"ms.\n";
+
+      // i -= 11; // interne Verzoegerung (muss man messen!)
+      if (i < 1) i = 1;
+    
+      this_object()->notify("ping", this_object(), i);
+    }
   }
 
   return 1;
 }
-
-#ifdef __MCCP__
-private int neg_mccp(int command, int option) {
-
-    if(command == DO)
-        return 1;
-    return 0;
-}
-#endif
 
 // start_*() and cb_*() are called on/after succesfull option changes
 // We do the appropriate things then.
@@ -762,50 +940,138 @@ private void start_sb(int command, int option) {
   if (command == WILL) send(({ IAC, SB, option, TELQUAL_SEND, IAC, SE }));
 }
 
+private void start_cs(int command, int option)
+{
+    // The client requests our charset list.
+    if (command == DO && !pointerp(ts[option, TS_SB]))
+    {
+        send(({ IAC, SB, TELOPT_CHARSET, CS_REQUEST }) + (to_array(" UTF-8 ISO-8859-15 ISO-8859-1 windows-1252 US-ASCII") - ({ 0 })) + ({ IAC, SE }));
+        ts[option, TS_SB] = 1; // Indicate, that we have sent our list.
+    }
+}
+
 private void start_lm(int command, int option) {
   if (command != WILL) return;
   if (!ts[option, TS_SB]) ts[option, TS_SB] = allocate(LM_SLC+1);
 
   send(({ IAC, SB, TELOPT_LINEMODE, LM_MODE,
-    MODE_EDIT | MODE_SOFT_TAB | MODE_LIT_ECHO, IAC, SE }));
-  ts[option, TS_SB][LM_MODE] = MODE_EDIT | MODE_SOFT_TAB | MODE_LIT_ECHO;
+    ((last_noecho & INPUT_CHARMODE)?0:MODE_EDIT) | MODE_SOFT_TAB, IAC, SE }));
+  ts[option, TS_SB][LM_MODE] = MODE_EDIT | MODE_SOFT_TAB;
 
   // Flush on every control character
   // remember to prepend 0xff with IACs
   send(({ IAC, SB, TELOPT_LINEMODE, DO,
     LM_FORWARDMASK, IAC, 0xff, IAC, 0xff, IAC, 0xff, IAC, 0xff, IAC, SE }));
   ts[option, TS_SB][LM_FORWARDMASK] = WANT_YES;
-
+  
 }
 
 private void start_eor(int command, int option) {
   // If we are allowed to use EOR whilst displaying a possible prompt
-  // line, mark is as such. This happens unually only at the login.
+  // line, mark is as such. This happens usually only at the login.
   if (command == DO) efun::binary_message(({ IAC, EOR }));
+}
 
-  // Adjust prompt method to appropriate function
-  if (command == DO || command == DONT) modify_prompt();
+private int neg_mccp(int command, int option)
+{
+    if(command == DO)
+	return 1;
+    return 0;
 }
 
 #ifdef __MCCP__
-private void start_mccp(int command, int option) {
+private void start_mccp(int command, int option)
+{
     if(command == DO)
-        efun::configure_interactive(this_object(), IC_MCCP, option);
-    else if(command == DONT) {
-        if(efun::interactive_info(this_object(), IC_MCCP))
-            efun::configure_interactive(this_object(), IC_MCCP, 0);
-        else if(option == TELOPT_COMPRESS2)
-            set_telnet(WILL, TELOPT_COMPRESS);
+#if __EFUN_DEFINED__(start_mccp_compress)
+	start_mccp_compress(option);
+#else
+	configure_interactive(this_object(), IC_MCCP, option);
+#endif
+    else if(command == DONT)
+    {
+#if __EFUN_DEFINED__(end_mccp_compress)
+	if(query_mccp())
+	    end_mccp_compress();
+#else
+	if(interactive_info(this_object(), IC_MCCP))
+	    configure_interactive(this_object(), IC_MCCP, 0);
+#endif
+	else if(option == TELOPT_COMPRESS2)
+	    set_telnet(WILL, TELOPT_COMPRESS);
     }
 }
 #endif
 
 #ifdef __TLS__
-private void start_auth(int command, int option) {
+protected void tls_finished()
+{
+    // We do nothing here, but it may be overriden to check the certificate.
+}
+
+private void tls_callback(int error, object me)
+{
+    if (!error)
+        tls_finished();
+}
+
+private void sb_tls(int command, int option, int* optargs)
+{
+    if(optargs[0] != TELQUAL_SEND)
+        return;
+
+    if(Q_REMOTE(ts[TELOPT_STARTTLS, TS_STATE]) == YES)
+    {
+        call_out(function void()
+        {
+            send(({ IAC, SB, option, TELQUAL_SEND, IAC, SE }));
+            tls_init_connection(this_object(), #'tls_callback);
+        }, 0);
+    }
+    else if(tls_query_connection_state())
+    {
+        call_out(function void()
+        {
+            send(({ IAC, SB, option, TELQUAL_SEND, IAC, SE }));
+            tls_deinit_connection();
+        }, 0);
+    }
+}
+
+private void start_auth(int command, int option)
+{
     if (command == WILL)
         send(({ IAC, SB, option, AUTH_SB_SEND,
-                AUTH_METHOD_SSL, AUTH_WHO_CLIENT_TO_SERVER|AUTH_HOW_ONE_WAY,
+                    AUTH_METHOD_SSL, AUTH_WHO_CLIENT_TO_SERVER|AUTH_HOW_ONE_WAY,
                 IAC, SE }));
+}
+
+private void sb_auth(int command, int option, int* optargs)
+{
+    switch (optargs[0])
+    {
+        case AUTH_SB_IS:
+            if (Q_REMOTE(ts[option, TS_STATE]) != YES)
+                return;
+
+            if (optargs[1] != AUTH_METHOD_SSL ||
+                optargs[2] != AUTH_WHO_CLIENT_TO_SERVER|AUTH_HOW_ONE_WAY ||
+                optargs[3] != AUTH_SSL_START)
+            {
+                set_telnet(DONT, option);
+                return;
+            }
+
+            call_out(function void()
+            {
+                send(({ IAC, SB, option, AUTH_SB_REPLY,
+                            AUTH_METHOD_SSL, AUTH_WHO_CLIENT_TO_SERVER|AUTH_HOW_ONE_WAY,
+                            AUTH_SSL_ACCEPT,
+                        IAC, SE }));
+                tls_init_connection(this_object(), #'tls_callback);
+            }, 0);
+            break;
+    }
 }
 #endif
 
@@ -815,22 +1081,28 @@ private void cb_sga(int command, int option) {
       if (Q_TSE_SGA_CHAR == WANT_YES) {
         S_TSE_SGA_CHAR(YES);
         ts[TS_EXTRA, TSE_LOG] += "* CHARMODE established\n";
+#ifdef NOECHO_AFTER_CHARMODE
         if (Q_TSE_NOECHO == WANT_YES) {
           ts[TS_EXTRA, TSE_LOG] += "* trying to get NOECHO\n";
           set_telnet(WILL, TELOPT_ECHO);
         }
+#endif
       }
       break;
     case WONT:
       switch (Q_TSE_SGA_CHAR) {
         case WANT_NO:
-          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE left\n";       break;
+          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE left\n";
+          S_TSE_SGA_CHAR(NO);
+	  break;
         case WANT_YES:
-          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE denied\n";          break;
+          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE denied\n";
+	  break;
         case YES:
-          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE forcefully left\n"; break;
+          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE forcefully left\n";
+          S_TSE_SGA_CHAR(WANT_YES);
+	  break;
       }
-      S_TSE_SGA_CHAR(NO);
       break;
   }
 }
@@ -846,13 +1118,17 @@ private void cb_echo(int command, int option) {
     case DONT:
       switch (Q_TSE_NOECHO) {
         case WANT_NO:
-          ts[TS_EXTRA, TSE_LOG] += "* NOECHO mode left\n";       break;
+          ts[TS_EXTRA, TSE_LOG] += "* NOECHO mode left\n";
+          S_TSE_NOECHO(NO);
+	  break;
         case WANT_YES:
-          ts[TS_EXTRA, TSE_LOG] += "* NOECHO denied\n";          break;
+          ts[TS_EXTRA, TSE_LOG] += "* NOECHO denied\n";
+	  break;
         case YES:
-          ts[TS_EXTRA, TSE_LOG] += "* NOECHO forcefully left\n"; break;
+          ts[TS_EXTRA, TSE_LOG] += "* NOECHO forcefully left\n"; 
+          S_TSE_NOECHO(WANT_YES);
+	  break;
       }
-      S_TSE_NOECHO(NO);
       break;
   }
 }
@@ -937,11 +1213,8 @@ private void sb_naws(int command, int option, int* optargs) {
   ts[TS_EXTRA, TSE_LOG] +=
     "     Window size: " + cols + " cols, " + lines + " lines\n";
 
-  // inform mudlib
-  // if (pointerp(old)) {
-  //   if (old[0] != cols)  SetProp(P_TTY_COLS, cols);
-  //   if (old[1] != lines) SetProp(P_TTY_ROWS, lines);
-  // }
+  if(!pointerp(old) || old[0] != cols || old[1] != lines)
+     this_object()->notify("window_size", this_object(), cols, lines);
 }
 
 private void sb_xdisp(int command, int option, int* optargs) {
@@ -964,7 +1237,7 @@ private void sb_xdisp(int command, int option, int* optargs) {
 
 private void sb_ttype(int command, int option, int* optargs) {
   string value;
-  int len, i;
+  int len;
   mixed* all;
 
   if (sizeof(optargs) < 2) return;
@@ -997,8 +1270,8 @@ private void sb_ttype(int command, int option, int* optargs) {
   // some time, especially on slow links. MS windows 2000's and XP's
   // telnet have an emulation with key on-off sequences rather that chars.
   // Commands typed while TTYPE is negotiated may be wrong with that clients.
-
-  i = member(all[1], value);
+ 
+  int i = member(all[1], value);
   if (i < 0) {
     all[1] += ({ value });
     // get next TTYPE
@@ -1014,7 +1287,7 @@ private void sb_ttype(int command, int option, int* optargs) {
       case 1:
         if (Q_REMOTE(ts[option, TS_STATE]) == YES) start_sb(WILL, option);
         break; // just retry
-      case 2:
+      case 2: 
         tel_error("could not get initial TTYPE, may be rfc930 client");
         if (value != "vtnt") break;
         tel_error("trying trick to restart TTYPE list on windows client");
@@ -1026,6 +1299,9 @@ private void sb_ttype(int command, int option, int* optargs) {
         break;
     }
   }
+#else
+  if (member(all[1], value) < 0)
+    all[1] += ({ value });
 #endif
 
   ts[option, TS_SB] = all;
@@ -1036,9 +1312,26 @@ private void sb_ttype(int command, int option, int* optargs) {
   // send umlauts.
   if (lower_case(value) == "xterm")
     set_telnet(DO, TELOPT_BINARY);
+
+#ifdef CLIENT_PING_WORKAROUND
+  if(needs_ping_workaround && tm_t)
+  {
+    int *t = utime();
+    int  d = (t[0]-tm_t[0])*1000 + (t[1]-tm_t[1])/1000;
+
+    tm_t = 0;
+    ts[TS_EXTRA, TSE_LOG] += "* Ping (via TTYPE) answer: "+d+"ms.\n";
+
+    if(d < 1) d = 1;
+    this_object()->notify("ping", this_object(), d);
+  }
+  else if(member(([PING_WORKAROUND_CLIENTS]), value))
+    needs_ping_workaround = 1;
+#endif
+
 }
 
-private void sb_tspeed(int command, int option, int* optargs) {
+private void sb_tspeed(int command, int option, int* optargs) {            
   int i, j, os;
 
   os = sizeof(optargs);
@@ -1068,6 +1361,79 @@ private void sb_tspeed(int command, int option, int* optargs) {
     "     Transmit speed " + ts[option, TS_SB][0] +
     ", receive speed " + ts[option, TS_SB][1] + "\n";
 
+}
+
+private void sb_charset(int command, int option, int* optargs)
+{
+    if (!sizeof(optargs))
+        return;
+
+    switch (optargs[0])
+    {
+        case CS_REQUEST:
+        {
+            int pos = 1;
+            string *charsets, *icharsets;
+
+            if (ts[option, TS_SB] == 1)
+            {
+                // If we have sent our list, we must reject now.
+                send(({ IAC, SB, TELOPT_CHARSET, CS_REJECTED, IAC, SE }));
+            }
+
+            // We got a list from the server.
+            if (optargs[1] == '[')
+            {
+                pos = member(optargs, ']');
+                if (pos < 0)
+                {
+                    send(({ IAC, SB, TELOPT_CHARSET, CS_REJECTED, IAC, SE }));
+                    break;
+                }
+
+                pos += 2;
+            }
+
+#if __VERSION__ > "3.5.2"
+            charsets = map(explode(to_bytes(optargs[pos+1..]), to_bytes(optargs[pos..pos])) - ({ to_bytes(({})) }), #'to_text, "ASCII//IGNORE");
+#else
+            charsets = explode(to_string(optargs[pos+1..]), to_string(optargs[pos..pos])) - ({ "" });
+#endif
+            icharsets = map(charsets, (: lower_case($1) :));
+            ts[option, TS_SB] = charsets;
+
+            // We prefer UTF-8
+            if ((pos = member(icharsets, "utf-8")) >= 0)
+            {
+                ts[TS_EXTRA, TSE_ENCODING] = "UTF-8";
+                send(({ IAC, SB, TELOPT_CHARSET, CS_ACCEPTED }) + to_array(charsets[pos]) + ({ IAC, SE }));
+            }
+            else if (sizeof(icharsets))
+            {
+                ts[TS_EXTRA, TSE_ENCODING] = icharsets[0];
+                send(({ IAC, SB, TELOPT_CHARSET, CS_ACCEPTED }) + to_array(charsets[0]) + ({ IAC, SE }));
+            }
+            else
+            {
+                ts[TS_EXTRA, TSE_ENCODING] = 0;
+
+                send(({ IAC, SB, TELOPT_CHARSET, CS_REJECTED, IAC, SE }));
+                update_encoding();
+                break;
+            }
+
+            update_encoding();
+            ts[TS_EXTRA, TSE_LOG] += "     Charset: " + ts[TS_EXTRA, TSE_ENCODING] + "\n";
+
+            break;
+        }
+
+        case CS_ACCEPTED:
+            ts[TS_EXTRA, TSE_ENCODING] = to_string(optargs[1..]);
+            update_encoding();
+            ts[TS_EXTRA, TSE_LOG] += "     Charset: " + to_string(optargs[1..])+ "\n";
+            break;
+    }
 }
 
 private void sb_env(int command, int option, int* optargs) {
@@ -1104,12 +1470,12 @@ private void sb_env(int command, int option, int* optargs) {
       tel_error("SB ENV contained bad characters");
     mix += ({ s });
   }
-
+        
   // Due to some weird implementation mistakes (see RFC 1571)
   // we can't be shure if VALUE or VAR are valid or swapped.
   // So we don't distuingush VAR and USERVAR and assume that every
   // variable's name is followed by its value.
-
+        
   s = 0;
   env = ([]);
   os = sizeof(mix);
@@ -1165,10 +1531,12 @@ private void sb_line(int command, int option, int* optargs) {
         case WANT_YES:
           S_TSE_LM_CHAR(YES);
           ts[TS_EXTRA, TSE_LOG] += "* CHARMODE established\n";
+#ifdef NOECHO_AFTER_CHARMODE
           if (Q_TSE_NOECHO == WANT_YES) {
             ts[TS_EXTRA, TSE_LOG] += "* trying to get NOECHO\n";
             set_telnet(WILL, TELOPT_ECHO);
           }
+#endif
           break;
       }
       ts[option, TS_SB][LM_MODE] = optargs[1] & ~MODE_ACK;
@@ -1184,7 +1552,7 @@ private void sb_line(int command, int option, int* optargs) {
       }
       return tel_error("SB LINEMODE DO/DONT FORWARDMASK not "
         "allowed for client");
-      return;
+
     // client is requested to use forwardmask
     case WILL:
       if (optargs[1] != LM_FORWARDMASK) {
@@ -1193,7 +1561,7 @@ private void sb_line(int command, int option, int* optargs) {
       }
       state = ts[option, TS_SB][LM_FORWARDMASK];
       switch (state) {
-        case NO:
+        case NO: 
           tel_error("got spontan WILL FORWARDMASK (denied)");
           break;
         case YES:
@@ -1214,7 +1582,7 @@ private void sb_line(int command, int option, int* optargs) {
       }
       state = ts[option, TS_SB][LM_FORWARDMASK];
       switch (state) {
-        case YES:
+        case YES: 
           send(({ IAC, SB, option, DONT, LM_FORWARDMASK, IAC, SE }));
           ts[option, TS_SB][LM_FORWARDMASK] = NO;
           break;
@@ -1279,66 +1647,307 @@ private void sb_line(int command, int option, int* optargs) {
   }
 }
 
-#ifdef __TLS__
-protected void tls_finished() {
-    // We do nothing here, but it may be overriden to check the certificate.
-}
-
-private void tls_callback(int error, object me) {
-    if (!error)
-        tls_finished();
-}
-
-private void sb_tls(int command, int option, int* optargs) {
-    if(optargs[0] != TELQUAL_SEND)
+private void start_mxp(int command, int option)
+{
+    if (command != WILL)
         return;
 
-    if(Q_REMOTE(ts[TELOPT_STARTTLS, TS_STATE]) == YES) {
-        efun::call_out(function void() {
-            send(({ IAC, SB, option, TELQUAL_SEND, IAC, SE }));
-            efun::tls_init_connection(this_object(), #'tls_callback);
-        }, 0);
-    }
-    else if(efun::tls_query_connection_state()) {
-        efun::call_out(function void() {
-            send(({ IAC, SB, option, TELQUAL_SEND, IAC, SE }));
-            efun::tls_deinit_connection();
-        }, 0);
+    ts[TS_EXTRA, TSE_LOG] += "* Sending MXP initialization\n";
+    send(({ IAC, SB, TELOPT_MXP, IAC, SE }));
+    efun::binary_message(to_array("\e[7z")); // Lock to locked mode for now.
+
+    this_object()->init_mxp();
+}
+
+private void start_gmcp(int command, int option)
+{
+    if (command != DO)
+        return;
+
+    this_object()->init_gmcp();
+}
+
+private void sb_gmcp(int command, int option, int* optargs)
+{
+    this_object()->receive_gmcp(to_text(optargs, "UTF-8//IGNORE"));
+}
+
+#define MSSP_VAR 1
+#define MSSP_VAL 2
+private void send_mssp_var(string name, <string|string*> values)
+{
+    efun::binary_message(({ MSSP_VAR }), 1);
+    efun::binary_message(to_array(name), 1);
+
+    if (stringp(values))
+        values = ({ values });
+    foreach (string value: values)
+    {
+        efun::binary_message(({ MSSP_VAL }), 1);
+        efun::binary_message(to_array(value), 1);
     }
 }
 
-private void sb_auth(int command, int option, int* optargs) {
-    switch (optargs[0]) {
-        case AUTH_SB_IS:
-            if (Q_REMOTE(ts[option, TS_STATE]) != YES)
-                return;
+protected void send_mssp_vars(closure print)
+{
+    // Required
+    funcall(print, "NAME", MUD_NAME);
+    funcall(print, "PLAYERS", to_string(sizeof(users())));
+    funcall(print, "UPTIME", to_string(__BOOT_TIME__));
 
-            if (optargs[1] != AUTH_METHOD_SSL ||
-                optargs[2] != AUTH_WHO_CLIENT_TO_SERVER|AUTH_HOW_ONE_WAY ||
-                optargs[3] != AUTH_SSL_START) {
+    // Optional
+    funcall(print, "HOSTNAME", HOST_NAME);
 
-                set_telnet(DONT, option);
-                return;
-            }
+    int *ports = driver_info(DI_MUD_PORTS);
+    funcall(print, "PORT", map(ports[1..] + ports[0..0], #'to_string));
 
-            efun::call_out(function void() {
-                send(({ IAC, SB, option, AUTH_SB_REPLY,
-                        AUTH_METHOD_SSL, AUTH_WHO_CLIENT_TO_SERVER|AUTH_HOW_ONE_WAY,
-                        AUTH_SSL_ACCEPT,
-                        IAC, SE }));
-                efun::tls_init_connection(this_object(), #'tls_callback);
-            }, 0);
-            break;
-    }
-}
+    if (sizeof(EMAIL))
+        funcall(print, "CONTACT", EMAIL);
+    funcall(print, "LANUAGE", "German");
+    funcall(print, "CODEBASE", "UNIlib");
+    funcall(print, "FAMILY", "LPMud");
+    funcall(print, "INTERMUD", "I2");
+
+#ifdef UNItopia
+    funcall(print, "CREATED", "1992");
+    funcall(print, "LOCATION", "DE");
+    funcall(print, "WEBSITE", "https://www.UNItopia.de");
+    funcall(print, "GENRE", "Fantasy");
+    funcall(print, "SUBGENRE", "Medieval Fantasy");
+    funcall(print, "GAMEPLAY", "Adventure");
+    funcall(print, "STATUS", "Live");
 #endif
+
+    funcall(print, "ANSI", "1");
+    funcall(print, "MCCP", "1");
+    funcall(print, "VT100", "1");
+    funcall(print, "XTERM 256 COLORS", "1");
+    funcall(print, "GMCP", "1");
+    funcall(print, "MXP", "1");
+}
+
+private void start_mssp(int command, int option)
+{
+    if (command != DO)
+        return;
+
+    efun::binary_message(({IAC, SB, TELOPT_MSSP}), 1);
+
+    send_mssp_vars(#'send_mssp_var);
+
+    efun::binary_message(({IAC, SE}), 1);
+}
+
+void create() {
+  ts[TS_EXTRA, TSE_LOG] = "";
+
+  // set how we would like the options' states
+  set_callback(TELOPT_NAWS,     DO,         WONT,       0,           #'sb_naws);
+  set_callback(TELOPT_STATUS  , DONT,       WILL,       0,           #'sb_status);
+  set_callback(TELOPT_TTYPE,    DO,         WONT,       #'start_sb,  #'sb_ttype);
+  set_callback(TELOPT_TSPEED,   DO,         WONT,       #'start_sb,  #'sb_tspeed);
+  set_callback(TELOPT_NEWENV,   DO,         WONT,       #'start_sb,  #'sb_env);
+  set_callback(TELOPT_ENVIRON,  DO,         WONT,       #'start_sb,  #'sb_env);
+  set_callback(TELOPT_XDISPLOC, DO,         WONT,       #'start_sb,  #'sb_xdisp);
+  set_callback(TELOPT_CHARSET,  DO,         WILL,       #'start_cs,  #'sb_charset);
+
+  set_callback(TELOPT_EOR,      DONT,       WILL,       #'start_eor, 0);
+  set_callback(TELOPT_LINEMODE, DO,         WONT,       #'start_lm,  #'sb_line);
+  set_callback(TELOPT_TM ,      #'neg_tm,   #'neg_tm,   #'neg_tm,    0);
+  set_callback(TELOPT_BINARY,   #'neg_bin,  #'neg_bin,  0,           0);
+
+  set_callback(TELOPT_SGA,      #'neg_sga,  #'neg_sga,  #'cb_sga,    0);
+  set_callback(TELOPT_ECHO,     #'neg_echo, WONT,       #'cb_echo,   0);
+#ifdef __MCCP__
+  set_callback(TELOPT_COMPRESS2, DONT,      WILL,       #'start_mccp, 0);
+  set_callback(TELOPT_COMPRESS, DONT,       #'neg_mccp, #'start_mccp, 0);
+#endif
+#ifdef __TLS__
+  if (tls_available())
+  {
+    set_callback(TELOPT_STARTTLS, DO,       WONT,       0,            #'sb_tls);
+    set_callback(TELOPT_AUTHENTICATION, DO, WONT,       #'start_auth, #'sb_auth);
+  }
+#endif
+  set_callback(TELOPT_MSSP,     DONT,       WILL,       #'start_mssp, 0);
+  set_callback(TELOPT_MXP,      DO,         WONT,       #'start_mxp,  0);
+#if __EFUN_DEFINED__(json_serialize)
+  set_callback(TELOPT_GMCP,     DONT,       WILL,       #'start_gmcp, #'sb_gmcp);
+#endif
+}
 
 // helper functions, called from mudlib
 void send_telopt_tm() {
-  tm_t = utime();
+  if(extern_call())
+    tm_t = utime();
+
+#ifdef CLIENT_PING_WORKAROUND
+  if(needs_ping_workaround)
+    start_sb(WILL, TELOPT_TTYPE);
+#endif
   set_telnet(DO, TELOPT_TM);
 }
 
+#ifndef HomeMUD
+static
+#endif
 void _dumptelnegs() {
   printf(ts[TS_EXTRA, TSE_LOG]);
+}
+
+#include <parse_com.h>
+#include <message.h>
+#include <level.h>
+
+
+public string query_telnet_client(int flag_size, int flag_prot)
+{
+    mixed client;
+    mixed sb; 
+    object po = previous_object();
+    string size,prot;
+    if (!adminp(this_interactive()) || !po
+            || this_player() != this_interactive()
+            || strstr(object_name(po),"/obj/zauberstab")!=0
+            || environment(po) != this_interactive()
+            || geteuid(po) != geteuid(this_interactive()))
+    {
+        return "Zugriffsfehler";
+    }
+    if (!flag_prot)
+    {
+        prot = "";
+    }
+    else
+    {
+        prot = ({int})this_object()->has_mxp()?" MXP":"";
+        prot+= ({int})this_object()->has_gmcp()?" GMCP":"";
+        if (tls_query_connection_state())
+        {
+            if (has_telnet_option(TELOPT_STARTTLS, 1))
+                prot += " TLS via STARTTLS";
+            else if (has_telnet_option(TELOPT_AUTHENTICATION, 1))
+                prot += " TLS via AUTH";
+            else
+                prot += " TLS via Port";
+        }
+        if (ts[TS_EXTRA, TSE_ENCODING])
+            prot += " " + ts[TS_EXTRA, TSE_ENCODING];
+    }
+    if (!flag_size)
+    {
+        size = "";
+    }
+    else if (query_telnet(TELOPT_NAWS, &sb) && sizeof(sb)==2)
+    {
+        size = sprintf(" %dx%d",sb[0],sb[1]);
+    }
+    else
+    {
+        size = " ?x?";
+    }
+    if(query_telnet(TELOPT_TTYPE, &client) && sizeof(client)>1 
+            && sizeof(client[1]) && stringp(client[1][0])) 
+        return client[1][0]+size+prot;
+    return "Unbekannt"+size+prot;
+}
+
+static string query_client_encoding()
+{
+    if (client_encoding)
+        return client_encoding;
+    if (ts[TS_EXTRA, TSE_ENCODING])
+        return ts[TS_EXTRA, TSE_ENCODING];
+    return "UTF-8";
+}
+
+static string query_set_client_encoding()
+{
+    return client_encoding;
+}
+
+static void set_client_encoding(string enc)
+{
+    client_encoding = enc;
+    update_encoding();
+}
+
+protected void update_encoding()
+{
+#if __VERSION__ > "3.5.2"
+    string enc = query_client_encoding();
+    if (lower_case(enc)[0..2] != "utf")
+        enc = enc + "//TRANSLIT";
+
+    configure_interactive(this_object(), IC_ENCODING, enc);
+#endif
+}
+
+/*
+FUNKTION: has_unicode
+DEKLARATION: int has_unicode()
+BESCHREIBUNG:
+Liefert 1 zurueck, wenn der Spieler in der Lage ist,
+Unicode-Zeichen ohne Konvertierung auszugeben.
+GRUPPEN: spieler
+*/
+int has_unicode()
+{
+    return lower_case(query_client_encoding())[0..2] == "utf";
+}
+
+/*
+FUNKTION: has_only_ascii
+DEKLARATION: int has_only_ascii()
+BESCHREIBUNG:
+Liefert 1 zurueck, wenn der Spieler nicht in der Lage ist,
+Zeichen abseits des ASCII-Zeichensatzes ohne Konvertierung auszugeben.
+GRUPPEN: spieler
+*/
+int has_only_ascii()
+{
+    return lower_case(query_client_encoding()) == "ascii";
+}
+
+private void ping_no_answer(object ob);
+private void ping_answer(string controller, object ob, int ms)
+{
+    remove_call_out(#'ping_no_answer);
+    ob->delete_controller("notify_ping", #'ping_answer);
+    this_object()->send_message_to(this_object(),
+	MT_NOTIFY, MA_UNKNOWN, 
+	sprintf("%sPing-Antwortzeit%s: %d ms.\n",
+	    (ob==this_object())?"Deine ":"",
+	    (ob!=this_object())?" von "+({string})ob->query_real_cap_name():"",
+	    ms));
+}
+
+private void ping_no_answer(object ob)
+{
+    ob->delete_controller("notify_ping", #'ping_answer);
+    this_object()->send_message_to(this_object(),
+	MT_NOTIFY, MA_UNKNOWN, 
+	sprintf("Keine Ping-Antwort von %s innerhalb von 5 Sekunden.\n",
+	    (ob!=this_object())?({string})ob->query_real_cap_name():"Dir"));
+}
+
+nomask int ping_command(string str)
+{
+    object ob;
+        
+    str = trim(str||"");
+    if(!sizeof(str) || !adminp(this_player()))
+	ob = this_player();
+    else
+  ob = find_object(str);
+    
+    ob->add_controller("notify_ping", #'ping_answer);
+    call_out(#'ping_no_answer, 5, ob);
+    ob->send_telopt_tm();
+    return 1;
+}
+
+protected void add_actions()
+{
+    add_action("ping_command", "ping");
 }

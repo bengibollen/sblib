@@ -4,6 +4,8 @@
 #include "/inc/player.h"
 #include "/inc/input_to.h"
 
+inherit "/lib/telnet_neg.c";
+
 private string name;          // Player's name
 private int state;           // Current player state
 private int level;          // Player level
