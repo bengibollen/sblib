@@ -20,7 +20,6 @@ public void setup_uid_management() {
     set_driver_hook(H_CREATE_SUPER, "create");
     set_driver_hook(H_CREATE_OB, "create");
     set_driver_hook(H_CREATE_CLONE, "create");
-    set_driver_hook(H_TELNET_NEG, "got_telnet");
 }
 
 public void setup_all() {

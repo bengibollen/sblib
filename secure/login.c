@@ -4,7 +4,7 @@
 #include <input_to.h>  // For INPUT_* flags
 #include "/inc/log.h"
 
-inherit "/lib/telnetneg.c";
+// inherit "/lib/telnetneg.c";
 
 
 // Constants
@@ -48,8 +48,8 @@ public void create() {
 public void logon() {
     logger->info("New login session started");
     logger->debug("Object name: %s", object_name(this_object()));
-    set_telnet(WILL, TELOPT_ECHO);
-    set_telnet(WONT, TELOPT_ECHO);
+    // set_telnet(WILL, TELOPT_ECHO);
+    // set_telnet(WONT, TELOPT_ECHO);
     write("\nWelcome to SBLib MUD!\n");
     show_banner();
     prompt_name();
@@ -140,6 +140,7 @@ private void login_success() {
     logger->info("Successful login for user: %s", name);
     logger->debug("Object name: %s", object_name(this_object()));
     logger->debug("This player object name: %s", object_name(this_player()));
+    logger->debug("This interactive object name: %s", object_name(this_interactive()));
 
     write("\nWelcome back, " + capitalize(name) + "!\n");
     player = clone_object("/obj/player");
@@ -154,7 +155,10 @@ private void login_success() {
 
     logger->info("Successfully cloned player object: %s", object_name(player));
     
-    if (!exec(player, this_player()))
+    int success = exec(player, this_object());
+    logger->debug("Exec result: %d", success);
+
+    if (!success)
     {
         logger->error("Failed to exec player object");
         destruct(player);
