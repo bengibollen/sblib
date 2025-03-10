@@ -211,8 +211,7 @@ add_tmp_stat(int stat, int ds, int dt)
     delta_stat[stat] += ds;
 
     dt = MIN(dt, F_TMP_STAT_MAX_TIME);
-    set_alarm(itof(dt * F_INTERVAL_BETWEEN_HP_HEALING), 0.0,
-        &expire_tmp_stat(stat, ds));
+    call_out(#'expire_tmp_stat(stat, ds), (float) (dt * F_INTERVAL_BETWEEN_HP_HEALING));
 
     return 1;
 }

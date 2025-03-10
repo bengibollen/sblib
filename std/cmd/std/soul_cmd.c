@@ -19,7 +19,6 @@
 
 #pragma no_clone
 #pragma strict_types
-#pragma save_binary
 
 inherit "/cmd/std/command_driver";
 

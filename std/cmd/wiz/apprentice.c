@@ -50,7 +50,6 @@
 #pragma no_clone
 #pragma no_inherit
 #pragma strict_types
-#pragma save_binary
 
 inherit "/cmd/std/tracer_tool_base.c";
 

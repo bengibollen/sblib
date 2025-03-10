@@ -10,7 +10,6 @@
 
 #pragma no_clone
 #pragma no_inherit
-#pragma save_binary
 #pragma strict_types
 #pragma no_shadow
 

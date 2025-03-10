@@ -108,7 +108,7 @@
 #define MONSTER_OBJECT     ("/std/monster")
 #define OBJECT_OBJECT      ("/std/object")
 #define PARALYZE_OBJECT    ("/std/paralyze")
-#define PLAYER_OBJECT      ("/std/player_pub")
+#define PLAYER_OBJECT      ("/std/player")
 #define POISON_OBJECT      ("/std/poison_effect")
 #define POTION_OBJECT      ("/std/potion")
 #define PROJECTILE_OBJECT  ("/std/projectile")

@@ -4,7 +4,6 @@
    Some routines for default descriptions of sublocations
 */
 
-#pragma save_binary
 
 #include <subloc.h>
 #include <composite.h>

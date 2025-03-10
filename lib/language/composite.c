@@ -1,7 +1,6 @@
 /*
  *  Description routines, composite sentences
  */
-#pragma save_binary
 #pragma strict_types
 
 #include <language.h>

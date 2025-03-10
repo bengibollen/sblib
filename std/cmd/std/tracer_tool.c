@@ -24,7 +24,6 @@
  */
 
 #pragma no_clone
-#pragma save_binary
 #pragma strict_types
 
 inherit "/cmd/std/tracer_tool_base";

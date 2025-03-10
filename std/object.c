@@ -6,10 +6,7 @@
  * $Id:$
  */
 
-#pragma save_binary
 #pragma strict_types
-
-inherit "/std/callout";
 
 #include <composite.h>
 #include <language.h>
@@ -90,39 +87,6 @@ parse_command_adjectiv_id_list()
 }
 
 /*
- * Function name: set_heart_beat
- * Description:   Emulate old heartbeat code
- * Arguments:     repeat - 1 to enable, 0 to disable
- * Returns:       Return value from set_alarm()
- */
-nomask int
-set_heart_beat(mixed repeat, string func = "heart_beat")
-{
-    float delay;
-    int ret;
-    object tp;
-
-    if (intp(repeat))
-        delay = itof(repeat * 2);
-    else if (floatp(repeat))
-        delay = repeat;
-    else
-        throw("Wrong argument 1 to set_heart_beat.\n");
-
-    if (hb_index)
-        remove_alarm(hb_index);
-
-    if (delay > 0.0)
-    {
-        tp = this_player();
-        set_this_player(0);
-        ret = set_alarm(delay, delay, mkfunction(func));
-        set_this_player(tp);
-    }
-    return hb_index = ret;
-}
-
-/*
  * Function name: create_object
  * Description:   Create the object (Default for clones)
  */
@@ -166,7 +130,7 @@ random_reset()
         return 0.0;
 
     /* Default interval factor 100 leads to 90 minutes. */
-    mean = 540000.0 / itof(reset_interval);
+    mean = 540000.0 / (float) reset_interval;
     reset_time = -log(rnd()) * mean;
 
     if (reset_time < (mean * 0.5))
@@ -186,18 +150,18 @@ random_reset()
 public nomask void
 reset()
 {
-    mixed *calls = get_all_alarms();
+    mixed *calls = call_out_info();
     int index = sizeof(calls);
 
     while(--index >= 0)
         if (calls[index][1] == "reset")
-            remove_alarm(calls[index][0]);
+            remove_call_out(calls[index][0]);
 
     if (!reset_interval)
         return;
 
     if (function_exists("reset_object", this_object()))
-        set_alarm(random_reset(), 0.0, reset);
+        call_out("reset", (int) random_reset()));
 
     this_object()->reset_object();
 }
@@ -210,12 +174,12 @@ reset()
 nomask public void
 disable_reset()
 {
-    mixed *calls = get_all_alarms();
+    mixed *calls = call_out_info();
     int index = sizeof(calls);
 
     while(--index >= 0)
         if (calls[index][1] == "reset")
-            remove_alarm(calls[index][0]);
+            remove_call_out(calls[index][0]);
 
     reset_interval = 0;
 }
@@ -2411,7 +2375,7 @@ search_object(string str)
     }
     else
     {
-        set_alarm(itof(time), 0.0, &search_now( ({ this_player(), str }) ));
+        set_alarm((float) time, 0.0, &search_now( ({ this_player(), str }) ));
         seteuid(getuid(this_object()));
         obj = clone_object("/std/paralyze");
         if (query_prop(ROOM_I_IS))

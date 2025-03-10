@@ -6,7 +6,6 @@
 
 #pragma no_clone
 #pragma no_inherit
-#pragma save_binary
 #pragma strict_types
 
 inherit "/cmd/std/command_driver";
@@ -107,7 +106,7 @@ create()
     NoNews = ({
 		"Luchshaya novost' - otsutstvie novostey!\n",
 		"Hadashot tovot she-ein hadashot!\n",
-		"Inga nyheter är bra nyheter!\n",
+		"Inga nyheter ï¿½r bra nyheter!\n",
 		"No notizie, buone notizie!\n",
 		"Nuuzu nai wa ii nuuzu desu yo!\n",
 		"Good news: NO news!\n",

@@ -12,7 +12,6 @@
 
 #pragma no_inherit
 #pragma strict_types
-#pragma save_binary
 
 inherit "/std/shadow";
 

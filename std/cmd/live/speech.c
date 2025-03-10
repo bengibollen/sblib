@@ -18,7 +18,6 @@
 
 #pragma no_clone
 #pragma no_inherit
-#pragma save_binary
 #pragma strict_types
 
 inherit "/cmd/std/command_driver";

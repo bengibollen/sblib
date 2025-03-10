@@ -8,19 +8,19 @@
 #define MACROS_DEF
 
 #ifndef CONFIG_DEFINED
-#include "/sys/config.h"
+#include "/conf/config.h"
 #endif
 
 #ifndef CONST_DEF
-#include "/sys/const.h"
+#include <const.h>
 #endif
 
 #ifndef LANG_DEF
-#include "/sys/language.h"
+#include <language.h>
 #endif
 
 #ifndef PROP_DEF
-#include "/sys/stdproperties.h"
+#include <stdproperties.h>
 #endif
 
 /*

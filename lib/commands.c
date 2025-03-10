@@ -9,7 +9,6 @@
 
 #pragma no_clone
 #pragma no_shadow
-#pragma save_binary
 #pragma strict_types
 
 #include <adverbs.h>

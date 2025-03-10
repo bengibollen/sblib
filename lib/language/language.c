@@ -5,7 +5,6 @@
  * to translate a numerical value to an associated state description.
  */
 
-#pragma save_binary
 #pragma strict_types
 
 #include <state_desc.h>

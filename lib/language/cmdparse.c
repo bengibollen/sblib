@@ -13,7 +13,6 @@
 
   For details on %i and %s  see /doc/efun/parse_command
 */
-#pragma save_binary
 
 #include <macros.h>
 #include <std.h>
