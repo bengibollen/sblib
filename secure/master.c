@@ -68,11 +68,11 @@ private void log_message(string type, string msg, varargs mixed *args) {
 
 // ---------- MANDATORY: File Security ----------
 string valid_read(string path, string uid, string func, object|lwobject obj) {
-    return "";  // TODO: Implement proper security
+    return path;  // TODO: Implement proper security
 }
 
 string valid_write(string path, string uid, string func, object|lwobject ob) {
-    return "";  // TODO: Implement proper security
+    return path;  // TODO: Implement proper security
 }
 
 // ---------- MANDATORY: File Resolution ----------

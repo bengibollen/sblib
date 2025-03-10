@@ -356,4 +356,8 @@
 // UIDs
 #define ROOT_UID "ROOT"
 
+
+// Log file
+#define LOG_FILE "/lib/log"
+
 #endif // CONFIG_H

@@ -1,5 +1,5 @@
 /*
- * /sys/files.h
+ * /inc/files.h
  *
  * This inclusion files contains the filenames of most mudlib modules in
  * definitions. If, except for #include or inherit, you ever need to make
@@ -11,33 +11,33 @@
 
 /* The section /cmd */
 
-#define CMD_LIVE_INFO      ("/cmd/live/info")
-#define CMD_LIVE_ITEMS     ("/cmd/live/items")
-#define CMD_LIVE_MAGIC     ("/cmd/live/magic")
-#define CMD_LIVE_SOCIAL    ("/cmd/live/social")
-#define CMD_LIVE_SPEECH    ("/cmd/live/speech")
-#define CMD_LIVE_STATE     ("/cmd/live/state")
-#define CMD_LIVE_THIEF     ("/cmd/live/thief")
-#define CMD_LIVE_THINGS    ("/cmd/live/things")
+#define CMD_LIVE_INFO      ("/std/cmd/live/info")
+#define CMD_LIVE_ITEMS     ("/std/cmd/live/items")
+#define CMD_LIVE_MAGIC     ("/std/cmd/live/magic")
+#define CMD_LIVE_SOCIAL    ("/std/cmd/live/social")
+#define CMD_LIVE_SPEECH    ("/std/cmd/live/speech")
+#define CMD_LIVE_STATE     ("/std/cmd/live/state")
+#define CMD_LIVE_THIEF     ("/std/cmd/live/thief")
+#define CMD_LIVE_THINGS    ("/std/cmd/live/things")
 
-#define COMMAND_DRIVER     ("/cmd/std/command_driver")
-#define SOUL_CMD           ("/cmd/std/soul_cmd")
-#define TRACER_TOOL_SOUL   ("/cmd/std/tracer_tool")
+#define COMMAND_DRIVER     ("/std/cmd/std/command_driver")
+#define SOUL_CMD           ("/std/cmd/std/soul_cmd")
+#define TRACER_TOOL_SOUL   ("/std/cmd/std/tracer_tool")
 
-#define WIZ_CMD_MORTAL     ("/cmd/wiz/mortal")
-#define WIZ_CMD_APPRENTICE ("/cmd/wiz/apprentice")
-#define WIZ_CMD_PILGRIM    ("/cmd/wiz/pilgrim")
-#define WIZ_CMD_RETIRED    ("/cmd/wiz/retired")
-#define WIZ_CMD_NORMAL     ("/cmd/wiz/normal")
-#define WIZ_CMD_HELPER     ("/cmd/wiz/helper")
-#define WIZ_CMD_MAGE       ("/cmd/wiz/mage")
-#define WIZ_CMD_LORD       ("/cmd/wiz/lord")
-#define WIZ_CMD_ARCH       ("/cmd/wiz/arch")
-#define WIZ_CMD_KEEPER     ("/cmd/wiz/keeper")
+#define WIZ_CMD_MORTAL     ("/std/cmd/wiz/mortal")
+#define WIZ_CMD_APPRENTICE ("/std/cmd/wiz/apprentice")
+#define WIZ_CMD_PILGRIM    ("/std/cmd/wiz/pilgrim")
+#define WIZ_CMD_RETIRED    ("/std/cmd/wiz/retired")
+#define WIZ_CMD_NORMAL     ("/std/cmd/wiz/normal")
+#define WIZ_CMD_HELPER     ("/std/cmd/wiz/helper")
+#define WIZ_CMD_MAGE       ("/std/cmd/wiz/mage")
+#define WIZ_CMD_LORD       ("/std/cmd/wiz/lord")
+#define WIZ_CMD_ARCH       ("/std/cmd/wiz/arch")
+#define WIZ_CMD_KEEPER     ("/std/cmd/wiz/keeper")
 
-#define JUNIOR_TOOL        ("/cmd/wiz/junior_tool")
-#define JUNIOR_SHADOW      ("/cmd/wiz/junior_shadow")
-#define MBS_SOUL           ("/cmd/wiz/mbs")
+#define JUNIOR_TOOL        ("/std/cmd/wiz/junior_tool")
+#define JUNIOR_SHADOW      ("/std/cmd/wiz/junior_shadow")
+#define MBS_SOUL           ("/std/cmd/wiz/mbs")
 
 /* The section /lib */
 
@@ -108,8 +108,7 @@
 #define MONSTER_OBJECT     ("/std/monster")
 #define OBJECT_OBJECT      ("/std/object")
 #define PARALYZE_OBJECT    ("/std/paralyze")
-#define PLAYER_PUB_OBJECT  ("/std/player_pub")
-#define PLAYER_SEC_OBJECT  ("/std/player_sec")
+#define PLAYER_OBJECT      ("/std/player_pub")
 #define POISON_OBJECT      ("/std/poison_effect")
 #define POTION_OBJECT      ("/std/potion")
 #define PROJECTILE_OBJECT  ("/std/projectile")

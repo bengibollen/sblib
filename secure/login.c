@@ -1,8 +1,10 @@
 #pragma strict_types
 #pragma no_inherit
 
+#include <config.h>
 #include <input_to.h>  // For INPUT_* flags
-#include "/inc/log.h"
+#include <log.h>       // For logging
+#include <files.h>     // For PLAYER_OBJECT
 
 // inherit "/lib/telnetneg.c";
 
@@ -35,7 +37,7 @@ private string name;
 private int time_of_login;
 private int login_attempts;
 private int current_state;
-private object logger = load_object("/sys/log");
+private object logger = load_object(LOG_FILE);
 
 public void create() {
     logger->info("=== Login Object Created ===");
@@ -48,8 +50,7 @@ public void create() {
 public void logon() {
     logger->info("New login session started");
     logger->debug("Object name: %s", object_name(this_object()));
-    // set_telnet(WILL, TELOPT_ECHO);
-    // set_telnet(WONT, TELOPT_ECHO);
+
     write("\nWelcome to SBLib MUD!\n");
     show_banner();
     prompt_name();
@@ -113,7 +114,8 @@ public void handle_name(string input) {
     name = input;
     if (user_exists(name)) {
         prompt_password();
-    } else {
+    }
+    else {
         write("User not found. Try 'new' to create a character.\n");
         prompt_name();
     }
@@ -128,7 +130,8 @@ public void handle_password(string input) {
     
     if (verify_password(name, input)) {
         login_success();
-    } else {
+    }
+    else {
         write("\nIncorrect password. Try again: ");
         input_to("handle_password", INPUT_NOECHO);
     }
@@ -143,7 +146,7 @@ private void login_success() {
     logger->debug("This interactive object name: %s", object_name(this_interactive()));
 
     write("\nWelcome back, " + capitalize(name) + "!\n");
-    player = clone_object("/obj/player");
+    player = clone_object(PLAYER_OBJECT);
     logger->info("Cloning player object: %s", object_name(player));
     player->initialize(name);
     if (!player)

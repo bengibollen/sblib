@@ -5,6 +5,8 @@
 #include <input_to.h>
 #include <configuration.h>
 
+inherit "/std/living";
+
 private string name;          // Player's name
 private int state;           // Current player state
 private int level;          // Player level

@@ -48,14 +48,17 @@ void log_error (string file, string err, int warn, int line)
 // It should at least log the message in a file, and also announce it
 // to the active player if it is an wizard.
 {
-    string name;
-      
-    name = "global";
+    write_file("log/compile/global.log", err);
     
-    write_file("/log/compile/" + name, err);
-    
-    write(sprintf("[%s] %s:%d %s\n", 
-        warn ? "Warning" : "Error", file, line, err));
+    switch (warn)
+    {
+        case 0:
+            "/lib/log"->error(sprintf("%s:%d %s\n", file, line, err));
+            break;
+        case 1:
+            "/lib/log"->warn(sprintf("%s:%d %s\n", file, line, err));
+            break;
+    }
 }
 
 
