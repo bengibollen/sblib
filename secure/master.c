@@ -5,9 +5,9 @@
 #pragma warn_applied_functions
 
 #include "/inc/config.h"
-#include "/inc/configuration.h"  // For DC_* constants
-#include "/inc/driver_hooks.h"    // For H_* constants
-#include "/inc/interactive_info.h"
+#include "/sys/configuration.h"  // For DC_* constants
+#include "/sys/driver_hooks.h"    // For H_* constants
+#include "/sys/interactive_info.h"
 
 // Forward declarations for functions used in config
 string load_uid(string file);
@@ -17,6 +17,7 @@ string create_object(string file);
 
 private object logger;  // We'll initialize this later
 
+#include "/secure/master/error_handling.c"
 #include "/secure/master/config.c"
 
 // Global variables
@@ -37,10 +38,10 @@ void inaugurate_master(int arg)
     
     // Now it's safe to initialize the logger
     string err;
-    if (err = catch(logger = load_object("/sys/log"))) {
+    if (err = catch(logger = load_object("/lib/log"))) {
         debug_message("Failed to initialize logger: " + err + "\n");
     } else {
-        logger->info("MASTER", "Logger system initialized");
+        logger->info("Logger system initialized");
     }
     
     debug_message("=== Master Initialization Complete ===\n");
@@ -49,21 +50,21 @@ void inaugurate_master(int arg)
 // For all logging calls, add error checking
 private void log_message(string type, string msg, varargs mixed *args) {
     if (logger) {
-        catch(logger->log_message(type, "MASTER", msg, args...));
+        catch(logger->info(msg, args...));
     } else {
         debug_message(sprintf("%s: %s\n", type, sprintf(msg, args...)));
     }
 }
 
 // ---------- MANDATORY: Error Handling ----------
-void log_error(string file, string err, int warn, int line) {
-    log_message(warn ? "WARN" : "ERROR", "[%s:%d] %s", file, line, err);
-}
+// void log_error(string file, string err, int warn, int line) {
+//     log_message(warn ? "WARN" : "ERROR", "[%s:%d] %s", file, line, err);
+// }
 
-void runtime_error(string err, string prog, string obj, int line, mixed culprit, int caught) {
-    logger->error("Runtime error in %s (%s) line %d: %s", 
-                 obj || "?", prog || "?", line, err);
-}
+// void runtime_error(string err, string prog, string obj, int line, mixed culprit, int caught) {
+//     logger->error("Runtime error in %s (%s) line %d: %s", 
+//                  obj || "?", prog || "?", line, err);
+// }
 
 // ---------- MANDATORY: File Security ----------
 string valid_read(string path, string uid, string func, object|lwobject obj) {
@@ -212,15 +213,15 @@ void notify_shutdown() {
 }
 
 // ---------- Optional: Error Handling ----------
-void dangling_lfun_closure() {
-    logger->warn("Dangling lfun closure detected");
-}
+// void dangling_lfun_closure() {
+//     logger->warn("Dangling lfun closure detected");
+// }
 
-mixed heart_beat_error(object culprit, string err, string prog, 
-                      string curobj, int line, int caught) {
-    logger->error("Heart beat error in %O: %s", culprit, err);
-    return 0;
-}
+// mixed heart_beat_error(object culprit, string err, string prog, 
+//                       string curobj, int line, int caught) {
+//     logger->error("Heart beat error in %O: %s", culprit, err);
+//     return 0;
+// }
 
 // ---------- Optional: Security ----------
 int privilege_violation(string op, mixed who, mixed arg, mixed arg2, mixed arg3) {
@@ -232,6 +233,13 @@ int query_allow_shadow(object victim) {
 }
 
 int valid_exec(string name, object ob, object obfrom) {
+    switch(name) {
+        case "secure/login.c":
+        case "secure/master.c":
+      if (interactive(obfrom) && !interactive(ob)) {
+           return 1;
+          }
+      }
     return 0;  // No exec() by default
 }
 

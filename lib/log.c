@@ -2,7 +2,7 @@
 #pragma save_types
 
 #include "/inc/log.h"
-#include "/inc/debug_message.h"
+#include "/sys/debug_message.h"
 
 private nosave int current_log_level = LOG_LEVEL_TRACE;  // Default level
 

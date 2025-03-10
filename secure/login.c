@@ -22,7 +22,7 @@ public void handle_name(string input);     // Changed to public for input_to
 public void handle_password(string input);  // Changed to public for input_to
 private void show_banner();
 private void prompt_name();
-private void check_idle();
+public void check_idle();
 private void start_character_creation();
 private int valid_name(string str);
 private int user_exists(string name);
@@ -55,7 +55,7 @@ public void logon() {
     prompt_name();
 }
 
-private void check_idle() {
+public void check_idle() {
     write("\nTimeout - disconnecting.\n");
     destruct(this_object());
 }

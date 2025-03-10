@@ -7,8 +7,7 @@
  * Arguments:     func - name of function the call_out should call
  * Returns:       -1 if not found, else time left before triggered
  */
-int
-find_call_out(string func)
+int find_call_out(string func)
 {
     mixed *calls = get_all_alarms();
     int i;
@@ -26,8 +25,7 @@ find_call_out(string func)
  * Returns:       -1 if not found, time that remained before trigger
  *                would be done if found
  */
-int
-remove_call_out(string func)
+int remove_call_out(string func)
 {
     mixed *calls = get_all_alarms();
     int i;
@@ -51,8 +49,7 @@ remove_call_out(string func)
  *                        function when the call_out triggers
  * Returns:       The id if the call_out
  */
-varargs int
-call_out(string func, mixed delay, mixed arg)
+varargs int call_out(string func, mixed delay, mixed arg)
 {
     float repeat;
 

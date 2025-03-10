@@ -17,6 +17,7 @@ public void create() {
     logger = load_object("/sys/log");
     logger->info("Player object created");
     logger->debug("Object name: %s", object_name(this_object()));
+    configure_object(this_object(), OC_COMMANDS_ENABLED, 1);
     commands = PLAYER_COMMANDS;  // Load basic commands
     state = PLAYER_STATE_LOADING;
 }
@@ -24,7 +25,7 @@ public void create() {
 public void initialize(string player_name) {
     name = player_name;
     state = PLAYER_STATE_PLAYING;
-    configure_object(this_object(), OC_COMMANDS_ENABLED, 1);
+//    configure_object(this_object(), OC_COMMANDS_ENABLED, 1);
     logger->info("Player %s initialized", name);
     logger->debug("Object name: %s", object_name(this_object()));
     show_entrance();
