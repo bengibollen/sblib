@@ -689,7 +689,7 @@ query_subloc_obj(string sloc) { return cont_sublocs[sloc]; }
  * Description:   Get the current list of sublocations for this container
  */
 public string *
-query_sublocs() { return m_indexes(cont_sublocs); }
+query_sublocs() { return m_indices(cont_sublocs); }
 
 /*
  * Function name: remove_subloc
@@ -805,9 +805,9 @@ show_sublocs(object for_obj, mixed *slocs)
         for_obj = previous_object();
 
     if (!sizeof(slocs))
-        slocs = m_indexes(cont_sublocs) + ({ 0 });
+        slocs = m_indices(cont_sublocs) + ({ 0 });
     else
-        slocs = slocs & ( m_indexes(cont_sublocs) + ({ 0 }) );
+        slocs = slocs & ( m_indices(cont_sublocs) + ({ 0 }) );
 
     for (str = "", il = 0; il < sizeof(slocs); il++)
     {

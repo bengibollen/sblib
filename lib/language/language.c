@@ -46,11 +46,7 @@ create()
 
 }
 
-#define CFUN
-#ifdef CFUN
-string
-article(string str) = "article";
-#else
+
 string
 article(string str)
 {
@@ -216,10 +212,6 @@ number_ord_word(string str)
 
 /* lpc singular to plural converter
 */
-#ifdef CFUN
-string
-plural_word(string str) = "plural_word";
-#else
 string
 plural_word(string str)
 {

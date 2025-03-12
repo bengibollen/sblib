@@ -623,7 +623,7 @@ backstab(string str)
 
     write("You prepare to perform a backstab...\n");
 
-    set_alarm( (2.0 + (rnd() * 2.0)), 0.0,
+    set_alarm( (2.0 + (rnd(20001)/10000)), 0.0,
         &perform_backstab(str, this_player()));
 
     return 1;

@@ -40,8 +40,8 @@ private static int hb_index,    /* Identification of hearbeat callout */
 /*
  * Prototypes
  */
-public  varargs mixed check_call(mixed retval, object for_obj);
-        void    add_prop(string prop, mixed val);
+public  nomask varargs mixed check_call(mixed retval, object for_obj);
+public  void    add_prop(string prop, mixed val);
 public  void    remove_prop(string prop);
 varargs void    add_name(mixed name, int noplural);
 public  mixed   query_prop(string prop);
@@ -131,7 +131,7 @@ random_reset()
 
     /* Default interval factor 100 leads to 90 minutes. */
     mean = 540000.0 / (float) reset_interval;
-    reset_time = -log(rnd()) * mean;
+    reset_time = -log(random(10001)/10000) * mean;
 
     if (reset_time < (mean * 0.5))
         reset_time = mean * 0.5;
@@ -161,7 +161,7 @@ reset()
         return;
 
     if (function_exists("reset_object", this_object()))
-        call_out("reset", (int) random_reset()));
+        call_out("reset", (int) random_reset());
 
     this_object()->reset_object();
 }
@@ -214,7 +214,7 @@ enable_reset(int factor = 100)
     reset_interval = factor;
 
     if (function_exists("reset_object", this_object()))
-        set_alarm(random_reset(), 0.0, reset);
+        call_out("reset", (int) random_reset());
 }
 
 /*
@@ -249,7 +249,7 @@ update_actions()
 {
     if (environment(this_object()))
     {
-        move_object(environment(this_object()));
+        move_object(this_object(), environment(this_object()));
     }
 }
 
@@ -264,7 +264,7 @@ update_actions()
 public int
 id(string str)
 {
-    return (member_array(str, obj_names) >= 0);
+    return (member(obj_names, str) >= 0);
 }
 
 /*
@@ -278,7 +278,7 @@ id(string str)
 public int
 plural_id(string str)
 {
-    return (member_array(str, obj_pnames) >= 0);
+    return (member(obj_pnames, str) >= 0);
 }
 
 /*
@@ -312,10 +312,10 @@ long(string str, object for_obj)
     index = sizeof(obj_items);
     while(--index >= 0)
     {
-        if (member_array(str, obj_items[index][0]) >= 0)
+        if (member(obj_items[index][0], str) >= 0)
         {
             return (obj_items[index][1] ?
-                    (string) check_call(obj_items[index][1]) :
+                    ({string}) check_call(obj_items[index][1]) :
                     "You see nothing special.\n");
         }
     }
@@ -350,11 +350,11 @@ check_seen(object for_obj)
 {
     if (!objectp(for_obj) ||
         obj_no_show ||
-        (!for_obj->query_wiz_level() &&
-         (for_obj->query_prop(LIVE_I_SEE_INVIS) <
-          this_object()->query_prop(OBJ_I_INVIS) ||
-          for_obj->query_skill(SS_AWARENESS) <
-          this_object()->query_prop(OBJ_I_HIDE))))
+        (!({int}) for_obj->query_wiz_level() &&
+         (({int}) for_obj->query_prop(LIVE_I_SEE_INVIS) <
+                    query_prop(OBJ_I_INVIS) ||
+          ({int}) for_obj->query_skill(SS_AWARENESS) <
+                    query_prop(OBJ_I_HIDE))))
     {
         return 0;
     }
@@ -403,7 +403,7 @@ vbfc_short(object pobj)
     {
         pobj = previous_object(-1);
     }
-    if (!this_object()->check_seen(pobj) ||
+    if (!({int}) this_object()->check_seen(pobj) ||
         !CAN_SEE_IN_ROOM(pobj))
     {
         return "something";
@@ -478,7 +478,7 @@ query_plural_short()
 public int
 adjectiv_id(string str)
 {
-    return (member_array(str, obj_adjs) >= 0);
+    return (member(obj_adjs, str) >= 0);
 }
 
 /*
@@ -514,7 +514,7 @@ add_prop(string prop, mixed val)
         return;
     }
 
-    if (call_other(this_object(), "add_prop" + prop, val))
+    if (({void}) this_object()->("add_prop" + prop)(val))
     {
         return;
     }
@@ -560,7 +560,7 @@ remove_prop(string prop)
         return;
     }
 
-    if (call_other(this_object(), "remove_prop" + prop))
+    if (({void}) this_object()->("remove_prop" + prop)())
     {
         return;
     }
@@ -570,14 +570,10 @@ remove_prop(string prop)
         environment()->notify_change_prop(prop, 0, query_prop(prop));
     }
 
-    m_delkey(obj_props, prop);
+    m_delete(obj_props, prop);
 }
 
-#define CFUN
-#ifdef CFUN
-public mixed
-query_prop(string prop) = "query_prop";
-#else
+
 /*
  * Function name: query_prop
  * Description  : Find the value of a property. This function is usually
@@ -596,7 +592,6 @@ query_prop(string prop)
         return 0;
     return check_call(obj_props[prop]);
 }
-#endif
 
 /*
  * Function name: query_props
@@ -607,7 +602,7 @@ public nomask mixed
 query_props()
 {
     if (mappingp(obj_props))
-        return m_indexes(obj_props);
+        return m_indices(obj_props);
     else
         return 0;
 }
@@ -719,18 +714,18 @@ move(mixed dest, mixed subloc)
         dest = old;
 
     if (subloc == 1)
-        move_object(dest);
+        move_object(this_object(), dest);
 
     else if (old != dest)
     {
-        if (!dest || !dest->query_prop(CONT_I_IN) || dest->query_prop(CONT_M_NO_INS))
+        if (!dest || !({int}) dest->query_prop(CONT_I_IN) || ({int}) dest->query_prop(CONT_M_NO_INS))
             return 5;
-        if ((old) && (old->query_prop(CONT_M_NO_REM)))
+        if ((old) && (({int}) old->query_prop(CONT_M_NO_REM)))
             return 3;
-        if (old && old->query_prop(CONT_I_CLOSED))
+        if (old && ({int}) old->query_prop(CONT_I_CLOSED))
             return 9;
 
-        is_room = (int) dest->query_prop(ROOM_I_IS);
+        is_room = ({int}) dest->query_prop(ROOM_I_IS);
 
         if (old)
             is_live_old = (function_exists("create_container",
@@ -738,29 +733,28 @@ move(mixed dest, mixed subloc)
         is_live_dest = (function_exists("create_container",
                                         dest) == "/std/living");
 
-        if (old && is_live_old && this_object()->query_prop(OBJ_M_NO_DROP))
+        if (old && is_live_old && query_prop(OBJ_M_NO_DROP))
             return 2;
 
         if (!is_live_dest)
         {
-            if ((!is_room) && (this_object()->query_prop(OBJ_M_NO_INS)))
+            if ((!is_room) && (query_prop(OBJ_M_NO_INS)))
                 return 4;
-            if (dest && dest->query_prop(CONT_I_CLOSED))
+            if (dest && query_prop(CONT_I_CLOSED))
                 return 10;
         }
         else
         {
-            if ((!is_live_old) && (this_object()->query_prop(OBJ_M_NO_GET)))
+            if ((!is_live_old) && query_prop(OBJ_M_NO_GET))
                 return 6;
-            else if (is_live_old && this_object()->query_prop(OBJ_M_NO_GIVE))
+            else if (is_live_old && query_prop(OBJ_M_NO_GIVE))
                 return 3;
         }
 
         if (!is_room)
         {
-            rw = dest->query_prop(CONT_I_MAX_WEIGHT) -
-                dest->query_prop(OBJ_I_WEIGHT);
-            rv = dest->volume_left();
+            rw = (({int}) dest->query_prop(CONT_I_MAX_WEIGHT) - ({int}) dest->query_prop(OBJ_I_WEIGHT));
+            rv = ({int}) dest->volume_left();
             if (!query_prop(HEAP_I_IS))
             {
                 if (rw < query_prop(OBJ_I_WEIGHT))
@@ -797,13 +791,13 @@ move(mixed dest, mixed subloc)
             }
         }
 
-        if (old && old->prevent_leave(this_object()))
+        if (old && ({int}) old->prevent_leave(this_object()))
             return 7;
 
-        if (dest && dest->prevent_enter(this_object()))
+        if (dest && ({int}) dest->prevent_enter(this_object()))
             return 7;
 
-        move_object(dest);
+        move_object(this_object(), dest);
     }
 
     obj_subloc = subloc != 1 ? subloc : 0;
@@ -899,10 +893,10 @@ leave_env(object old, object dest)
 void
 recursive_rm(object ob)
 {
-    if (query_interactive(ob))
-        ob->move(ob->query_default_start_location());
+    if (interactive(ob))
+        ({int}) ob->move(({string}) ob->query_default_start_location());
     else
-        ob->remove_object();
+        ({int}) ob->remove_object();
 }
 
 /*
@@ -913,12 +907,54 @@ recursive_rm(object ob)
 public int
 remove_object()
 {
-    map(all_inventory(this_object()), recursive_rm);
+    map(all_inventory(this_object()), #'recursive_rm);
     if (environment(this_object()))
         environment(this_object())->leave_inv(this_object(),0);
     this_object()->leave_env(environment(this_object()),0);
-    destruct();
+    destruct(this_object());
     return 1;
+}
+
+mixed process_value(string vbfc)
+{
+    string fun, obj_path, rest;
+    mixed *args;
+    mixed ret;
+    object obj;
+
+    if (sscanf(vbfc, "%s:%s", fun, rest) == 2)
+    {
+        if (sscanf(rest, "%s|%s", obj_path, rest) == 2)
+        {
+            args = explode(rest, "|");
+        }
+        else
+        {
+            obj_path = rest;
+        }
+
+        obj = find_object(obj_path) || 
+            (file_size(obj_path + ".c") > 0 && load_object(obj_path));
+    }
+    else
+    {
+        if (sscanf(vbfc, "%s|%s", fun, rest) == 2)
+        {
+            args = explode(rest, "|");
+        }
+        obj = this_object();  // Default to this object
+    }
+
+    if (obj && function_exists(fun, obj))
+    {
+        ret = ({mixed}) obj->(fun)(args...);
+    }
+    else
+    {
+        ret = "Error: Function or object not found";
+        debug_message("VBFC: " + vbfc + " not found.\n");
+    }
+    return ret;
 }
 
 /*
@@ -946,10 +982,7 @@ vbfc_caller()
  *                                 use previous_object().
  * Returns      : mixed - the resolved VBFC.
  */
-#ifdef CFUN
-public nomask varargs mixed
-check_call(mixed retval, object for_obj = previous_object()) = "check_call";
-#else
+
 public nomask varargs mixed
 check_call(mixed retval, object for_obj = previous_object())
 {
@@ -957,11 +990,11 @@ check_call(mixed retval, object for_obj = previous_object())
     string          a, b, euid;
     mixed           s, proc_ret;
 
-    if (functionp(retval))
+    if (closurep(retval))
     {
         obj_previous = for_obj;
 
-        proc_ret = retval();
+        proc_ret = funcall(retval);
 
         obj_previous = 0;
         return proc_ret;
@@ -976,17 +1009,16 @@ check_call(mixed retval, object for_obj = previous_object())
 
     more = sscanf(retval, "@@%s@@%s", a, b);
 
-    if (more == 0 && wildmatch("@@*", retval))
-        proc_ret = process_value(extract(retval, 2), 1);
+    if (more == 0 && (retval[..1] == "@@"))
+        proc_ret = process_value(retval[2..]);
     else if (more == 1 || (more == 2 && !strlen(b)))
-        proc_ret = process_value(a, 1);
+        proc_ret = process_value(a);
     else
         proc_ret = process_string(retval, 1);
 
     obj_previous = 0;
     return proc_ret;
 }
-#endif
 
 /*
  * Function name: reset_euid
@@ -997,7 +1029,7 @@ check_call(mixed retval, object for_obj = previous_object())
 public void
 reset_euid()
 {
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid());
 }
 
 /*

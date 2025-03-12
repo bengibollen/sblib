@@ -570,7 +570,7 @@ introduced_list(string str)
     if (mappingp(tmp))
     {
         write("You remember having been introduced to:\n");
-        write(break_string(implode(map(sort_array(m_indexes(tmp)),
+        write(break_string(implode(map(sort_array(m_indices(tmp)),
             capitalize), ", "), 70) + "\n");
 
         return 1;
@@ -882,7 +882,7 @@ remember_live(string str)
                     num = 0;
 
                 write("These are the people you remember:\n");
-                write(break_string(implode(map(sort_array(m_indexes(tmp)),
+                write(break_string(implode(map(sort_array(m_indices(tmp)),
                     capitalize), ", "), 70) + "\n");
                 write("Your brain can handle " + LANG_WNUM(num) +
                         " more name" + (num == 1 ? ".\n" : "s.\n") );

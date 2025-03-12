@@ -155,7 +155,7 @@
  * Can ob1 see anything in his/hers environment or is it too dark?
  */
 #define CAN_SEE_IN_A_ROOM(ob, room)	((room) && \
-    ((room)->query_prop(OBJ_I_LIGHT) > -((ob)->query_prop(LIVE_I_SEE_DARK))))
+    (({int}) (room)->query_prop(OBJ_I_LIGHT) > -(({int}) (ob)->query_prop(LIVE_I_SEE_DARK))))
 
 #define CAN_SEE_IN_ROOM(ob)	CAN_SEE_IN_A_ROOM((ob), environment(ob))
 

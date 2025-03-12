@@ -1829,7 +1829,7 @@ query_all_skill_types()
 {
     if (!mappingp(skillmap))
         return 0;
-    return m_indexes(skillmap);
+    return m_indices(skillmap);
 }
 
 /*

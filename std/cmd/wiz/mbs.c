@@ -648,7 +648,7 @@ catch_up(int what, int uncatch)
 	break;
 
     case 2: /* All boards */
-	ind = m_indexes(BdMap);
+	ind = m_indices(BdMap);
 	map(ind, &set_time(tm, ));
 	break;
 
@@ -849,7 +849,7 @@ list_boards(int which, string rest)
     if (which)
 	blist = MC->query_boards(order, rest, ({}));
     else
-	blist = MC->query_boards(order, rest, m_indexes(BdMap));
+	blist = MC->query_boards(order, rest, m_indices(BdMap));
 
     if (!sizeof(blist))
     {
@@ -2361,7 +2361,7 @@ shuffle_boards()
 	SbMap = mkmapping(caths, blist);
 	SbMap = filter(SbMap, sizeof);
 	if (!sizeof(SbMap[CurrItem[ORDER_CAT]]))
-	    CurrItem[ORDER_CAT] = m_indexes(SbMap)[0];
+	    CurrItem[ORDER_CAT] = m_indices(SbMap)[0];
 	break;
 
     case ORDER_DOMAIN:
@@ -2370,7 +2370,7 @@ shuffle_boards()
 	SbMap = mkmapping(doms, blist);
 	SbMap = filter(SbMap, sizeof);
 	if (!sizeof(SbMap[CurrItem[ORDER_DOMAIN]]))
-	    CurrItem[ORDER_DOMAIN] = m_indexes(SbMap)[0];
+	    CurrItem[ORDER_DOMAIN] = m_indices(SbMap)[0];
 	break;
 
     case ORDER_GROUP:
@@ -2380,7 +2380,7 @@ shuffle_boards()
 	SbMap = mkmapping(Groups, blist);
 	SbMap = filter(SbMap, sizeof);
 	if (!sizeof(SbMap[CurrItem[ORDER_GROUP]]))
-	    CurrItem[ORDER_GROUP] = m_indexes(SbMap)[0];
+	    CurrItem[ORDER_GROUP] = m_indices(SbMap)[0];
 	break;
     }
 }
