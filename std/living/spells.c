@@ -161,7 +161,7 @@ break_spell(string msg, object breaker)
 	aid = 0;
 	this_object()->remove_prop(LIVE_I_CONCENTRATE);
 
-	if (!strlen(msg))
+	if (!sizeof(msg))
 	{
 	    tell_object(this_object(), LD_SPELL_CONC_BROKEN);
 	}
@@ -218,7 +218,7 @@ abort_spell(string msg)
 
         this_object()->remove_prop(LIVE_I_CONCENTRATE);
 
-        if (!strlen(msg))
+        if (!sizeof(msg))
 	{
             tell_object(this_object(), "Ok.\n");
         }

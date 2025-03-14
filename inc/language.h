@@ -31,31 +31,31 @@
  * LANG_ORD2EXT  -- Get the text in ordrinal extension, 2 -> "2nd"
  */
 
-#define LANG_PWORD(x)    ((string)LANG_FILE->plural_word(x))
-#define LANG_SWORD(x)    ((string)LANG_FILE->singular_form(x))
-#define LANG_PSENT(x)    ((string)LANG_FILE->plural_sentence(x))
-#define LANG_ART(x)      ((string)LANG_FILE->article(x))
-#define LANG_ADDART(x)   ((string)LANG_FILE->add_article(x))
-#define LANG_POSS(x)     ((string)LANG_FILE->name_possessive(x))
-#define LANG_SHORT(x)    ((string)LANG_FILE->lang_short(x))
-#define LANG_ASHORT(x)   ((string)LANG_FILE->lang_a_short(x))
-#define LANG_THESHORT(x) ((string)LANG_FILE->lang_the_short(x))
+#define LANG_PWORD(x)    (({string})LANG_FILE->plural_word(x))
+#define LANG_SWORD(x)    (({string})LANG_FILE->singular_form(x))
+#define LANG_PSENT(x)    (({string})LANG_FILE->plural_sentence(x))
+#define LANG_ART(x)      (({string})LANG_FILE->article(x))
+#define LANG_ADDART(x)   (({string})LANG_FILE->add_article(x))
+#define LANG_POSS(x)     (({string})LANG_FILE->name_possessive(x))
+#define LANG_SHORT(x)    (({string})LANG_FILE->lang_short(x))
+#define LANG_ASHORT(x)   (({string})LANG_FILE->lang_a_short(x))
+#define LANG_THESHORT(x) (({string})LANG_FILE->lang_the_short(x))
 
-#define LANG_NUM2WORD(x) ((string)LANG_FILE->word_number(x))
+#define LANG_NUM2WORD(x) (({string})LANG_FILE->word_number(x))
 #define LANG_WNUM(x)     LANG_NUM2WORD(x)
-#define LANG_WORD2NUM(x) ((int)LANG_FILE->number_word(x))
+#define LANG_WORD2NUM(x) (({int})LANG_FILE->number_word(x))
 #define LANG_NUMW(x)     LANG_WORD2NUM(x)
-#define LANG_WORD2ORD(x) ((int)LANG_FILE->number_ord_word(x))
+#define LANG_WORD2ORD(x) (({int})LANG_FILE->number_ord_word(x))
 #define LANG_ORDW(x)     LANG_WORD2ORD(x)
-#define LANG_ORD2WORD(x) ((string)LANG_FILE->word_ord_number(x))
+#define LANG_ORD2WORD(x) (({string})LANG_FILE->word_ord_number(x))
 #define LANG_WORD(x)     LANG_ORD2WORD(x)
-#define LANG_ORD2EXT(x)  ((string)LANG_FILE->word_ord_ext(x))
+#define LANG_ORD2EXT(x)  (({string})LANG_FILE->word_ord_ext(x))
 
 /*
  * LANG_IS_OFFENSIVE(x) -- Returns true if the term contains offensive words
  *                         or sub-words.
  */
-#define LANG_IS_OFFENSIVE(x) ((string)LANG_FILE->lang_is_offensive(x))
+#define LANG_IS_OFFENSIVE(x) (({string})LANG_FILE->lang_is_offensive(x))
 
 /*
  * LANG_VOWELS - an array with all vowels.
@@ -69,17 +69,17 @@
  * GET_PROC_DESC and GET_PROC_DESC_SUB do the same, but then with a percentage
  * that runs from 0-100% instead of an arbitrary maximum.
  */
-#define GET_NUM_DESC(v, mx, md)              ((string)LANG_FILE->get_num_desc((v), (mx), (md)))
-#define GET_NUM_DESC_SUB(v, mx, md, sd, ti)  ((string)LANG_FILE->get_num_desc((v), (mx), (md), (sd), (ti)))
-#define GET_PROC_DESC(v, md)                 ((string)LANG_FILE->get_num_desc((v), 100, (md)))
-#define GET_PROC_DESC_SUB(v, md, sd, ti)     ((string)LANG_FILE->get_num_desc((v), 100, (md), (sd), (ti)))
+#define GET_NUM_DESC(v, mx, md)              (({string})LANG_FILE->get_num_desc((v), (mx), (md)))
+#define GET_NUM_DESC_SUB(v, mx, md, sd, ti)  (({string})LANG_FILE->get_num_desc((v), (mx), (md), (sd), (ti)))
+#define GET_PROC_DESC(v, md)                 (({string})LANG_FILE->get_num_desc((v), 100, (md)))
+#define GET_PROC_DESC_SUB(v, md, sd, ti)     (({string})LANG_FILE->get_num_desc((v), 100, (md), (sd), (ti)))
 
 /*
  * GET_NUM_LEVEL_DESC - Match a value 'v' to a series of descriptions 'md'. Each
  * description has an associated level 'lv' that you need to have or exceed to
  * get the description.
  */
-#define GET_NUM_LEVEL_DESC(v, lv, md)        ((string)LANG_FILE->get_num_level_desc((v), (lv), (md)))
+#define GET_NUM_LEVEL_DESC(v, lv, md)        (({string})LANG_FILE->get_num_level_desc((v), (lv), (md)))
 
 /* No definitions beyond this line. */
 #endif

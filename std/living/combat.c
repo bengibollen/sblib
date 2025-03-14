@@ -263,7 +263,7 @@ log_player_death(object killer)
     log_msg += "\n";
 
     /* Allow the killer to give out extra information about itself. */
-    if (strlen(extra = killer->log_player_death_extra_info()))
+    if (sizeof(extra = killer->log_player_death_extra_info()))
     {
         log_msg += extra;
     }
@@ -1043,7 +1043,7 @@ query_leftover(string organ)
     if (!sizeof(leftover_list))
         return ({ });
 
-    if (!strlen(organ))
+    if (!sizeof(organ))
         return leftover_list;
 
     for (i = 0 ; i < sizeof(leftover_list) ; i++)

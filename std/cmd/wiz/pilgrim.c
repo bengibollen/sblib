@@ -74,7 +74,7 @@ pingmud(string arg)
 
     ix = UDP_MANAGER->query_known_muds();
 
-    if (member_array(arg, ix) >= 0)
+    if (member(arg, ix) >= 0)
     {
 	p = UDP_MANAGER->query_mud_info(arg);
 	UDP_MANAGER->send_ping_q(p["HOSTADDRESS"], p["PORT"]);

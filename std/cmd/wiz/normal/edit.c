@@ -60,7 +60,7 @@ exec_write(string str)
 
     seteuid(getuid());
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	write("Nothing to execute.\n");
 	return 1;
@@ -70,7 +70,7 @@ exec_write(string str)
     exec_code[name] = str;
 
     file = SECURITY->query_wiz_path(name);
-    if (!strlen(file))
+    if (!sizeof(file))
     {
 	write("Cannot write file.\n");
 	return 1;
@@ -237,7 +237,7 @@ exec_code(string str)
     if ((str == "e") ||
 	(str == "edit"))
     {
-	if (!strlen(exec_code[name]))
+	if (!sizeof(exec_code[name]))
 	{
 	    write("You have no previous exec-code to edit.\n");
 	    /* Intentional no return 1; The player can enter new code. */
@@ -253,7 +253,7 @@ exec_code(string str)
     else if ((str == "r") ||
 	     (str == "repeat"))
     {
-	if (!strlen(exec_code[name]))
+	if (!sizeof(exec_code[name]))
 	{
 	    notify_fail("You have no previous exec-code to repeat.\n");
 	    return 0;
@@ -349,7 +349,7 @@ pad_write(string str)
 {
     int index = 0;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
     	write("No note written on your notepad.\n");
     	return;
@@ -425,7 +425,7 @@ pad(string str)
     int index;
     int width;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
     	str = "r";
     }
@@ -484,7 +484,7 @@ pad(string str)
         {
             args = explode(pad_notes[indices[index]], "\n");
             str = args[0];
-            if (strlen(str) > width)
+            if (sizeof(str) > width)
             {
                 str = str[..width] + "...";
             }

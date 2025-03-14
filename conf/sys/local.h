@@ -308,7 +308,7 @@
  * The maximum time you are guaranteed to be able to stay idle before
  * being logged out. The amount is counted in seconds.
  */
-#define MAX_IDLE_TIME 1800
+// #define MAX_IDLE_TIME 1800
 
 /*
  * MET_ACTIVE
@@ -458,5 +458,5 @@
 
 /* Possible options for configure_lwobject().
  */
-#define OC_EUID                2
-#define LC_EUID                          0
+// #define OC_EUID                2
+// #define LC_EUID                          0

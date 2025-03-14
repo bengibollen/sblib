@@ -160,7 +160,7 @@ light_fail(string str)
 {
     string s;
 
-    if (!strlen(str))
+    if (!sizeof(str))
         str = query_verb() + " things";
     if (!stringp(s = environment(this_player())->query_prop(ROOM_S_DARK_MSG)))
         notify_fail("It is too dark to " + str + ".\n");
@@ -397,9 +397,9 @@ manip_set_dest(string prep, object *carr)
         return 0;
     }
 
-    if ((member_array(prep, ({ "in", "into", "inside" })) >= 0) ||
+    if ((member(prep, ({ "in", "into", "inside" })) >= 0) ||
         (gDest->query_prop(CONT_I_ATTACH) &&
-        (member_array(prep, ({ "on", "onto" })) >= 0)))
+        (member(prep, ({ "on", "onto" })) >= 0)))
     {
         notify_fail(capitalize(query_verb()) + " what " + prep +
             " the " + gDest->short() + "?\n");
@@ -604,7 +604,7 @@ show_exec(object ob)
     /* objects inside transparent objects */
     while ((env != this_player()) && (env != environment(this_player())))
     {
-        if (!strlen(str))
+        if (!sizeof(str))
         {
             str = "You see " + LANG_ASHORT(ob);
         }
@@ -621,7 +621,7 @@ show_exec(object ob)
         env = environment(env);
     }
 
-    if (strlen(str))
+    if (sizeof(str))
     {
         write(str + ".\n");
     }
@@ -1047,7 +1047,7 @@ get(string str)
         itema->remove_prop(OBJ_I_HIDE);
 
         from_self =
-            (member_array(this_player(), all_environment(gContainers[0])) >= 0);
+            (member(this_player(), all_environment(gContainers[0])) >= 0);
 
         write("You " + vb + " " + COMPOSITE_DEAD(itema) + " from " +
             (from_self ? "your " : "the ") + gContainers[0]->short() + ".\n");
@@ -1090,7 +1090,7 @@ give(string str)
 
     notify_fail(capitalize(query_verb()) + " what to whom?\n");
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         return 0;
     }
@@ -1438,7 +1438,7 @@ keep(string str)
     /* Playes wants to list, but didn't give any argument. Get all items
      * in his/her inventory. */
     if (list &&
-        !strlen(str))
+        !sizeof(str))
     {
         if (!sizeof(objs = FILTER_CAN_SEE(all_inventory(this_player()),
             this_player())))
@@ -1651,7 +1651,7 @@ look(string str, int brief)
                     enemy;
     mixed           long_desc;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         return this_player()->do_glance(brief);
     }
@@ -2047,7 +2047,7 @@ put(string str)
     {
         prep = (gDest->query_prop(CONT_I_ATTACH) ? " onto" : " into");
 
-	to_self = (member_array(this_player(), all_environment(gDest)) >= 0);
+	to_self = (member(this_player(), all_environment(gDest)) >= 0);
 
         write("You " + vb + " " + COMPOSITE_DEAD(itema) + prep +
             (to_self ? " your " : " the ") + gDest->short() + ".\n");
@@ -2288,11 +2288,11 @@ sneak(string str)
     }
 
     str2 = SECURITY->modify_command(str, environment(this_player()));
-    if (strlen(str2))
+    if (sizeof(str2))
         str = str2;
 
     dirs = environment(this_player())->query_exit_cmds();
-    if (member_array(str, dirs) < 0)
+    if (member(str, dirs) < 0)
     {
         notify_fail("Sneak where?\n");
         return 0;

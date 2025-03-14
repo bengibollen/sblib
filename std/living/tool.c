@@ -45,7 +45,7 @@ occupy_slot(object tool)
         if (tool_slots[slots[i]])
 	{
             name = tool_slots[slots[i]]->short();
-            name = (strlen(name) ? "The " + name : "Something");
+            name = (sizeof(name) ? "The " + name : "Something");
             return name + " is in the way.\n";
 	}
     }

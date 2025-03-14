@@ -76,7 +76,7 @@ add_article(string str)
     string s;
 
     s = article(str);
-    return strlen(s) ? (s + " " + str) : str;
+    return sizeof(s) ? (s + " " + str) : str;
 }
 
 /*
@@ -191,20 +191,20 @@ number_ord_word(string str)
     if (!str)
 	return 0;
 
-    if ((i = member_array(str, numo)) > -1)
+    if ((i = member(str, numo)) > -1)
         return i + 1;
 
-    sstr = str[0..(strlen(str)-5)];
-    if ((i = member_array(sstr, numnt)) > -1)
+    sstr = str[0..(sizeof(str)-5)];
+    if ((i = member(sstr, numnt)) > -1)
         return (i + 2) * 10;
 
     if (sizeof(nt = explode(str, " ")) != 2)
         return 0;
 
-    if ((i = member_array(nt[1], numo)) == -1)
+    if ((i = member(nt[1], numo)) == -1)
         return 0;
 
-    if ((j = member_array(nt[0], numt)) == -1)
+    if ((j = member(nt[0], numt)) == -1)
         return 0;
 
     return (j+2)*10 + (i+1);
@@ -239,7 +239,7 @@ plural_word(string str)
     case "elf":
         return "elves";
     }
-    sl = strlen(str) - 1;
+    sl = sizeof(str) - 1;
     if (sl < 2)
 	return str;
     ch = str[sl];
@@ -254,7 +254,7 @@ plural_word(string str)
     case 'h':
 	return tmp + slask + "hes";
     case 'y':
-	if (member_array(slask, ({ "a", "e", "o" })) >= 0)
+	if (member(slask, ({ "a", "e", "o" })) >= 0)
 	    return tmp + slask + "ys";
 	else
 	    return tmp + slask + "ies";
@@ -303,7 +303,7 @@ verb_present(string str)
 string
 name_possessive(string str)
 {
-    if (!strlen(str))
+    if (!sizeof(str))
 	return 0;
 
     switch (str)
@@ -315,7 +315,7 @@ name_possessive(string str)
     case "she": return "her";
     case "She": return "Her";
     }
-    if (extract(str, strlen(str) - 1) == "s")
+    if (extract(str, sizeof(str) - 1) == "s")
 	return (str + "'");
     return (str + "'s");
 }
@@ -345,7 +345,7 @@ number_word(string str)
 
     if (sizeof(ex) > 1)
     {
-        if ((pos = member_array(ex[0], numnt)) == -1)
+        if ((pos = member(ex[0], numnt)) == -1)
 	    return 0;
 	else
 	    value = (pos + 2) * 10;
@@ -354,17 +354,17 @@ number_word(string str)
     if (value)
     {
 	if (ex[1][0] == ' ' || ex[1][0] == '-')
-	    ex[1] = extract(ex[1], 1, strlen(ex[1]) - 1);
-	if ((pos = member_array(ex[1], nums)) == -1)
+	    ex[1] = extract(ex[1], 1, sizeof(ex[1]) - 1);
+	if ((pos = member(ex[1], nums)) == -1)
 	    return 0;
 	else
 	    value += pos + 1;
     }
 
     if (!value)
-	if ((pos = member_array(ex[0], nums)) == -1)
+	if ((pos = member(ex[0], nums)) == -1)
 	    {
-		if ((pos = member_array(ex[0], numnt)) == -1)
+		if ((pos = member(ex[0], numnt)) == -1)
 		    return 0;
 		else
 		    value = (pos + 2) * 10;
@@ -401,7 +401,7 @@ singular_form(string str)
 	return "dwarf";
     }
 
-    last = strlen(str);
+    last = sizeof(str);
     one  = extract(str, last - 1, last - 1);
     two  = extract(str, last - 2, last - 2);
     three = extract(str, last - 3, last - 3);

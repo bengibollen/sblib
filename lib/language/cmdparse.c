@@ -134,7 +134,7 @@ parse_command_access(string str, mixed invenv, string pattern)
 {
     object *oblist;
 
-    if (!strlen(str) || !strlen(pattern))
+    if (!sizeof(str) || !sizeof(pattern))
     {
         return 0;
     }
@@ -484,13 +484,13 @@ parse_itemlist(string str)
 
     trypreps += ({ "at", "of", "prp_examine" });
 
-    while (strlen(rest))
+    while (sizeof(rest))
     {
 	notify_fail(break_string("Sorry, In '" + str + "'. The ending: '" +
 				 rest + "', not understood.\n", 76));
 	if (!parse_command(rest, ({}), "%p %s", trypreps, nrest))
 	    return 0;
-	if (!strlen(nrest))
+	if (!sizeof(nrest))
 	    return 0;
 
 	preps += ({ trypreps[0] });
@@ -508,7 +508,7 @@ parse_itemlist(string str)
 	    else /* subitem or sublocation with preposition after */
 	    {
 		itemlists += ({ itemstr });
-		rest = trypreps[0] + (strlen(rest) ? " " + rest : "");
+		rest = trypreps[0] + (sizeof(rest) ? " " + rest : "");
 		last_sub = 1;
 	    }
 	    bef = sizeof(itemlists) - 2;

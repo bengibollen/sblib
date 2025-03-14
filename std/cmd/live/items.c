@@ -356,7 +356,7 @@ use_described_items(string str, object *obs, function f, int silent,
 {
     mixed *items;
 
-    if (!strlen(str) ||
+    if (!sizeof(str) ||
         !parse_command(str, obs, "[the] %i", items) ||
         !sizeof(items = NORMAL_ACCESS(items, 0, 0)))
     {
@@ -435,7 +435,7 @@ release(string str)
 {
     mixed *items;
 
-    if (!strlen(str) || !parse_command(str, all_inventory(this_player()),
+    if (!sizeof(str) || !parse_command(str, all_inventory(this_player()),
         "[the] %i", items))
     {
         notify_fail(capitalize(query_verb()) + " what?\n", 0);
@@ -453,7 +453,7 @@ remove(string str)
     mixed *items;
     object *inv;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail(capitalize(query_verb()) + " what?\n", 0);
 	return 0;
@@ -479,7 +479,7 @@ unwield(string str)
     mixed *items;
     object *inv;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail(capitalize(query_verb()) + " what?\n", 0);
 	return 0;

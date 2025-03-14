@@ -117,8 +117,8 @@ valid_user()
     string name = this_interactive()->query_real_name();
 
     /* No name, or no verb, no show. */
-    if (!strlen(verb) ||
-	!strlen(name))
+    if (!sizeof(verb) ||
+	!sizeof(name))
     {
 	return 0;
     }
@@ -132,7 +132,7 @@ valid_user()
 
     case WIZ_LORD:
 	/* Lieges have some special commands. */
-	if (member_array(verb, ALLOWED_LIEGE_COMMANDS) >= 0)
+	if (member(verb, ALLOWED_LIEGE_COMMANDS) >= 0)
 	{
 	    /* Set the euid of the object right. */
 	    return 1;
@@ -173,7 +173,7 @@ elog(string arg)
 
     CHECK_ALLOWED;
 
-    if (strlen(arg))
+    if (sizeof(arg))
 	args = explode(arg, " ");
 
     if (args[0] == "?")
@@ -332,14 +332,14 @@ find_log(mixed data)
     for (i = mline ; i < mline + ELOG_NUM_REPEATS ; i++)
     {
 	ldata = read_file("/syslog/log/enter/ENTER." + mdate[0], i, 1);
-	if (!strlen(ldata))
+	if (!sizeof(ldata))
 	    break;
 
 	fdate = ldata[0..23];
 	fwho = explode(ldata[25..35], " ")[0];
 	frest = (explode(ldata[38..], " ") - ({""})) + ({" "});
 	fwhat = frest[0];
-	fsite = frest[1][0..(strlen(frest[1]) - 2)];
+	fsite = frest[1][0..(sizeof(frest[1]) - 2)];
 
 	if (fwhat == "login")
 	{
@@ -620,7 +620,7 @@ pinfo_write_done(string text)
 	return;
     }
 
-    if (!strlen(text))
+    if (!sizeof(text))
     {
         write("Pinfo aborted.\n");
         return;
@@ -667,7 +667,7 @@ pinfo_edit_done(string text)
 	return;
     }
 
-    if (!strlen(text))
+    if (!sizeof(text))
     {
         write("Pinfo aborted.\n");
         return;
@@ -707,7 +707,7 @@ pinfo(string str)
 
     CHECK_ALLOWED;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	notify_fail("Syntax: pinfo [r / t / w / d / e] <name> [<text>]\n");
 	return 0;
@@ -849,9 +849,9 @@ pinfo(string str)
 	    write("Appending pinfo file on " + capitalize(name) + ".\n");
 	}
 
-	if (strlen(text))
+	if (sizeof(text))
 	{
-	    if (strlen(text) > 75)
+	    if (sizeof(text) > 75)
 	    {
 		text = break_string(text, 75);
 	    }

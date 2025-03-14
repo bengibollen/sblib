@@ -378,7 +378,7 @@ slow_load_auto_files(string *auto_files)
         return;
     }
 
-    /* Note that we don't check for strlen() since we also want to call
+    /* Note that we don't check for sizeof() since we also want to call
      * init_arg() if the format is 'filename:'.
      */
     if (stringp(argument))
@@ -449,7 +449,7 @@ slow_load_recover_files(string *recover_files)
         return;
     }
 
-    /* Note that we don't check for strlen() since we also want to call
+    /* Note that we don't check for sizeof() since we also want to call
      * init_recover() if the format is 'filename:'.
      */
     if (stringp(argument))
@@ -744,7 +744,7 @@ try_start_location(string path)
     object room;
 
     /* Sanity check. */
-    if (!strlen(path) ||
+    if (!sizeof(path) ||
         file_size(path + ".c") <= 0)
     {
         return 0;
@@ -857,7 +857,7 @@ enter_game(string pl_name, string pwd)
     }
 
     /* If a password was changed, set it. */
-    if (strlen(pwd))
+    if (sizeof(pwd))
     {
         set_password(pwd);
         save_me(1);

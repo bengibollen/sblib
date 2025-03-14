@@ -307,7 +307,7 @@ show_subloc(string subloc, object on, object for_obj)
 {
     if ((subloc != SUBLOC_SOULEXTRADESC) ||
         on->query_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS) ||
-        (!strlen(subloc = on->query_prop(LIVE_S_SOULEXTRA))))
+        (!sizeof(subloc = on->query_prop(LIVE_S_SOULEXTRA))))
     {
         return "";
     }
@@ -339,7 +339,7 @@ public nomask int
 dump_emotions()
 {
     int index = -1;
-    int size = strlen(ALPHABET);
+    int size = sizeof(ALPHABET);
     string *words;
 
     setuid();
@@ -355,7 +355,7 @@ dump_emotions()
             continue;
         }
 
-        if (strlen(words[0]) < 12)
+        if (sizeof(words[0]) < 12)
         {
             words[0] = (words[0] + "                ")[..11];
         }
@@ -411,7 +411,7 @@ find_neighbour(object *found, object *search, int depth)
             else
                 troom = find_object(exit_arr[index2]);
             if (objectp(troom) &&
-                (member_array(troom, rooms) < 0))
+                (member(troom, rooms) < 0))
             {
                 rooms += ({ troom });
                 new_search += ({ troom });
@@ -425,7 +425,7 @@ find_neighbour(object *found, object *search, int depth)
         while (++index2 < size2)
         {
             if (objectp(troom = find_object(doors[index2]->query_other_room())) &&
-                member_array(troom, rooms) < 0)
+                member(troom, rooms) < 0)
             {
                 rooms += ({ troom });
             }
@@ -462,7 +462,7 @@ admire(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -499,7 +499,7 @@ agree(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -534,7 +534,7 @@ apologize(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -581,7 +581,7 @@ applaud(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -624,7 +624,7 @@ avert(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -663,7 +663,7 @@ back(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -701,7 +701,7 @@ bat(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -770,7 +770,7 @@ beckon(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -814,7 +814,7 @@ beg(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -867,7 +867,7 @@ blanch(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -924,7 +924,7 @@ blow(string str)
     object *oblist;
     string *how;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Blow [how] in whose ear or " +
             "blow a kiss [how] to whom?\n");
@@ -947,7 +947,7 @@ blow(string str)
 
         if (!sizeof(oblist))
         {
-            if (strlen(parse_msg))
+            if (sizeof(parse_msg))
             {
                 write(parse_msg);
                 return 1;
@@ -981,7 +981,7 @@ blow(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1020,7 +1020,7 @@ blush(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1074,7 +1074,7 @@ bounce(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1115,7 +1115,7 @@ bow(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1215,7 +1215,7 @@ caress(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1263,7 +1263,7 @@ cheer(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1334,7 +1334,7 @@ chuckle(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1371,7 +1371,7 @@ clap(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1413,7 +1413,7 @@ comfort(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1446,7 +1446,7 @@ complain(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1472,7 +1472,7 @@ compliment(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1725,7 +1725,7 @@ cuddle(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -1845,7 +1845,7 @@ dance(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -2240,7 +2240,7 @@ fondle(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -2307,7 +2307,7 @@ french(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -2639,7 +2639,7 @@ grope(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -2666,7 +2666,7 @@ grovel(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -2818,7 +2818,7 @@ hold(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -2828,7 +2828,7 @@ hold(string str)
 
         if (!sizeof(oblist))
         {
-            if (strlen(parse_msg))
+            if (sizeof(parse_msg))
             {
                 write(parse_msg);
                 return 1;
@@ -2859,7 +2859,7 @@ hug(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -2887,7 +2887,7 @@ hug(string str)
 int
 hum(string str)
 {
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         str = "merry";
     }
@@ -2952,7 +2952,7 @@ jump(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -2988,7 +2988,7 @@ kick(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3028,14 +3028,14 @@ kiss(string str)
     parts = explode(str, " ");
     if ((size = sizeof(parts)) > 1)
     {
-        if (member_array(parts[size - 1], zones) != -1)
+        if (member(parts[size - 1], zones) != -1)
         {
             location = parts[size - 1];
             str = implode(parts[..(size - 2)], " ");
         }
     }
 
-    if (strlen(location))
+    if (sizeof(location))
     {
         oblist = parse_this(str, "[the] %l [on] [the]",
             ACTION_CONTACT | ACTION_INTIMATE);
@@ -3049,7 +3049,7 @@ kiss(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3059,7 +3059,7 @@ kiss(string str)
         return 0;
     }
 
-    if (strlen(location))
+    if (sizeof(location))
     {
         str = ((sizeof(oblist) == 1) ?
             (oblist[0]->query_possessive() + " " + location + ".") :
@@ -3093,7 +3093,7 @@ knee(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3152,7 +3152,7 @@ kneel(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3274,7 +3274,7 @@ lick(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3337,7 +3337,7 @@ love(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3365,7 +3365,7 @@ melt(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3445,7 +3445,7 @@ mumble(string str)
         return 1;
     }
 
-    if ((strlen(str) > 60) &&
+    if ((sizeof(str) > 60) &&
         (!(this_player()->query_wiz_level())))
     {
         SOULDESC("mumbling about something");
@@ -3482,7 +3482,7 @@ nibble(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3540,7 +3540,7 @@ nudge(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3570,7 +3570,7 @@ nuzzle(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3683,8 +3683,8 @@ pat(string str)
         "bottom" });
 
     /* When patting yourself, pat on your tummy. */
-    str = (strlen(str) ? lower_case(str) : "tummy");
-    if (member_array(str, zones) != -1)
+    str = (sizeof(str) ? lower_case(str) : "tummy");
+    if (member(str, zones) != -1)
     {
         write("You pat yourself on your " + str + ".\n");
         all(" pats " + this_player()->query_objective() +
@@ -3696,7 +3696,7 @@ pat(string str)
     parts = explode(str, " ");
     if ((size = sizeof(parts)) > 1)
     {
-        if (member_array(parts[size - 1], zones) != -1)
+        if (member(parts[size - 1], zones) != -1)
         {
             location = parts[size - 1];
             str = implode(parts[..(size - 2)], " ");
@@ -3712,7 +3712,7 @@ pat(string str)
     oblist = parse_this(str, "[the] %l [on] [the]", ACTION_CONTACT);
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3781,7 +3781,7 @@ pet(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3809,8 +3809,8 @@ pinch(string str)
 
     zones = ({ "cheek", "ear", "nose", "arm", "bottom" });
 
-    str = (strlen(str) ? lower_case(str) : "arm");
-    if (member_array(str, zones) != -1)
+    str = (sizeof(str) ? lower_case(str) : "arm");
+    if (member(str, zones) != -1)
     {
         write("You pinch yourself in your " + str + ".\n");
         all(" pinches " + this_player()->query_objective() +
@@ -3821,7 +3821,7 @@ pinch(string str)
     parts = explode(str, " ");
     if ((size = sizeof(parts)) > 1)
     {
-        if (member_array(parts[size - 1], zones) != -1)
+        if (member(parts[size - 1], zones) != -1)
         {
             location = parts[size - 1];
             str = implode(parts[..(size - 2)], " ");
@@ -3836,7 +3836,7 @@ pinch(string str)
     oblist = parse_this(str, "[the] %l [in] [the]", ACTION_CONTACT);
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3871,7 +3871,7 @@ point(string str)
     }
 
     str = lower_case(str);
-    if (member_array(str, POINT_DIRECTIONS) >= 0)
+    if (member(str, POINT_DIRECTIONS) >= 0)
     {
         write("You point " + str + ".\n");
         allbb(" points " + str + ".");
@@ -3929,8 +3929,8 @@ poke(string str)
 
     zones = ({ "eye", "ear", "nose", "thorax", "abdomen", "shoulder", "ribs" });
 
-    str = (strlen(str) ? lower_case(str) : "abdomen");
-    if (member_array(str, zones) != -1)
+    str = (sizeof(str) ? lower_case(str) : "abdomen");
+    if (member(str, zones) != -1)
     {
         write("You poke yourself in your " + str + ".\n");
         all(" pokes " + this_player()->query_objective() +
@@ -3941,7 +3941,7 @@ poke(string str)
     parts = explode(str, " ");
     if ((size = sizeof(parts)) > 1)
     {
-        if (member_array(parts[size - 1], zones) != -1)
+        if (member(parts[size - 1], zones) != -1)
         {
             location = parts[size - 1];
             str = implode(parts[..(size - 2)], " ");
@@ -3956,7 +3956,7 @@ poke(string str)
     oblist = parse_this(str, "[the] %l [in] [the]", ACTION_CONTACT);
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -3985,7 +3985,7 @@ ponder(string str)
         return 1;
     }
 
-    if ((strlen(str) > 60) &&
+    if ((sizeof(str) > 60) &&
         (!(this_player()->query_wiz_level())))
     {
         SOULDESC("pondering the situation");
@@ -4023,7 +4023,7 @@ pounce(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -4078,7 +4078,7 @@ puke(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -4159,7 +4159,7 @@ ruffle(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -4247,8 +4247,8 @@ scratch(string str)
 
     zones = ({ "head", "chin", "back", "behind", "nose", "ear" });
 
-    str = (strlen(str) ? lower_case(str) : "head");
-    if (member_array(str, zones) != -1)
+    str = (sizeof(str) ? lower_case(str) : "head");
+    if (member(str, zones) != -1)
     {
         write("You scratch your " + str + ".\n");
         allbb(" scratches " + this_player()->query_possessive() +
@@ -4259,7 +4259,7 @@ scratch(string str)
     parts = explode(str, " ");
     if ((size = sizeof(parts)) > 1)
     {
-        if (member_array(parts[size - 1], zones) != -1)
+        if (member(parts[size - 1], zones) != -1)
         {
             location = parts[size - 1];
             str = implode(parts[..(size - 2)], " ");
@@ -4354,7 +4354,7 @@ shake(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -4397,7 +4397,7 @@ show(string str)
     int covertly = 0;
     int action = 0;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Show what [to whom]?\n");
         return 0;
@@ -4439,7 +4439,7 @@ show(string str)
         return 0;
     }
 
-    if (!strlen(who))
+    if (!sizeof(who))
     {
         write("You show your " + LANG_SHORT(obj) + " around" +
             (full ? " in full" : "") + ".\n");
@@ -4455,7 +4455,7 @@ show(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -4511,7 +4511,7 @@ shudder(string str)
         return 1;
     }
 
-    if ((strlen(str) > 60) &&
+    if ((sizeof(str) > 60) &&
         (!(this_player()->query_wiz_level())))
     {
         SOULDESC("shuddering");
@@ -4568,7 +4568,7 @@ slap(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -4745,7 +4745,7 @@ sneer(string str)
 
     how = parse_adverb_with_space(str, "contemptuously", 0);
 
-    if (!strlen(how[0]))
+    if (!sizeof(how[0]))
     {
         SOULDESC("sneering" + how[1]);
         write("You sneer" + how[1] + ".\n");
@@ -4841,7 +4841,7 @@ snuggle(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -4915,7 +4915,7 @@ spit(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -4944,7 +4944,7 @@ squeeze(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -5103,7 +5103,7 @@ strangle(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -5270,7 +5270,7 @@ tackle(string str)
     oblist = parse_this(str, "[the] %l", ACTION_CONTACT | ACTION_HACTIVITY);
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -5334,7 +5334,7 @@ tap(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -5418,7 +5418,7 @@ think(string str)
         return 1;
     }
 
-    if ((strlen(str) > 60) &&
+    if ((sizeof(str) > 60) &&
         (!(this_player()->query_wiz_level())))
     {
         write("Geez.. That is a lot to think about at the same time.\n");
@@ -5441,7 +5441,7 @@ threaten(string str)
     object *oblist;
     string *how;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         str = "";
     }
@@ -5450,7 +5450,7 @@ threaten(string str)
     {
         how[1] = " with " + how[1];
 
-        if ((strlen(how[1]) > 60) &&
+        if ((sizeof(how[1]) > 60) &&
             (!(this_player()->query_wiz_level())))
         {
             SOULDESC("threatening everyone and everything");
@@ -5468,7 +5468,7 @@ threaten(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -5493,7 +5493,7 @@ thumb(string str)
     string *words;
     string direction = "upwards";
 
-    if (strlen(str))
+    if (sizeof(str))
     {
         words = explode(str, " ");
         switch(words[0])
@@ -5514,7 +5514,7 @@ thumb(string str)
         str = implode(words, " ");
     }
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         write("You hold your thumb " + direction + ".\n");
         allbb(" holds " + this_player()->query_possessive() + " thumb " +
@@ -5601,7 +5601,7 @@ tickle(string str)
         return 1;
     }
 
-    if (strlen(parse_msg))
+    if (sizeof(parse_msg))
     {
         write(parse_msg);
         return 1;
@@ -5613,7 +5613,7 @@ tickle(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -5653,7 +5653,7 @@ touch(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -5707,7 +5707,7 @@ trust(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;
@@ -6017,7 +6017,7 @@ wonder(string str)
         return 1;
     }
 
-    if ((strlen(str) > 60) &&
+    if ((sizeof(str) > 60) &&
         (!(this_player()->query_wiz_level())))
     {
         write("You wonder beyond the end of the line and wake up from " +
@@ -6071,7 +6071,7 @@ worship(string str)
 
     if (!sizeof(oblist))
     {
-        if (strlen(parse_msg))
+        if (sizeof(parse_msg))
         {
             write(parse_msg);
             return 1;

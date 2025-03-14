@@ -66,7 +66,7 @@ keeper(string str)
 
     CHECK_SO_KEEPER;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	notify_fail("Syntax: keeper <name> [arch/keeper]\n");
 	return 0;

@@ -456,7 +456,7 @@ notify_change_prop(string prop, mixed val, mixed old)
 
     if (old == val)
         return;
-    if (member_array(prop, NotifyProps) < 0)
+    if (member(prop, NotifyProps) < 0)
         return;
     pobj = previous_object();
 
@@ -712,7 +712,7 @@ map_subloc_id(string *sloc, string rm_sloc)
 {
     int pos;
 
-    if ((pos = member_array(rm_sloc, sloc)) >= 0)
+    if ((pos = member(rm_sloc, sloc)) >= 0)
         sloc = exclude_array(sloc, pos, pos);
     return sloc;
 }

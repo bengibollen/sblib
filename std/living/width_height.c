@@ -36,12 +36,12 @@ set_height_desc(string str)
     int height;
     string race = query_race();
 
-    if ((index = member_array(str, HEIGHTDESC)) < 0)
+    if ((index = member(str, HEIGHTDESC)) < 0)
     {
         return 0;
     }
 
-    if (member_array(race, RACES) < 0)
+    if (member(race, RACES) < 0)
     {
         race = "human";
     }
@@ -73,12 +73,12 @@ set_width_desc(string str)
     int width;
     string race = query_race();
 
-    if ((index = member_array(str, WIDTHDESC)) < 0)
+    if ((index = member(str, WIDTHDESC)) < 0)
     {
         return 0;
     }
 
-    if (member_array(race, RACES) < 0)
+    if (member(race, RACES) < 0)
     {
         race = "human";
     }

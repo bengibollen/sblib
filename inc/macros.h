@@ -12,15 +12,15 @@
 #endif
 
 #ifndef CONST_DEF
-#include <const.h>
+#include "/inc/const.h"
 #endif
 
 #ifndef LANG_DEF
-#include <language.h>
+#include "/inc/language.h"
 #endif
 
 #ifndef PROP_DEF
-#include <stdproperties.h>
+#include "/inc/stdproperties.h"
 #endif
 
 /*
@@ -63,7 +63,7 @@
 /*
  * IN_ARRAY(item, arr) is true when the item is a member of array.
  */
-#define IN_ARRAY(item, arr) (member_array((item), (arr)) != -1)
+#define IN_ARRAY(item, arr) (member((item), (arr)) != -1)
 
 /*
  * LOAD_ERR(file) tries to load the module 'file' and if it fails, returns

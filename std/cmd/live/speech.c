@@ -124,7 +124,7 @@ asay(string str)
 {
     string *how;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Syntax: asay <adverb> <text>\n");
         return 0;
@@ -138,7 +138,7 @@ asay(string str)
         return 0;
     }
 
-    if (!strlen(how[0]))
+    if (!sizeof(how[0]))
     {
         notify_fail("Syntax: asay <adverb> <text>\n");
         return 0;
@@ -177,7 +177,7 @@ ask(string str)
         oblist, msg))
     {
         oblist = NORMAL_ACCESS(oblist, 0, 0);
-        msg = cap_msg[-strlen(msg)..];
+        msg = cap_msg[-sizeof(msg)..];
     }
 
     if (!sizeof(oblist))
@@ -198,7 +198,7 @@ ask(string str)
         return 0;
     }
 
-    if (!strlen(msg))
+    if (!sizeof(msg))
     {
         write("Ask what to " + oblist[0]->query_the_name(this_player()) +
             "?\n");
@@ -521,7 +521,7 @@ reply(string str)
         names = target->query_prop(PLAYER_AS_REPLY_WIZARD);
         who = this_player()->query_real_name();
         if (!pointerp(names) ||
-            (member_array(who, names) == -1))
+            (member(who, names) == -1))
         {
             write("Player '" + capitalize(str) +
                   "' is not able to reply to you.\n");
@@ -561,7 +561,7 @@ reply(string str)
     {
         who = lower_case(who);
 
-        if (member_array(who, names) == -1)
+        if (member(who, names) == -1)
         {
             write("You cannot reply to " + capitalize(who) +
                   " since that wizard has not spoken to you.\n");
@@ -571,7 +571,7 @@ reply(string str)
     else
     {
         who = explode(lower_case(str), " ")[0];
-        if (member_array(who, names) >= 0)
+        if (member(who, names) >= 0)
         {
             notify_fail("Use \"reply to <wizard> <message>\" to reply to a " +
                 "specific wizard, like " + capitalize(who) + ".\n");
@@ -654,7 +654,7 @@ race_text(string race, string text)
 
     while(++sentence_index < sentence_size)
     {
-        if (strlen(to_print))
+        if (sizeof(to_print))
             to_print += " ";
 
         if (skill > 0 &&
@@ -665,7 +665,7 @@ race_text(string race, string text)
         else
         {
             to_print += extract("....................", 1,
-                strlen(words[sentence_index]));
+                sizeof(words[sentence_index]));
         }
     }
 
@@ -828,12 +828,12 @@ say_to(string str, function format)
     }
 
     if (!sizeof(oblist) ||
-        !strlen(str))
+        !sizeof(str))
     {
         return 0;
     }
 
-    say_string = extract(say_string, -(strlen(str)));
+    say_string = extract(say_string, -(sizeof(str)));
     this_player()->set_say_string(say_string);
 
     format(oblist, say_string);
@@ -851,7 +851,7 @@ say_text(string str, string adverb = "")
 {
     mixed tmp;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("What do you wish to say?\n");
         return 0;
@@ -944,7 +944,7 @@ shout(string str)
     int    size;
     string preposition;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Shout what?\n", 0);
         return 0;
@@ -956,7 +956,7 @@ shout(string str)
         return 1;
     }
 
-    if ((strlen(str) > 60) &&
+    if ((sizeof(str) > 60) &&
         (!this_player()->query_wiz_level()) &&
         (!this_player()->query_npc()))
     {
@@ -988,7 +988,7 @@ shout(string str)
         else if (parse_command(lower_case(cap_str = str),
             environment(this_player()), "[at] [to] [the] %i %s", oblist, str))
         {
-            str = extract(cap_str, -(strlen(str)));
+            str = extract(cap_str, -(sizeof(str)));
             oblist = NORMAL_ACCESS(oblist, 0, 0) - ({ this_player() });
         }
     }
@@ -1000,7 +1000,7 @@ shout(string str)
     }
 
     how = parse_adverb_with_space(str, NO_DEFAULT_ADVERB, 0);
-    if (strlen(how[0]) &&
+    if (sizeof(how[0]) &&
         how[1] != NO_DEFAULT_ADVERB_WITH_SPACE)
     {
         str = how[0];
@@ -1072,7 +1072,7 @@ tell(string str)
         return 0;
     }
 
-    if (!strlen(str) ||
+    if (!sizeof(str) ||
 	(sscanf(str, "%s %s", who, msg) != 2))
     {
 	notify_fail("Tell who what?\n");
@@ -1193,7 +1193,7 @@ whisper(string str)
     }
 
     how = parse_adverb_with_space(str, NO_DEFAULT_ADVERB, 0);
-    if (strlen(how[0]) && how[1] != NO_DEFAULT_ADVERB_WITH_SPACE)
+    if (sizeof(how[0]) && how[1] != NO_DEFAULT_ADVERB_WITH_SPACE)
     {
         str = how[0];
     }
@@ -1204,7 +1204,7 @@ whisper(string str)
 
 
 
-    if (strlen(str))
+    if (sizeof(str))
     {
         if (wildmatch("to *", str))
             str = extract(str, 3);

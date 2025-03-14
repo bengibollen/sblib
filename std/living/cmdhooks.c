@@ -210,11 +210,11 @@ start_souls(string *souls)
                 {
                     replace_souls += tmp;
                     rflag = 1;
-                    if (member_array(souls[il], tmp) >= 0)
+                    if (member(souls[il], tmp) >= 0)
                         tmp = 0;
                 }
 
-                if ((tmp == 0) && (member_array(souls[il], used_souls) < 0))
+                if ((tmp == 0) && (member(souls[il], used_souls) < 0))
                 {
                     ob->using_soul(this_object());
                     used_souls += ({ souls[il] });
@@ -251,7 +251,7 @@ load_wiz_souls()
 {
     int rank;
 
-    if (!strlen(geteuid(this_object())))
+    if (!sizeof(geteuid(this_object())))
     {
         write("PANIC! Player has no euid!\n");
         return 0;
@@ -449,7 +449,7 @@ reopen_soul()
     string fun = calling_function();
 
     /* Check carefully. */
-    if ((!strlen(REOPEN_SOUL_ALLOWED[fun])) ||
+    if ((!sizeof(REOPEN_SOUL_ALLOWED[fun])) ||
         (object_name(ob) != REOPEN_SOUL_ALLOWED[fun]) ||
         (!interactive(this_object())))
     {

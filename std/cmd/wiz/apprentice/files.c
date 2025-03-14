@@ -182,7 +182,7 @@ head(string path)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(path))
+    if (!sizeof(path))
     {
 	notify_fail("Syntax: head [lines] <filename>\n");
 	return 0;
@@ -197,7 +197,7 @@ head(string path)
     }
 
     path = FTPATH(this_interactive()->query_path(), path);
-    if (!strlen(path))
+    if (!sizeof(path))
     {
 	notify_fail("Bad file name format.\n");
 	return 0;
@@ -217,14 +217,14 @@ head(string path)
     }
 
     text = read_file(path, 1, lines);
-    if (!strlen(text))
+    if (!sizeof(text))
     {
         notify_fail("Failed to read " + lines + " lines from: " + path + "\n");
         return 0;
     }
 
     write(text);
-    if (size == strlen(text))
+    if (size == sizeof(text))
     {
         write("EOF\n");
     }
@@ -279,7 +279,7 @@ list_files(string path)
 	    }
 	}
 
-	if (!strlen(path))
+	if (!sizeof(path))
 	{
 	    path = ".";
 	}
@@ -436,7 +436,7 @@ list_files(string path)
     else
     {
 	tmp = sprintf("%-*#s\n", 76, implode(files, "\n"));
-	if (strlen(tmp) > 5000)
+	if (sizeof(tmp) > 5000)
 	{
 	    this_player()->more(tmp);
 	}
@@ -464,7 +464,7 @@ more_file(string path)
     }
 
     path = FTPATH((string)this_interactive()->query_path(), path);
-    if (!strlen(path))
+    if (!sizeof(path))
     {
 	notify_fail("Bad file name format.\n");
 	return 0;
@@ -546,7 +546,7 @@ pushd(string str)
     paths = this_player()->query_prop(WIZARD_AS_DIRPATH);
     paths = (sizeof(paths) ? paths : ({ }) );
 
-    if (!strlen(str))
+    if (!sizeof(str))
 	str = "+1";
 
     if (sscanf(str, "+%d", which) != 0)
@@ -617,7 +617,7 @@ pwd()
 nomask void
 tail_input_player(string str)
 {
-    str = (strlen(str) ? lower_case(str) : "u");
+    str = (sizeof(str) ? lower_case(str) : "u");
 
     switch(str[0])
     {
@@ -677,7 +677,7 @@ tail_lines()
     }
 
     write(text + "\n");
-    limit -= (strlen(text) + 1);
+    limit -= (sizeof(text) + 1);
     write("TAIL " + limit + "/" + size + " (" + (100 * limit / size) + "%)" +
       " --- \"q/x\" to quit, RETURN to continue --- ");
 
@@ -719,7 +719,7 @@ tail_file(string path)
 
     reverse = sscanf(path, "-r %s", path);
     path = FTPATH(this_interactive()->query_path(), path);
-    if (!strlen(path))
+    if (!sizeof(path))
     {
 	notify_fail("Bad file name format.\n");
 	return 0;
@@ -837,7 +837,7 @@ tree(string str)
     }
 
     str = FTPATH(this_interactive()->query_path(), str);
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	notify_fail("No such path found.\n");
 	return 0;

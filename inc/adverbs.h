@@ -105,7 +105,7 @@
  * Returns the adverb without a preceding space if it had any.
  */
 #define REMOVE_SPACE_FROM_ADVERB(s) \
-    (strlen(s) ? (((s)[0] == " ") ? ((s)[1..] : (s)) : "")
+    (sizeof(s) ? (((s)[0] == " ") ? ((s)[1..] : (s)) : "")
 
 /*
  * ADVERB_SAVE_FILE

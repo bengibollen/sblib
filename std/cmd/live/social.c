@@ -232,7 +232,7 @@ assist(string str)
         return 1;
     }
 
-    if ((member_array(friend, this_player()->query_enemy(-1)) != -1) ||
+    if ((member(friend, this_player()->query_enemy(-1)) != -1) ||
         (victim == this_player()))
     {
         write(break_string("Help " + friend->query_the_name(this_player()) +
@@ -248,7 +248,7 @@ assist(string str)
         return 0;
     }
 
-    if (member_array(victim, this_player()->query_team_others()) != -1)
+    if (member(victim, this_player()->query_team_others()) != -1)
     {
         notify_fail("But " + victim->query_the_name(this_player()) +
             " is a team with you.\n");
@@ -331,7 +331,7 @@ assist(string str)
 int
 emote(string str)
 {
-    if (!strlen(str) ||
+    if (!sizeof(str) ||
         !this_player()->query_npc())
     {
         return 0;
@@ -469,7 +469,7 @@ intro_live(string str)
 
     livings = FILTER_LIVE(all_inventory(environment(this_player()))) -
         ({ this_player(), introducee });
-    if (strlen(intro_to))
+    if (sizeof(intro_to))
     {
         all_targets = parse_this(intro_to, "[the] %l") - ({ introducee });
         vis_targets = all_targets;
@@ -512,7 +512,7 @@ intro_live(string str)
             str + ".\n");
     }
 
-    if (strlen(intro_to))
+    if (sizeof(intro_to))
     {
         livings -= all_targets;
 
@@ -588,7 +588,7 @@ introduced_list(string str)
 int
 invite(string str)
 {
-    return team("invite" + (strlen(str) ? (" " + str) : ""));
+    return team("invite" + (sizeof(str) ? (" " + str) : ""));
 }
 
 /*
@@ -597,7 +597,7 @@ invite(string str)
 varargs int
 join(string str)
 {
-    return team("join" + (strlen(str) ? (" " + str) : ""));
+    return team("join" + (sizeof(str) ? (" " + str) : ""));
 }
 
 /*
@@ -621,7 +621,7 @@ kill(string str)
         return 0;
     }
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Kill what?\n", 0);
         return 0;
@@ -692,7 +692,7 @@ kill(string str)
         return 1;
     }
 
-    if (member_array(ob, this_player()->query_team_others()) != -1)
+    if (member(ob, this_player()->query_team_others()) != -1)
     {
         write("You cannot attack " + ob->query_the_name(this_player()) +
             " as " + ob->query_pronoun() + " is in your team.\n");
@@ -1038,7 +1038,7 @@ stop(string str)
     object *oblist;
     mapping offers;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Stop what? Fighting? Counting? The world?\n");
         return 0;
@@ -1106,7 +1106,7 @@ stop(string str)
     }
 
     /* Before we offer, are we fighting him? */
-    if (member_array(oblist[0], this_player()->query_enemy(-1)) == -1)
+    if (member(oblist[0], this_player()->query_enemy(-1)) == -1)
     {
         write("You are not fighting " +
             oblist[0]->query_the_name(this_player()) + ".\n");
@@ -1294,7 +1294,7 @@ team(string str)
     object  member;
     object *members = this_player()->query_team();
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         str = "list";
     }
@@ -1336,7 +1336,7 @@ team(string str)
                 " to join your team.\n");
             done = 1;
         }
-        oblist = filter(users(), &operator(>)(, -1) @ &member_array(this_player(), ) @ &->query_invited());
+        oblist = filter(users(), &operator(>)(, -1) @ &member(this_player(), ) @ &->query_invited());
         if (sizeof(oblist))
         {
             write("You have been invited to join the team of " +
@@ -1432,7 +1432,7 @@ team(string str)
     case "leave":
         if (objectp(leader))
         {
-            if (strlen(arg))
+            if (sizeof(arg))
             {
                 notify_fail("Leave your team and what else?\n");
                 return 0;
@@ -1449,7 +1449,7 @@ team(string str)
         FAIL_IF_NOT_LEADER("remove someone from your team");
         if (!sizeof(oblist))
         {
-            if (!strlen(arg))
+            if (!sizeof(arg))
             {
                 notify_fail("You are leading the team. " +
                     "To disband it, please \"team disband\".\n");
@@ -1567,7 +1567,7 @@ team(string str)
 nomask int
 index_arg(string str, string letter)
 {
-    return (member_array(letter, explode(str, "")) != -1);
+    return (member(letter, explode(str, "")) != -1);
 }
 
 /*
@@ -1656,7 +1656,7 @@ print_who(string opts, object *list, int size)
             title[(list[i]->query_wiz_level() ? 1 : 0)] += "*";
             tmp = implode(title, " ");
         }
-        if ((scrw == -1) || (strlen(tmp) < scrw))
+        if ((scrw == -1) || (sizeof(tmp) < scrw))
         {
             to_write += (tmp + "\n");
         }
@@ -1677,7 +1677,7 @@ print_who(string opts, object *list, int size)
 
     /* Too long message is not what we want. */
     if (!mwho &&
-        (strlen(to_write) > 4000))
+        (sizeof(to_write) > 4000))
     {
         write("The list is too long. More automatically invoked.\n");
         mwho = 1;

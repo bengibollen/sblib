@@ -104,7 +104,7 @@ stat_living()
 		  to->query_npc(),
 		  to->query_whimpy());
 
-    if (strlen(tmp = to->query_prop(OBJ_S_WIZINFO)))
+    if (sizeof(tmp = to->query_prop(OBJ_S_WIZINFO)))
 	str += "Wizinfo:\n" + tmp;
 
     return str;

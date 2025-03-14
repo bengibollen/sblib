@@ -287,7 +287,7 @@ print_soul_list(string *soul_list, string soul)
     while(++index < size)
     {
         soul_id = soul_list[index]->get_soul_id();
-        if (strlen(soul) &&
+        if (sizeof(soul) &&
             (soul != soul_id))
         {
             continue;
@@ -548,7 +548,7 @@ bit(string args)
                 }
             }
         }
-        if (!strlen(result))
+        if (!sizeof(result))
         {
             write(argv[2] + " has no bits set in " +
                   capitalize(argv[1]) + ".\n");
@@ -609,7 +609,7 @@ finger_domain(string domain)
 
     names = (string *)SECURITY->query_domain_members(domain);
     name = SECURITY->query_domain_lord(domain);
-    if (strlen(name))
+    if (sizeof(name))
     {
         write("The Liege of " + domain + " is " + capitalize(name));
         names -= ({ name });
@@ -620,7 +620,7 @@ finger_domain(string domain)
     }
 
     name = SECURITY->query_domain_steward(domain);
-    if (strlen(name))
+    if (sizeof(name))
     {
         write(", " + capitalize(name) + " is the steward.\n");
         names -= ({ name });
@@ -744,7 +744,7 @@ finger_player(string name, int show_long)
             " (level " + SECURITY->query_wiz_level(name) + ")" +
 #endif
             ", set by " +
-            (strlen(str = SECURITY->query_wiz_chl(name)) ?
+            (sizeof(str = SECURITY->query_wiz_chl(name)) ?
              capitalize(str) : "root");
 #ifdef FOB_KEEP_CHANGE_TIME
         line += ((chtime = SECURITY->query_wiz_chl_time(name)) ?
@@ -762,12 +762,12 @@ finger_player(string name, int show_long)
     write(line);
 
     /* Display the domain the player is in. */
-    if (strlen(domain = SECURITY->query_wiz_dom(name)))
+    if (sizeof(domain = SECURITY->query_wiz_dom(name)))
     {
         write(pronoun +
               ((SECURITY->query_wiz_rank(name) == WIZ_LORD) ? "Liege" :
                "a member") + " of the domain " + domain + ", added by " +
-              (strlen(str = SECURITY->query_wiz_chd(name)) ?
+              (sizeof(str = SECURITY->query_wiz_chd(name)) ?
                capitalize(str) : "root") +
 #ifdef FOB_KEEP_CHANGE_TIME
               ((chtime = SECURITY->query_wiz_chd_time(name)) ?
@@ -794,7 +794,7 @@ finger_player(string name, int show_long)
     }
 
     /* Display mentor information */
-    if (strlen(str = SECURITY->query_mentor(player->query_real_name())))
+    if (sizeof(str = SECURITY->query_mentor(player->query_real_name())))
     {
         write("Registered mentor: " + capitalize(str) + "\n");
     }
@@ -859,7 +859,7 @@ finger_player(string name, int show_long)
 
     /* Display the age and email address of the player. */
     write("Age  : " + CONVTIME(player->query_age() * 2) + ".\n");
-    if (strlen(str = player->query_mailaddr()) && (str != "none"))
+    if (sizeof(str = player->query_mailaddr()) && (str != "none"))
     {
         write("Email: " + str + "\n");
     }
@@ -901,7 +901,7 @@ finger_wizards(string *names, int details)
     }
 
     /* Find out the longest name, so we can synchronise the two tables. */
-    length = applyv(max, map(names, strlen));
+    length = applyv(max, map(names, sizeof));
 
     /* Must do this in two steps because map() returns (mixed *). */
     present = map(users(), geteuid);
@@ -1031,7 +1031,7 @@ finger(string str)
     }
 
     /* Wizard wants to see a particular class of wizards. */
-    if ((index = member_array(LANG_SWORD(str), WIZ_N)) > -1)
+    if ((index = member(LANG_SWORD(str), WIZ_N)) > -1)
     {
         write("The following " + LANG_PWORD(WIZ_N[index]) + " are registered:\n");
         finger_wizards(SECURITY->query_wiz_list(WIZ_R[index]), arg_l);
@@ -1047,7 +1047,7 @@ finger(string str)
     }
 
     /* Wizard wants to list an admin team */
-    if (member_array(str, SECURITY->query_teams()) > -1)
+    if (member(str, SECURITY->query_teams()) > -1)
     {
         write("The following wizards are registered:\n");
         finger_wizards(SECURITY->query_team_list(str), arg_l);
@@ -1416,7 +1416,7 @@ last(string str)
         }
     }
 
-    /* Get the wizards currently logged in. We have to test for strlen
+    /* Get the wizards currently logged in. We have to test for sizeof
      * again because the wizard may have given only '-i' as argument.
      */
     args = ({});
@@ -1427,7 +1427,7 @@ last(string str)
         for (i = 0, sz = sizeof(plist) ; i < sz ; i++)
         {
             /* The name may be a class of wizards. */
-            if ((index = member_array(plist[i], WIZ_N)) >= 0)
+            if ((index = member(plist[i], WIZ_N)) >= 0)
             {
                 args += SECURITY->query_wiz_list(WIZ_R[index]);
 
@@ -1446,7 +1446,7 @@ last(string str)
                 args += EXPAND_MAIL_ALIAS(plist[i]);
             }
             /* The name may be an admin team */
-            else if (member_array(plist[i], SECURITY->query_teams()) > -1)
+            else if (member(plist[i], SECURITY->query_teams()) > -1)
             {
                 args += SECURITY->query_team_list(plist[i]);
             }
@@ -1722,7 +1722,7 @@ notify(string str)
         return 1;
     }
 
-    for (i = 0; i < strlen(str); i++)
+    for (i = 0; i < sizeof(str); i++)
     {
         switch (str[i])
         {
@@ -1932,7 +1932,7 @@ set_m_out(string m)
 {
     CHECK_SO_WIZ;
 
-    if (!strlen(m))
+    if (!sizeof(m))
     {
         write("Your m-out: " + this_interactive()->query_m_out() + "\n");
         return 1;
@@ -1951,7 +1951,7 @@ set_m_in(string m)
 {
     CHECK_SO_WIZ;
 
-    if (!strlen(m))
+    if (!sizeof(m))
     {
         write("Your m-in: " + this_interactive()->query_m_in() + "\n");
         return 1;
@@ -1977,7 +1977,7 @@ set_mm_out(string m)
 {
     CHECK_SO_WIZ;
 
-    if (!strlen(m))
+    if (!sizeof(m))
     {
         write("Your mm-out: " + this_interactive()->query_mm_out() + "\n");
         return 1;
@@ -1996,7 +1996,7 @@ set_mm_in(string m)
 {
     CHECK_SO_WIZ;
 
-    if (!strlen(m))
+    if (!sizeof(m))
     {
         write("Your mm-in: " + this_interactive()->query_mm_in() + "\n");
         return 1;
@@ -2147,12 +2147,12 @@ whereis(string str)
     live = FILTER_LIVE(dead = all_inventory(obj));
     dead = FILTER_SHOWN(dead - live);
     if (sizeof(dead) &&
-        strlen(str = COMPOSITE_DEAD(dead)))
+        sizeof(str = COMPOSITE_DEAD(dead)))
     {
         write(break_string((capitalize(str) + "."), 76) + "\n");
     }
     if (sizeof(live) &&
-        strlen(str = COMPOSITE_LIVE(live)))
+        sizeof(str = COMPOSITE_LIVE(live)))
     {
         write(break_string((capitalize(str) + "."), 76) + "\n");
     }
@@ -2186,7 +2186,7 @@ print_whichsoul(string *soul_list, string cmd, string type)
         if (cmd_list[cmd])
         {
             soul_id = soul_list[index]->get_soul_id();
-            soul_id = (strlen(soul_id) ? soul_id : "noname");
+            soul_id = (sizeof(soul_id) ? soul_id : "noname");
             text += sprintf("%-7s  %-15s  %-15s  %-s\n", type, soul_id,
                 cmd_list[cmd] + "()", soul_list[index] + ".c");
         }
@@ -2247,7 +2247,7 @@ whichsoul(string str)
         }
     }
 
-    if (strlen(text))
+    if (sizeof(text))
     {
         write("Function         Filename\n");
         write("--------         --------\n");
@@ -2262,7 +2262,7 @@ whichsoul(string str)
     text += print_whichsoul(target->query_tool_list(),    str, "tool");
     text += print_whichsoul(target->query_cmdsoul_list(), str, "command");
 
-    if (strlen(text))
+    if (sizeof(text))
     {
         write("Type     Soulname         Function         Filename\n");
         write("----     --------         --------         --------\n");

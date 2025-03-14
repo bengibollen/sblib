@@ -45,7 +45,7 @@ public  void    add_prop(string prop, mixed val);
 public  void    remove_prop(string prop);
 varargs void    add_name(mixed name, int noplural);
 public  mixed   query_prop(string prop);
-        mixed   query_adj(int arg);
+public  varargs mixed   query_adj(int arg);
         mixed   query_adjs();
         void    set_no_show_composite(int i);
 public  nomask varargs int check_recoverable(int flag);
@@ -1011,10 +1011,10 @@ check_call(mixed retval, object for_obj = previous_object())
 
     if (more == 0 && (retval[..1] == "@@"))
         proc_ret = process_value(retval[2..]);
-    else if (more == 1 || (more == 2 && !strlen(b)))
+    else if (more == 1 || (more == 2 && !sizeof(b)))
         proc_ret = process_value(a);
     else
-        proc_ret = process_string(retval, 1);
+        proc_ret = process_string(retval);
 
     obj_previous = 0;
     return proc_ret;
@@ -1071,7 +1071,7 @@ add_list(string *list, mixed elem, int first)
  * Returns:       The new list.
  */
 private string *
-del_list(string *list_old, mixed list_del)
+del_list(string *list_old, string * | string list_del)
 {
     if (obj_no_change)
         return list_old;                /* All changes has been locked out */
@@ -1082,7 +1082,7 @@ del_list(string *list_old, mixed list_del)
     if (!pointerp(list_del))
         list_del = ({ list_del });
 
-    return (list_old - (string *)list_del);
+    return (list_old - list_del);
 }
 
 /*
@@ -1370,8 +1370,7 @@ remove_adj(mixed adj)
  *                          string * - an array with all adjectives if
  *                                     'arg' is true.
  */
-varargs public mixed
-query_adj(int arg)
+varargs public mixed query_adj(int arg)
 {
     return query_list(obj_adjs, arg);
 }
@@ -1554,7 +1553,7 @@ remove_magic_effect(mixed what)
     if (!what)
         what = previous_object();
 
-    il = member_array(what, magic_effects);
+    il = member(magic_effects, what);
 
     if (il == -1)
         return 0;
@@ -1698,7 +1697,7 @@ item_id(string str)
     size = sizeof(obj_items);
     while(--size >= 0)
     {
-        if (member_array(str, obj_items[size][0]) >= 0)
+        if (member(str, obj_items[size][0]) >= 0)
         {
             return 1;
         }
@@ -1835,7 +1834,7 @@ cmditem_action(string str)
 
     for (il = 0; il < sizeof(obj_cmd_items); il++)
     {
-        if ((pos = member_array(verb, obj_cmd_items[il][1])) < 0)
+        if ((pos = member(verb, obj_cmd_items[il][1])) < 0)
             continue;
         if (pos >= sizeof(obj_cmd_items[il][2])) pos = 0;
 
@@ -1947,7 +1946,7 @@ remove_cmd_item(string name)
 
     if (query_prop(ROOM_I_NO_EXTRA_ITEM)) return 0;
     for ( i = 0; i<sizeof(obj_cmd_items); i++)
-        if ( member_array(name, obj_cmd_items[i][0])>=0 )
+        if ( member(name, obj_cmd_items[i][0])>=0 )
         {
             obj_cmd_items = exclude_array(obj_cmd_items,i,i);
             obj_commands = ({});
@@ -2255,7 +2254,7 @@ check_recoverable(int flag)
 
     /* Check for recover string */
     str = (string)this_object()->query_recover();
-    if (strlen(str) > 0)
+    if (sizeof(str) > 0)
     {
         if (sscanf(str, "%s:%s", path, arg) != 2)
         {
@@ -2264,7 +2263,7 @@ check_recoverable(int flag)
         }
 
         /* Check for arg to be <= 128 bytes long */
-        if (strlen(arg) <= 128)
+        if (sizeof(arg) <= 128)
             return 1;
     }
 
@@ -2324,7 +2323,7 @@ search_now(mixed *arr)
                 hidden += COMPOSITE_LIVE(live);
             }
 
-            if (strlen(hidden))
+            if (sizeof(hidden))
             {
                 tell_object(arr[0], "You find " + hidden + ".\n");
                 tell_room(environment(arr[0]), QCTNAME(arr[0]) + " finds " +
@@ -2341,7 +2340,7 @@ search_now(mixed *arr)
         fun = call_other(this_object(), fun, arr[0], arr[1]);
     }
 
-    if (strlen(fun))
+    if (sizeof(fun))
     {
         tell_object(arr[0], fun);
     }
@@ -2479,7 +2478,7 @@ stat_object()
         tstr += "Ob Volume: " + tmp + " \t";
     if (tmp = query_prop(OBJ_I_VALUE))
         tstr += "Ob Value: " + tmp + "";
-    if (strlen(tstr))
+    if (sizeof(tstr))
         str += tstr + "\n";
 
     tstr = "";
@@ -2496,7 +2495,7 @@ stat_object()
     if ((this_object()->query_recover()) &&
         (!(this_object()->may_not_recover())))
         tstr += "recoverable";
-    if (strlen(tstr))
+    if (sizeof(tstr))
         str += tstr + "\n";
 
     return str;

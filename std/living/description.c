@@ -436,12 +436,12 @@ query_presentation()
 #endif
 
     return query_name() +
-	(strlen(a) ? (" " + a + ",") : "") +
-	(strlen(b) ? (" " + b + ",") : "") + " " +
+	(sizeof(a) ? (" " + a + ",") : "") +
+	(sizeof(b) ? (" " + b + ",") : "") + " " +
 	this_object()->query_gender_string() + " " +
         this_object()->query_race_name()
 #ifndef NO_ALIGN_TITLE
-	+ (strlen(c) ? (" (" + c + ")") : "")
+	+ (sizeof(c) ? (" (" + c + ")") : "")
 #endif
 	; /* Oke, it is ugly to have a semi-colon on a separate line. */
 }
@@ -480,7 +480,7 @@ short(object for_obj)
 #endif
     }
 
-    if (strlen(extra = query_prop(LIVE_S_EXTRA_SHORT)))
+    if (sizeof(extra = query_prop(LIVE_S_EXTRA_SHORT)))
 	return (desc + extra);
 
     return desc;
@@ -743,7 +743,7 @@ describe_combat(object *livings)
     {
 	/* Victim is fighting (one of his) attackers. */
 	if (objectp(victim = livings[index]->query_attack()) &&
-	    (member_array(victim, fights[livings[index]]) >= 0))
+	    (member(victim, fights[livings[index]]) >= 0))
 	{
 	    fights[livings[index]] -= ({ victim });
 

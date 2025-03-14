@@ -413,7 +413,7 @@ hanging_indent(string to_print, int length, int width)
         scrw = width;
     }
 
-    if (strlen(to_print) <= scrw)
+    if (sizeof(to_print) <= scrw)
     {
         return (to_print + "\n");
     }

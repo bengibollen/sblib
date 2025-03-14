@@ -8,17 +8,26 @@
 #include "/sys/configuration.h"  // For DC_* constants
 #include "/sys/driver_hooks.h"    // For H_* constants
 #include "/sys/interactive_info.h"
+#include "/inc/macros.h"         // For ROOT_UID, BACKBONE_UID, etc.
+#include "/inc/files.h"          // For file_size, etc.
+#include "/sys/files.h"          // For II_* constants
+#include "/inc/std.h"          // For II_* constants
 
 // Forward declarations for functions used in config
 string load_uid(string file);
 string clone_uid(string file);
 string create_super(string file);
 string create_object(string file);
+static void save_master();
 
 private object logger;  // We'll initialize this later
 
 #include "/secure/master/error_handling.c"
 #include "/secure/master/config.c"
+#include "/secure/master/sanction.c"
+#include "/secure/master/fob.c"
+
+#define DEBUG_RESTRICTED ( ({ "mudstatus", "swap", "shutdown", "send_udp" }) )
 
 // Global variables
 string mudlib_version = "SBLib v0.1";
@@ -162,8 +171,22 @@ void preload(string file) {
     catch(load_object(file));
 }
 
-string get_simul_efun() {
-    return 0;  // No simul_efun object
+
+string get_simul_efun ()
+// Load the simul_efun object(s) and return one or more paths of it.
+{
+  object ob;
+
+  //error = catch(ob = load_object("/secure/simul_efun"));
+  ob = load_object("/secure/simul_efun");
+  if (objectp(ob))
+  {
+  ob->start_simul_efun();
+    return "/secure/simul_efun";
+  }
+  efun::write("Failed to load " + "/secure/simul_efun" + ": ");
+  efun::shutdown();
+  return 0;
 }
 
 // ---------- Optional: Connection Handling ----------
@@ -287,4 +310,63 @@ string *parse_command_prepos_list() {
 
 string parse_command_all_word() {
     return "all";
+}
+
+
+/*
+ * Function name: do_debug
+ * Description  : This function is a front for the efun debug(). You are
+ *                only allowed to call debug() through this object because we
+ *                need to make some security checks.
+ * Arguments    : string icmd - the debug command.
+ *                mixed a1    - a possible argument to debug().
+ *                mixed a2    - a possible argument to debug().
+ *                mixed a3    - a possible argument to debug().
+ * Returns      : mixed - the relevant return value for the particular
+ *                        debug command.
+ */
+varargs mixed
+do_debug(string icmd, mixed a1, mixed a2, mixed a3)
+{
+    string euid = geteuid(previous_object());
+
+    /* Some debug() commands are not meant to be called by just anybody. Only
+     * 'root' and the administration may call them.
+     */
+    if (IN_ARRAY(icmd, DEBUG_RESTRICTED))
+    {
+        if ((euid != ROOT_UID) &&
+            (previous_object() != this_object()) &&
+            (previous_object() != find_object(SIMUL_EFUN)) &&
+            (query_wiz_rank(euid) < WIZ_ARCH))
+        {
+            return 0;
+        }
+    }
+
+    /* In order to get the variables of a certain object, you need to have
+     * the proper euid. If you are allowed to write to the file, you are
+     * also allowed to view its variables.
+     */
+    if ((icmd == "get_variables") &&
+        (!valid_write(object_name(a1), euid, "get_variables")))
+    {
+        return 0;
+    }
+
+    /* Since debug() returns arrays and mappings by reference, we need to
+     * process the value to make it secure, so people cannot alter it.
+     */
+    return secure_var(debug(icmd, a1, a2, a3));
+}
+
+/*
+ * Function name: save_master
+ * Description  : This function saves the master object to a file.
+ */
+static void save_master()
+{
+    set_auth(this_object(), "root:root");
+
+    save_object(SAVEFILE);
 }

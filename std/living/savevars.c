@@ -365,7 +365,7 @@ query_title()
 
     if (query_wiz_level())
     {
-        if (!strlen(title))
+        if (!sizeof(title))
             title = "";
 
         return title;
@@ -374,7 +374,7 @@ query_title()
     /* This MUST be with this_object()-> or it will not work for we are
      * accessing the function in the shadows of the player!
      */
-    if (strlen(name = this_object()->query_guild_title_race()))
+    if (sizeof(name = this_object()->query_guild_title_race()))
     {
         titles += ({ name });
 
@@ -385,26 +385,26 @@ query_title()
         family_name = this_object()->query_guild_family_name();
     }
 
-    if (strlen(name = this_object()->query_guild_title_occ()))
+    if (sizeof(name = this_object()->query_guild_title_occ()))
         titles += ({ name });
 
-    if (strlen(name = this_object()->query_guild_title_lay()))
+    if (sizeof(name = this_object()->query_guild_title_lay()))
         titles += ({ name });
 
-    if (strlen(name = this_object()->query_guild_title_craft()))
+    if (sizeof(name = this_object()->query_guild_title_craft()))
         titles += ({ name });
 
     /* An NPC may have guild-titles and set titles.
      */
     if (query_npc())
     {
-        if (!strlen(title))
+        if (!sizeof(title))
             title = "";
 
         if (!sizeof(titles))
             return title;
 
-        if (strlen(title))
+        if (sizeof(title))
             titles += ({ title });
     }
 
@@ -536,7 +536,7 @@ heal_hp(int hp)
 	if (objectp(o) && (MASTER_OB(o) == CHUMLOCK_OBJECT))
 	    text = "";
 
-	if (strlen(text))
+	if (sizeof(text))
 	    SECURITY->log_syslog(LOG_REDUCE_HP, text);
     }
 #endif
@@ -1952,7 +1952,7 @@ remove_cmdsoul(string soul)
     if (!valid_change_soul())
         return 0;
 
-    if ((index = member_array(soul, cmdsoul_list)) < 0)
+    if ((index = member(soul, cmdsoul_list)) < 0)
         return 0;
 
     cmdsoul_list = exclude_array(cmdsoul_list, index, index);
@@ -2030,7 +2030,7 @@ remove_toolsoul(string soul)
     if (!valid_change_soul())
         return 0;
 
-    if ((index = member_array(soul, tool_list)) < 0)
+    if ((index = member(soul, tool_list)) < 0)
         return 0;
 
     tool_list = exclude_array(tool_list, index, index);

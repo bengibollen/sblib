@@ -354,7 +354,7 @@ perform_backstab(string str, object whom)
 
     this_player()->remove_prop(LIVE_I_BACKSTABBING);
 
-    if (!strlen(str) || sscanf(str, "%s with %s", one, two) != 2)
+    if (!sizeof(str) || sscanf(str, "%s with %s", one, two) != 2)
     {
         write("Backstab whom with what?\n");
         return;
@@ -710,7 +710,7 @@ steal(string str)
         return 1;
     }
 
-    if (member_array(str2, ({ "here", "ground", "floor" })) != -1)
+    if (member(str2, ({ "here", "ground", "floor" })) != -1)
     {
         /* Stealing from the room */
         place = environment(this_player());
@@ -1204,7 +1204,7 @@ steal(string str)
                 if (pointerp(tmp))
                 {
                     /* We did, reduce the exp. */
-                    if (member_array(this_player(), tmp) != -1)
+                    if (member(this_player(), tmp) != -1)
                     {
                         xp /= 3;
                     }

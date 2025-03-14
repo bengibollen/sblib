@@ -358,7 +358,7 @@ cmdsoul(string str)
 
     str = FTPATH((string)this_interactive()->query_path(), str);
 
-    if (member_array(str, cmdsoul_list) >= 0)
+    if (member(str, cmdsoul_list) >= 0)
     {
         if (this_interactive()->remove_cmdsoul(str))
             write("Removed " + str + ".\n");
@@ -499,7 +499,7 @@ dtell(string str)
         return 0;
     }
 
-    if (!strlen(domain =
+    if (!sizeof(domain =
         SECURITY->query_wiz_dom(this_interactive()->query_real_name())))
     {
         notify_fail("You are not a member of any domain.\n");
@@ -722,7 +722,7 @@ modify(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Modify what? Do \"help modify\" for instructions.\n");
         return 0;
@@ -749,7 +749,7 @@ modify(string str)
     reason = (self ? "self" : implode(words[4..], " "));
 
     words[2] = lower_case(words[2]);
-    if (member_array(words[2], ({ "quest", "combat", "general" }) ) < 0)
+    if (member(words[2], ({ "quest", "combat", "general" }) ) < 0)
     {
         notify_fail("Unknown type of experience. Only \"quest\", " +
             "\"combat\" and \"general\" are recognised.\n");
@@ -778,7 +778,7 @@ modify(string str)
         return 0;
     }
 
-    stat = member_array(words[1], SS_STAT_DESC);
+    stat = member(words[1], SS_STAT_DESC);
     if ((stat < 0) ||
         (stat >= SS_NO_STATS))
     {
@@ -882,7 +882,7 @@ msecond(string str)
     string *args;
     mixed info;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	notify_fail("Syntax: msecond <player>\n" +
 		    "        msecond a[dd] <name> to <player>\n" +
@@ -1081,7 +1081,7 @@ possess(string arg)
         switch (argv[0])
         {
         case "force":
-            if (strlen(p_name))
+            if (sizeof(p_name))
             {
                 victim->command("quit");
                 write("You exorcised " + capitalize(p_name) + ".\n");
@@ -1092,7 +1092,7 @@ possess(string arg)
             break;
 
         case "break":
-            if (strlen(p_name))
+            if (sizeof(p_name))
             {
                 victim->command("quit");
                 write("You exorcised " + capitalize(p_name) + ".\n");
@@ -1111,7 +1111,7 @@ possess(string arg)
     }
     else
     {
-        if (strlen((string)victim->query_possessed()))
+        if (sizeof((string)victim->query_possessed()))
         {
             notify_fail(capitalize(v_name) + " is already possessed by " + capitalize(p_name) + ".\n");
             return 0;
@@ -1212,7 +1212,7 @@ restrict(string str)
 
     CHECK_SO_WIZ;
 
-    if (strlen(str) == 0)
+    if (sizeof(str) == 0)
     {
         notify_fail("Syntax: restrict list\n" +
                     "        restrict [wiz] <restriction>\n" +
@@ -1548,9 +1548,9 @@ shutdown_game(string str)
             argv[1] = WIZNAME_MORTAL;
         }
 
-        if ((grace = member_array(argv[1], WIZ_N)) == -1)
+        if ((grace = member(argv[1], WIZ_N)) == -1)
         {
-            if ((grace = member_array(argv[1], WIZ_S)) == -1)
+            if ((grace = member(argv[1], WIZ_S)) == -1)
             {
                 notify_fail("There is no rank called '" + argv[1] + "'.\n");
                 return 0;
@@ -1967,7 +1967,7 @@ toolsoul(string str)
 
     str = FTPATH((string)this_interactive()->query_path(), str);
 
-    if (member_array(str, tool_list) >= 0)
+    if (member(str, tool_list) >= 0)
     {
         if (this_interactive()->remove_toolsoul(str))
             write("Removed " + str + ".\n");
@@ -2059,7 +2059,7 @@ trans(string str)
     }
     else
     {
-        if (!(strlen(room = ob->query_prop(PLAYER_S_TRANSED_FROM))))
+        if (!(sizeof(room = ob->query_prop(PLAYER_S_TRANSED_FROM))))
         {
             write(capitalize(args[0]) +
                 " was not transed. Using previous location instead.\n");
@@ -2125,7 +2125,7 @@ somelog(string str, string logname, string log)
     string file;
     int remove;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         str = (string)this_interactive()->query_real_name();
     }
@@ -2135,7 +2135,7 @@ somelog(string str, string logname, string log)
     }
 
     file = (string)SECURITY->query_wiz_path(str) + "/log";
-    if (!strlen(file))
+    if (!sizeof(file))
     {
         return (notify_fail("No " + logname + " for: " + str + ".\n"), 0);
     }

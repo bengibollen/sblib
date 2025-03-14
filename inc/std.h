@@ -49,7 +49,7 @@
  *
  * These are the default defined userids.
  */
-#define ROOT_UID	"root"
+// #define ROOT_UID	"root"
 #define BACKBONE_UID	"backbone"
 
 /*
@@ -227,7 +227,7 @@
 #define MUDLIST_SERVER ({ "129.16.227.203", 2501 })
 
 #ifndef CONFIG_DEFINED
-#include "/sys/config.h"
+#include "/inc/config.h"
 #endif
 
 /* No definitions beyond this line. */

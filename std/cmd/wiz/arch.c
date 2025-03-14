@@ -481,7 +481,7 @@ newchar(string str)
     string passwd;
     mapping tmp_char;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Usage: newchar <name> <email address>.\n");
         return 0;
@@ -636,7 +636,7 @@ nopurge(string str)
 
     write("Purge protection on '" + name + "':\n");
 
-    if (!strlen(str = read_file(NOPURGE(name))))
+    if (!sizeof(str = read_file(NOPURGE(name))))
     {
         write("    Error: unable to read purge protection.\n");
         return 1;
@@ -702,7 +702,7 @@ resetpassword(string str)
     string name;
     mapping playerfile;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Syntax: resetpassword <name> [<password>]\n");
         return 0;
@@ -730,7 +730,7 @@ resetpassword(string str)
 
     /* Reset the password and also the time, forcing the player to change upon
        login if we set the password to a text. */
-    playerfile["password"] = (strlen(pswd) ? crypt(pswd, 0) : 0);
+    playerfile["password"] = (sizeof(pswd) ? crypt(pswd, 0) : 0);
     playerfile["password_time"] = 0;
     save_map(playerfile, PLAYER_FILE(name));
 
@@ -782,7 +782,7 @@ suspend(string str)
 
     CHECK_SO_ARCH;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Syntax: suspend <name> off\n" +
             "        suspend <name> <number> hour/hours/day/days\n");
@@ -986,7 +986,7 @@ vip(string str)
     /* Remove vip-access from someone. */
     if (sscanf(str, "-r %s", str) == 1)
     {
-        if (member_array(str, vips) == -1)
+        if (member(str, vips) == -1)
         {
             write(capitalize(str) + " has no VIP access.\n");
             return 1;
@@ -1008,7 +1008,7 @@ vip(string str)
         return 0;
     }
 
-    if (member_array(str, vips) >= 0)
+    if (member(str, vips) >= 0)
     {
         write(capitalize(str) + " already has VIP access.\n");
         return 1;

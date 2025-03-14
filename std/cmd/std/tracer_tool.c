@@ -178,7 +178,7 @@ Call(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Syntax: Call <object> <function> [<arguments>]\n");
         return 0;
@@ -203,7 +203,7 @@ Call(string str)
 
     write("Looking for function " + args[1] + "() in '" + args[0] +
         "'.\n");
-    if (strlen(source = function_exists(args[1], obj)))
+    if (sizeof(source = function_exists(args[1], obj)))
     {
         write("Found in '" + obj->short() + "' (" + object_name(obj) + ")\n");
         if (source != MASTER_OB(obj))
@@ -321,7 +321,7 @@ Cat(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         str = "here";
         ob = environment(this_interactive());
@@ -368,7 +368,7 @@ Clean(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         ob = environment(this_interactive());
         write(object_name(ob) + "\n");
@@ -436,7 +436,7 @@ Destruct(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Destruct what?\n");
         return 0;
@@ -459,7 +459,7 @@ Destruct(string str)
 
     /* Need catch() here for bugs in short(). Baaad wiz. */
     catch(write("Trying to destruct: " +
-        (strlen(str = ob->short(this_interactive())) ? str : "---") + "\n"));
+        (sizeof(str = ob->short(this_interactive())) ? str : "---") + "\n"));
 
     /* Clean up the binary too, so it will have to be reloaded. */
     SECURITY->remove_binary(MASTER_OB(ob));
@@ -612,9 +612,9 @@ Dump(string str)
 
     case "profile":
 	extra = strip(extra);
-	if (!strlen(extra) ||
-	    (member_array(extra, ({ "time", "calls", "average", "function"})) < 0 &&
-	     member_array(extra[0..0], ({ "t", "c", "a", "f" })) < 0))
+	if (!sizeof(extra) ||
+	    (member(extra, ({ "time", "calls", "average", "function"})) < 0 &&
+	     member(extra[0..0], ({ "t", "c", "a", "f" })) < 0))
 	    extra = "time";
 
         funcs = SECURITY->do_debug("getprofile", ob);
@@ -647,8 +647,8 @@ Dump(string str)
 
     case "profile_avg":
 	extra = strip(extra);
-	if (!strlen(extra) ||
-	    member_array(extra[0..0], ({ "t", "c", "a", "f" })) < 0)
+	if (!sizeof(extra) ||
+	    member(extra[0..0], ({ "t", "c", "a", "f" })) < 0)
 	    extra = "time";
 
 	funcs = SECURITY->do_debug("getprofile_avg", ob);
@@ -718,7 +718,7 @@ Dump(string str)
 	data = SECURITY->do_debug("get_variables", ob);
 	vars = m_indices(data);
 
-	if (member_array(flag, vars) > 0)
+	if (member(flag, vars) > 0)
 	{
 	    write(flag + " : ");
 	    print_value(data[flag]);
@@ -747,7 +747,7 @@ Ed(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         str = "here";
         ob = environment(this_interactive());
@@ -782,7 +782,7 @@ Goto(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Goto which object?\n");
         return 0;
@@ -822,7 +822,7 @@ In(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str) ||
+    if (!sizeof(str) ||
         (sscanf(str, "%s %s", path, cmd) != 2))
     {
         notify_fail("What do you want to do where?\n");
@@ -866,7 +866,7 @@ Inventory(string str)
 {
     CHECK_SO_WIZ;
 
-    return Dump((strlen(str) ? str : "me") + " inv");
+    return Dump((sizeof(str) ? str : "me") + " inv");
 }
 
 /*
@@ -881,7 +881,7 @@ Items(string str)
 {
     CHECK_SO_WIZ;
 
-    return Dump((strlen(str) ? str : "here") + " items");
+    return Dump((sizeof(str) ? str : "here") + " items");
 }
 
 /*
@@ -896,7 +896,7 @@ Light(string str)
 {
     CHECK_SO_WIZ;
 
-    return Dump((strlen(str) ? str : "here") + " light");
+    return Dump((sizeof(str) ? str : "here") + " light");
 }
 
 static nomask void
@@ -967,7 +967,7 @@ light_status(object target, int level)
     if ((level == 0) || living(target) || size ||
         c_light || o_light || r_light)
     {
-        if (!strlen(desc = target->short(this_player())))
+        if (!sizeof(desc = target->short(this_player())))
         {
             desc = RPATH(object_name(target));
         }
@@ -1024,7 +1024,7 @@ More(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         str = "here";
         ob = environment(this_interactive());
@@ -1073,7 +1073,7 @@ Move(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Syntax: Move [-f] <object> [<destination>]\n");
         return 0;
@@ -1173,7 +1173,7 @@ Reload(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         return notify_fail("Reload what?\n");
     }
@@ -1261,7 +1261,7 @@ Set(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	vars = this_interactive()->query_prop(TRACER_VARS);
 	stores = this_interactive()->query_prop(TRACER_STORES);
@@ -1319,7 +1319,7 @@ Tail(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         str = "here";
         ob = environment(this_interactive());
@@ -1363,7 +1363,7 @@ Top(string arg)
     int total, latest, per_call, calls;
     if (arg)
         foreach (string param : explode(arg, " ")) {
-            int paramlen = strlen(param) - 1;
+            int paramlen = sizeof(param) - 1;
             if (paramlen < 0)
                 continue;
             if (param == "cumulative"[..paramlen])
@@ -1516,7 +1516,7 @@ Top(string arg)
 static int
 profile_sort(string item, mixed a, mixed b)
 {
-    int p = member_array(item[0..0], ({ "t", "c", "a", "f" }));
+    int p = member(item[0..0], ({ "t", "c", "a", "f" }));
 
     if(a[p] < b[p])
 	return -1;

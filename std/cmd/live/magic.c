@@ -79,7 +79,7 @@ cast(string str)
     object ob;
     string spell, arg;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Cast what?\n", 0);
         return 0;

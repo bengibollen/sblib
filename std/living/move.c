@@ -127,12 +127,12 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
             msgout = this_object()->query_m_out() + " " + how + ".\n";
         }
 
-        if (strlen(from_desc =
+        if (sizeof(from_desc =
             environment()->query_prop(ROOM_S_EXIT_FROM_DESC)))
         {
             msgin += " " + from_desc;
         }
-        else if (strlen(from_desc = move_opposites[vb]))
+        else if (sizeof(from_desc = move_opposites[vb]))
         {
             msgin += " from " + from_desc + ".";
         }
@@ -251,7 +251,7 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
         (size = sizeof(team = query_team())))
     {
         /* Command for the followers if this is a leader. */
-        if (!strlen(vb))
+        if (!sizeof(vb))
         {
             if (sizeof(explode(how, " ")) == 1)
             {

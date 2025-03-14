@@ -15,7 +15,7 @@
 #define MAX_MALLOC_SIZE 0x60000000	// 1536 MB
 
 // Where to find the master object?
-#define MASTER_OB __MASTER_OBJECT__
+// #define MASTER_OBJ __MASTER_OBJECT__
 
 // This one is used by the map system. It defines the object
 // that manages the map.
@@ -31,7 +31,7 @@
 #define WIZARD_SHELL_OB "/obj/wizard_shell"
 
 // Player files
-#define PLAYER_FILE(x) ("/var/players/" + (x))
+// #define PLAYER_FILE(x) ("/var/players/" + (x))
 #define PLAYER_FILE_BEFORE_WIZ(x) ("/var/players/wizzes/" + (x))
 // (also change: valid_read and valid_write in master)
 

@@ -118,7 +118,7 @@ actor(string str, object *oblist, string str1)
     if (!sizeof(oblist))
         return;
 
-    if (strlen(str1) && (str1[..1] == "'s"))
+    if (sizeof(str1) && (str1[..1] == "'s"))
     {
 	poss = 1;
 	str1 = str1[2..];
@@ -132,14 +132,14 @@ actor(string str, object *oblist, string str1)
 
 	write(str + " " +
 	    COMPOSITE_WORDS(map(oblist, oname)) +
-	    (strlen(str1) ? (str1 + "\n") : ".\n"));
+	    (sizeof(str1) ? (str1 + "\n") : ".\n"));
     }
     else
     {
 	write(str + " " +
 	    COMPOSITE_WORDS(map(oblist,
 		    &desc_theshort(, this_player(), poss))) +
-	    (strlen(str1) ? (str1 + "\n") : ".\n"));
+	    (sizeof(str1) ? (str1 + "\n") : ".\n"));
     }
 
     this_player()->emote_hook_actor(query_verb(), oblist);
@@ -357,7 +357,7 @@ all2act(string str, object *oblist, string str1, string adverb = "",
 	str = str[2..];
     }
 
-    if (strlen(str1) &&
+    if (sizeof(str1) &&
 	(str1[..1] == "'s"))
     {
 	o_poss = 1;
@@ -370,7 +370,7 @@ all2act(string str, object *oblist, string str1, string adverb = "",
 	function name = (a_poss ? this_player()->query_The_possessive_name :
 	    this_player()->query_The_name);
 
-	str1 = (strlen(str1) ? (str1 + "\n") : ".\n");
+	str1 = (sizeof(str1) ? (str1 + "\n") : ".\n");
 	if (living(oblist[0]))
 	{
 	    foreach(object player: players)
@@ -597,7 +597,7 @@ parse_this(string str, string form, int cmd_attr = 0, int allow_self = 0)
     string target, except;
 
     /* Sanity checks. Player must be able to see in the room. */
-    if (!strlen(str) ||
+    if (!sizeof(str) ||
 	!CAN_SEE_IN_ROOM(this_player()))
     {
 	return ({ });
@@ -672,7 +672,7 @@ parse_adverb(string str, string def_adv, int trail)
     string *words, adverb;
 
     /* No command line argument, so just return the default adverb. */
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	return ({ 0, def_adv });
     }
@@ -696,8 +696,8 @@ parse_adverb(string str, string def_adv, int trail)
 	/* Now we check whether the word passed is an adverb. If so, the
 	 * player probably only wants to use the adverb on a general emotion.
 	 */
-	if (strlen(adverb = FULL_ADVERB(str)) ||
-	  strlen(adverb = this_player()->full_adverb(str)))
+	if (sizeof(adverb = FULL_ADVERB(str)) ||
+	  sizeof(adverb = this_player()->full_adverb(str)))
 	{
 	    return ({ 0, adverb });
 	}
@@ -714,8 +714,8 @@ parse_adverb(string str, string def_adv, int trail)
      */
     index = (trail ? sizeof(words) - 1 : 0);
 
-    if (strlen(adverb = FULL_ADVERB(words[index])) ||
-	strlen(adverb = this_player()->full_adverb(words[index])))
+    if (sizeof(adverb = FULL_ADVERB(words[index])) ||
+	sizeof(adverb = this_player()->full_adverb(words[index])))
     {
 	return ({ implode(exclude_array(words, index, index), " "), adverb });
     }
@@ -752,13 +752,13 @@ check_adverb(string str, string def_adv)
 {
     string adverb;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	return def_adv;
     }
 
-    if (strlen(adverb = FULL_ADVERB(str)) ||
-	strlen(adverb = this_player()->full_adverb(str)))
+    if (sizeof(adverb = FULL_ADVERB(str)) ||
+	sizeof(adverb = this_player()->full_adverb(str)))
     {
 	return adverb;
     }

@@ -177,7 +177,7 @@ show_subloc_size(object on, object for_obj)
 
     race = on->query_race();
 
-    if (member_array(race, RACES) >= 0)
+    if (member(race, RACES) >= 0)
     {
         val = on->query_prop(CONT_I_HEIGHT);
         rval = RACEATTR[race][0];
@@ -264,7 +264,7 @@ show_subloc(string subloc, object on, object for_obj)
         cap_pronoun = capitalize(on->query_pronoun()) + " seems to be ";
     }
 
-    if (strlen(tmp = show_subloc_size(on, for_obj)))
+    if (sizeof(tmp = show_subloc_size(on, for_obj)))
         res += tmp;
     else
         res = "";
@@ -331,7 +331,7 @@ write_adverbs(string *adverb_list, int total)
         (size == 1 ? " matches" : " match") + " your inquiry.\n\n");
 
     index = -1;
-    size = strlen(ALPHABET);
+    size = sizeof(ALPHABET);
     while(++index < size)
     {
 	words = filter(adverb_list,
@@ -342,7 +342,7 @@ write_adverbs(string *adverb_list, int total)
 	    continue;
 	}
 
-	if (strlen(words[0]) < 16)
+	if (sizeof(words[0]) < 16)
 	{
 	    words[0] = (words[0] + "                ")[..15];
 	}
@@ -355,13 +355,13 @@ write_adverbs(string *adverb_list, int total)
     replacements = (mapping)ADVERBS_FILE->query_all_adverb_replacements();
     while(++index < size)
     {
-        if (strlen(replacements[adverb_list[index]]))
+        if (sizeof(replacements[adverb_list[index]]))
         {
             text += sprintf("%-16s: %s\n", adverb_list[index],
                 replacements[adverb_list[index]]);
         }
     }
-    if (strlen(text))
+    if (sizeof(text))
     {
         write("Of these, the following adverbs are replaced with a more " +
             "suitable phrase:\n\n" + text);
@@ -378,7 +378,7 @@ adverbs(string str)
     int     index;
     int     size;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Syntax: adverbs all  or  list  or  *\n" +
             "        adverbs <letter>\n" +
@@ -430,7 +430,7 @@ adverbs(string str)
                 "even the default.\n\n");
             continue;
         }
-        if (strlen(parts[index]) == 1)
+        if (sizeof(parts[index]) == 1)
         {
             parts[index] += "*";
         }
@@ -690,7 +690,7 @@ compare(string str)
     object obj1;
     object obj2;
 
-    if (!strlen(str) ||
+    if (!sizeof(str) ||
         sscanf(str, "%s with %s", str1, str2) != 2)
     {
         notify_fail("Compare <whom/what> with <whom/what>?\n");
@@ -1183,7 +1183,7 @@ options(string arg)
             write("brave, " + implode(health_state, ", ") + "\n");
         else
         {
-            wi = member_array(rest, health_state);
+            wi = member(rest, health_state);
             if (wi < 0)
             {
                 notify_fail("No such health descriptions (" + rest +
@@ -1360,7 +1360,7 @@ vitals(string str, object target = this_player())
     int value1;
     int value2;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         str = "all";
     }
@@ -1487,7 +1487,7 @@ show_stats(string str)
         return show_stats(0);
     }
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         ob = this_player();
         start_be = "You are ";
@@ -1654,7 +1654,7 @@ show_skills(string str)
         }
         if (pointerp(skdesc[skill]))
             str = skdesc[skill][0];
-        else if (!strlen(str = player->query_skill_name(skill)))
+        else if (!sizeof(str = player->query_skill_name(skill)))
             continue;
 
         /* Print the text in two columns. */
@@ -1673,7 +1673,7 @@ show_skills(string str)
     {
         write(((player == this_player()) ? "You have " :
             (player->query_name() + " has ")) + "no skills" +
-            (strlen(group) ? " in the " + group + " group" : "") + ".\n");
+            (sizeof(group) ? " in the " + group + " group" : "") + ".\n");
     }
 
     return 1;

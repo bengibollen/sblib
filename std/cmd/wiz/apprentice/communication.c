@@ -165,7 +165,7 @@ audience(string who)
         index = -1;
         while(++index < size)
         {
-            if (member_array(this_interactive()->query_real_name(),
+            if (member(this_interactive()->query_real_name(),
                 obs[index]->query_queue_list()) == -1)
             {
                 obs[index] = 0;
@@ -315,7 +315,7 @@ busy(string what)
         return 1;
     }
 
-    size = strlen(what);
+    size = sizeof(what);
     index = -1;
 
     while(++index < size)
@@ -478,8 +478,8 @@ line_list(string line)
     /* Closed channel that the wizard is not entitled to list. */
     if ((channels[line][CHANNEL_STATUS] == CHANNEL_CLOSED) &&
         (!access) &&
-        (member_array(name, channels[line][CHANNEL_USERS]) == -1) &&
-        (member_array(name, channels[line][CHANNEL_HIDDEN]) == -1))
+        (member(name, channels[line][CHANNEL_USERS]) == -1) &&
+        (member(name, channels[line][CHANNEL_HIDDEN]) == -1))
     {
         return 0;
     }
@@ -511,14 +511,14 @@ line_list(string line)
         }
     }
     /* Else see whether the player is hidden himself. */
-    else if (member_array(name, channels[line][CHANNEL_HIDDEN]) >= 0)
+    else if (member(name, channels[line][CHANNEL_HIDDEN]) >= 0)
     {
         str += " HIDDEN " + capitalize(name);
     }
 
     str += " OWNER " + capitalize(channels[line][CHANNEL_OWNER]);
 
-    if (strlen(str) <= 77)
+    if (sizeof(str) <= 77)
     {
         write(str + "\n");
     }
@@ -553,7 +553,7 @@ lineconfig(string str)
     int    index;
     int    size;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Which subcommand for line config do you wish to use?\n");
         return 0;
@@ -578,7 +578,7 @@ lineconfig(string str)
         /* Intentionally no break or return. Fall into the next case: add */
 
     case "add":
-        if (!strlen(str) ||
+        if (!sizeof(str) ||
             (sscanf(str, "%s to %s", target, line) != 2))
         {
             notify_fail("Syntax: line config add <name> to <channel>\n");
@@ -621,14 +621,14 @@ lineconfig(string str)
             notify_fail("Only full wizards and higher may create lines.\n");
             return 0;
         }
-        if (!strlen(str) ||
+        if (!sizeof(str) ||
             (sscanf(str, "%s %s", target, str) != 2))
         {
             notify_fail("Syntax: line config create open/closed <channel>\n");
             return 0;
         }
-        if ((strlen(str) < 2) ||
-            (strlen(str) > 8))
+        if ((sizeof(str) < 2) ||
+            (sizeof(str) > 8))
         {
             notify_fail("The channel-name must be at least 2 and at most " +
                 "8 characters long.\n");
@@ -639,7 +639,7 @@ lineconfig(string str)
             notify_fail("The channel '" + line + "' already exists.\n");
             return 0;
         }
-        if (member_array(line, CHANNEL_RESERVED) != -1)
+        if (member(line, CHANNEL_RESERVED) != -1)
         {
             notify_fail("The channel '" + line + "' is a reserved name.\n");
             return 0;
@@ -650,7 +650,7 @@ lineconfig(string str)
                 capitalize(line) + "'.\n");
             return 0;
         }
-        if (member_array(line, WIZ_N) >= 0)
+        if (member(line, WIZ_N) >= 0)
         {
             notify_fail("The name " + capitalize(line) +
                 " is a wizard-type.\n");
@@ -666,7 +666,7 @@ lineconfig(string str)
         return 1;
 
     case "expel":
-        if (!strlen(str) ||
+        if (!sizeof(str) ||
             (sscanf(str, "%s from %s", target, line) != 2))
         {
             notify_fail("Syntax: line config expel <name> from <channel>\n");
@@ -689,12 +689,12 @@ lineconfig(string str)
             notify_fail("You cannot expel the owner of '" + line + "'.\n");
             return 0;
         }
-        if (member_array(target, channels[line][CHANNEL_USERS]) >= 0)
+        if (member(target, channels[line][CHANNEL_USERS]) >= 0)
         {
             hide = 0;
         }
         else if ((rank >= WIZ_ARCH) &&
-                 (member_array(target, channels[line][CHANNEL_HIDDEN]) >= 0))
+                 (member(target, channels[line][CHANNEL_HIDDEN]) >= 0))
         {
             hide = 1;
         }
@@ -734,13 +734,13 @@ lineconfig(string str)
             notify_fail("There is no channel named '" + line + "'.\n");
             return 0;
         }
-        if (member_array(name, channels[line][CHANNEL_USERS]) >= 0)
+        if (member(name, channels[line][CHANNEL_USERS]) >= 0)
         {
             notify_fail("You are already a member of the channel " +
                 channels[line][CHANNEL_NAME] + ".\n");
             return 0;
         }
-        if (member_array(name, channels[line][CHANNEL_HIDDEN]) >= 0)
+        if (member(name, channels[line][CHANNEL_HIDDEN]) >= 0)
         {
             notify_fail("You are already a hidden member of the channel " +
                 channels[line][CHANNEL_NAME] + ".\n");
@@ -770,11 +770,11 @@ lineconfig(string str)
             notify_fail("There is no channel named '" + line + "'.\n");
             return 0;
         }
-        if (member_array(name, channels[line][CHANNEL_USERS]) >= 0)
+        if (member(name, channels[line][CHANNEL_USERS]) >= 0)
         {
             hide = 0;
         }
-        else if (member_array(name, channels[line][CHANNEL_HIDDEN]) >= 0)
+        else if (member(name, channels[line][CHANNEL_HIDDEN]) >= 0)
         {
             hide = 1;
         }
@@ -800,7 +800,7 @@ lineconfig(string str)
         return 1;
 
     case "list":
-        if (!strlen(str))
+        if (!sizeof(str))
         {
             size = m_sizeof(channels);
             if (!size)
@@ -844,7 +844,7 @@ lineconfig(string str)
         return 0;
 
     case "owner":
-        if (!strlen(str) ||
+        if (!sizeof(str) ||
             (sscanf(str, "%s of %s", target, line) != 2))
         {
             notify_fail("Syntax: line config owner <name> of <channel>\n");
@@ -866,11 +866,11 @@ lineconfig(string str)
             notify_fail("No full wizard named '" + capitalize(target) + "'.\n");
             return 0;
         }
-        if (member_array(target, channels[line][CHANNEL_HIDDEN]) > -1)
+        if (member(target, channels[line][CHANNEL_HIDDEN]) > -1)
         {
             channels[line][CHANNEL_HIDDEN] -= ({ target });
         }
-        if (member_array(target, channels[line][CHANNEL_USERS]) == -1)
+        if (member(target, channels[line][CHANNEL_USERS]) == -1)
         {
             channels[line][CHANNEL_USERS] += ({ target });
         }
@@ -950,14 +950,14 @@ line(string str, int emotion = 0, int busy_level = 0)
         /* Not reached. */
 
     case "list":
-        return lineconfig("list" + (strlen(str) ? (" " + str) : ""));
+        return lineconfig("list" + (sizeof(str) ? (" " + str) : ""));
         /* Not reached. */
     }
 
     /* Channel is a wizline-channel. */
-    if ((rank = member_array(line, CHANNEL_WIZRANK)) >= 0)
+    if ((rank = member(line, CHANNEL_WIZRANK)) >= 0)
     {
-        rank = WIZ_R[member_array(line, WIZ_N)];
+        rank = WIZ_R[member(line, WIZ_N)];
         line = ((line == WIZNAME_APPRENTICE) ? "Wizline" : capitalize(line));
         if (SECURITY->query_wiz_rank(name) < rank)
         {
@@ -987,7 +987,7 @@ line(string str, int emotion = 0, int busy_level = 0)
         rank = 1;
         line = capitalize(line);
         /* Three letter AoX teams capitalized with X. */
-        if ((strlen(line) == 3) && (line[..1] == "Ao"))
+        if ((sizeof(line) == 3) && (line[..1] == "Ao"))
         {
             line = line[..1] + capitalize(line[2..]);
         }
@@ -1006,7 +1006,7 @@ line(string str, int emotion = 0, int busy_level = 0)
         members = channels[line][CHANNEL_USERS] +
             channels[line][CHANNEL_HIDDEN];
         line = channels[line][CHANNEL_NAME];
-        if (member_array(name, members) == -1)
+        if (member(name, members) == -1)
         {
             write("You are not a subscriber to the " + line + " line.\n");
             return 1;
@@ -1020,7 +1020,7 @@ line(string str, int emotion = 0, int busy_level = 0)
     }
 
     /* No message means list the particular line. */
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         /* Listing a domain or team line line by fingering them. */
         if (rank != -1)
@@ -1086,7 +1086,7 @@ line_shortcut(string str)
     if (!this_interactive()->query_option(OPT_AUTOLINECMD))
         return 0;
 
-    return line(query_verb() + (strlen(str) ? (" " + str) : ""), 0);
+    return line(query_verb() + (sizeof(str) ? (" " + str) : ""), 0);
 }
 
 /*
@@ -1103,7 +1103,7 @@ linee_shortcut(string str)
         return 0;
 
     return line(extract(query_verb(), 0, -2) +
-        (strlen(str) ? (" " + str) : ""), 1);
+        (sizeof(str) ? (" " + str) : ""), 1);
 }
 
 /* **************************************************************************
@@ -1163,7 +1163,7 @@ tell(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str) || (sscanf(str, "%s %s", str, msg) != 2))
+    if (!sizeof(str) || (sscanf(str, "%s %s", str, msg) != 2))
     {
         notify_fail("Tell whom[,whom] what?\n");
         return 0;
@@ -1181,7 +1181,7 @@ tell(string str)
         }
 
         /* Don't bother with a message on a duplicate target. */
-        if (member_array(target, players) != -1)
+        if (member(target, players) != -1)
         {
             continue;
         }
@@ -1308,7 +1308,7 @@ wsay(string str)
 {
     object *wizards;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
         notify_fail("Say what in the way of the wizards?\n");
         return 0;

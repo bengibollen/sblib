@@ -112,7 +112,7 @@ find_item(object prev, string str)
     }
 
     tmp = FTPATH(this_interactive()->query_path() + "/", str);
-    if (strlen(tmp))
+    if (sizeof(tmp))
     {
 	catch(call_other(tmp, "??"));	/* Force load */
 	return find_object(tmp);

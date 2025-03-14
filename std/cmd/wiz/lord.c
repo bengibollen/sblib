@@ -147,9 +147,9 @@ demote(string str)
 	return 0;
     }
 
-    if ((level = member_array(str, WIZ_N)) == -1)
+    if ((level = member(str, WIZ_N)) == -1)
     {
-	if ((level = member_array(str, WIZ_S)) == -1)
+	if ((level = member(str, WIZ_S)) == -1)
 	{
 	    notify_fail("There is no rank called '" + str + "'.\n");
 	    return 0;
@@ -248,7 +248,7 @@ limit(string str)
     /* No argument, default to the wizards own domain. */
     if (!stringp(str))
     {
-	if (!strlen(dname))
+	if (!sizeof(dname))
 	{
 	    notify_fail("You are not in any domain. Strange!\n");
 	    return 0;
@@ -342,7 +342,7 @@ mentor_fun(string arg)
 	return 0;
     }
 
-    if (!strlen(arg))
+    if (!sizeof(arg))
     {
 	wlist = sort_array(filter(SECURITY->query_wiz_list(-1),
 				  &operator(!=)(0) @ sizeof @ SECURITY->query_students));
@@ -376,19 +376,19 @@ mentor_fun(string arg)
 		return 0;
 	    }
 
-	    if (strlen(SECURITY->query_mentor(student)) > 0)
+	    if (sizeof(SECURITY->query_mentor(student)) > 0)
 	    {
 		notify_fail("mentor: The student already has an assigned mentor.\n");
 		return 0;
 	    }
 
-	    if (strlen(SECURITY->query_mentor(mentor)) >  0)
+	    if (sizeof(SECURITY->query_mentor(mentor)) >  0)
 	    {
 		notify_fail("mentor: The intended mentor actually is a student.\n");
 		return 0;
 	    }
 
-	    if (member_array(student, SECURITY->query_students(mentor)) >= 0)
+	    if (member(student, SECURITY->query_students(mentor)) >= 0)
 	    {
 		notify_fail("mentor: The student already is assigned to the mentor.\n");
 		return 0;
@@ -484,7 +484,7 @@ promote(string str)
 
     CHECK_SO_STEWARD;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 #ifdef USE_WIZ_LEVELS
 	notify_fail("Syntax: promote <name> <rank> / <level>\n");
@@ -519,9 +519,9 @@ promote(string str)
 	return 0;
     }
 
-    if ((level = member_array(str, WIZ_N)) == -1)
+    if ((level = member(str, WIZ_N)) == -1)
     {
-	if ((level = member_array(str, WIZ_S)) == -1)
+	if ((level = member(str, WIZ_S)) == -1)
 	{
 	    notify_fail("There is no rank called '" + str + "'.\n");
 	    return 0;
@@ -558,7 +558,7 @@ short(string str)
 
     if (!stringp(str))
     {
-	if (!strlen(dname))
+	if (!sizeof(dname))
 	{
 	    notify_fail("You are not in any domain. Strange!\n");
 	    return 0;
@@ -567,7 +567,7 @@ short(string str)
 	str = dname;
     }
 
-    if (strlen(sname = SECURITY->query_domain_short(str)))
+    if (sizeof(sname = SECURITY->query_domain_short(str)))
     {
 	write("Short name of " + dname + " is " + sname + ".\n");
 	return 1;
@@ -595,7 +595,7 @@ short(string str)
     }
 
     sname = lower_case(sname);
-    if (strlen(sname) != 3)
+    if (sizeof(sname) != 3)
     {
 	notify_fail("The short name must be three letters long.\n");
 	return 0;

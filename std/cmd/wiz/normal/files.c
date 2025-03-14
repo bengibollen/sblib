@@ -66,7 +66,7 @@ copy(string path1, string path2)
 
     /* Read the source file and test for success. */
     buf = read_file(path1);
-    if (!strlen(buf))
+    if (!sizeof(buf))
     {
 	return 0;
     }
@@ -422,7 +422,7 @@ aft(string str)
     CHECK_SO_WIZ;
 
     /* Set to default when there is no argument. */
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	str = "lu";
     }
@@ -461,7 +461,7 @@ aft(string str)
 
 	/* Mark the file as being up to date and make it current. */
 	aft_tracked[str] = aft_catchup_file(aft_tracked[str]);
-	aft_current[name] = member_array(str, aft_sorted);
+	aft_current[name] = member(str, aft_sorted);
 	save_aft_file();
 
 	write("Caught up on " + str + ".\n");
@@ -578,7 +578,7 @@ aft(string str)
 	}
 
 	/* Mark as read and file to current. Then save. */
-	aft_current[name] = member_array(args[1], aft_sorted);
+	aft_current[name] = member(args[1], aft_sorted);
 	aft_tracked[args[1]] = aft_catchup_file(aft_tracked[args[1]]);
 	save_aft_file();
 
@@ -651,7 +651,7 @@ aft(string str)
 	    return 0;
 	}
 
-	if (member_array(str, aft_sorted) >= aft_current[name])
+	if (member(str, aft_sorted) >= aft_current[name])
 	{
 	    aft_current[name] -= 1;
 	}
@@ -703,7 +703,7 @@ clone_message(mixed cloned)
     if (!(proj->query_wiz_level()))
         return "something";
 
-    if ((!stringp(cloned)) || (!strlen(cloned)))
+    if ((!stringp(cloned)) || (!sizeof(cloned)))
         return "something";
     if (!objectp(cloned = find_object(cloned)))
         return "something";
@@ -711,7 +711,7 @@ clone_message(mixed cloned)
     if (living(cloned))
         return (string)cloned->query_art_name(cloned);
 
-    return (strlen(cloned->short(cloned)) ?
+    return (sizeof(cloned->short(cloned)) ?
         LANG_ASHORT(cloned) : object_name(cloned));
 }
 
@@ -729,7 +729,7 @@ clone_ob(string what)
     object ob;
 
     str = FTPATH((string)this_interactive()->query_path(), what);
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	notify_fail("Invalid file.\n");
 	return 0;
@@ -1131,7 +1131,7 @@ load_many_delayed(object wizard, string *files)
     loadmany_wizard = wizard;
 
     if (!objectp(loadmany_wizard) ||
-	(member_array(loadmany_wizard->query_real_name(),
+	(member(loadmany_wizard->query_real_name(),
     	    loadmany_going) == -1) ||
     	(!interactive(loadmany_wizard)))
     {
@@ -1256,7 +1256,7 @@ load(string str)
 
     if (str == "stop")
     {
-    	if (member_array(this_player()->query_real_name(),
+    	if (member(this_player()->query_real_name(),
     	    loadmany_going) == -1)
     	{
     	    notify_fail("You are not loading multiple files at the moment.\n");
@@ -1269,7 +1269,7 @@ load(string str)
     }
 
     str = FTPATH(this_interactive()->query_path(), str);
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	notify_fail("Invalid file name.\n");
 	return 0;
@@ -1278,7 +1278,7 @@ load(string str)
     /* If wildcards are used, the wizard means to check many files. */
     if (wildmatch("*[\\*\\?]*", str))
     {
-	if (member_array(this_player()->query_real_name(),
+	if (member(this_player()->query_real_name(),
 	    loadmany_going) != -1)
 	{
 	    notify_fail("You are already loading multiple files. You have " +
@@ -1401,7 +1401,7 @@ remake_object(string str)
 	return 0;
     }
     str = FTPATH((string)this_interactive()->query_path(), str);
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	notify_fail("Invalid file name.\n");
 	return 0;
@@ -1512,7 +1512,7 @@ update_ob(string str)
 
     CHECK_SO_WIZ;
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	ob = environment(this_player());
 	str = MASTER_OB(ob);
@@ -1563,7 +1563,7 @@ update_ob(string str)
     else
     {
 	str = FTPATH((string)this_interactive()->query_path(), str);
-	if (!strlen(str))
+	if (!sizeof(str))
 	{
 	    notify_fail("Invalid file name.\n");
 	    return 0;

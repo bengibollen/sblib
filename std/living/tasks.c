@@ -26,7 +26,7 @@ find_listval(mixed member)
 {
     if (functionp(member))
         return member();
-    if (stringp(member) && strlen(member) && member[0] == '@')
+    if (stringp(member) && sizeof(member) && member[0] == '@')
 	return this_object()->check_call(member);
     else if (stringp(member))
 	return this_object()->query_prop(member);

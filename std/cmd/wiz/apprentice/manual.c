@@ -76,7 +76,7 @@ lman(string entry, string docdir)
 	return 0;
     }
 
-    if (!strlen(docdir))
+    if (!sizeof(docdir))
 	docdir = this_player()->query_path();
 
     if (!SRCMAN->valid_docdir(docdir))
@@ -97,7 +97,7 @@ lman(string entry, string docdir)
             if (argc == 2)
 	    {
 	        sdirarr = (string *)SRCMAN->get_subdirs(docdir);
-		if (member_array(argv[1], sdirarr) < 0)
+		if (member(argv[1], sdirarr) < 0)
 		{
 		    for (i = 0 ; i < sizeof(sdirarr) ; i++)
 		    {
@@ -124,7 +124,7 @@ lman(string entry, string docdir)
 		    g_mannum = 2;
 		    str = process_string("#1:" + implode(man_arr, "@@man_num@@"));
 		    str = "Available functions:\n" + sprintf("%-*#s\n", 76, str);
-		    if (strlen(str) > 5000)
+		    if (sizeof(str) > 5000)
 		    {
 		        this_player()->more(str + "\n");
 		    }
@@ -137,7 +137,7 @@ lman(string entry, string docdir)
 
 	    if (argc == 3)
 	    {
-	        if (member_array(argv[1], SRCMAN->get_subdirs(docdir)) < 0)
+	        if (member(argv[1], SRCMAN->get_subdirs(docdir)) < 0)
 		{
 		    write("No such subdir '" + argv[1] + "' available.\n");
 		    break;
@@ -152,7 +152,7 @@ lman(string entry, string docdir)
 		str = process_string("#1:" +
 				     implode(man_arr, "@@man_num@@"));
 		str = "Available subjects:\n" + sprintf("%-*#s\n", 76, str);
-		if (strlen(str) > 5000)
+		if (sizeof(str) > 5000)
 	        {
 	            this_player()->more(str + "\n");
 	        }
@@ -227,7 +227,7 @@ lman(string entry, string docdir)
 		    sdirarr = SRCMAN->get_subdirs(docdir);
 		    if (argc == 3)
 		    {
-			if (member_array(argv[1], sdirarr) < 0)
+			if (member(argv[1], sdirarr) < 0)
 			{
 			    write("No such subdir '" + argv[1] +
 				"' available.\n");
@@ -297,7 +297,7 @@ lman(string entry, string docdir)
 	        sdirarr = (string *)SRCMAN->get_subdirs(docdir);
 		if (argc == 2)
 		{
-		    if (member_array(argv[0], sdirarr) < 0)
+		    if (member(argv[0], sdirarr) < 0)
 		    {
 			write("No such subdir '" + argv[0] +
 			      "' available.\n");
@@ -380,7 +380,7 @@ man(string entry)
             if (argc == 2)
 	    {
 	        chaparr = (string *)MANCTRL->get_chapters();
-		if (member_array(argv[1], chaparr) < 0)
+		if (member(argv[1], chaparr) < 0)
 		{
 		    for (i = 0 ; i < sizeof(chaparr) ; i++)
 		    {
@@ -414,7 +414,7 @@ man(string entry)
 	    }
 	    else if (argc == 3)
 	    {
-	        if (member_array(argv[1], MANCTRL->get_chapters()) < 0)
+	        if (member(argv[1], MANCTRL->get_chapters()) < 0)
 		{
 		    write("No such chapter '" + argv[1] + "' available.\n");
 		    break;
@@ -496,7 +496,7 @@ man(string entry)
 	        chaparr = (string *)MANCTRL->get_chapters();
 		if (argc == 2)
 		{
-		    if (member_array(argv[0], chaparr) < 0)
+		    if (member(argv[0], chaparr) < 0)
 		    {
 			write("No such chapter '" + argv[0] +
 			      "' available.\n");
@@ -520,7 +520,7 @@ man(string entry)
 			if (sizeof(man_arr) > 0)
 			    break;
 		    }
-		    if (!sizeof(man_arr) && member_array(argv[0], chaparr) >= 0)
+		    if (!sizeof(man_arr) && member(argv[0], chaparr) >= 0)
 		    {
 			man_arr = MANCTRL->get_index(argv[0])[1];
 			g_mannum = 2;

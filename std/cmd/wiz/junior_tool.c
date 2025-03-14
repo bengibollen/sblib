@@ -537,7 +537,7 @@ help(string str)
 	return 0;
     }
 
-    if (member_array(topic, m_indices(ALL_COMMANDS)) == -1)
+    if (member(topic, m_indices(ALL_COMMANDS)) == -1)
     {
 	write("Not a junior command      : " + topic + "\n");
 	write("For all possible topics do: allcmd\n");
@@ -629,7 +629,7 @@ list(string str)
     for (index = 0; index < sizeof(wizards); index++)
     {
 	domain = SECURITY->query_wiz_dom(wizards[index]->query_real_name());
-	domain = (strlen(domain) ? domain : "no domain");
+	domain = (sizeof(domain) ? domain : "no domain");
 
 	descs += ({ sprintf("%-12s (%2d, %-11s",
 	    capitalize(wizards[index]->query_real_name()),
@@ -912,7 +912,7 @@ update_ob(string str)
 	 */
 	str = FPATH(SECURITY->query_wiz_path(name), TPATH(name, str));
 
-	if (!strlen(str))
+	if (!sizeof(str))
 	{
 	    notify_fail("Invalid file name: " + str + "\n");
 	    return 0;
@@ -973,7 +973,7 @@ update(string str)
 
     /* catch 'update' without args */
 
-    if (!strlen(str))
+    if (!sizeof(str))
 	return update_ob(str);
 
     /* check if user specifies the -d option */
@@ -1149,15 +1149,15 @@ get_help_index()
 	if (sscanf(entries[0], (ENTRY_HEADER + "%s"), command) != 1)
 	{
 	    write("Illegal line in help file (line " +
-		member_array(entries[0], help_file) + "):\n");
+		member(entries[0], help_file) + "):\n");
 	    write(entries[0] + "\n");
 	    return;
 	}
 
-	index = member_array(entries[0], help_file);
+	index = member(entries[0], help_file);
 
 	write(sprintf("%-12s %5d   %6d\n", explode(command, " ")[0], index,
-	    (member_array(entries[1], help_file) - index)));
+	    (member(entries[1], help_file) - index)));
 
 	entries -= ({ entries[0] });
     }

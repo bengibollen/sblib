@@ -130,13 +130,13 @@ member_adverb(string pattern)
     int half;
 
     /* Not a real adverb. */
-    if (member_array(pattern, SERVICE_ADVERBS_ARRAY) != -1)
+    if (member(pattern, SERVICE_ADVERBS_ARRAY) != -1)
     {
         return -2;
     }
 
     /* You need at least three characters to identify an adverb. */
-    if (strlen(pattern) < 3)
+    if (sizeof(pattern) < 3)
     {
         return -1;
     }
@@ -147,7 +147,7 @@ member_adverb(string pattern)
      */
     if (pattern == "sad")
     {
-        return member_array("sadly", adverbs);
+        return member("sadly", adverbs);
     }
 
     low = 0;
@@ -251,7 +251,7 @@ public nomask int
 dump_adverbs()
 {
     int index = -1;
-    int size = strlen(ALPHABET);
+    int size = sizeof(ALPHABET);
     string *words;
 
     catch(rm(DUMP_ADVERBS_OUT));
@@ -264,7 +264,7 @@ dump_adverbs()
 	    continue;
 	}
 
-	if (strlen(words[0]) < 16)
+	if (sizeof(words[0]) < 16)
 	{
 	    words[0] = (words[0] + "                ")[..15];
 	}

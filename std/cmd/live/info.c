@@ -118,7 +118,7 @@ done_reporting(string str)
 {
     int type = this_player()->query_prop(PLAYER_I_LOG_TYPE);
 
-    if (!strlen(str))
+    if (!sizeof(str))
     {
 	write(LOG_ABORT_MSG(LOG_MSG(type)));
 	return;

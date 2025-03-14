@@ -194,7 +194,7 @@ mbm_cmd(string arg)
     admin = MC->query_admin(TI->query_real_name());
     lvl = WIZ_CHECK;
 
-    if (!strlen(arg))
+    if (!sizeof(arg))
     {
 	arg = "";
 	args = ({});
@@ -376,7 +376,7 @@ mbs_cmd(string arg)
     restore_mbs();
     check_gc();
 
-    if (!strlen(arg))
+    if (!sizeof(arg))
     {
 	arg = "";
 	args = ({});
@@ -655,7 +655,7 @@ catch_up(int what, int uncatch)
     case 0: /* Current board */
 	/* FALLTHROUGH */
     default:
-	if (strlen(CurrBoard) && sizeof(BdMap[CurrBoard]))
+	if (sizeof(CurrBoard) && sizeof(BdMap[CurrBoard]))
 	    BdMap[CurrBoard][SB_LNOTE] = tm;
 	else
 	    return MBS_NO_CURR;
@@ -695,7 +695,7 @@ list_subscribed(int unread, int all)
 
     /* Print the header */
     header = ({ "Category", "Domain", "Newsgroup" })[Selection] + ": ";
-    if (strlen(CurrItem[Selection]))
+    if (sizeof(CurrItem[Selection]))
 	header += CurrItem[Selection];
     else
     {
@@ -833,11 +833,11 @@ list_boards(int which, string rest)
 
     rest = UC(rest);
 
-    if (strlen(rest))
+    if (sizeof(rest))
     {
-	if (member_array(rest, SECURITY->query_domain_list()) >= 0)
+	if (member(rest, SECURITY->query_domain_list()) >= 0)
 	    order = ORDER_DOMAIN;
-	else if (member_array(rest, MC->query_categories()) >= 0)
+	else if (member(rest, MC->query_categories()) >= 0)
 	    order = ORDER_CAT;
 	else
 	{
@@ -853,7 +853,7 @@ list_boards(int which, string rest)
 
     if (!sizeof(blist))
     {
-	if (!strlen(rest))
+	if (!sizeof(rest))
 	    write("No new boards registered.\n");
 	else
 	    write("No new boards registered in '" + rest + "'.\n");
@@ -870,7 +870,7 @@ list_boards(int which, string rest)
 	    plist = filter(blist, &operator(==)(olist[i]) @
 			   &operator([])(, BBP_DOMAIN));
 	    plist = filter(plist, &operator(>)(0) @
-			   &member_array(, ScrapList) @
+			   &member(, ScrapList) @
 			   &operator([])(, BBP_SPATH));
 	    if (sizeof(plist))
 	    {
@@ -888,7 +888,7 @@ list_boards(int which, string rest)
 	    plist = filter(blist, &operator(==)(olist[i]) @
 			   &operator([])(, BBP_CAT));
 	    plist = filter(plist, &operator(>)(0) @
-			   &member_array(, ScrapList) @
+			   &member(, ScrapList) @
 			   &operator([])(, BBP_SPATH));
 	    if (sizeof(plist))
 	    {
@@ -917,7 +917,7 @@ read_nur(string arg1, string arg2, int mread)
     string board_name = "";
     int note_number = 0, err;
 
-    if (strlen(arg2))
+    if (sizeof(arg2))
     {
         board_name = arg2;
 
@@ -941,7 +941,7 @@ read_nur(string arg1, string arg2, int mread)
         }
     }
 
-    if (strlen(board_name) &&
+    if (sizeof(board_name) &&
 	((err = select_board(0, 0, board_name, "")) != MBS_NO_ERR))
     {
         return err;
@@ -949,7 +949,7 @@ read_nur(string arg1, string arg2, int mread)
 
     if (note_number)
     {
-	if (!strlen(CurrBoard) || !sizeof(BdMap[CurrBoard]))
+	if (!sizeof(CurrBoard) || !sizeof(BdMap[CurrBoard]))
 	    return MBS_NO_CURR;
 
 	err_args(CurrBoard, BdMap[CurrBoard][SB_CAT]);
@@ -967,7 +967,7 @@ read_nur(string arg1, string arg2, int mread)
 	return note_info[0];
     }
 
-    if ((!strlen(board_name) && !select_nur(0)) ||
+    if ((!sizeof(board_name) && !select_nur(0)) ||
         ((note_info = MC->find_next_unread(CurrBoard,
         atoi(BdMap[CurrBoard][SB_LNOTE][1..])))[0] == 0))
     {
@@ -992,9 +992,9 @@ read_nur(string arg1, string arg2, int mread)
 static nomask int
 post_article(string header)
 {
-    if (!strlen(CurrBoard))
+    if (!sizeof(CurrBoard))
 	return MBS_NO_CURR;
-    if (!strlen(header))
+    if (!sizeof(header))
 	return MBS_NO_HEADER;
 
     err_args(CurrBoard, BdMap[CurrBoard][SB_CAT]);
@@ -1014,7 +1014,7 @@ post_article(string header)
 static nomask int
 delete_article(string num)
 {
-    if (!strlen(CurrBoard))
+    if (!sizeof(CurrBoard))
 	return MBS_NO_CURR;
 
     err_args(CurrBoard, BdMap[CurrBoard][SB_CAT]);
@@ -1037,9 +1037,9 @@ select_board(int what, int headers, string board, string item)
     int		oldsel;
 
     board = UC(board);
-    if (!strlen(board) && (what == 0 && headers == 0))
+    if (!sizeof(board) && (what == 0 && headers == 0))
     {
-	if (strlen(CurrBoard) && sizeof(BdMap[CurrBoard]))
+	if (sizeof(CurrBoard) && sizeof(BdMap[CurrBoard]))
 	    write("Your currently selected board is '" +
 		  BdMap[CurrBoard][SB_BOARD] + "' in the " +
 		  ({ "category", "domain", "newsgroup" })[Selection] + " '" +
@@ -1050,22 +1050,22 @@ select_board(int what, int headers, string board, string item)
     }
 
     oldsel = ORDER_NONE;
-    if (strlen(item))
+    if (sizeof(item))
     {
 	item = UC(item);
 	switch (Selection)
 	{
 	case ORDER_CAT:
 	    err_args(item);
-	    if (member_array(item, MC->query_categories()) >= 0)
+	    if (member(item, MC->query_categories()) >= 0)
 		break;
-	    else if (member_array(item, Groups) >= 0)
+	    else if (member(item, Groups) >= 0)
 	    {
 		Selection = ORDER_GROUP;
 		oldsel = ORDER_CAT;
 		shuffle_boards();
 	    }
-	    else if (member_array(item, SECURITY->query_domain_list()) >= 0)
+	    else if (member(item, SECURITY->query_domain_list()) >= 0)
 	    {
 		Selection = ORDER_DOMAIN;
 		oldsel = ORDER_CAT;
@@ -1077,15 +1077,15 @@ select_board(int what, int headers, string board, string item)
 
 	case ORDER_DOMAIN:
 	    err_args(item);
-	    if (member_array(item, SECURITY->query_domain_list()) >= 0)
+	    if (member(item, SECURITY->query_domain_list()) >= 0)
 		break;
-	    else if (member_array(item, Groups) >= 0)
+	    else if (member(item, Groups) >= 0)
 	    {
 		Selection = ORDER_GROUP;
 		oldsel = ORDER_DOMAIN;
 		shuffle_boards();
 	    }
-	    else if (member_array(item, MC->query_categories()) >= 0)
+	    else if (member(item, MC->query_categories()) >= 0)
 	    {
 		Selection = ORDER_DOMAIN;
 		oldsel = ORDER_DOMAIN;
@@ -1099,15 +1099,15 @@ select_board(int what, int headers, string board, string item)
 	    /* FALLTHROUGH */
 	default:
 	    err_args(item);
-	    if (member_array(item, Groups) >= 0)
+	    if (member(item, Groups) >= 0)
 		break;
-	    else if (member_array(item, MC->query_categories()) >= 0)
+	    else if (member(item, MC->query_categories()) >= 0)
 	    {
 		Selection = ORDER_CAT;
 		oldsel = ORDER_GROUP;
 		shuffle_boards();
 	    }
-	    else if (member_array(item, SECURITY->query_domain_list()) >= 0)
+	    else if (member(item, SECURITY->query_domain_list()) >= 0)
 	    {
 		Selection = ORDER_DOMAIN;
 		oldsel = ORDER_GROUP;
@@ -1121,12 +1121,12 @@ select_board(int what, int headers, string board, string item)
     else
 	item = CurrItem[Selection];
 
-    if (strlen(board))
+    if (sizeof(board))
     {
 	blist = filter(SbMap[item], &operator(==)(board) @
 		       &operator([])(, SB_BOARD));
 
-	if (strlen(item))
+	if (sizeof(item))
 	    CurrItem[Selection] = item;
 
 	if (!sizeof(blist))
@@ -1180,15 +1180,15 @@ subscribe(string board, string item, string group)
 {
     mixed info;
 
-    if (!strlen(CurrItem[ORDER_GROUP]))
+    if (!sizeof(CurrItem[ORDER_GROUP]))
 	return MBS_NO_GROUP;
 
     board = UC(board);
     item = UC(item);
     group = UC(group);
 
-    if (member_array(item, SECURITY->query_domain_list()) < 0 &&
-	member_array(item, MC->query_categories()) < 0)
+    if (member(item, SECURITY->query_domain_list()) < 0 &&
+	member(item, MC->query_categories()) < 0)
     {
 	err_args(item);
 	return MBS_BAD_SEL;
@@ -1196,9 +1196,9 @@ subscribe(string board, string item, string group)
 
     info = MC->query_board_exist(board, item);
 
-    if (strlen(group))
+    if (sizeof(group))
     {
-	if (member_array(group, Groups) < 0)
+	if (member(group, Groups) < 0)
 	{
 	    err_args(group);
 	    return MBS_GRP_NONE;
@@ -1216,7 +1216,7 @@ subscribe(string board, string item, string group)
 		group, board, info[BBP_SPATH], "b0" });
 	shuffle_boards();
 
-	if (member_array(item, MC->query_categories()) < 0)
+	if (member(item, MC->query_categories()) < 0)
 	    CurrItem[ORDER_DOMAIN] = item;
 	else
 	    CurrItem[ORDER_CAT] = item;
@@ -1228,7 +1228,7 @@ subscribe(string board, string item, string group)
     }
     else
     {
-	if (member_array(item, MC->query_categories()) < 0)
+	if (member(item, MC->query_categories()) < 0)
 	    err_args(board, "domain", item);
 	else
 	    err_args(board, "category", item);
@@ -1254,11 +1254,11 @@ unsubscribe(string board, string item)
     board = UC(board);
     item = UC(item);
 
-    if (!strlen(item))
+    if (!sizeof(item))
     {
-	if (!strlen(board))
+	if (!sizeof(board))
 	{
-	    if (!strlen(CurrBoard))
+	    if (!sizeof(CurrBoard))
 		return MBS_NO_SPEC;
 
 	    bdata = BdMap[CurrBoard];
@@ -1285,7 +1285,7 @@ unsubscribe(string board, string item)
     else
     {
 	itemdata = m_values(BdMap);
-	if (member_array(item, MC->query_categories()) < 0)
+	if (member(item, MC->query_categories()) < 0)
 	{
 	    itemdata = filter(itemdata, &operator(==)(item) @ &operator([])(, SB_DOMAIN));
 	    what = "domain";
@@ -1337,11 +1337,11 @@ subscribe_sel(string sel, string group)
     sel = UC(sel);
     group = UC(group);
 
-    if (!strlen(CurrItem[ORDER_GROUP]))
+    if (!sizeof(CurrItem[ORDER_GROUP]))
 	return MBS_NO_GROUP;
 
-    if (strlen(group) &&
-	member_array(group, Groups) < 0)
+    if (sizeof(group) &&
+	member(group, Groups) < 0)
     {
 	err_args(group);
 	return MBS_GRP_NONE;
@@ -1349,9 +1349,9 @@ subscribe_sel(string sel, string group)
     else
 	group = CurrItem[ORDER_GROUP];
 
-    if (member_array(sel, SECURITY->query_domain_list()) >= 0)
+    if (member(sel, SECURITY->query_domain_list()) >= 0)
 	order = ORDER_DOMAIN;
-    else if (member_array(sel, MC->query_categories()) >= 0)
+    else if (member(sel, MC->query_categories()) >= 0)
 	order = ORDER_CAT;
     else
     {
@@ -1393,11 +1393,11 @@ unsubscribe_sel(string sel)
 
     sel = UC(sel);
 
-    if (member_array(sel, SECURITY->query_domain_list()) >= 0)
+    if (member(sel, SECURITY->query_domain_list()) >= 0)
 	order = ORDER_DOMAIN;
-    else if (member_array(sel, MC->query_categories()) >= 0)
+    else if (member(sel, MC->query_categories()) >= 0)
 	order = ORDER_CAT;
-    else if (member_array(sel, Groups) >= 0)
+    else if (member(sel, Groups) >= 0)
 	order = ORDER_GROUP;
     else
     {
@@ -1454,16 +1454,16 @@ tele_to_board(string board, string sel)
 
     blist = m_values(BdMap);
 
-    if (!strlen(board))
+    if (!sizeof(board))
     {
-	if (strlen(CurrBoard) && sizeof(BdMap[CurrBoard]))
+	if (sizeof(CurrBoard) && sizeof(BdMap[CurrBoard]))
 	    return (MC->tele_to_board(BdMap[CurrBoard][SB_SPATH]));
 	else
 	    return MBS_NO_CURR;
     }
-    else if (strlen(sel))
+    else if (sizeof(sel))
     {
-	if (member_array(sel, SECURITY->query_domain_list()) >= 0)
+	if (member(sel, SECURITY->query_domain_list()) >= 0)
 	{
 	    blist = filter(blist, &operator(==)(sel) @
 			   &operator([])(, SB_DOMAIN));
@@ -1471,7 +1471,7 @@ tele_to_board(string board, string sel)
 			   &operator([])(, SB_BOARD));
 	    order = ORDER_DOMAIN;
 	}
-	else if (member_array(sel, MC->query_categories()) >= 0)
+	else if (member(sel, MC->query_categories()) >= 0)
 	{
 	    blist = filter(blist, &operator(==)(sel) @
 			   &operator([])(, SB_CAT));
@@ -1479,7 +1479,7 @@ tele_to_board(string board, string sel)
 			   &operator([])(, SB_BOARD));
 	    order = ORDER_CAT;
 	}
-	else if (member_array(sel, Groups) >= 0)
+	else if (member(sel, Groups) >= 0)
 	{
 	    blist = filter(blist, &operator(==)(sel) @
 			   &operator([])(, SB_GROUP));
@@ -1519,10 +1519,10 @@ static nomask int
 add_newsgroup(string grp)
 {
     grp = UC(grp);
-    if (member_array(grp, Groups) >= 0)
+    if (member(grp, Groups) >= 0)
 	return MBS_GRP_EXIST;
 
-    if (strlen(grp) > NAME_LEN)
+    if (sizeof(grp) > NAME_LEN)
     {
 	err_args(grp);
 	return MBS_STR_LONG;
@@ -1580,7 +1580,7 @@ delete_newsgroup(string grp)
 
     grp = UC(grp);
 
-    if (member_array(grp, Groups) < 0)
+    if (member(grp, Groups) < 0)
 	return MBS_GRP_NONE;
 
     if (CurrItem[ORDER_GROUP] == grp)
@@ -1627,13 +1627,13 @@ rename_newsgroup(string old, string new)
     old = UC(old);
     new = UC(new);
 
-    if (member_array(old, Groups) < 0)
+    if (member(old, Groups) < 0)
     {
 	err_args(old);
 	return MBS_GRP_NONE;
     }
 
-    if (member_array(new, Groups) >= 0)
+    if (member(new, Groups) >= 0)
     {
 	err_args(new);
 	return MBS_GRP_EXIST;
@@ -1670,7 +1670,7 @@ set_selection(string selection)
 {
     selection = UC(selection);
 
-    if (!strlen(selection))
+    if (!sizeof(selection))
     {
 	write("Current selection is '" + ({ "Category", "Domain", "Newsgroup" })[Selection] + "' (" + CurrItem[Selection] + ").\n");
 	return MBS_NO_ERR;
@@ -1719,22 +1719,22 @@ select_selection_item(string item)
     switch (Selection)
     {
     case ORDER_CAT:
-	if (strlen(item))
+	if (sizeof(item))
 	{
 	    list = MC->query_categories();
 	    err_args(item);
-	    if (member_array(item, list) < 0)
+	    if (member(item, list) < 0)
 		return MBS_BAD_CAT;
 	    CurrItem[ORDER_CAT] = item;
 	}
 	break;
 
     case ORDER_DOMAIN:
-	if (strlen(item))
+	if (sizeof(item))
 	{
 	    list = SECURITY->query_domain_list();
 	    err_args(item);
-	    if (member_array(item, list) < 0)
+	    if (member(item, list) < 0)
 		return MBS_BAD_DOMAIN;
 	    CurrItem[ORDER_DOMAIN] = item;
 	}
@@ -1743,10 +1743,10 @@ select_selection_item(string item)
     case ORDER_GROUP:
 	/* FALLTHROUGH */
     default:
-	if (strlen(item))
+	if (sizeof(item))
 	{
 	    err_args(item);
-	    if (member_array(item, Groups) < 0)
+	    if (member(item, Groups) < 0)
 		return MBS_GRP_NONE;
 	    CurrItem[ORDER_GROUP] = item;
 	}
@@ -1755,7 +1755,7 @@ select_selection_item(string item)
 
     write("Currently selected " + ({ "category: ", "domain: ", "newsgroup: " })[Selection] + CurrItem[Selection] + "\n");
 
-    if ((info = find_nur_insel(0))[0] && strlen(info[1]))
+    if ((info = find_nur_insel(0))[0] && sizeof(info[1]))
 	write(info[1]);
 
     save_mbs();
@@ -1810,7 +1810,7 @@ scrap_board(string board, string item)
 {
     mixed info;
 
-    if (!strlen(CurrItem[ORDER_GROUP]))
+    if (!sizeof(CurrItem[ORDER_GROUP]))
 	return MBS_NO_GROUP;
 
     board = UC(board);
@@ -1823,7 +1823,7 @@ scrap_board(string board, string item)
 	if (sizeof(BdMap[info[BBP_SPATH]]))
 	    return MBS_SUBSCRIBE;
 
-	if (member_array(info[BBP_SPATH], ScrapList) >=0)
+	if (member(info[BBP_SPATH], ScrapList) >=0)
 	    return MBS_SCRAPPED;
 
 	ScrapList += ({ info[BBP_SPATH] });
@@ -1833,7 +1833,7 @@ scrap_board(string board, string item)
     }
     else
     {
-	if (member_array(item, MC->query_categories()) < 0)
+	if (member(item, MC->query_categories()) < 0)
 	    err_args(board, "domain", item);
 	else
 	    err_args(board, "category", item);
@@ -1877,7 +1877,7 @@ select_nur(int sw)
     }
 
     ssz = sizeof(slist);
-    ssval = s_ind = member_array(CurrItem[Selection], slist);
+    ssval = s_ind = member(CurrItem[Selection], slist);
 
     if (ssval < 0 || ssval > sizeof(slist))
 	ssval = 0;
@@ -1896,11 +1896,11 @@ select_nur(int sw)
 	if ((binfo = find_nur_insel(sw))[0])
 	{
 	    // Write changed selection item info
-	    if (strlen(swinfo))
+	    if (sizeof(swinfo))
 		write(swinfo);
 
 	    // Write changed board info
-	    if (strlen(binfo[1]))
+	    if (sizeof(binfo[1]))
 		write(binfo[1]);
 	    return 1;
 	}
@@ -1928,7 +1928,7 @@ find_nur_insel(int sw)
     {
 	blist = map(SbMap[CurrItem[Selection]], &operator([])(, SB_SPATH));
 	bsz = sizeof(blist);
-	bsval = b_ind = member_array(CurrBoard, blist);
+	bsval = b_ind = member(CurrBoard, blist);
 	if (sw)
 	    b_ind = (b_ind + 1) < bsz ? (b_ind + 1) : 0;
 	if (bsval < 0)
@@ -2197,14 +2197,14 @@ mbs_error(int what)
 	    break;
 
 	case MBS_NO_SUB:
-	    if (strlen(ErrArgs[2]))
+	    if (sizeof(ErrArgs[2]))
 		write("You are not subscribing to any board named '" + ErrArgs[0] + "' in the " + ErrArgs[1] + " '" + ErrArgs[2] + "'.\n");
 	    else
 		write("You are not subscribing to any board named '" + ErrArgs[0] + "'.\n");
 	    break;
 
 	case MBS_SPEC_AMBIG:
-	    if (strlen(ErrArgs[2]))
+	    if (sizeof(ErrArgs[2]))
 		write("The specification of the board '" + ErrArgs[0] + "' in the " + ErrArgs[1] + " '" + ErrArgs[2] + "' is ambigous, please be more specific.\n");
 	    else
 		write("The specification of the board '" + ErrArgs[0] + "' is ambigous, please be more specific.\n");
@@ -2482,7 +2482,7 @@ check_gc()
 	for (i = 0, sz = sizeof(list) ; i < sz ; i++)
 	{
 	    blist = MC->get_board_by_path(list[i]);
-	    if (sizeof(blist) && strlen(blist[BBP_BOARD]))
+	    if (sizeof(blist) && sizeof(blist[BBP_BOARD]))
 	    {
 		if (BdMap[list[i]][SB_BOARD] != blist[BBP_BOARD] ||
 		    BdMap[list[i]][SB_CAT] != blist[BBP_CAT] ||
