@@ -6,13 +6,13 @@ to the wizards who wanted to use them in treir souls. There was a nice system
 for easy emotions and there was a large set of possible adverbs, but they
 were only available in the default soul. That has changed now. All functions
 for easy emotions and easy adverb manipulation are in the basic file for all
-souls now: /cmd/std/command_driver.c
+souls now: /std/command_driver.c
 
 Also, the system did not allow you to use an adverb when doing an emotion on
 a target. That has also changed, so every combination of emote, adverb and
 target is possible now. This file describes the functions that can be used
 for easy adverb and emotion manupulation. For more details, see the actual
-code in /sys/adverbs.h /sys/global/adverbs.c and /cmd/std/command_driver.c
+code in /sys/adverbs.h /sys/global/adverbs.c and /std/command_driver.c
 for the code and /cmd/std/soul_cmd.c for a lot of examples.
 
 There are manual pages on each of the of the functions described in this

@@ -21,6 +21,6 @@
 		 : ((curam + amount) >= 0)				   \
   )
 
-#include "/config/sys/drink_eat2.h"
+#include "/conf/sys/drink_eat2.h"
 
 #endif

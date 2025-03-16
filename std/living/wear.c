@@ -10,7 +10,7 @@
 #include <composite.h>
 #include <wa_types.h>
 
-static private mapping m_worn = ([]);
+static mapping m_worn = ([]);
 
 public object *query_clothing(int slot);
 
@@ -18,8 +18,7 @@ public object *query_clothing(int slot);
  * Function name: wear_reset
  * Description:   initialize the wear routines
  */
-static nomask void
-wear_reset()
+static nomask void wear_reset()
 {
     add_subloc(SUBLOC_WORNA, this_object());
 }
@@ -30,8 +29,7 @@ wear_reset()
  * Arguments:     object for_obj - the onlooker
  * Returns:       A string describing the worn items
  */
-public string
-show_worn(object for_obj)
+public string show_worn(object for_obj)
 {
     object *worn = query_clothing(-1);
     string str;
@@ -40,8 +38,8 @@ show_worn(object for_obj)
         return "";
 
     /* Only use table form when displaying inventory. */
-    if (for_obj->query_option(OPT_TABLE_INVENTORY) &&
-        for_obj->query_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS))
+    if (({int}) for_obj->query_option(OPT_TABLE_INVENTORY) &&
+        ({int}) for_obj->query_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS))
     {
         return HANGING_INDENT("Worn    : " +
             FO_COMPOSITE_ALL_DEAD(worn, for_obj), 10, 0);
@@ -62,12 +60,11 @@ show_worn(object for_obj)
  * Returns:       string - error message (clothing could not be added)
  *                1 - success (clothing added)
  */
-public mixed
-occupy_clothing_slots(object ob)
+public mixed occupy_clothing_slots(object ob)
 {
     int *slots, i;
 
-    slots = ob->query_slots();
+    slots = ({int *}) ob->query_slots();
 
     for (i = 0; i < sizeof(slots); i++)
         if (!pointerp(m_worn[slots[i]]))
@@ -83,8 +80,7 @@ occupy_clothing_slots(object ob)
  * Description:   remove a piece of clothing from the slots where it is worn
  * Arguments:     the clothing object being removed
  */
-static void
-clear_clothing_slots(object ob)
+static void clear_clothing_slots(object ob)
 {
     int *slots, i;
 
@@ -92,7 +88,7 @@ clear_clothing_slots(object ob)
     for (i = 0; i < sizeof(slots); i++)
         if (!pointerp(m_worn[slots[i]]) ||
             !sizeof(m_worn[slots[i]] -= ({ ob })))
-            m_delkey(m_worn, slots[i]);
+            m_delete(m_worn, slots[i]);
 }
 
 /*
@@ -100,8 +96,7 @@ clear_clothing_slots(object ob)
  * Description:   Remove an item that has been worn
  * Arguments:     object ob - the item we wish to remove
  */
-public void
-remove_clothing(object ob)
+public void remove_clothing(object ob)
 {
     clear_clothing_slots(ob);
 
@@ -117,14 +112,13 @@ remove_clothing(object ob)
  * Returns:       string - an error message (the item cannot be worn)
  *                1 - item successfully worn
  */
-public mixed
-wear_clothing(object ob)
+public mixed wear_clothing(object ob)
 {
     int *slots, i;
 
-    if (ob->move(this_object(), SUBLOC_WORN))
+    if (({int}) ob->move(this_object(), SUBLOC_WORN))
     {
-        return "You cannot wear the " + ob->short(this_object()) +
+        return "You cannot wear the " + ({string}) ob->short(this_object()) +
             " for some reason.\n";
     }
 
@@ -139,8 +133,7 @@ wear_clothing(object ob)
  *                           to get all clothing worn.
  * Returns:       (object *) all items worn on the specified location
  */
-public object *
-query_clothing(int slot)
+public object *query_clothing(int slot)
 {
     mixed *values;
     object *all_worn;
@@ -167,18 +160,17 @@ query_clothing(int slot)
  * Returns:       string - error message (armour could not be worn)
  *                1 - success (armour was worn)
  */
-public mixed
-wear_arm(object arm)
+public mixed wear_arm(object arm)
 {
     mixed val;
 
     if (stringp(val = occupy_slot(arm)))
         return val;
 
-    if (arm->move(this_object(), SUBLOC_WORNA))
+    if (({int}) arm->move(this_object(), SUBLOC_WORNA))
     {
         clear_tool_slots(arm);
-        return "You cannot wear the " + arm->short(this_object()) +
+        return "You cannot wear the " + ({string}) arm->short(this_object()) +
             " for some reason.\n";
     }
 
@@ -191,7 +183,7 @@ wear_arm(object arm)
 
     combat_reload();
 
-    if (stringp(val = query_combat_object()->cb_wear_arm(arm)))
+    if (stringp(val = ({int}) query_combat_object()->cb_wear_arm(arm)))
     {
         arm->move(this_object());
         clear_tool_slots(arm);
@@ -207,8 +199,7 @@ wear_arm(object arm)
  * Description:     Remove an armour
  * Arguments:       arm - The armour.
  */
-public void
-remove_arm(object arm)
+public void remove_arm(object arm)
 {
     if (environment(arm) == this_object())
         arm->move(this_object());
@@ -221,10 +212,9 @@ remove_arm(object arm)
     query_combat_object()->cb_remove_arm(arm);
 }
 
-static int
-check_armour_object(object arm)
+static int check_armour_object(object arm)
 {
-    return (arm->check_armour() && (arm->query_worn() == this_object()));
+    return (({int}) arm->check_armour() && (({object}) arm->query_worn() == this_object()));
 }
 
 /*
@@ -237,13 +227,12 @@ check_armour_object(object arm)
  * Returns      : object   - the corresponding armour or 0.
  *                object * - all armours when -1 is given.
  */
-varargs public mixed
-query_armour(int which)
+varargs public mixed query_armour(int which)
 {
     object arm;
 
     if (which == -1)
-        return filter(query_tool(-1), check_armour_object);
+        return filter(query_tool(-1), #'check_armour_object);
 
     if ((arm = query_tool(which)) && check_armour_object(arm))
         return arm;

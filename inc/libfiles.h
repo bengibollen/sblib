@@ -1,5 +1,5 @@
 /*
- * /inc/files.h
+ * /inc/libfiles.h
  *
  * This inclusion files contains the filenames of most mudlib modules in
  * definitions. If, except for #include or inherit, you ever need to make
@@ -20,7 +20,7 @@
 #define CMD_LIVE_THIEF     ("/std/cmd/live/thief")
 #define CMD_LIVE_THINGS    ("/std/cmd/live/things")
 
-#define COMMAND_DRIVER     ("/std/cmd/std/command_driver")
+#define COMMAND_DRIVER     ("/std/std/command_driver")
 #define SOUL_CMD           ("/std/cmd/std/soul_cmd")
 #define TRACER_TOOL_SOUL   ("/std/cmd/std/tracer_tool")
 
@@ -109,6 +109,8 @@
 #define OBJECT_OBJECT      ("/std/object")
 #define PARALYZE_OBJECT    ("/std/paralyze")
 #define PLAYER_OBJECT      ("/std/player")
+#define PLAYER_SEC_OBJECT  ("/std/player_sec")
+#define PLAYER_PUB_OBJECT  ("/std/player_pub")
 #define POISON_OBJECT      ("/std/poison_effect")
 #define POTION_OBJECT      ("/std/potion")
 #define PROJECTILE_OBJECT  ("/std/projectile")

@@ -9,21 +9,21 @@
 
 #define TIME ("/std/timefuns.c")
 
-#define YEAR       TIME->time_get_int("year")            /* Year    (integer)  */
-#define SEASON     TIME->time_get_int("season")          /* Season  (integer)  */
-#define WEEK       TIME->time_get_int("week")            /* Week    (integer)  */
-#define DAY        TIME->time_get_int("day")             /* Day     (integer)  */
-#define HOUR       TIME->time_get_int("hour")            /* Hour    (integer)  */
-#define MINUTE     TIME->time_get_int("minute")          /* Minute  (integer)  */
-#define SECOND     TIME->time_get_int("second")          /* Second  (integer)  */
-#define WEEKDAY    TIME->time_get_int("weekday")         /* Weekday (integer 0-7)*/
-#define TIMESTR    TIME->time_get_string("time")         /* Time-String        */
-#define DATESTR    TIME->time_get_string("date")         /* Date-String        */
-#define SEASONSTR  TIME->time_get_string("season")       /* Season             */
-#define WEEKDAYSTR TIME->time_get_description("weekday") /* Weekday-String     */
-#define TIMEDESC   TIME->time_get_description("time")    /* Time-Descr         */
-#define DATEDESC   TIME->time_get_description("date")    /* Date_Descr         */
-#define EXACTTIME  TIME->time_get_description("exacttime") /* hh:mm:ss */
+#define YEAR       ({int}) TIME->time_get_int("year")            /* Year    (integer)  */
+#define SEASON     ({int}) TIME->time_get_int("season")          /* Season  (integer)  */
+#define WEEK       ({int}) TIME->time_get_int("week")            /* Week    (integer)  */
+#define DAY        ({int}) TIME->time_get_int("day")             /* Day     (integer)  */
+#define HOUR       ({int}) TIME->time_get_int("hour")            /* Hour    (integer)  */
+#define MINUTE     ({int}) TIME->time_get_int("minute")          /* Minute  (integer)  */
+#define SECOND     ({int}) TIME->time_get_int("second")          /* Second  (integer)  */
+#define WEEKDAY    ({int}) TIME->time_get_int("weekday")         /* Weekday (integer 0-7)*/
+#define TIMESTR    ({string}) TIME->time_get_string("time")         /* Time-String        */
+#define DATESTR    ({string}) TIME->time_get_string("date")         /* Date-String        */
+#define SEASONSTR  ({string}) TIME->time_get_string("season")       /* Season             */
+#define WEEKDAYSTR ({string}) TIME->time_get_description("weekday") /* Weekday-String     */
+#define TIMEDESC   ({string}) TIME->time_get_description("time")    /* Time-Descr         */
+#define DATEDESC   ({string}) TIME->time_get_description("date")    /* Date_Descr         */
+#define EXACTTIME  ({string}) TIME->time_get_description("exacttime") /* hh:mm:ss */
 
 
 /*

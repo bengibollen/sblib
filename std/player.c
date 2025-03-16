@@ -15,7 +15,7 @@ private object logger;      // Logger instance
 
 private void show_entrance();
 
-public void create() {
+public void create_living() {
     logger = load_object("/sys/log");
     logger->info("Player object created");
     logger->debug("Object name: %s", object_name(this_object()));
@@ -103,7 +103,7 @@ public int cmd_who(string arg) {
 }
 
 // Query functions
-public string query_name() { return name; }
+public varargs string query_name() { return name; }
 public int query_level() { return level; }
 public int query_state() { return state; }
 

@@ -39,7 +39,7 @@ inherit "/lib/skill_raise";
 
 #pragma no_clone
 #pragma resident
-#pragma save_binary
+
 #pragma strict_types
 
 #include <macros.h>

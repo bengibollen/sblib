@@ -9,7 +9,7 @@
 #include "/sys/driver_hooks.h"    // For H_* constants
 #include "/sys/interactive_info.h"
 #include "/inc/macros.h"         // For ROOT_UID, BACKBONE_UID, etc.
-#include "/inc/files.h"          // For file_size, etc.
+#include "/inc/libfiles.h"          // For file_size, etc.
 #include "/sys/files.h"          // For II_* constants
 #include "/inc/std.h"          // For II_* constants
 
@@ -24,8 +24,8 @@ private object logger;  // We'll initialize this later
 
 #include "/secure/master/error_handling.c"
 #include "/secure/master/config.c"
-#include "/secure/master/sanction.c"
-#include "/secure/master/fob.c"
+//#include "/secure/master/fob.c"
+//#include "/secure/master/sanction.c"
 
 #define DEBUG_RESTRICTED ( ({ "mudstatus", "swap", "shutdown", "send_udp" }) )
 
@@ -175,18 +175,22 @@ void preload(string file) {
 string get_simul_efun ()
 // Load the simul_efun object(s) and return one or more paths of it.
 {
-  object ob;
+    object ob;
 
-  //error = catch(ob = load_object("/secure/simul_efun"));
-  ob = load_object("/secure/simul_efun");
-  if (objectp(ob))
-  {
-  ob->start_simul_efun();
-    return "/secure/simul_efun";
-  }
-  efun::write("Failed to load " + "/secure/simul_efun" + ": ");
-  efun::shutdown();
-  return 0;
+    logger->info("Loading simul_efun");
+
+    //error = catch(ob = load_object("/secure/simul_efun"));
+    ob = load_object("/secure/simul_efun");
+    if (objectp(ob))
+    {
+        ob->start_simul_efun();
+        return "/secure/simul_efun";
+    }
+    logger->error("Failed to load /secure/simul_efun");
+
+    efun::write("Failed to load " + "/secure/simul_efun" + ": ");
+    efun::shutdown();
+    return 0;
 }
 
 // ---------- Optional: Connection Handling ----------
@@ -337,8 +341,8 @@ do_debug(string icmd, mixed a1, mixed a2, mixed a3)
     {
         if ((euid != ROOT_UID) &&
             (previous_object() != this_object()) &&
-            (previous_object() != find_object(SIMUL_EFUN)) &&
-            (query_wiz_rank(euid) < WIZ_ARCH))
+            (previous_object() != find_object(SIMUL_EFUN))) //&&
+//            (query_wiz_rank(euid) < WIZ_ARCH))
         {
             return 0;
         }
@@ -349,7 +353,7 @@ do_debug(string icmd, mixed a1, mixed a2, mixed a3)
      * also allowed to view its variables.
      */
     if ((icmd == "get_variables") &&
-        (!valid_write(object_name(a1), euid, "get_variables")))
+        (!valid_write(object_name(a1), euid, "get_variables", this_object())))
     {
         return 0;
     }
@@ -357,7 +361,8 @@ do_debug(string icmd, mixed a1, mixed a2, mixed a3)
     /* Since debug() returns arrays and mappings by reference, we need to
      * process the value to make it secure, so people cannot alter it.
      */
-    return secure_var(debug(icmd, a1, a2, a3));
+//    return secure_var(debug(icmd, a1, a2, a3));
+    return "";
 }
 
 /*
@@ -366,7 +371,23 @@ do_debug(string icmd, mixed a1, mixed a2, mixed a3)
  */
 static void save_master()
 {
-    set_auth(this_object(), "root:root");
+    // set_auth(this_object(), "root:root");
 
-    save_object(SAVEFILE);
+    // save_object(SAVEFILE);
+}
+
+
+/*
+ * Function name: remote_setuid
+ * Description  : With this function the COMMAND_DRIVER can request that
+ *                its authorisation information is reset in order to allow
+ *                for a new uid/euid when another player uses the same soul.
+ */
+void
+remote_setuid()
+{
+    if (function_exists("open_soul", previous_object()) == COMMAND_DRIVER)
+    {
+        configure_object(previous_object(), OC_EUID, "0:0");
+    }
 }

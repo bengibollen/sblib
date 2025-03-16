@@ -10,6 +10,7 @@
 #include "/inc/composite.h"
 #include "/inc/const.h"
 #include "/inc/std.h"
+#include "/inc/libfiles.h"
 
 /*
  * These global variables are stored in the KEEPERSAVE.
@@ -23,6 +24,8 @@ mapping m_teams = ([ ]);        /* The arch team mapping */
 
 static int add_wizard_to_domain(string dname, string wname, string cmder);
 static void do_change_rank(string wname, int rank, string cmder);
+static void remove_all_sanctions(string name);
+static void remove_all_applications(string wname);
 
 /**************************************************************************
  *
@@ -232,8 +235,7 @@ set_domain_short(string dname, string sname)
  * Arguments    : string dname - the name of the domain.
  * Returns      : string the domain lord if found, "" otherwise.
  */
-string
-query_domain_lord(string dname)
+string query_domain_lord(string dname)
 {
     dname = capitalize(dname);
 
@@ -445,8 +447,6 @@ make_domain(string dname, string sname, string wname)
 int
 remove_domain(string dname)
 {
-    int    index;
-    int    size;
     string cmder;
 
     /* May only be called from the arch soul. */
@@ -508,7 +508,7 @@ remove_domain(string dname)
     }
 
     /* Delete the domain from the domain mapping. */
-    m_delkey(m_domains, dname);
+    m_delete(m_domains, dname);
     save_master();
 
     write("You have just obliterated " + dname + ".\n");
@@ -531,11 +531,11 @@ tell_domain(string dname, string wname, string wmess, string dmess)
     string *wlist;
     object *wizards;
 
-    if (objectp(wiz = find_player(wname)))
+    if (objectp(wiz = SIMUL_EFUN->find_player(wname)))
         tell_object(wiz, wmess);
 
-    wlist = (string *)m_domains[dname][FOB_DOM_MEMBERS] - ({ wname });
-    wizards = filter(map(wlist, find_player), objectp);
+    wlist = ({string*})m_domains[dname][FOB_DOM_MEMBERS] - ({ wname });
+    wizards = filter(map(wlist, (: SIMUL_EFUN->find_player($1) :)), #'objectp);
     wizards->catch_tell(dmess);
 }
 
@@ -553,7 +553,7 @@ transform_mortal_into_wizard(string wname, string cmder)
     object  wizard;
     object  scroll;
     object *players;
-    mapping playerfile;
+//    mapping playerfile;
     int     fingered;
 
     /* Update the wizard-mapping. This just adds an empty slot for the
@@ -563,7 +563,7 @@ transform_mortal_into_wizard(string wname, string cmder)
                           cmder, "", cmder, RESTRICT_ALL, "", ({}) });
     save_master();
 
-    if (objectp(wizard = find_player(wname)))
+    if (objectp(wizard = SIMUL_EFUN->find_player(wname)))
     {
         if (catch(scroll = clone_object(APPRENTICE_SCROLL_FILE)))
         {
@@ -583,18 +583,18 @@ transform_mortal_into_wizard(string wname, string cmder)
     }
     else
     {
-        playerfile = restore_map(PLAYER_FILE(wname));
+        // playerfile = restore_map(PLAYER_FILE(wname));
 
-        if (!pointerp(playerfile["auto_load"]))
-            playerfile["auto_load"] = ({ });
+        // if (!pointerp(playerfile["auto_load"]))
+        //     playerfile["auto_load"] = ({ });
 
-        playerfile["auto_load"] += ({ APPRENTICE_SCROLL_FILE });
-        playerfile["default_start_location"] = WIZ_ROOM;
+        // playerfile["auto_load"] += ({ APPRENTICE_SCROLL_FILE });
+        // playerfile["default_start_location"] = WIZ_ROOM;
 
-        save_map(playerfile, PLAYER_FILE(wname));
+        // save_map(playerfile, PLAYER_FILE(wname));
 
-        fingered = 1;
-        wizard = SECURITY->finger_player(wname);
+        // fingered = 1;
+        // wizard = SECURITY->finger_player(wname);
     }
 
     players = users() - ({ this_interactive(), wizard });
@@ -899,14 +899,14 @@ rename_wizard(string oldname, string newname)
     /* Rename the wizard in the wizard mapping. */
     write("Wizard status copied to " + capitalize(newname) + ".\n");
     m_wizards[newname] = secure_var(m_wizards[oldname]);
-    m_delkey(m_wizards, oldname);
+    m_delete(m_wizards, oldname);
 
     /* Update global read. */
     if (m_global_read[oldname])
     {
         write("Global read copied to " + capitalize(newname) + ".\n");
         m_global_read[newname] = secure_var(m_global_read[oldname]);
-        m_delkey(m_global_read, oldname);
+        m_delete(m_global_read, oldname);
     }
 
     /* Update domain information. */
@@ -1154,7 +1154,7 @@ deny_application(string wname)
 
     /* Remove the domain-entry if this was the last application. */
     if (!sizeof(m_applications[dname]))
-        m_delkey(m_applications, dname);
+        m_delete(m_applications, dname);
 
     if (objectp(wiz = find_player(wname)))
         tell_object(wiz, "Your application to the domain '" + dname +
@@ -1202,7 +1202,7 @@ regret_application(string dname)
 
     /* If there are no other applications, remove the empty array. */
     if (!sizeof(m_applications[dname]))
-        m_delkey(m_applications, dname);
+        m_delete(m_applications, dname);
 
     save_master();
 
@@ -1217,8 +1217,7 @@ regret_application(string dname)
  * Description  : Remove all application by a wizard from the application list.
  * Arguments    : string wname - the name of the wizard in lower case.
  */
-static void
-remove_all_applications(string wname)
+static void remove_all_applications(string wname)
 {
     foreach(string dname: m_indices(m_applications))
     {
@@ -1231,7 +1230,7 @@ remove_all_applications(string wname)
 
             /* If this was the last wizard, remove the domain from the list. */
             if (!sizeof(m_applications[dname]))
-                m_delkey(m_applications, dname);
+                m_delete(m_applications, dname);
         }
     }
 
@@ -1350,7 +1349,7 @@ list_applications(string str)
                 return 1;
             }
 
-            m_delkey(m_applications, dname);
+            m_delete(m_applications, dname);
             save_master();
             write("Removed all applications to " + dname + ".\n");
             return 1;
@@ -1402,8 +1401,7 @@ list_applications(string str)
  *                    be "quest", "combat" and general".
  *                int exp - the amount of experience added.
  */
-public void
-bookkeep_exp(string type, int exp)
+public void bookkeep_exp(string type, int exp)
 {
     int    cobj = 0;
     int    should_log = 0;
@@ -1723,8 +1721,7 @@ domain_clear_xp(string dname)
  * Arguments    : string wname - the name of the wizard.
  * Returns      : int - the rank.
  */
-int
-query_wiz_rank(string wname)
+int query_wiz_rank(string wname)
 {
     wname = lower_case(wname);
 
@@ -2072,7 +2069,7 @@ wizard_change_rank(string wname, int rank)
             add_wizard_to_domain("", wname, cmder);
 
         /* Burry all evidence of his/her existing. */
-        m_delkey(m_wizards, wname);
+        m_delete(m_wizards, wname);
         remove_all_sanctions(wname);
 
         /* Tell him/her the bad news and boot him. */
@@ -2517,7 +2514,7 @@ remove_global_read(string wname)
     }
 
     /* Remove the entry, save the master and notify the caller. */
-    m_delkey(m_global_read, wname);
+    m_delete(m_global_read, wname);
     save_master();
 
     if (objectp(wiz = find_player(wname)))
@@ -2806,7 +2803,7 @@ update_teams(void)
         /* Remove empty teams. */
         if (!sizeof(m_teams[team]))
         {
-            m_delkey(m_teams, team);
+            m_delete(m_teams, team);
         }
     }
 

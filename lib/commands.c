@@ -3,7 +3,7 @@
  *
  * This library contains several functions that make it a lot easier to make
  * commands that allow a player to interact with others. It is inherited into
- * /cmd/std/command_driver.c to allow access from souls, but you can also
+ * /std/command_driver.c to allow access from souls, but you can also
  * inherit it from any other object.
  */
 
@@ -37,8 +37,7 @@ static string parse_msg = "";
  * Arguments    : object ob - the living object.
  * Returns      : string - the macro QTNAME applied to the object.
  */
-public string
-desc_vbfc(object ob)
+public string desc_vbfc(object ob)
 {
     return QTNAME(ob);
 }
@@ -53,21 +52,20 @@ desc_vbfc(object ob)
  *                int poss - return a possessive form string?
  * Returns      : string - the macro LANG_THESHORT applied to the object.
  */
-public varargs string
-desc_theshort(object ob, object for_ob, int poss)
+public varargs string desc_theshort(object ob, object for_ob, int poss)
 {
-    if (ob->query_prop(HEAP_I_IS))
+    if (({int}) ob->query_prop(HEAP_I_IS))
     {
 	if (!poss)
-	    return ob->short(for_ob);
+	    return ({string}) ob->short(for_ob);
 	else
 	    return LANG_POSS(ob->short(for_ob));
     }
     else if (!poss)
     {
-	return "the " + ob->short(for_ob);
+	return "the " + ({string}) ob->short(for_ob);
     }
-    return "the " + LANG_POSS(ob->short(for_ob));
+    return "the " + LANG_POSS(({string}) ob->short(for_ob));
 }
 
 /*
@@ -78,10 +76,9 @@ desc_theshort(object ob, object for_ob, int poss)
  * Arguments    : object *oblist - the objects to process and link.
  * Returns      : string - a compound description.
  */
-public string
-desc_many(object *oblist)
+public string desc_many(object *oblist)
 {
-    return COMPOSITE_WORDS(map(oblist, desc_vbfc));
+    return COMPOSITE_WORDS(map(oblist, #'desc_vbfc));
 }
 
 /*
@@ -109,8 +106,7 @@ desc_many(object *oblist)
  *                string str1    - an optional second part of the message.
  *                                 Start with "'s" for possessive target form.
  */
-public varargs void
-actor(string str, object *oblist, string str1)
+public varargs void actor(string str, object *oblist, string str1)
 {
     int poss;
 
@@ -126,9 +122,9 @@ actor(string str, object *oblist, string str1)
 
     if (living(oblist[0]))
     {
-	function oname = (poss == 0 ?
-	  &->query_the_name(this_player()) :
-	  &->query_the_possessive_name(this_player()));
+	closure oname = (poss == 0 ?
+        (: ({string}) $1->query_the_name(this_player()) :) :
+        (: ({string})$1->query_the_possessive_name(this_player()) :));
 
 	write(str + " " +
 	    COMPOSITE_WORDS(map(oblist, oname)) +
@@ -138,7 +134,7 @@ actor(string str, object *oblist, string str1)
     {
 	write(str + " " +
 	    COMPOSITE_WORDS(map(oblist,
-		    &desc_theshort(, this_player(), poss))) +
+		    #'desc_theshort, this_player(), poss)) +
 	    (sizeof(str1) ? (str1 + "\n") : ".\n"));
     }
 
@@ -162,11 +158,11 @@ actor(string str, object *oblist, string str1)
  *                string adverb  - the optional adverb if one was used.
  *                int cmd_attr   - the action attributes (from cmdparse.h)
  */
-public varargs void
-target(string str, object *oblist, string adverb = "", int cmd_attr = 0)
+public varargs void target(string str, object *oblist, string adverb = "", int cmd_attr = 0)
 {
     int poss;
     object *players, *all_oblist;
+    closure name;
 
     /* Sanity check. */
     if (!sizeof(oblist))
@@ -203,13 +199,14 @@ target(string str, object *oblist, string adverb = "", int cmd_attr = 0)
     /* Tell the message to players. */
     if (sizeof(players))
     {
-	function name = (poss ? this_player()->query_The_possessive_name :
-	    this_player()->query_The_name);
+        name = poss ? 
+            (: ({string}) this_player()->query_The_possessive_name($1) :) :
+            (: ({string}) this_player()->query_The_name($1) :);
 
-	foreach(object player: players)
-	{
-	    player->catch_tell(name(player) + str + "\n");
-	}
+        foreach(object player: players)
+        {
+            player->catch_tell(funcall(name, player) + str + "\n");
+        }
     }
 
     oblist->emote_hook(query_verb(), this_player(), adverb, all_oblist,
@@ -223,8 +220,7 @@ target(string str, object *oblist, string adverb = "", int cmd_attr = 0)
  * Example      : targetbb(" smiles happily.", oblist);
  * Arguments    : see target().
  */
-public varargs void
-targetbb(string str, object *oblist, string adverb = "", int cmd_attr = 0)
+public varargs void targetbb(string str, object *oblist, string adverb = "", int cmd_attr = 0)
 {
     target(str, oblist, adverb, cmd_attr | ACTION_BLIND);
 }
@@ -247,8 +243,7 @@ targetbb(string str, object *oblist, string adverb = "", int cmd_attr = 0)
  *                string adverb - the optional adverb if one was used.
  *                int cmd_attr  - the action attributes (from cmdparse.h)
  */
-public varargs void
-all(string str, string adverb = "", int cmd_attr = 0)
+public varargs void all(string str, string adverb = "", int cmd_attr = 0)
 {
     int poss;
     object *oblist, *players;
@@ -273,12 +268,13 @@ all(string str, string adverb = "", int cmd_attr = 0)
     /* Tell the message to players. */
     if (sizeof(players))
     {
-	function name = (poss ? this_player()->query_The_possessive_name :
-	    this_player()->query_The_name);
+        closure name = poss ? 
+            (: ({string}) this_player()->query_The_possessive_name($1) :) :
+            (: ({string}) this_player()->query_The_name($1) :);
 
 	foreach(object player: players)
 	{
-	    player->catch_tell(name(player) + str + "\n");
+	    player->catch_tell(funcall(name, player) + str + "\n");
 	}
     }
 
@@ -293,8 +289,7 @@ all(string str, string adverb = "", int cmd_attr = 0)
  * Example      : allbb(" smiles happily.");
  * Arguments    : see all().
  */
-public varargs void
-allbb(string str, string adverb = "", int cmd_attr = 0)
+public varargs void allbb(string str, string adverb = "", int cmd_attr = 0)
 {
     all(str, adverb, cmd_attr | ACTION_BLIND);
 }
@@ -328,8 +323,7 @@ allbb(string str, string adverb = "", int cmd_attr = 0)
  *                string adverb  - the optional adverb if one was used.
  *                int cmd_attr   - the action attributes (from cmdparse.h)
  */
-public varargs void
-all2act(string str, object *oblist, string str1, string adverb = "",
+public varargs void all2act(string str, object *oblist, string str1, string adverb = "",
     int cmd_attr = 0)
 {
     int    a_poss, o_poss;
@@ -367,27 +361,29 @@ all2act(string str, object *oblist, string str1, string adverb = "",
     players = FILTER_PLAYERS(livings);
     if (sizeof(players))
     {
-	function name = (a_poss ? this_player()->query_The_possessive_name :
-	    this_player()->query_The_name);
+        closure name = a_poss ? 
+            (: ({string}) this_player()->query_The_possessive_name($1) :) :
+            (: ({string}) this_player()->query_The_name($1) :);
 
 	str1 = (sizeof(str1) ? (str1 + "\n") : ".\n");
 	if (living(oblist[0]))
 	{
 	    foreach(object player: players)
 	    {
-		function oname = (o_poss ? &->query_the_possessive_name(player) :
-		    &->query_the_name(player));
+            closure oname = o_poss ? 
+                (: ({string}) this_player()->query_the_possessive_name($1) :) :
+                (: ({string}) this_player()->query_the_name($1) :);
 
-		player->catch_tell(name(player) + str + " " +
-		    COMPOSITE_WORDS(map(oblist, oname)) + str1);
+		player->catch_tell(funcall(name, player) + str + " " +
+		    COMPOSITE_WORDS(map(oblist, (: funcall(oname, $1) :))) + str1);
 	    }
 	}
 	else
 	{
 	    foreach(object player: players)
 	    {
-		player->catch_tell(name(player) + str + " " +
-		    COMPOSITE_WORDS(map(oblist, &desc_theshort(, player, o_poss))) + str1);
+		player->catch_tell(funcall(name, player) + str + " " +
+		    COMPOSITE_WORDS(map(oblist, #'desc_theshort, player, o_poss)) + str1);
 	    }
 	}
     }
@@ -403,8 +399,7 @@ all2act(string str, object *oblist, string str1, string adverb = "",
  *                cannot see that person. For more information. See all2act.
  * Arguments    : See all2act.
  */
-public varargs void
-all2actbb(string str, object *oblist, string str1, string adverb = "",
+public varargs void all2actbb(string str, object *oblist, string str1, string adverb = "",
     int cmd_attr = 0)
 {
     all2act(str, oblist, str1, adverb, cmd_attr | ACTION_BLIND);
@@ -420,8 +415,7 @@ all2actbb(string str, object *oblist, string str1, string adverb = "",
  * Returns:      1 - command not blocked
  *               0 - command blocked
  */
-public int
-cmd_access(object ob, object for_obj, int cmd_attr)
+public int cmd_access(object ob, object for_obj, int cmd_attr)
 {
     mixed acs;
     object env;
@@ -431,9 +425,9 @@ cmd_access(object ob, object for_obj, int cmd_attr)
 	return 1;
     }
 
-    if (!(acs = env->block_action(query_verb(), ob, for_obj, cmd_attr)))
+    if (!(acs = ({mixed}) env->block_action(query_verb(), ob, for_obj, cmd_attr)))
     {
-	if (!(acs = ob->block_action(query_verb(), for_obj, cmd_attr)))
+	if (!(acs = ({mixed}) ob->block_action(query_verb(), for_obj, cmd_attr)))
 	{
 	    return 1;
 	}
@@ -459,12 +453,11 @@ cmd_access(object ob, object for_obj, int cmd_attr)
  *                "parse_msg" will contain error messages (if any were
  *                supplied).
  */
-public object *
-check_block_action(object *targets, int cmd_attr)
+public object *check_block_action(object *targets, int cmd_attr)
 {
     parse_msg = "";
 
-    return filter(targets, &cmd_access(, this_player(), cmd_attr));
+    return filter(targets, #'cmd_access, this_player(), cmd_attr);
 }
 
 /*
@@ -474,14 +467,13 @@ check_block_action(object *targets, int cmd_attr)
  * Arguments    : see parse_this(), except cmd_attr isn't passed along.
  * Returns      : see parse_this()
  */
-public object *
-parse_this_one(string str, string form, int allow_self)
+public object *parse_this_one(string str, string form, int allow_self)
 {
     object *oblist;
 
     if (str == "enemy")
     {
-	oblist = ({ this_player()->query_attack() });
+	oblist = ({ ({object}) this_player()->query_attack() });
 	if (!objectp(oblist[0]) ||
 	    !CAN_SEE(this_player(), oblist[0]))
 	{
@@ -493,7 +485,7 @@ parse_this_one(string str, string form, int allow_self)
 
     if (str == "team")
     {
-	oblist = this_player()->query_team_others();
+	oblist = ({object *}) this_player()->query_team_others();
 	oblist = FILTER_PRESENT(oblist);
 	oblist = FILTER_CAN_SEE(oblist, this_player());
 
@@ -504,7 +496,7 @@ parse_this_one(string str, string form, int allow_self)
     if (allow_self &&
 	((str == "me") ||
 	 (str == "myself") ||
-	 (str == this_player()->query_real_name())))
+	 (str == ({string}) this_player()->query_real_name())))
     {
 	return ({ this_player() });
     }
@@ -518,7 +510,7 @@ parse_this_one(string str, string form, int allow_self)
     /* For the '%o' option which only returns a single object. */
     if (objectp(oblist))
     {
-	oblist = ({ oblist });
+	oblist = ({ (object) oblist });
 
 	if (oblist[0] == this_player())
 	    return ({ });
@@ -547,8 +539,7 @@ parse_this_one(string str, string form, int allow_self)
  * Arguments    : see parse_this(), except cmd_attr isn't passed along.
  * Returns      : see parse_this()
  */
-public object *
-parse_this_and(string str, string form, int allow_self)
+public object *parse_this_and(string str, string form, int allow_self)
 {
     object *oblist = ({ });
     string *parts;
@@ -556,9 +547,9 @@ parse_this_and(string str, string form, int allow_self)
     int size;
 
     /* Replace the word "and" by a comma. */
-    if (wildmatch("* and *", str))
+    if (strstr(str, " and ") != -1)
     {
-	str = implode(explode(str, " and "), ",");
+	str = implode(explode(str, " and "), ", ");
     }
 
     parts = explode(str, ",");
@@ -590,8 +581,7 @@ parse_this_and(string str, string form, int allow_self)
  *                    too. (optional)
  * Returns      : object * - an array of matching objects.
  */
-public varargs object *
-parse_this(string str, string form, int cmd_attr = 0, int allow_self = 0)
+public varargs object *parse_this(string str, string form, int cmd_attr = 0, int allow_self = 0)
 {
     object *oblist;
     string target, except;
@@ -632,8 +622,7 @@ parse_this(string str, string form, int cmd_attr = 0, int allow_self = 0)
  * Arguments    : see 'sman parse_this'
  * Returns      : see 'sman parse_this'
  */
-public varargs object *
-parse_live(string str, string form, int attr, int self)
+public varargs object *parse_live(string str, string form, int attr, int self)
 {
     return filter(parse_this(str, form, attr, self), living);
 }
@@ -665,8 +654,7 @@ parse_live(string str, string form, int attr, int self)
  *     parse_adverb("merri Mercade", "gracefully", 1)
  *          ({ "merri Mercade", "gracefully" })
  */
-public string *
-parse_adverb(string str, string def_adv, int trail)
+public string *parse_adverb(string str, string def_adv, int trail)
 {
     int    index;
     string *words, adverb;
@@ -717,7 +705,7 @@ parse_adverb(string str, string def_adv, int trail)
     if (sizeof(adverb = FULL_ADVERB(words[index])) ||
 	sizeof(adverb = this_player()->full_adverb(words[index])))
     {
-	return ({ implode(exclude_array(words, index, index), " "), adverb });
+	return ({ implode((words[index] = ""), " "), adverb });
     }
 
     return ({ str, def_adv });
@@ -732,8 +720,7 @@ parse_adverb(string str, string def_adv, int trail)
  * Arguments    : see parse_adverb
  * Returns      : see parse_adverb, the description and /sys/adverbs.h
  */
-public string *
-parse_adverb_with_space(string str, string def_adv, int trail)
+public string *parse_adverb_with_space(string str, string def_adv, int trail)
 {
     string *pa = parse_adverb(str, def_adv, trail);
     return ({ pa[0], ADD_SPACE_TO_ADVERB(pa[1]) });
@@ -747,8 +734,7 @@ parse_adverb_with_space(string str, string def_adv, int trail)
  *                def_adv - the default adverb
  * Returns      : string  - the full adverb or NO_ADVERB
  */
-public string
-check_adverb(string str, string def_adv)
+public string check_adverb(string str, string def_adv)
 {
     string adverb;
 
@@ -775,8 +761,7 @@ check_adverb(string str, string def_adv)
  * Arguments    : see check_adverb
  * Returns      : see check_adverb, the description and <adverbs.h>
  */
-public string
-check_adverb_with_space(string str, string def_adv)
+public string check_adverb_with_space(string str, string def_adv)
 {
     return ADD_SPACE_TO_ADVERB(check_adverb(str, def_adv));
 }

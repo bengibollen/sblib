@@ -555,8 +555,8 @@ Dump(string str)
         {
             write("Id        : " + data[i][0] + "\n");
             write("Function  : " + data[i][1] + "\n");
-            write("Time Left : " + ftoa(data[i][2]) + "\n");
-            write("Repeat    : " + ftoa(data[i][3]) + "\n");
+            write("Time Left : " + to_string(data[i][2]) + "\n");
+            write("Repeat    : " + to_string(data[i][3]) + "\n");
             write("Arguments :\n");
             dump_array(data[i][4]);
             write("\n\n");
@@ -631,7 +631,7 @@ Dump(string str)
 	    item = allocate(4);
 	    item[0] = etime;
 	    item[1] = calls;
-	    item[2] = calls ? itof(etime) / itof(calls) : -1.0;
+	    item[2] = calls ? to_float(etime) / to_float(calls) : -1.0;
 	    item[3] = func;
 	    data += ({ item });
 	}
@@ -1491,7 +1491,7 @@ Top(string arg)
             time_per_call = "-";
         if (!latest && callfactor == 1.0)
             write(sprintf("%3d %10.4f / %10i = %10s : %s() in %s\n", i, time * timefactor,
-                          ftoi(num_calls), time_per_call, func[1], func[0]));
+                          to_int(num_calls), time_per_call, func[1], func[0]));
         else if (!latest && callfactor > 1.0e-4)
             write(sprintf("%3d %10.4f / %10.3f = %10s : %s() in %s\n", i, time * timefactor,
                           num_calls * callfactor, time_per_call, func[1], func[0]));

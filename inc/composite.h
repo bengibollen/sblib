@@ -8,29 +8,29 @@
 #ifndef COMPOSITE_DEF
 #define COMPOSITE_DEF
 
-#define COMPOSITE_FILE "/sys/global/composite"
+#define COMPOSITE_FILE "/lib/language/composite"
 
 /* COMPOSITE_LIVE(x) - describe all objects in array x as livings.
  * COMPOSITE_DEAD(x) - describe all objects in array x as dead objects.
  */
-#define COMPOSITE_LIVE(x) ((string)COMPOSITE_FILE->desc_live(x))
-#define COMPOSITE_DEAD(x) ((string)COMPOSITE_FILE->desc_dead(x))
+#define COMPOSITE_LIVE(x) (({string})COMPOSITE_FILE->desc_live(x))
+#define COMPOSITE_DEAD(x) (({string})COMPOSITE_FILE->desc_dead(x))
 
 /* FO_COMPOSITE_LIVE(x, ob) - describe all objects in array x as livings as
  *                            seen by living ob.
  * FO_COMPOSITE_DEAD(x, ob) - describe all objects in array x as dead objects
  *                            as seen by living ob.
  */
-#define FO_COMPOSITE_LIVE(x, ob) ((string)COMPOSITE_FILE->fo_desc_live(x, ob))
-#define FO_COMPOSITE_DEAD(x, ob) ((string)COMPOSITE_FILE->fo_desc_dead(x, ob))
+#define FO_COMPOSITE_LIVE(x, ob) (({string})COMPOSITE_FILE->fo_desc_live(x, ob))
+#define FO_COMPOSITE_DEAD(x, ob) (({string})COMPOSITE_FILE->fo_desc_dead(x, ob))
 
 /* COMPOSITE_ALL_LIVE(x) - describe all objects in array x as livings,
                            including those that are marked as no-show-composite.
  * COMPOSITE_ALL_DEAD(x) - describe all objects in array x as dead objects,
                            including those that are marked as no-show-composite.
  */
-#define COMPOSITE_ALL_LIVE(x) ((string)COMPOSITE_FILE->desc_live(x, 0, 0, 1))
-#define COMPOSITE_ALL_DEAD(x) ((string)COMPOSITE_FILE->desc_dead(x, 0, 0, 1))
+#define COMPOSITE_ALL_LIVE(x) (({string})COMPOSITE_FILE->desc_live(x, 0, 0, 1))
+#define COMPOSITE_ALL_DEAD(x) (({string})COMPOSITE_FILE->desc_dead(x, 0, 0, 1))
 
 /* FO_COMPOSITE_ALL_LIVE(x, ob) - describe all objects in array x as livings,
      as seen by living ob including those that are marked as no-show-composite.
@@ -38,17 +38,17 @@
      as seen by living ob including those that are marked as no-show-composite.
  */
 #define FO_COMPOSITE_ALL_LIVE(x, ob) \
-    ((string)COMPOSITE_FILE->fo_desc_live(x, ob, 0, 1))
+    (({string})COMPOSITE_FILE->fo_desc_live(x, ob, 0, 1))
 #define FO_COMPOSITE_ALL_DEAD(x, ob) \
-    ((string)COMPOSITE_FILE->fo_desc_dead(x, ob, 0, 1))
+    (({string})COMPOSITE_FILE->fo_desc_dead(x, ob, 0, 1))
 
 /* SILENT_COMPOSITE_LIVE(x) - describe all objects in array x as livings, if
  *   there are none (visible), return an empty string and not "someone".
  * SILENT_COMPOSITE_DEAD(x) - describe all objects in array x as dead objects,
  *   if there are none (visible), return an empty string and not "something".
  */
-#define SILENT_COMPOSITE_LIVE(x) ((string)COMPOSITE_FILE->desc_live(x, 1))
-#define SILENT_COMPOSITE_DEAD(x) ((string)COMPOSITE_FILE->desc_dead(x, 1))
+#define SILENT_COMPOSITE_LIVE(x) (({string})COMPOSITE_FILE->desc_live(x, 1))
+#define SILENT_COMPOSITE_DEAD(x) (({string})COMPOSITE_FILE->desc_dead(x, 1))
 
 /*
  * Function:    composite/fo_composite
@@ -68,10 +68,10 @@
  *
 */
 #define COMPOSITE(x, sf, df) \
-    ((string)COMPOSITE_FILE->composite(x, sf, df))
+    (({string})COMPOSITE_FILE->composite(x, sf, df))
 
 #define FO_COMPOSITE(x, sf, df, for_ob) \
-    ((string)COMPOSITE_FILE->fo_composite(x, sf, df, for_ob))
+    (({string})COMPOSITE_FILE->fo_composite(x, sf, df, for_ob))
 
 /*
  * Function:    composite_sort
@@ -100,8 +100,8 @@
  * Simple combination of a wordlist with "," and "and"
  * Simple combination of a wordlist with "," and another word.
  */
-#define COMPOSITE_WORDS(wl)		((string)COMPOSITE_FILE->composite_words((wl), "and"))
-#define COMPOSITE_WORDS_WITH(wl, wrd)	((string)COMPOSITE_FILE->composite_words((wl), (wrd)))
+#define COMPOSITE_WORDS(wl)		(({string}) COMPOSITE_FILE->composite_words((wl), "and"))
+#define COMPOSITE_WORDS_WITH(wl, wrd)	(({string}) COMPOSITE_FILE->composite_words((wl), (wrd)))
 
 /*
  * HANGING_INDENT
@@ -113,7 +113,7 @@
  * value, use that value.
  */
 #define HANGING_INDENT(text, indent, width) \
-    ((string)COMPOSITE_FILE->hanging_indent((text), (indent), (width)))
+    (({string})COMPOSITE_FILE->hanging_indent((text), (indent), (width)))
 
 /* No definitions beyond this point. */
 #endif

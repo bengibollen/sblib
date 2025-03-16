@@ -32,7 +32,7 @@
 #pragma no_inherit
 #pragma strict_types
 
-inherit "/cmd/std/command_driver";
+inherit "/std/command_driver";
 
 #include <composite.h>
 #include <cmdparse.h>
@@ -680,8 +680,7 @@ inside_visible(object cobj)
     return 0;
 }
 
-varargs int
-visible(object ob, object cobj)
+varargs int is_visible(object ob, object cobj)
 {
     object env;
 
@@ -711,8 +710,7 @@ visible(object ob, object cobj)
     return 0;
 }
 
-varargs int
-accessible(object ob)
+varargs int accessible(object ob)
 {
     object env;
 
@@ -1730,11 +1728,11 @@ look(string str, int brief)
         else
         {
             obarr = deep_inventory(environment(this_player()));
-            obarr = filter(obarr, visible);
+            obarr = filter(obarr, #'is_visible);
             obarr = filter(obarr, item_access);
             if (sizeof(obarr) > 0)
             {
-                map(obarr, write @ &->long(gItem));
+                map(obarr, (: write(($1)->long(gItem)) :));
                 return 1;
             }
             else

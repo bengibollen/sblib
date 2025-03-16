@@ -51,7 +51,7 @@
  */
 
 #pragma no_clone
-#pragma save_binary
+
 #pragma strict_types
 
 #define DEFAULT_CACHE 10
@@ -164,7 +164,7 @@ read_cache(string filename)
     /* If the cache is too large, reduce its size. */
     while((pos = sizeof(cache_order)) >= cache_size)
     {
-	m_delkey(cache_map, cache_order[pos - 1]);
+	m_delete(cache_map, cache_order[pos - 1]);
 	cache_order = cache_order[..(pos - 2)];
     }
 
@@ -226,7 +226,7 @@ rm_cache(string filename)
     if (member(filename, cache_order) > -1)
     {
     	cache_order -= ({ filename });
-    	m_delkey(cache_map, filename);
+    	m_delete(cache_map, filename);
     }
 
     /* Remove the file as usual. */
@@ -254,7 +254,7 @@ remove_from_cache(string filename)
     if (member(filename, cache_order) > -1)
     {
     	cache_order -= ({ filename });
-    	m_delkey(cache_map, filename);
+    	m_delete(cache_map, filename);
     }
 }
 

@@ -16,6 +16,8 @@
 #include <ss_types.h>
 #include <stdproperties.h>
 #include <std.h>
+#include <libfiles.h>
+#include <config.h>
 
 private string m_in,            /* Messages when entering or leaving a room. */
                m_out,           /* Messages when entering or leaving a room. */
@@ -56,16 +58,16 @@ static mapping
  * Prototypes
  */
 
-int query_stuffed();
-int query_intoxicated();
-int query_stat(int stat);
-int query_skill(int skill);
+public int query_stuffed();
+public int query_intoxicated();
+public int query_stat(int stat);
+public int query_skill(int skill);
 int query_stat_pref_total();
 int query_guild_pref_total();
 void heal_hp(int hp);
 void add_mana(int sp);
-int query_fatigue();
-int query_mana();
+public int query_fatigue();
+public int query_mana();
 nomask public int remove_cmdsoul(string soul);
 nomask public int remove_toolsoul(string soul);
 
@@ -95,8 +97,7 @@ savevars_delay_reset()
  * Description:     Resets some variables which are used to keep track
  *                  of how variables change with time.
  */
-static nomask void
-save_vars_reset()
+static nomask void save_vars_reset()
 {
     int t = time();
 
@@ -107,15 +108,14 @@ save_vars_reset()
     mana_time         = t;
     fatigue_time      = t;
 
-    set_alarm(1.0, 0.0, savevars_delay_reset);
+    call_out(#'savevars_delay_reset, 1);
 }
 
 /*
  * Function name: skill_extra_map_reset
  * Description  : Reset the skill_extra_map at initialization.
  */
-private void
-skill_extra_map_reset()
+private void skill_extra_map_reset()
 {
     skill_extra_map = ([ ]);
 }
@@ -128,8 +128,7 @@ skill_extra_map_reset()
  * Arguments    : string m - the message string.
  * Example      : "waddles into the room"
  */
-public void
-set_m_in(string m)
+public void set_m_in(string m)
 {
     m_in = implode(explode(m, "   "), " ");
 }
@@ -139,8 +138,7 @@ set_m_in(string m)
  * Description  : Gives the normal entrance message of this living.
  * Returns      : string - the message string.
  */
-public string
-query_m_in()
+public string query_m_in()
 {
     return m_in;
 }
@@ -153,8 +151,7 @@ query_m_in()
  * Arguments    : string m - the message string.
  * Example      : "waddles"
  */
-public void
-set_m_out(string m)
+public void set_m_out(string m)
 {
     m_out = implode(explode(m, "   "), " ");
 }
@@ -164,8 +161,7 @@ set_m_out(string m)
  * Description  : Gives the normal exit message of this living.
  * Returns      : string - the message string.
  */
-public string
-query_m_out()
+public string query_m_out()
 {
     return m_out;
 }
@@ -179,8 +175,7 @@ query_m_out()
  * Arguments    : string m - the message string.
  * Example      : "falls out of the sky with his mouth full of spam."
  */
-public void
-set_mm_in(string m)
+public void set_mm_in(string m)
 {
     mm_in = implode(explode(m, "  "), " ");
 }
@@ -191,8 +186,7 @@ set_mm_in(string m)
  *                living.
  * Returns      : string - the message string.
  */
-public string
-query_mm_in()
+public string query_mm_in()
 {
     return mm_in;
 }
@@ -206,8 +200,7 @@ query_mm_in()
  * Arguments    : string m - the message string.
  * Example      : "disappears into a local black hole."
  */
-public void
-set_mm_out(string m)
+public void set_mm_out(string m)
 {
     mm_out = implode(explode(m, "  "), " ");
 }
@@ -218,8 +211,7 @@ set_mm_out(string m)
  *                living.
  * Returns      : string - the message string
  */
-public string
-query_mm_out()
+public string query_mm_out()
 {
     return mm_out;
 }
@@ -240,8 +232,7 @@ query_mm_out()
  *
  * Returns      : int - always 0.
  */
-public int
-query_wiz_level()
+public int query_wiz_level()
 {
     return 0;
 }
@@ -252,8 +243,7 @@ query_wiz_level()
  *                be set as add_name too.
  * Arguments    : string str - the race string.
  */
-public void
-set_race_name(string str)
+public void set_race_name(string str)
 {
     if (id(race_name))
     {
@@ -273,8 +263,7 @@ set_race_name(string str)
  *                as query_race().
  * Returns      : string - the race name.
  */
-public string
-query_race_name()
+public string query_race_name()
 {
     return race_name;
 }
@@ -288,8 +277,7 @@ query_race_name()
  *                You should nomask the redefinition of this function.
  * Returns      : string - the race name.
  */
-public string
-query_race()
+public string query_race()
 {
     return race_name;
 }
@@ -299,8 +287,7 @@ query_race()
  * Description  : Called in order to re-set the race name of a player to
  *                the base race. This function is irrelevant for NPC's.
  */
-public void
-reset_race_name()
+public void reset_race_name()
 {
     set_race_name(query_race());
 }
@@ -310,8 +297,7 @@ reset_race_name()
  * Description:     Checks whether the living is a non-player character
  * Returns:         True if non-player character
  */
-public int
-query_npc()
+public int query_npc()
 {
     return 1;
 }
@@ -321,8 +307,7 @@ query_npc()
  * Description:     Sets the title of a living to something else.
  * Arguments:       t: The new title string
  */
-public void
-set_title(string t)
+public void set_title(string t)
 {
 #ifdef LOG_TITLE
     if (this_player() != this_object() && interactive(this_object()))
@@ -339,8 +324,7 @@ set_title(string t)
  * Description:     Sets the alignment title of a living to something else
  * Arguments:       t: The new alignment title string
  */
-public void
-set_al_title(string t)
+public void set_al_title(string t)
 {
 #ifdef LOG_AL_TITLE
     if (this_player() != this_object() && interactive(this_object()))
@@ -357,8 +341,7 @@ set_al_title(string t)
  * Description:     Gives the title of a living.
  * Returns:         The title string
  */
-public nomask string
-query_title()
+public nomask string query_title()
 {
     string dom, name, *titles = ({ });
     int    family_name = 0;
@@ -374,7 +357,7 @@ query_title()
     /* This MUST be with this_object()-> or it will not work for we are
      * accessing the function in the shadows of the player!
      */
-    if (sizeof(name = this_object()->query_guild_title_race()))
+    if (sizeof(name = ({string}) this_object()->query_guild_title_race()))
     {
         titles += ({ name });
 
@@ -382,16 +365,16 @@ query_title()
          * we do not add the article before the race-title, but we add it
          * after the title.
          */
-        family_name = this_object()->query_guild_family_name();
+        family_name = ({int}) this_object()->query_guild_family_name();
     }
 
-    if (sizeof(name = this_object()->query_guild_title_occ()))
+    if (sizeof(name = ({string}) this_object()->query_guild_title_occ()))
         titles += ({ name });
 
-    if (sizeof(name = this_object()->query_guild_title_lay()))
+    if (sizeof(name = ({string}) this_object()->query_guild_title_lay()))
         titles += ({ name });
 
-    if (sizeof(name = this_object()->query_guild_title_craft()))
+    if (sizeof(name = ({string}) this_object()->query_guild_title_craft()))
         titles += ({ name });
 
     /* An NPC may have guild-titles and set titles.
@@ -433,8 +416,7 @@ query_title()
  * Description:     Gives the alignment title of a living
  * Returns:         The alignment title string
  */
-public string
-query_al_title()
+public string query_al_title()
 {
     return al_title;
 }
@@ -445,8 +427,7 @@ query_al_title()
  * Description  : Compute the current number of hitpoints of the living,
  *                taking into account the constitution and intoxication.
  */
-void
-calculate_hp()
+void calculate_hp()
 {
     int n, con, intox;
     int tmpcon, tmpintox;
@@ -471,8 +452,7 @@ calculate_hp()
  * Description:     Gives the number of hitpoint left for the living
  * Returns:         The number
  */
-public int
-query_hp()
+public int query_hp()
 {
     this_object()->calculate_hp();
     return hit_points;
@@ -484,8 +464,7 @@ query_hp()
  *                  living can achieve.
  * Returns:         The maximum
  */
-public int
-query_max_hp()
+public int query_max_hp()
 {
     return F_MAX_HP(query_stat(SS_CON));
 }
@@ -496,8 +475,7 @@ query_max_hp()
  *                  can not exceed the maximum calculated by query_max_hp.
  * Arguments:       hp: The new number of hitpoints
  */
-void
-set_hp(int hp)
+void set_hp(int hp)
 {
     this_object()->calculate_hp();
     hit_points = 0;
@@ -509,8 +487,7 @@ set_hp(int hp)
  * Description:     Increase the number of hitpoints with a few.
  * Arguments:       hp: The difference
  */
-void
-heal_hp(int hp)
+void heal_hp(int hp)
 {
     string text;
     object o;
@@ -549,8 +526,7 @@ heal_hp(int hp)
  * Description:     Reduce the number of hitpoints with a few.
  * Arguments:       dam: The number of damage hitpoints.
  */
-public int
-reduce_hit_point(int dam)
+public void reduce_hit_point(int dam)
 {
     heal_hp(-dam);
 }
@@ -561,8 +537,7 @@ reduce_hit_point(int dam)
  *                  can get.
  * Returns:         The maximum.
  */
-public int
-query_max_mana()
+public int query_max_mana()
 {
     return query_stat(SS_INT) * 10;
 }
@@ -575,8 +550,7 @@ query_max_mana()
  *                  that is calculated by query_max_mana.
  * Arguments:       sp: The new amount of mana points.
  */
-void
-set_mana(int sp)
+void set_mana(int sp)
 {
     query_mana(); // heal mana *before* setting the value
     mana = 0;
@@ -588,8 +562,7 @@ set_mana(int sp)
  * Description:     Add a certain amount of mana points
  * Arguments:       sp: The number of mana points to change.
  */
-void
-add_mana(int sp)
+void add_mana(int sp)
 {
     query_mana();
     mana = min(max(mana + sp, 0), query_max_mana());
@@ -600,8 +573,7 @@ add_mana(int sp)
  * Description:     Gives the number of mana points that the living has
  * Returns:         The number of mana points.
  */
-public int
-query_mana()
+public int query_mana()
 {
     int n;
     int wis;
@@ -629,8 +601,7 @@ query_mana()
  *                  the living can have.
  * Returns:         The maximum.
  */
-public int
-query_max_fatigue()
+public int query_max_fatigue()
 {
     return query_stat(SS_CON) + 50;
 }
@@ -642,8 +613,7 @@ query_max_fatigue()
  *                  more tired.
  * Arguments:       f: the amount of change
  */
-public void
-add_fatigue(int f)
+public void add_fatigue(int f)
 {
     query_fatigue();
 
@@ -659,8 +629,7 @@ add_fatigue(int f)
  * Description  : Compute the present fatigue value of the player, taking
  *                the stuffed value into account.
  */
-void
-calculate_fatigue()
+void calculate_fatigue()
 {
     int n, stuffed, tmpstuffed;
 
@@ -682,8 +651,7 @@ calculate_fatigue()
  * Description:     Set the fatigue points of the living to a certain amount.
  * Arguments:       f: The amount to set.
  */
-public void
-set_fatigue(int f)
+public void set_fatigue(int f)
 {
     query_fatigue(); // heal fatigue *before* setting the value
     fatigue = 0;
@@ -695,8 +663,7 @@ set_fatigue(int f)
  * Description:     Gives the amount of fatigue points of a living
  * Returns:         The number of fatigue points
  */
-public int
-query_fatigue()
+public int query_fatigue()
 {
     this_object()->calculate_fatigue();
     return fatigue;
@@ -708,10 +675,9 @@ query_fatigue()
  *                full hitpoints and full fatigue.
  *                NOTE that this function can only be used for NPC's.
  */
-void
-refresh_living()
+void refresh_living()
 {
-    if (!(this_object()->query_npc()))
+    if (!(({int}) this_object()->query_npc()))
         return;
 
     heal_hp(query_max_hp());
@@ -729,8 +695,7 @@ refresh_living()
  * Arguments    : int stat - The stat to set.
  *                int val  - The amount of experience to set the stat to.
  */
-static void
-set_acc_exp(int stat, int val)
+static void set_acc_exp(int stat, int val)
 {
     if (val < 1)
         val = 1;
@@ -744,8 +709,7 @@ set_acc_exp(int stat, int val)
  * Arguments:       stat: The stat to check
  * Returns:         The amount of experience belonging to the stat.
  */
-public int
-query_acc_exp(int stat)
+public int query_acc_exp(int stat)
 {
     if ((stat < 0) ||
         (stat >= SS_NO_STATS))
@@ -760,8 +724,7 @@ query_acc_exp(int stat)
  *                i.e. quest, combat and general experience together.
  * Returns      : int - the experience points.
  */
-public int
-query_exp()
+public int query_exp()
 {
     return (exp_points + exp_combat + exp_general);
 }
@@ -772,8 +735,7 @@ query_exp()
  *                i.e. before death took any.
  * Returns      : int - the maximum experience points.
  */
-public int
-query_max_exp()
+public int query_max_exp()
 {
     return exp_max_total;
 }
@@ -783,8 +745,7 @@ query_max_exp()
  * Description  : Remember the maximum amount of experience the living ever
  *                had, i.e. before death took any.
  */
-public void
-update_max_exp()
+public void update_max_exp()
 {
     int new_max_exp = F_DEATH_MAX_EXP_PLATFORM(exp_max_total);
 
@@ -807,8 +768,7 @@ update_max_exp()
  * Description  : Set the amount of combat experience the living has.
  * Arguments    : int exp - the amount of combat experience.
  */
-static void
-set_exp_combat(int exp)
+static void set_exp_combat(int exp)
 {
     exp_combat = exp;
 }
@@ -818,8 +778,7 @@ set_exp_combat(int exp)
  * Description  : Gives the amount of combat experience the living has.
  * Returns      : int - the combat experience points
  */
-public int
-query_exp_combat()
+public int query_exp_combat()
 {
     return exp_combat;
 }
@@ -834,14 +793,13 @@ query_exp_combat()
  * Arguments    : int base - if true, do not apply the death relaxation.
  * Returns      : float - the brute factor.
  */
-varargs public float
-query_brute_factor(int base = 0)
+varargs public float query_brute_factor(int base = 0)
 {
     float brute;
     int min_exp, current_exp;
 
     current_exp = query_exp();
-    brute = itof(exp_combat + exp_general) / itof(current_exp + 1);
+    brute = to_float(exp_combat + exp_general) / to_float(current_exp + 1);
 
     /* When recovering from death, we can limit the brute penalty. Use
      * linear extrapolation to find the actual brute fraction within the
@@ -866,7 +824,7 @@ query_brute_factor(int base = 0)
         else
         {
 	    brute = brute * (F_DEATH_MIN_RELATIVE_BRUTE +
-	       (F_DEATH_RELATIVE_BRUTE_RANGE * (itof(current_exp - min_exp) / itof(query_max_exp() - min_exp))));
+	       (F_DEATH_RELATIVE_BRUTE_RANGE * (to_float(current_exp - min_exp) / to_float(query_max_exp() - min_exp))));
 	}
     }
 
@@ -888,8 +846,7 @@ query_brute_factor(int base = 0)
  *                amount.
  * Arguments    : int exp - the amount of general experience to add.
  */
-public void
-add_exp_combat(int exp)
+public void add_exp_combat(int exp)
 {
     float fact;
     int   taxed;
@@ -898,7 +855,7 @@ add_exp_combat(int exp)
     if (exp > 0)
     {
 	/* Modify the added experience with the brute factor. */
-        exp -= ftoi(itof(exp) * query_brute_factor());
+        exp -= to_int(to_float(exp) * query_brute_factor());
 
         /* Add the experience to the total. */
         exp_combat += exp;
@@ -931,8 +888,7 @@ add_exp_combat(int exp)
  * Description  : Set the amount of general experience the living has.
  * Arguments    : int exp - the amount of general experience.
  */
-static void
-set_exp_general(int exp)
+static void set_exp_general(int exp)
 {
     exp_general = exp;
 }
@@ -942,8 +898,7 @@ set_exp_general(int exp)
  * Description  : Gives the amount of general experience the living has.
  * Returns      : int - the general experience points.
  */
-public int
-query_exp_general()
+public int query_exp_general()
 {
     return exp_general;
 }
@@ -955,8 +910,7 @@ query_exp_general()
  *                amount.
  * Arguments    : int exp - the amount of general experience to add.
  */
-public void
-add_exp_general(int exp)
+public void add_exp_general(int exp)
 {
     int taxed;
 
@@ -964,7 +918,7 @@ add_exp_general(int exp)
     if (exp > 0)
     {
 	/* Modify the added experience with the brute factor. */
-        exp -= ftoi(itof(exp) * query_brute_factor());
+        exp -= to_int(to_float(exp) * query_brute_factor());
 
         /* Add the experience to the total. */
         exp_general += exp;
@@ -997,8 +951,7 @@ add_exp_general(int exp)
  * Description  : Set the amount of quest experience the living has.
  * Arguments    : int exp - the amount of quest experience.
  */
-static void
-set_exp_quest(int exp)
+static void set_exp_quest(int exp)
 {
     exp_points = exp;
 }
@@ -1008,8 +961,7 @@ set_exp_quest(int exp)
  * Description  : Gives the amount of quest experience the living has.
  * Returns      : int - the quest experience points.
  */
-public int
-query_exp_quest()
+public int query_exp_quest()
 {
     return exp_points;
 }
@@ -1020,8 +972,7 @@ query_exp_quest()
  *                to the living. Removing quest experience is not possible.
  * Arguments    : int exp - the amount of quest experience to add.
  */
-public void
-add_exp_quest(int exp)
+public void add_exp_quest(int exp)
 {
     /* Negative points experience is impossible. */
     if (exp <= 0)
@@ -1053,8 +1004,7 @@ add_exp_quest(int exp)
  *                int battle - true if the experience was gained in battle, else
  *                             add quest experience.
  */
-public void
-add_exp(int exp, int battle)
+public void add_exp(int exp, int battle)
 {
     if (battle)
         this_object()->add_exp_combat(exp);
@@ -1070,8 +1020,7 @@ add_exp(int exp, int battle)
  *                int amount    - the amount of change, positive or negative.
  *                string reason - the reason for changing the experience.
  */
-public nomask void
-modify_exp(string type, int amount, string reason)
+public nomask void modify_exp(string type, int amount, string reason)
 {
     int old;
     int new;
@@ -1127,8 +1076,7 @@ modify_exp(string type, int amount, string reason)
  *                int amount    - the new stat value, must be > 0.
  *                string reason - the reason for changing the stat.
  */
-public nomask void
-modify_stat(string type, int stat, int amount, string reason)
+public nomask void modify_stat(string type, int stat, int amount, string reason)
 {
     int old;
     int delta;
@@ -1203,7 +1151,7 @@ modify_stat(string type, int stat, int amount, string reason)
  * Arguments:       flag: A flag to recognise the ghost-status. If flag is 0,
  *                        make the ghost a living again.
  */
-set_ghost(int flag)
+void set_ghost(int flag)
 {
     is_ghost = flag;
 
@@ -1228,8 +1176,7 @@ set_ghost(int flag)
  * Description:     Return the ghost-status of a living.
  * Returns:         0 if the living is not a ghost, the status otherwise.
  */
-public int
-query_ghost()
+public int query_ghost()
 {
     return is_ghost;
 }
@@ -1240,8 +1187,7 @@ query_ghost()
  * Arguments:       flag: If true turn the living invisible, else make the
  *                        living visible again.
  */
-public void
-set_invis(int flag)
+public void set_invis(int flag)
 {
     if (!flag)
         add_prop(OBJ_I_INVIS, 0);
@@ -1256,10 +1202,9 @@ set_invis(int flag)
  * Description:     Gives back the current visibility of the living
  * Returns:         True if invisible
  */
-public int
-query_invis()
+public int query_invis()
 {
-    return this_object()->query_prop(OBJ_I_INVIS);
+    return ({int}) this_object()->query_prop(OBJ_I_INVIS);
 }
 
 /*
@@ -1267,8 +1212,7 @@ query_invis()
  * Description   : Called to make the livings in the room attack a person that
  *                 just became visible.
  */
-public void
-slow_remove_prop_obj_i_invis()
+public void slow_remove_prop_obj_i_invis()
 {
     object *list;
     object tp;
@@ -1290,10 +1234,9 @@ slow_remove_prop_obj_i_invis()
  *                monsters attack using a tiny alarm.
  * Returns      : int 0 - always.
  */
-public int
-remove_prop_obj_i_invis()
+public int remove_prop_obj_i_invis()
 {
-    set_alarm(0.0, 0.0, slow_remove_prop_obj_i_invis);
+    call_out(#'slow_remove_prop_obj_i_invis, 0);
 
     return 0;
 }
@@ -1306,8 +1249,7 @@ remove_prop_obj_i_invis()
  *                pope himself. We don't need that.
  * Arguments    : int a - the new alignment.
  */
-public void
-set_alignment(int a)
+public void set_alignment(int a)
 {
     if (ABS(a) > F_MAX_ABS_ALIGNMENT)
         a = ((a > 0) ? F_MAX_ABS_ALIGNMENT : -F_MAX_ABS_ALIGNMENT);
@@ -1325,8 +1267,7 @@ set_alignment(int a)
  * Description:     Gives the current amount of alignment points of a living
  * Returns:         The amount.
  */
-public int
-query_alignment()
+public int query_alignment()
 {
     return alignment;
 }
@@ -1347,8 +1288,7 @@ query_alignment()
  *                            receive positive alignment (ie solve good
  *                            quests).
  */
-public void
-adjust_alignment(int align)
+public void adjust_alignment(int align)
 {
     if (ABS(align) > F_MAX_ABS_ALIGNMENT)
         align = ((align > 0) ? F_MAX_ABS_ALIGNMENT : -F_MAX_ABS_ALIGNMENT);
@@ -1361,8 +1301,7 @@ adjust_alignment(int align)
  * Description:     Set the gender code (G_MALE, G_FEMALE or G_NEUTER)
  * Arguments:       g: The gender code
  */
-public void
-set_gender(int g)
+public void set_gender(int g)
 {
     if (g == G_MALE || g == G_FEMALE || g == G_NEUTER)
     {
@@ -1375,8 +1314,7 @@ set_gender(int g)
  * Description:     Returns the gender code of the living.
  * Returns:         The code. (0 - male, 1 - female, 2 - netrum)
  */
-public int
-query_gender()
+public int query_gender()
 {
     return gender;
 }
@@ -1386,8 +1324,7 @@ query_gender()
  * Description:     Set the appearance variable
  * Arguments:       a: The new value
  */
-public void
-set_appearance(int a)
+public void set_appearance(int a)
 {
     if (a < 0 || a > 99)
         a = random(99) + 1;
@@ -1399,8 +1336,7 @@ set_appearance(int a)
  * Description:     Gives the current value of the appearance variable.
  * Returns:         The appearance value
  */
-public int
-query_appearance()
+public int query_appearance()
 {
     if (!appearance)
         set_appearance(0);
@@ -1412,8 +1348,7 @@ query_appearance()
  * Description:     Set the value of the opinion variable
  * Arguments:       o: The new value.
  */
-public void
-set_opinion(int o)
+public void set_opinion(int o)
 {
     if (o < 0 || o > 100)
         o = 0;
@@ -1425,8 +1360,7 @@ set_opinion(int o)
  * Description:     Gives the current value of the opinion variable
  * Returns:         The opinion value
  */
-public int
-query_opinion()
+public int query_opinion()
 {
     return opinion;
 }
@@ -1436,8 +1370,7 @@ query_opinion()
  * Description:     Gives the level of intoxication of a living.
  * Returns:         The intoxication level.
  */
-public int
-query_intoxicated()
+public int query_intoxicated()
 {
     int n;
 
@@ -1461,8 +1394,7 @@ query_intoxicated()
  * Description:     Gives the level of stuffedness of a living.
  * Returns:         The level of stuffedness.
  */
-public int
-query_stuffed()
+public int query_stuffed()
 {
     int t, n;
 
@@ -1484,8 +1416,7 @@ query_stuffed()
  * Description:     Gives the level of soakedness of  a living.
  * Returns:         The level of soakedness.
  */
-public int
-query_soaked()
+public int query_soaked()
 {
     int n;
 
@@ -1507,8 +1438,7 @@ query_soaked()
  * Description:     Set the level of intoxication of a living.
  * Arguments:       i: The level of intoxication.
  */
-public void
-set_intoxicated(int i)
+public void set_intoxicated(int i)
 {
     this_object()->calculate_hp();
     intoxicated = (i < 0 ? 0 : i);
@@ -1519,8 +1449,7 @@ set_intoxicated(int i)
  * Description:     Set the level of stuffedness of a living
  * Arguments:       i: The level of stuffedness
  */
-static void
-set_stuffed(int i)
+static void set_stuffed(int i)
 {
     this_object()->calculate_fatigue();
     stuffed = i;
@@ -1531,8 +1460,7 @@ set_stuffed(int i)
  * Description:     Set the level of soakedness of a living
  * Arguments:       i: The level of soakedness
  */
-static void
-set_soaked(int i)
+static void set_soaked(int i)
 {
     soaked = i;
 }
@@ -1543,8 +1471,7 @@ set_soaked(int i)
  *                that is taxed (i.e. that goes into the guild stats).
  * Returns      : int - the percentage of taxed experience.
  */
-int
-query_guild_pref_total()
+int query_guild_pref_total()
 {
     return (learn_pref[SS_RACE] + learn_pref[SS_LAYMAN] + learn_pref[SS_OCCUP]);
 }
@@ -1555,8 +1482,7 @@ query_guild_pref_total()
  *                that is not taxed (i.e. that goes into the stats).
  * Returns      : int - the percentage of untaxed experience.
  */
-int
-query_stat_pref_total()
+int query_stat_pref_total()
 {
     /* It is quicker to add three numbers than to add six numbers. */
     return (100 - query_guild_pref_total());
@@ -1568,8 +1494,7 @@ query_stat_pref_total()
  *                  from an array containing arbitrary numbers.
  * Arguments:       pref_arr: An array with relative preference settings
  */
-void
-set_learn_pref(int *pref_arr)
+void set_learn_pref(int *pref_arr)
 {
     int sum;
     int i;
@@ -1657,8 +1582,7 @@ set_learn_pref(int *pref_arr)
  * Returns      : mixed - (int)  the learn pref for the stat required.
  *                        (int*) all learn prefs if stat == -1.
  */
-public mixed
-query_learn_pref(int stat)
+public mixed query_learn_pref(int stat)
 {
     /* Return the learn prefs in a safe array. */
     if (stat < 0)
@@ -1677,8 +1601,7 @@ query_learn_pref(int stat)
  * Arguments:       guildstat: SS_RACE / SS_OCCUP / SS_LAYMAN
  *                  tax: taxrate for guild (in %)
  */
-public void
-set_guild_pref(int guildstat, int tax)
+public void set_guild_pref(int guildstat, int tax)
 {
     if (guildstat >= SS_NO_EXP_STATS &&
         guildstat < SS_NO_STATS &&
@@ -1696,8 +1619,7 @@ set_guild_pref(int guildstat, int tax)
  *                int val   - the value to set the skill to.
  * Returns      : int 1/0   - true if successfull, else 0.
  */
-public int
-set_skill(int skill, int val)
+public int set_skill(int skill, int val)
 {
     if (!mappingp(skillmap))
         skillmap = ([]);
@@ -1735,12 +1657,11 @@ set_skill(int skill, int val)
  * Arguments:     skill - Number of skill
  *                val   - The new val of the extra variable
  */
-public void
-set_skill_extra(int skill, int val)
+public void set_skill_extra(int skill, int val)
 {
     if (val == 0)
     {
-        m_delkey(skill_extra_map, skill);
+        m_delete(skill_extra_map, skill);
         return;
     }
 
@@ -1754,8 +1675,7 @@ set_skill_extra(int skill, int val)
  * Arguments:     skill - What skill to query
  * Returns:       The extra modifying value
  */
-public int
-query_skill_extra(int skill)
+public int query_skill_extra(int skill)
 {
     return skill_extra_map[skill];
 }
@@ -1765,8 +1685,7 @@ query_skill_extra(int skill)
  * Description:     Remove a specific skill from a player
  * Arguments:       skill: The skill number to remove
  */
-void
-remove_skill(int skill)
+void remove_skill(int skill)
 {
     if (mappingp(skillmap))
     {
@@ -1783,7 +1702,7 @@ remove_skill(int skill)
         }
 #endif
 
-        m_delkey(skillmap, skill);
+        m_delete(skillmap, skill);
     }
 }
 
@@ -1795,8 +1714,7 @@ remove_skill(int skill)
  * Arguments:       skill: The number of the skill to check
  * Returns:         The true value of the skill
  */
-nomask int
-query_base_skill(int skill)
+nomask int query_base_skill(int skill)
 {
     if (!mappingp(skillmap))
         return 0;
@@ -1810,8 +1728,7 @@ query_base_skill(int skill)
  * Arguments:       skill: The number of the skill to check
  * Returns:         The value of the skill
  */
-public int
-query_skill(int skill)
+public int query_skill(int skill)
 {
     if (!mappingp(skillmap))
         return 0;
@@ -1824,8 +1741,7 @@ query_skill(int skill)
  * Description:     Gives list of all current skills != 0
  * Returns:         an array with all skill-values
  */
-public int *
-query_all_skill_types()
+public int *query_all_skill_types()
 {
     if (!mappingp(skillmap))
         return 0;
@@ -1838,8 +1754,7 @@ query_all_skill_types()
  *                  sk_rank, which assigns names to the skill levels.
  * Returns:         The path
  */
-public string
-query_skill_descriptor()
+public string query_skill_descriptor()
 {
     return "/lib/skill_raise";
 }
@@ -1849,8 +1764,7 @@ query_skill_descriptor()
  * Description:     Gives the scar bitmask of the living
  * Returns:         The scar bitmask
  */
-public int
-query_scar()
+public int query_scar()
 {
     return scar;
 }
@@ -1860,8 +1774,7 @@ query_scar()
  * Description:     Set the scar bitmask of the living
  * Arguments:       s: The scar bitmask
  */
-public void
-set_scar(int s)
+public void set_scar(int s)
 {
     scar = s;
 }
@@ -1872,8 +1785,7 @@ set_scar(int s)
  *                may be added or removed.
  * Returns      : 1/0; 1 = change allowed.
  */
-nomask static int
-valid_change_soul()
+nomask static int valid_change_soul()
 {
     object wizard;
 
@@ -1899,7 +1811,7 @@ valid_change_soul()
      * means Lords change their members, arch changed everyone < arch and
      * you may use snoop sanction to allow someone to patch your souls.
      */
-    if (SECURITY->valid_snoop(wizard, wizard, this_object()))
+    if (({int}) SECURITY->valid_snoop(wizard, wizard, this_object()))
         return 1;
 
     return 0;
@@ -1915,14 +1827,13 @@ valid_change_soul()
  * Returns:         1 if successfull,
  *                  0 otherwise.
  */
-nomask public int
-add_cmdsoul(string soul)
+nomask public int add_cmdsoul(string soul)
 {
 
     if (!valid_change_soul())
         return 0;
 
-    if (!((int)soul->query_cmd_soul()))
+    if (!(({int})soul->query_cmd_soul()))
         return 0;
 
     /*
@@ -1944,8 +1855,7 @@ add_cmdsoul(string soul)
  * Returns:         1 if successfull,
  *                  0 otherwise.
  */
-nomask public int
-remove_cmdsoul(string soul)
+nomask public int remove_cmdsoul(string soul)
 {
     int index;
 
@@ -1964,8 +1874,7 @@ remove_cmdsoul(string soul)
  * Description:     Update the list of command souls
  * Arguments:       souls: The new filenames
  */
-nomask static void
-update_cmdsoul_list(string *souls)
+nomask static void update_cmdsoul_list(string *souls)
 {
     cmdsoul_list = souls;
 }
@@ -1975,8 +1884,7 @@ update_cmdsoul_list(string *souls)
  * Description:     Give back the array with filenames of command souls.
  * Returns:         The command soul list.
  */
-nomask public string *
-query_cmdsoul_list()
+nomask public string *query_cmdsoul_list()
 {
     return secure_var(cmdsoul_list);
 }
@@ -1991,13 +1899,12 @@ query_cmdsoul_list()
  * Returns:         1 if successfull,
  *                  0 otherwise.
  */
-nomask public int
-add_toolsoul(string soul)
+nomask public int add_toolsoul(string soul)
 {
-    if (!((int)SECURITY->query_wiz_rank(geteuid())))
+    if (!(({int})SECURITY->query_wiz_rank(geteuid())))
         return 0;
 
-    if (!((int)soul->query_tool_soul()))
+    if (!(({int})soul->query_tool_soul()))
         return 0;
 
     if (!valid_change_soul())
@@ -2022,8 +1929,7 @@ add_toolsoul(string soul)
  * Returns:         1 if successfull,
  *                  0 otherwise.
  */
-nomask public int
-remove_toolsoul(string soul)
+nomask public int remove_toolsoul(string soul)
 {
     int index;
 
@@ -2042,8 +1948,7 @@ remove_toolsoul(string soul)
  * Description:     Update the list of tool souls
  * Arguments:       souls: The new filenames
  */
-nomask static void
-update_tool_list(string *souls)
+nomask static void update_tool_list(string *souls)
 {
     tool_list = souls;
 }
@@ -2053,8 +1958,7 @@ update_tool_list(string *souls)
  * Description:     Give back the array with filenames of tool souls.
  * Returns:         The tool soul list.
  */
-nomask public string *
-query_tool_list()
+nomask public string *query_tool_list()
 {
     return secure_var(tool_list);
 }

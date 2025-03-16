@@ -11,7 +11,7 @@
  * returns all livings in array x.
  */
 #define FILTER_LIVE(x) \
-    filter((x), living)
+    filter((x), #'living)
 
 /*
  * returns all livings in array x without this_player().
@@ -23,13 +23,13 @@
  * returns all interactive players in array x.
  */
 #define FILTER_PLAYERS(x) \
-    filter((x), interactive)
+    filter((x), #'interactive)
 
 /*
  * returns all non-living objects in array x.
  */
 #define FILTER_DEAD(x) \
-    filter(((x) - ({ 0 }) ), &not() @ living)
+    filter(((x) - ({ 0 }) ), (: !living($1) :))
 
 /*
  * returns all elements in array x that are present in the environment of
@@ -38,64 +38,63 @@
  * Caveat: This filter is _not_ forgiving when 0 is in the array.
  */
 #define FILTER_PRESENT(x) \
-    filter((x), &operator(==)(environment(this_player())) @ environment)
+    filter((x), (: environment($1) == environment(this_player()) :))
 
 /*
  * returns all livings in array x that are present in the environment of
  * this_player().
  */
 #define FILTER_PRESENT_LIVE(x) \
-    filter(FILTER_LIVE(x),     \
-        &operator(==)(environment(this_player())) @ environment)
+    filter(FILTER_LIVE(x), (: environment($1) == environment(this_player()) :))
 
 /*
  * returns all objects in array x that are of gender g.
  */
 #define FILTER_GENDER(x, g) \
-    filter((x), &operator(==)(g) @ &->query_gender())
+    filter((x), (: ({int}) $1->query_gender() == (g) :))
 
 /*
  * returns all objects in array x that are of race r.
  */
 #define FILTER_RACE(x, r) \
-    filter((x), &operator(==)(r) @ &->query_race_name())
+    filter((x), (: ({int}) $1->query_race_name() == (r) :))
 
 /*
  * returns all objects in array x that are a wizard.
  */
 #define FILTER_IS_WIZARD(x) \
-    filter((x), &->query_wiz_level())
+    filter((x), (: ({int}) $1->query_wiz_level() :))
 
 /*
  * returns all objects in array x that are a mortal player,
  * or rather, that are not a wizard.
  */
 #define FILTER_IS_MORTAL(x) \
-    filter((x), &not() @ &->query_wiz_level())
+    filter((x), (: !({int}) $1->query_wiz_level() :))
 
 /*
  * returns all objects in array x that can see in the room.
  */
 #define FILTER_CAN_SEE_IN_ROOM(x) \
-    filter((x), &->can_see_in_room())
+    filter((x), (: ({int}) $1->can_see_in_room() :))
 
 /*
  * returns all objects in array x that can be seen by living l.
  */
 #define FILTER_CAN_SEE(x, l) \
-    filter((x), &->check_seen(l))
+    filter((x), (: ({int}) $1->check_seen((l)) :))
 
 /*
  * returns all objects in array x that can see [living/object] l.
  */
 #define FILTER_IS_SEEN(l, x) \
-    filter((x), (l)->check_seen)
+    filter((x), (: ({int}) (l)->check_seen($1) :))
 
 /*
  * returns all objects in array x that can be seen, ie that aren't no_show.
  */
 #define FILTER_SHOWN(x) \
-    filter((x), &not() @ &->query_no_show())
+    filter((x), (: !({int}) $1->query_no_show() :))
 
 /* no definitions beyond this line. */
 #endif

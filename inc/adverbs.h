@@ -10,7 +10,7 @@
  * The adverbs themselves I stripped from the soul /cmd/std/soul_cmd.c and
  * if you want to use adverbs in a soul, you should use the functions
  * parse_adverb() and parse_adverb_with_space() that are both in the object
- * /cmd/std/command_driver.c, which is mandatory for souls anyway.
+ * /std/command_driver.c, which is mandatory for souls anyway.
  */
 
 #ifndef SYS_ADVERBS_DEFINITIONS
@@ -27,7 +27,7 @@
  * three characters to be allowed. If the adverb is not found, an empty
  * string "" will be returned.
  */
-#define FULL_ADVERB(p)   ((string)ADVERBS_FILE->full_adverb(p))
+#define FULL_ADVERB(p)   (({string})ADVERBS_FILE->full_adverb(p))
 
 /*
  * MEMBER_ADVERB(string pattern)
@@ -43,7 +43,7 @@
  * Returns the adverb in the array of adverbs with the index i. If the index
  * i is illegal, an empty string "" will be returned.
  */
-#define ADVERB_AT_POS(i) ((string)ADVERBS_FILE->adverb_at_pos(i))
+#define ADVERB_AT_POS(i) (({string})ADVERBS_FILE->adverb_at_pos(i))
 
 /*
  * DEFAULT_ADVERB_ARRAY

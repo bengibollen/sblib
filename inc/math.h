@@ -31,8 +31,8 @@
  * INT_MULT_FLOAT_ROUND - Multiply an int with a float. Returns rounded inc.
  * INT_MULT_FLOAT       - Default to rounding.
  */
-#define INT_MULT_FLOAT_ROUND(i, f)	ftoi(itof(i) * (f) + 0.5)
-#define INT_MULT_FLOAT_TRUNC(i, f)	ftoi(itof(i) * (f))
+#define INT_MULT_FLOAT_ROUND(i, f)	to_int(to_float(i) * (f) + 0.5)
+#define INT_MULT_FLOAT_TRUNC(i, f)	to_int(to_float(i) * (f))
 #define INT_MULT_FLOAT(i, f)		INT_MULT_FLOAT_ROUND(i, f)
 
 /*

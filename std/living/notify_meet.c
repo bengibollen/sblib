@@ -5,37 +5,35 @@
 static int last_met_interactive;  /* Time when we met an interactive */
 static mixed *notify_meet_interactive = ({}); /* List of functions to call */
 
-public void
-notify_meet_reset()
+public void notify_meet_reset()
 {
     last_met_interactive = time();
 }
 
-public void
-notify_meet_init()
+public void notify_meet_init()
 {
     int il;
-    function f;
+    closure f;
 
     if (this_player() && interactive(this_player()))
     {
-	last_met_interactive = time();
-	if (sizeof(notify_meet_interactive))
-	{
-	    for (il = 0; il < sizeof(notify_meet_interactive); il++)
-	    {
-		if (functionp(notify_meet_interactive[il]))
+		last_met_interactive = time();
+		if (sizeof(notify_meet_interactive))
 		{
-		    // Necessary because arr[x]() isn't recognized
-		    f = notify_meet_interactive[il];
-		    f();
+			for (il = 0; il < sizeof(notify_meet_interactive); il++)
+			{
+				if (closurep(notify_meet_interactive[il]))
+				{
+					// Necessary because arr[x]() isn't recognized
+					f = notify_meet_interactive[il];
+					funcall(f);
+				}
+				else if (stringp(notify_meet_interactive[il]))
+				{
+					process_value(notify_meet_interactive[il], 1);
+				}
+			}
 		}
-		else if (stringp(notify_meet_interactive[il]))
-		{
-		    process_value(notify_meet_interactive[il], 1);
-		}
-	    }
-	}
     }
 }
 
@@ -46,8 +44,7 @@ notify_meet_init()
  *	           this living the current time is returned.
  * Returns:        Time is seconds since... oh well you know...
  */
-public int
-query_last_met_interactive()
+public int query_last_met_interactive()
 {
     object *ob;
     int il;
@@ -78,8 +75,7 @@ query_last_met_interactive()
  *                 interactive player.
  * Arguments:	   func: The function, can be on VBFC format
  */
-public void
-add_notify_meet_interactive(mixed func)
+public void add_notify_meet_interactive(mixed func)
 {
     notify_meet_interactive += ({ func });
 }
@@ -90,8 +86,7 @@ add_notify_meet_interactive(mixed func)
  *                interactive player.
  * Arguments:	  func: The function, can be on VBFC format
  */
-public void
-remove_notify_meet_interactive(mixed func)
+public void remove_notify_meet_interactive(mixed func)
 {
     notify_meet_interactive -= ({ func });
 }
@@ -101,8 +96,7 @@ remove_notify_meet_interactive(mixed func)
  * Description:   Give the list of functions to call when this living
  *                meets an interactive player.
  */
-public string *
-query_notify_meet_interactive()
+public string *query_notify_meet_interactive()
 {
     return notify_meet_interactive + ({});
 }

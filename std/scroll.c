@@ -8,7 +8,7 @@
  * set_autoload()        - Will make this object autoload
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";

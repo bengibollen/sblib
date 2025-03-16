@@ -107,8 +107,7 @@ obshorts(object ob, object fobj)
  *		  for_obj: Living for which the access is to be checked
  * Returns:	  1 if accessible
  */
-public int
-subloc_access(string sloc, object ob, string acs, object for_obj)
+public int subloc_access(string sloc, object ob, string acs, object for_obj)
 {
     string p;
 

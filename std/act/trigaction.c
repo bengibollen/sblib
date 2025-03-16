@@ -63,7 +63,7 @@
 		- trig_query_text()
 */
 
-#pragma save_binary
+
 #pragma strict_types
 
 #define MAX_TRIG_VAR 10

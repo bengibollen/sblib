@@ -21,7 +21,7 @@
 
 #pragma no_clone
 #pragma no_inherit
-#pragma save_binary
+
 #pragma strict_types
 
 /*
@@ -145,7 +145,7 @@ create()
      * 1 hour, it will be started exactly one second after the top of the
      * hour.
      */
-    set_alarm(((RESET_TIME + 1.0) - (itof(time() % ftoi(RESET_TIME)))),
+    set_alarm(((RESET_TIME + 1.0) - (to_float(time() % to_int(RESET_TIME)))),
         RESET_TIME, reset_master);
 
     /* Compute the uptime for this reboot. */
@@ -242,7 +242,7 @@ flag(string str)
 
     if (sscanf(str, "call %s %s", file, arg) == 2)
     {
-        arg = (string)call_other(file, arg);
+        arg = ({string})call_other(file, arg);
         write("Got " + arg + " back.\n");
         return;
     }
@@ -1379,7 +1379,7 @@ load_domain_link(string file)
     creator = creator_file(file);
     set_auth(this_object(), "root:" + creator);
 
-    if (err = (string)LOAD_ERR(file))
+    if (err = ({string})LOAD_ERR(file))
     {
         write("\tCan not load: " + file + ":\n     " + err + "\n");
         return 0;
@@ -1493,7 +1493,7 @@ preload_boot(string file)
     creator = creator_file(file);
     set_auth(this_object(), "root:" + creator);
 
-    if (err = (string)LOAD_ERR(file))
+    if (err = ({string})LOAD_ERR(file))
     {
         write("\tCan not load: " + file + ":\n     " + err + "\n");
     }
@@ -1718,7 +1718,7 @@ save_ed_setup(object who, int code)
 
     if (!intp(code))
         return 0;
-    file = query_wiz_path((string)who->query_real_name()) + "/.edrc";
+    file = query_wiz_path(({string})who->query_real_name()) + "/.edrc";
     rm(file);
     return write_file(file, code + "");
 }
@@ -1938,7 +1938,7 @@ modify_command(string cmd, object ob)
     /* Allow modification if it does not start with a "$". */
     if (!no_subst)
     {
-        cmd = (string)ob->modify_command(readable_string(cmd));
+        cmd = ({string})ob->modify_command(readable_string(cmd));
     }
 
     /* We can not allow any handwritten VBFC */
@@ -2849,8 +2849,7 @@ set_helper_soul_euid()
  * Returns      : string - the name of the domain or wizard who created
  *                         the object.
  */
-string
-creator_object(object obj)
+string creator_object(object obj)
 {
     if (!objectp(obj))
     {
@@ -3689,7 +3688,7 @@ query_banished(string name)
  * Description  : Banish a name, info about name, remove a banishment.
  * Arguments    : string name - the name to perform banish operation on.
  *                int what - what to do. 0=info, 1=remove, 2=replace.
- * Returns      : mixed * - ({ (string)name, (int)time }) or ({})
+ * Returns      : mixed * - ({ ({string})name, (int)time }) or ({})
  *                    the name of the person banishing and the time value at
  *                    which the name was banished.
  */

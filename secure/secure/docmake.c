@@ -177,8 +177,8 @@ doc_file(string docdir, string mainfile)
 {
     int i;
 
-    docdir = FTPATH((string)this_player()->query_path() + "/", docdir);
-    mainfile = FTPATH((string)this_player()->query_path() + "/", mainfile);
+    docdir = FTPATH(({string})this_player()->query_path() + "/", docdir);
+    mainfile = FTPATH(({string})this_player()->query_path() + "/", mainfile);
 
     for (i = 0; i < sizeof(order_stack); i++)
     {

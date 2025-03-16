@@ -17,33 +17,32 @@
 
 /*
  * Function: find_listval
- * Description: Finds the value of one member  in a skill list
+ * Description: Finds the value of one list_member  in a skill list
  * Arguments: Either a stat, skill, property or a VBFC
- * Returns: Value of the member
+ * Returns: Value of the list_member
  */
-private int
-find_listval(mixed member)
+private int find_listval(mixed list_member)
 {
-    if (functionp(member))
-        return member();
-    if (stringp(member) && sizeof(member) && member[0] == '@')
-	return this_object()->check_call(member);
-    else if (stringp(member))
-	return this_object()->query_prop(member);
+    if (closurep(list_member))
+        return funcall(list_member);
 
-    else if (!intp(member))
-	return 0;
+    if (stringp(list_member) && sizeof(list_member) && list_member[0] == '@')
+    	return ({int}) this_object()->check_call(list_member);
+    else if (stringp(list_member))
+    	return ({int}) this_object()->query_prop(list_member);
+
+    else if (!intp(list_member))
+	    return 0;
 
 /*
  * Kludge to figure out which stat.  This depends on the constants in tasks.h
  * -1 -> 0    (TS_STR    -> SS_STR) until
  * -10 -> 9   (TS_CRAFT -> SS_CRAFT)
  */
-    else if (member < 0 && member > -11)
-	return this_object()->query_stat((-member) - 1);
+    else if (list_member < 0 && list_member > -11)
+	    return ({int}) this_object()->query_stat((-list_member) - 1);
 
-    else
-	return this_object()->query_skill(member);
+	return ({int}) this_object()->query_skill(list_member);
 }
 
 /*
@@ -55,58 +54,59 @@ find_listval(mixed member)
  * Returns: a positive integer containing the total die roll modifier (drm)
  *          (Zero on error)
  */
-public int
-find_drm(mixed *skill_list)
+public int find_drm(mixed *skill_list)
 {
     int mod, weight, count, i, drm, n, tmod;
 
     n = sizeof(skill_list);
     i = 0;
     weight = 100;
+
     while(i < n)
     {
         if (mod != 0)
             weight = 100;
+
         mod = 0;
 
         /* this added because the switch below can only take an
          * integer argument.
          */
-        if (functionp(skill_list[i]) || stringp(skill_list[i]))
+        if (closurep(skill_list[i]) || stringp(skill_list[i]))
         {
             mod = find_listval(skill_list[i++]);
         }
         else
         {
- 	    switch (skill_list[i])
+     	    switch (skill_list[i])
             {
 
                 case SKILL_MIN:
                     i++;
-	            if (skill_list[i] != SKILL_END)
-		        mod = find_listval(skill_list[i++]);
-	            else
-		        mod = 0;
+    	            if (skill_list[i] != SKILL_END)
+	        	        mod = find_listval(skill_list[i++]);
+	                else
+		                mod = 0;
 
-                    for(; i < n && skill_list[i] != SKILL_END; i++)
+                    for (; i < n && skill_list[i] != SKILL_END; i++)
                     {
-		        tmod = find_listval(skill_list[i]);
-		        mod = MIN(tmod, mod);
+                        tmod = find_listval(skill_list[i]);
+                        mod = MIN(tmod, mod);
                     }
                     break;
 
                 case SKILL_MAX:
                     i++;
 
-	            if (skill_list[i] != SKILL_END)
-		        mod = find_listval(skill_list[i++]);
-	            else
-		        mod = 0;
+                    if (skill_list[i] != SKILL_END)
+                        mod = find_listval(skill_list[i++]);
+                    else
+                        mod = 0;
 
-                    for(; i < n && skill_list[i] != SKILL_END; i++)
+                    for (; i < n && skill_list[i] != SKILL_END; i++)
                     {
-		        tmod = find_listval(skill_list[i]);
-		        mod = MAX(tmod, mod);
+                        tmod = find_listval(skill_list[i]);
+                        mod = MAX(tmod, mod);
                     }
 
                     break;
@@ -114,22 +114,26 @@ find_drm(mixed *skill_list)
                 case SKILL_AVG:
                     i++;
 
-	            if (skill_list[i] != SKILL_END)
-	            {
-		        mod = find_listval(skill_list[i++]);
-		        count = 1;
-	            }
-	            else
-	            {
-		        mod = 0;
-		        count = 0;
-	            }
-                    for(; skill_list[i] != SKILL_END; i++)
+                    if (skill_list[i] != SKILL_END)
                     {
-		        mod += find_listval(skill_list[i]);
+                        mod = find_listval(skill_list[i++]);
+                        count = 1;
+                    }
+                    else
+                    {
+                        mod = 0;
+                        count = 0;
+                    }
+
+                    for (; skill_list[i] != SKILL_END; i++)
+                    {
+        		        mod += find_listval(skill_list[i]);
                         count++;
                     }
-                    if (count) mod /= count;
+        
+                    if (count)
+                        mod /= count;
+                    
                     break;
 
                 case SKILL_WEIGHT:
@@ -149,12 +153,13 @@ find_drm(mixed *skill_list)
 
                 default:
                     mod = find_listval(skill_list[i++]);
-	            break;
+    	            break;
             }
         }
 
         drm += weight * mod / 100;
     }
+
     return 2 * drm;
 }
 
@@ -171,8 +176,7 @@ find_drm(mixed *skill_list)
  * Returns:     The percentage of the difficulty that was achieved.
  *              Negative implies failure, positive implies success.
  */
-nomask varargs int
-resolve_task(int difficulty, mixed *skill_list,
+nomask varargs int resolve_task(int difficulty, mixed *skill_list,
     object opponent, mixed * opp_skill_list)
 {
     int dr, drm;
@@ -184,7 +188,7 @@ resolve_task(int difficulty, mixed *skill_list,
         drm += find_drm(skill_list);
 
     if (objectp(opponent) && (pointerp(opp_skill_list)))
-        drm -= opponent->find_drm(opp_skill_list);
+        drm -= ({int}) opponent->find_drm(opp_skill_list);
 
     if (difficulty != 0)
         return 100 * (dr + drm - difficulty) / difficulty;
@@ -199,12 +203,11 @@ resolve_task(int difficulty, mixed *skill_list,
  *		  player    - The player to test skills on (or any living)
  * Returns:	  1 if success, 0 if not
  */
-public int
-check_skill(mixed *skilllist, object player)
+public int check_skill(mixed *skilllist, object player)
 {
     int i, skill;
 
-    i = player->find_drm(skilllist);
+    i = ({int}) player->find_drm(skilllist);
     skill = (i / sizeof(skilllist));
     if (random(100) + 1 <= skill)
 	return 1;

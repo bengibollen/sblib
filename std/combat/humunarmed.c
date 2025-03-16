@@ -13,7 +13,7 @@
   Revision history:
 
  */
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/combat/unarmed";

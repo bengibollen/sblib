@@ -215,7 +215,7 @@ check_identity1(string id)
 	remove_object();
 	return;
     }
-    wizpass = (string)wiz->query_password();
+    wizpass = ({string})wiz->query_password();
     write("Input your wizard password: ");
     input_to("check_identity2", 1);
     call_out("time_out", 120);
@@ -237,7 +237,7 @@ check_identity2(string p)
 	return;
     }
     log_file("HELPER", "" + ctime(time()) + ": " +
-	     capitalize(((string)wiz->query_real_name())) + " -> " +
+	     capitalize((({string})wiz->query_real_name())) + " -> " +
 	     query_name() + "\n");
 
     set_mailaddr(wiz->query_mailaddr());

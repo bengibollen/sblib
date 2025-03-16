@@ -6,7 +6,7 @@
   This code is meant to be shared among all muds needing his feature.
 */
 #pragma strict_types
-#pragma save_binary
+
 
 #include <composite.h>
 #include <language.h>

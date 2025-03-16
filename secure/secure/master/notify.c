@@ -459,7 +459,7 @@ probe_for_graph()
      * number of seconds after the top of the hour is smaller than the reset
      * period RESET_TIME.
      */
-    if ((time() % 3600) < ftoi(RESET_TIME))
+    if ((time() % 3600) < to_int(RESET_TIME))
     {
         graph_process_data();
     }

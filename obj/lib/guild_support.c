@@ -12,7 +12,7 @@
  * - You may redefine the gs_hook*() functions to create your own messages.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 #include <composite.h>

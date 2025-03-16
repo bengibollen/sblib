@@ -34,7 +34,7 @@
  */
 
 #pragma no_clone
-#pragma save_binary
+
 #pragma strict_types
 
 #include <language.h>

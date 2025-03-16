@@ -11,7 +11,7 @@
  *
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/weapon";
@@ -1060,7 +1060,7 @@ do_fire()
 
     if ((tmp = Archer->query_prop(LIVE_I_ATTACK_DELAY)))
     {
-        if ((tmp -= ftoi(combat_ob->cb_query_speed())) > 0)
+        if ((tmp -= to_int(combat_ob->cb_query_speed())) > 0)
         {
             Archer->add_prop(LIVE_I_ATTACK_DELAY, tmp);
 	    set_alarm(combat_ob->cb_query_speed(), 0.0, &do_fire());
@@ -1088,7 +1088,7 @@ do_fire()
 
     // Mark this moment as being in combat.
     combat_ob->cb_update_combat_time();
-    Next_round = time() + ftoi(combat_ob->cb_query_speed());
+    Next_round = time() + to_int(combat_ob->cb_query_speed());
 
     if (ENV(Archer) == ENV(Target))
     {
@@ -1369,7 +1369,7 @@ try_hit(object target)
     else
     {
         Next_round = time() +
-	  ftoi(query_wielded()->query_combat_object()->cb_query_speed());
+	  to_int(query_wielded()->query_combat_object()->cb_query_speed());
         return 1;
     }
 }

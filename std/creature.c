@@ -4,7 +4,7 @@
   This is the base for all nonhumanoid livings.
 
 */
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/mobile";

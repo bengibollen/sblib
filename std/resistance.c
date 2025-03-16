@@ -2,7 +2,7 @@
  * A standard object that adds resistance to its carrier
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";
@@ -127,13 +127,13 @@ int query_strength() { return Strength; }
  * Function name: set_time
  * Description:   How long this will hold
  */
-void set_time(int i) { Time = itof(i); }
+void set_time(int i) { Time = to_float(i); }
 
 /*
  * Function name: query_time
  * Description:   How long will we be resistive
  */
-int query_time() { return ftoi(Time); }
+int query_time() { return to_int(Time); }
 
 /*
  * Function name: stat_object
@@ -148,10 +148,10 @@ stat_object()
 
     desc += "Resistance: " + Res_Type + "\n"
          +  "Strength:   " + Strength + "\n"
-         +  "Time:       " + ftoa(Time) + "\n";
+         +  "Time:       " + to_string(Time) + "\n";
 
     if (Alarm_Id && sizeof(a_info = get_alarm(Alarm_Id)))
-        desc += "Time left:  " + ftoa(a_info[2]) + "\n";
+        desc += "Time left:  " + to_string(a_info[2]) + "\n";
 
     return desc;
 }
@@ -166,8 +166,7 @@ stat_object()
  *                Strength is always less or equal 40, and
  *                the resistance effect is always additive
  */
-public mixed
-query_magic_protection(string prop, object what)
+public mixed query_magic_protection(string prop, object what)
 {
     if ((what == environment(this_object())) && (prop == Res_Type))
         return ({ Strength, 1 });

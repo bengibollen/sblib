@@ -53,9 +53,9 @@ static private string *NotifyProps;   /* Properties to notify about changes of *
 /*
  * Prototypes
  */
-void create_container();
-void reset_container();
-void update_internal(int l, int w, int v);
+public void create_container();
+public void reset_container();
+public void update_internal(int l, int w, int v);
 public int light();
 public nomask int weight();
 public nomask int volume();
@@ -69,14 +69,13 @@ public varargs string show_sublocs(object for_obj, mixed *slocs);
  * Function name: create_object
  * Description:   Create the container (constructor)
  */
-public nomask void
-create_object()
+public nomask void create_object()
 {
     cont_block_prop = 0;
     add_prop(CONT_I_IN, 1);         /* Can have things inside it */
-    add_prop(OBJ_I_LIGHT, light);   /* The total light of container */
-    add_prop(OBJ_I_WEIGHT, weight); /* The total weight of container */
-    add_prop(OBJ_I_VOLUME, volume); /* The total volume of container */
+    add_prop(OBJ_I_LIGHT, light());   /* The total light of container */
+    add_prop(OBJ_I_WEIGHT, weight()); /* The total weight of container */
+    add_prop(OBJ_I_VOLUME, volume()); /* The total volume of container */
     add_prop(CONT_I_REDUCE_WEIGHT, 100); /* No reduction */
     add_prop(CONT_I_REDUCE_VOLUME, 100); /* No reduction */
     cont_block_prop = 1;
@@ -103,8 +102,7 @@ nomask int remove_prop_obj_i_volume() { return 1; }
  * Function name: create_container
  * Description:   Reset the container (standard)
  */
-public void
-create_container()
+public void create_container()
 {
 /*
   This is nonsense! If we do clone_object() and configure the
@@ -127,15 +125,17 @@ create_container()
  * Function name: reset_object
  * Description:   Reset the container
  */
-public nomask void
-reset_object() { reset_container(); }
+public nomask void reset_object()
+{
+    reset_container();
+}
+
 
 /*
  * Function name: reset_container
  * Description:   Reset the container (standard)
  */
-public void
-reset_container() { /* this does not exist any more. ::reset_object(); */ }
+public void reset_container() { /* this does not exist any more. ::reset_object(); */ }
 
 
 /*
@@ -143,8 +143,7 @@ reset_container() { /* this does not exist any more. ::reset_object(); */ }
  * Description:   Returns the volume left to fill.
  * Returns:       non_negative integer
  */
-public int
-volume_left()
+public int volume_left()
 {
     if (query_prop(CONT_I_RIGID))
         return query_prop(CONT_I_MAX_VOLUME) - query_prop(CONT_I_VOLUME) -
@@ -158,8 +157,7 @@ volume_left()
  * Description:   Returns the lightvalue of object internal to this container
  * Returns:       Lightvalue
  */
-public int
-query_internal_light() { return cont_cur_light; }
+public int query_internal_light() { return cont_cur_light; }
 
 /*
  * Function name: light
@@ -167,8 +165,7 @@ query_internal_light() { return cont_cur_light; }
  *                This function is called from query_prop() only.
  * Returns:       Light value
  */
-public int
-light()
+public int light()
 {
     int li;
 
@@ -178,7 +175,7 @@ light()
         !query_prop(CONT_I_CLOSED))
     {
         if (cont_linkroom)
-            return cont_linkroom->query_prop(OBJ_I_LIGHT) + li;
+            return ({int}) cont_linkroom->query_prop(OBJ_I_LIGHT) + li;
         else
             return cont_cur_light + li;
     }
@@ -193,14 +190,13 @@ light()
  *                This function is called from query_prop() only.
  * Returns:       Weight value
  */
-public nomask int
-weight()
+public nomask int weight()
 {
     int wi;
 
     wi = query_prop(CONT_I_WEIGHT);
     if (cont_linkroom)
-        return cont_linkroom->query_prop(OBJ_I_WEIGHT) + wi;
+        return ({int}) cont_linkroom->query_prop(OBJ_I_WEIGHT) + wi;
     else
         return cont_cur_weight + wi;
 }
@@ -212,8 +208,7 @@ weight()
  *                This function is called from query_prop() only.
  * Returns:       Volume value
  */
-public nomask int
-volume()
+public nomask int volume()
 {
     int vo;
 
@@ -221,7 +216,7 @@ volume()
         return query_prop(CONT_I_MAX_VOLUME);
     vo = query_prop(CONT_I_VOLUME);
     if (cont_linkroom)
-        return cont_linkroom->query_prop(OBJ_I_VOLUME) + vo;
+        return ({int}) cont_linkroom->query_prop(OBJ_I_VOLUME) + vo;
     else
         return cont_cur_volume + vo;
 }
@@ -232,8 +227,7 @@ volume()
  * Description:   Connects a room to the internals of the container.
  * Arguments:     room: The room object or a filename
  */
-public void
-set_room(mixed room)
+public void set_room(mixed room)
 {
     if (query_lock())
         return;   /* All changes has been locked out */
@@ -245,8 +239,10 @@ set_room(mixed room)
  * Function name: query_room
  * Description:   Ask what room is connected to the internal of this object
  */
-public mixed
-query_room() { return cont_linkroom; }
+public mixed query_room()
+{ 
+    return cont_linkroom;
+}
 
 /*
  * Function name: prevent_enter
@@ -256,8 +252,7 @@ query_room() { return cont_linkroom; }
  * Returns:       1 - The object is not allowed to enter
  *                0 - The object is allowed to enter
  */
-public int
-prevent_enter(object ob)
+public int prevent_enter(object ob)
 {
     return 0;
 }
@@ -269,8 +264,7 @@ prevent_enter(object ob)
  * Arguments:     ob: The object that just entered this inventory
  *                from: The object from which it came.
  */
-public void
-enter_inv(object ob, object from)
+public void enter_inv(object ob, object from)
 {
     int l, w, v;
 
@@ -279,9 +273,9 @@ enter_inv(object ob, object from)
         ob->move(cont_linkroom, 1);
     }
 
-    l = ob->query_prop(OBJ_I_LIGHT);
-    w = ob->query_prop(OBJ_I_WEIGHT);
-    v = ob->query_prop(OBJ_I_VOLUME);
+    l = ({int}) ob->query_prop(OBJ_I_LIGHT);
+    w = ({int}) ob->query_prop(OBJ_I_WEIGHT);
+    v = ({int}) ob->query_prop(OBJ_I_VOLUME);
 
     update_internal(l, w, v);
 }
@@ -295,8 +289,7 @@ enter_inv(object ob, object from)
  * Returns:       1 - The object is not allowed to leave
  *                0 - The object is allowed to leave
  */
-public int
-prevent_leave(object ob)
+public int prevent_leave(object ob)
 {
     return 0;
 }
@@ -308,17 +301,16 @@ prevent_leave(object ob)
  * Arguments:     ob: The object that just left this inventory.
  *                to: Where it went.
  */
-public void
-leave_inv(object ob, object to)
+public void leave_inv(object ob, object to)
 {
     int l, w, v;
 
     if (cont_linkroom)
         return;
 
-    l = ob->query_prop(OBJ_I_LIGHT);
-    w = ob->query_prop(OBJ_I_WEIGHT);
-    v = ob->query_prop(OBJ_I_VOLUME);
+    l = ({int}) ob->query_prop(OBJ_I_LIGHT);
+    w = ({int}) ob->query_prop(OBJ_I_WEIGHT);
+    v = ({int}) ob->query_prop(OBJ_I_VOLUME);
 
     update_internal(-l, -w, -v);
 }
@@ -329,21 +321,20 @@ leave_inv(object ob, object to)
  * Arguments:     dest - The destination
  *                old  - From what object
  */
-void
-enter_env(object dest, object old)
+void enter_env(object dest, object old)
 {
     int weight, vol;
 
     if (dest)
     {
         weight = -cont_cur_weight + cont_cur_weight * 100 /
-                dest->query_prop(CONT_I_REDUCE_WEIGHT);
+        ({int}) dest->query_prop(CONT_I_REDUCE_WEIGHT);
 
         if (query_prop(CONT_I_RIGID))
             vol = 0;
         else
             vol = -cont_cur_volume + cont_cur_volume * 100 /
-                dest->query_prop(CONT_I_REDUCE_VOLUME);
+            ({int}) dest->query_prop(CONT_I_REDUCE_VOLUME);
 
         dest->update_internal(0, weight, vol);
     }
@@ -355,21 +346,20 @@ enter_env(object dest, object old)
  * Arguments:     from - From what object
  *                to   - To what object
  */
-void
-leave_env(object from, object to)
+void leave_env(object from, object to)
 {
     int weight, vol;
 
     if (from)
     {
         weight = cont_cur_weight - cont_cur_weight * 100 /
-                from->query_prop(CONT_I_REDUCE_WEIGHT);
+        ({int}) from->query_prop(CONT_I_REDUCE_WEIGHT);
 
         if (query_prop(CONT_I_RIGID))
             vol = 0;
         else
             vol = cont_cur_volume - cont_cur_volume * 100 /
-                from->query_prop(CONT_I_REDUCE_VOLUME);
+            ({int}) from->query_prop(CONT_I_REDUCE_VOLUME);
 
         from->update_internal(0, weight, vol);
     }
@@ -383,8 +373,7 @@ leave_env(object from, object to)
  *                w: Weight diff.
  *                v: Volume diff.
  */
-public void
-update_internal(int l, int w, int v)
+public void update_internal(int l, int w, int v)
 {
     object ob, env;
 
@@ -414,16 +403,15 @@ update_internal(int l, int w, int v)
 
     if (l || w || v)
         env->update_internal(l,
-                w * 100 / env->query_prop(CONT_I_REDUCE_WEIGHT),
-                v * 100 / env->query_prop(CONT_I_REDUCE_VOLUME));
+                w * 100 / ({int}) env->query_prop(CONT_I_REDUCE_WEIGHT),
+                v * 100 / ({int}) env->query_prop(CONT_I_REDUCE_VOLUME));
 }
 
 /*
  * Function name: update_light
  * Description:   Reevalueate the lightvalue of the container.
  */
-public void
-update_light(int recursive)
+public void update_light(int recursive)
 {
     int i;
     object *ob_list;
@@ -436,7 +424,7 @@ update_light(int recursive)
     {
         if (recursive)
             ob_list[i]->update_light(recursive);
-        cont_cur_light += ob_list[i]->query_prop(OBJ_I_LIGHT);
+        cont_cur_light += ({int}) ob_list[i]->query_prop(OBJ_I_LIGHT);
     }
 }
 
@@ -448,8 +436,7 @@ update_light(int recursive)
  *                val  - The new value.
  *                old  - The old value.
  */
-public void
-notify_change_prop(string prop, mixed val, mixed old)
+public void notify_change_prop(string prop, mixed val, mixed old)
 {
     object pobj;
     int n, o, ld;
@@ -480,7 +467,7 @@ notify_change_prop(string prop, mixed val, mixed old)
         return;
     }
 
-    n = pobj->query_internal_light();
+    n = ({int}) pobj->query_internal_light();
     if (!n)
         return;
 
@@ -501,18 +488,18 @@ notify_change_prop(string prop, mixed val, mixed old)
      *   the containers within this container.
      */
     if (prop == CONT_I_ATTACH &&
-        !pobj->query_prop(CONT_I_TRANSP) &&
-        pobj->query_prop(CONT_I_CLOSED))
+        !({int}) pobj->query_prop(CONT_I_TRANSP) &&
+        ({int}) pobj->query_prop(CONT_I_CLOSED))
         ld = (val != 0);                /* 0 -> turn off, 1 -> turn on */
 
     else if (prop == CONT_I_TRANSP &&
-        !pobj->query_prop(CONT_I_ATTACH) &&
-        pobj->query_prop(CONT_I_CLOSED))
+        !({int}) pobj->query_prop(CONT_I_ATTACH) &&
+        ({int}) pobj->query_prop(CONT_I_CLOSED))
         ld = (val != 0);                /* 0 -> turn off, 1 -> turn on */
 
     else if (prop == CONT_I_CLOSED &&
-        !pobj->query_prop(CONT_I_ATTACH) &&
-        !pobj->query_prop(CONT_I_TRANSP))
+        !({int}) pobj->query_prop(CONT_I_ATTACH) &&
+        !({int}) pobj->query_prop(CONT_I_TRANSP))
         ld = (val != 0);                /* 0 -> turn off, 1 -> turn on */
 
     if (ld < 0)
@@ -537,26 +524,26 @@ notify_change_prop(string prop, mixed val, mixed old)
     return;
 }
 
+
 /*
- * Function name: visible
+ * Function name: is_visible
  * Description:   Determine if an item is visible within a container
  * Arguments:     object ob - The item to test
  * Returns:       1/0 - item is visibie/not visible
  */
-public int
-visible(object ob)
+public int is_visible(object ob)
 {
     object env;
 
     if (!ob)
         return 0;
 
-    if ((env = (object)this_object()->query_room()) &&
-        (this_object()->query_prop(CONT_I_TRANSP) ||
-        !this_object()->query_prop(CONT_I_CLOSED)))
+    if ((env = ({object})this_object()->query_room()) &&
+        (({int}) this_object()->query_prop(CONT_I_TRANSP) ||
+        !({int}) this_object()->query_prop(CONT_I_CLOSED)))
     {
-        return ((env->query_prop(OBJ_I_LIGHT) >
-            -(this_player()->query_prop(LIVE_I_SEE_DARK))) &&
+        return ((({int}) env->query_prop(OBJ_I_LIGHT) >
+            -(({int}) this_player()->query_prop(LIVE_I_SEE_DARK))) &&
             CAN_SEE(this_player(), ob));
     }
 
@@ -564,8 +551,8 @@ visible(object ob)
     if (env == this_player() || (env == environment(this_player())))
         return CAN_SEE(this_player(), ob);
 
-    while (objectp(env) && !living(env) && (env->query_prop(CONT_I_TRANSP) ||
-        !env->query_prop(CONT_I_CLOSED)))
+    while (objectp(env) && !living(env) && (({int}) env->query_prop(CONT_I_TRANSP) ||
+        !({int}) env->query_prop(CONT_I_CLOSED)))
     {
         env = environment(env);
         if (env == this_player() || env == environment(this_player()))
@@ -581,28 +568,27 @@ visible(object ob)
  * Arguments:     object for_obj - To whom to give the description
  *                object *obarr  - The items to describe
  */
-public void
-describe_contents(object for_obj, object *obarr)
+public void describe_contents(object for_obj, object *obarr)
 {
     for_obj->catch_tell(show_sublocs(for_obj));
 
-    if (this_object()->query_prop(CONT_I_ATTACH))
+    if (({int}) this_object()->query_prop(CONT_I_ATTACH))
     {
         if (sizeof(obarr) > 0)
             for_obj->catch_tell(capitalize(COMPOSITE_DEAD(obarr)) +
 				(sizeof(obarr) > 1 ? " are" : " is") +
 				" on the " +
-				this_object()->short() + ".\n");
+				({string}) this_object()->short() + ".\n");
         else
             for_obj->catch_tell("There is nothing on the " +
-				this_object()->short() + ".\n");
+                ({string}) this_object()->short() + ".\n");
     }
     else if (sizeof(obarr) > 0)
-        for_obj->catch_tell("The " + this_object()->short() + " contains " +
+        for_obj->catch_tell("The " + ({string}) this_object()->short() + " contains " +
 			    COMPOSITE_DEAD(obarr) + ".\n");
 
     else
-        for_obj->catch_tell("  " + "The " + this_object()->short() +
+        for_obj->catch_tell("  " + "The " + ({string}) this_object()->short() +
             " is empty.\n");
 }
 
@@ -611,17 +597,16 @@ describe_contents(object for_obj, object *obarr)
  * Description:   Show the visible contents of this container
  * Arguments:     object for_obj - To whom to show the contents
  */
-public void
-show_visible_contents(object for_obj)
+public void show_visible_contents(object for_obj)
 {
     object *obarr, linked;
     string str;
 
-    if (linked = this_object()->query_room())
+    if (linked = ({object}) this_object()->query_room())
         obarr = all_inventory(linked);
     else
         obarr = all_inventory(this_object());
-    obarr = filter(obarr, visible);
+    obarr = filter(obarr, #'is_visible);
     describe_contents(for_obj, obarr);
 }
 
@@ -658,8 +643,7 @@ show_visible_contents(object for_obj)
  *                      to a specific subitem and an id could be:
  *                      'under nose', 'on leg', 'in pocket' etc.
  */
-public varargs void
-add_subloc(string sloc, mixed resp, mixed ids)
+public varargs void add_subloc(string sloc, mixed resp, mixed ids)
 {
     int i;
     mixed old;
@@ -681,15 +665,19 @@ add_subloc(string sloc, mixed resp, mixed ids)
  * Function name: query_subloc_obj
  * Description:   Get the object corresponding to a subloc string
  */
-public object
-query_subloc_obj(string sloc) { return cont_sublocs[sloc]; }
+public object query_subloc_obj(string sloc)
+{
+    return cont_sublocs[sloc];
+}
 
 /*
  * Function name: query_sublocs
  * Description:   Get the current list of sublocations for this container
  */
-public string *
-query_sublocs() { return m_indices(cont_sublocs); }
+public string *query_sublocs()
+{
+    return m_indices(cont_sublocs);
+}
 
 /*
  * Function name: remove_subloc
@@ -697,18 +685,16 @@ query_sublocs() { return m_indices(cont_sublocs); }
  * Arguments:     sloc: Name of sub location
  *
  */
-public void
-remove_subloc(string sloc)
+public void remove_subloc(string sloc)
 {
-    m_delkey(cont_sublocs, sloc);
+    m_delete(cont_sublocs, sloc);
 
-    map(all_inventory(this_object()), &fix_ob_subloc_when_remove(, sloc));
-    cont_subloc_ids = map(cont_subloc_ids, &map_subloc_id(, sloc));
-    cont_subloc_ids = filter(cont_subloc_ids, filter_subloc_id);
+    map(all_inventory(this_object()), #'fix_ob_subloc_when_remove, sloc);
+    cont_subloc_ids = map(cont_subloc_ids, #'map_subloc_id, sloc);
+    cont_subloc_ids = filter(cont_subloc_ids, #'filter_subloc_id);
 }
 
-nomask string *
-map_subloc_id(string *sloc, string rm_sloc)
+nomask string *map_subloc_id(string *sloc, string rm_sloc)
 {
     int pos;
 
@@ -717,18 +703,15 @@ map_subloc_id(string *sloc, string rm_sloc)
     return sloc;
 }
 
-nomask int
-filter_subloc_id(string *sloc, string rm_sloc)
+nomask int filter_subloc_id(string *sloc, string rm_sloc)
 {
     return (sizeof(sloc) > 0);
 }
 
-nomask void
-fix_ob_subloc_when_remove(object ob, string sloc)
+nomask void fix_ob_subloc_when_remove(object ob, string sloc)
 {
-    if ((string)ob->query_subloc() == sloc)
+    if (({string})ob->query_subloc() == sloc)
         ob->move(this_object(), 0); /* Default sublocation */
-    return 0;
 }
 
 /*
@@ -736,8 +719,7 @@ fix_ob_subloc_when_remove(object ob, string sloc)
  * Description:   Give the sublocation(s) if any for a specific id
  * Arguments:     id: name osublocation
  */
-public string *
-subloc_id(string id)
+public string *subloc_id(string id)
 {
     return cont_subloc_ids[id];
 }
@@ -750,8 +732,7 @@ subloc_id(string id)
  *                for_obj: Living for which the access is to be checked
  * Returns:       1 if accessible; 0 or string error message if not
  */
-public mixed
-subloc_cont_access(string sloc, string acs, object for_obj)
+public mixed subloc_cont_access(string sloc, string acs, object for_obj)
 {
     object slob;
 
@@ -764,9 +745,9 @@ subloc_cont_access(string sloc, string acs, object for_obj)
         slob = cont_sublocs[sloc];
 
     if (!objectp(slob))
-        return SUBL_CODE->subloc_access(sloc, this_object(), acs, for_obj);
+        return ({int}) SUBL_CODE->subloc_access(sloc, this_object(), acs, for_obj);
     else
-        return slob->subloc_access(sloc, this_object(), acs, for_obj);
+        return ({int}) slob->subloc_access(sloc, this_object(), acs, for_obj);
 }
 
 /*
@@ -774,16 +755,14 @@ subloc_cont_access(string sloc, string acs, object for_obj)
  * Description:   Give the subinventory for a specific sublocation
  * Arguments:     sloc: sublocation
  */
-public object *
-subinventory(mixed sloc)
+public object *subinventory(mixed sloc)
 {
-    return filter(all_inventory(), &subloc_filter(, sloc));
+    return filter(all_inventory(), #'subloc_filter, sloc);
 }
 
-nomask int
-subloc_filter(object ob, mixed sloc)
+nomask int subloc_filter(object ob, mixed sloc)
 {
-    return (ob->query_subloc() == sloc);
+    return (({mixed}) ob->query_subloc() == sloc);
 }
 
 /*
@@ -794,8 +773,7 @@ subloc_filter(object ob, mixed sloc)
  * Arguments:     for_obj: The object for which description is given
  *                slocs:   Identifiers for sublocations
  */
-public varargs string
-show_sublocs(object for_obj, mixed *slocs)
+public varargs string show_sublocs(object for_obj, mixed *slocs)
 {
     int il;
     string str;
@@ -811,12 +789,12 @@ show_sublocs(object for_obj, mixed *slocs)
 
     for (str = "", il = 0; il < sizeof(slocs); il++)
     {
-        data = this_object()->show_cont_subloc(slocs[il], for_obj);
+        data = ({mixed}) this_object()->show_cont_subloc(slocs[il], for_obj);
 
         if (stringp(data))
             str += data;
         else if (data == 0 && slocs[il] != 0)
-            m_delkey(cont_sublocs, slocs[il]);
+            m_delete(cont_sublocs, slocs[il]);
     }
 
     return str;
@@ -829,8 +807,7 @@ show_sublocs(object for_obj, mixed *slocs)
  *                for_obj: For whom to show the sublocation
  * Returns:       string or 0 for invalid or 1 for temporary bad
  */
-public varargs mixed
-show_cont_subloc(string sloc, object for_obj)
+public varargs mixed show_cont_subloc(string sloc, object for_obj)
 {
     int il;
     string data;
@@ -839,20 +816,20 @@ show_cont_subloc(string sloc, object for_obj)
     ob = cont_sublocs[sloc];
 
     if (objectp(ob))
-        data = ob->show_subloc(sloc, this_object(), for_obj);
+        data = ({mixed}) ob->show_subloc(sloc, this_object(), for_obj);
 
     else if (stringp(ob))
     {
         catch(ob->teleledningsanka());
         ob = find_object(ob);
         if (ob)
-            data = ob->show_subloc(sloc, this_object(), for_obj);
+            data = ({mixed}) ob->show_subloc(sloc, this_object(), for_obj);
         else
             return 1;
     }
     else
     {
-        data = SUBL_CODE->show_subloc(sloc, this_object(), for_obj);
+        data = ({mixed}) SUBL_CODE->show_subloc(sloc, this_object(), for_obj);
         if (!stringp(data) && data == 0)
             return 0;
     }
@@ -869,8 +846,7 @@ show_cont_subloc(string sloc, object for_obj)
  *                information about an object.
  * Returns:       str - The string to write..
  */
-string
-stat_object()
+string stat_object()
 {
     string str;
     int tmp;
@@ -895,20 +871,19 @@ stat_object()
  *                of this object.
  * Arguments:     num - use this number instead of skill if given.
  */
-public string
-appraise_weight(int num)
+public string appraise_weight(int num)
 {
     int value, skill, seed;
 
     if (!num)
-        skill = this_player()->query_skill(SS_APPR_OBJ);
+        skill = ({int}) this_player()->query_skill(SS_APPR_OBJ);
     else
         skill = num;
 
     skill = 1000 / (skill + 1);
     value = query_prop(CONT_I_WEIGHT);
     sscanf(OB_NUM(this_object()), "%d", seed);
-    skill = random(skill, seed);
+    skill = random(skill);
     value = cut_sig_fig(value + (skill % 2 ? -skill % 70 : skill) *
         value / 100);
 
@@ -924,20 +899,19 @@ appraise_weight(int num)
  *                of this object.
  * Arguments:     num - use this number instead of skill if given.
  */
-public string
-appraise_volume(int num)
+public string appraise_volume(int num)
 {
     int value, skill, seed;
 
     if (!num)
-        skill = this_player()->query_skill(SS_APPR_OBJ);
+        skill = ({int}) this_player()->query_skill(SS_APPR_OBJ);
     else
         skill = num;
 
     skill = 1000 / (skill + 1);
     value = query_prop(CONT_I_VOLUME);
     sscanf(OB_NUM(this_object()), "%d", seed);
-    skill = random(skill, seed);
+    skill = random(skill);
     value = cut_sig_fig(value + (skill % 2 ? -skill % 70 : skill) *
         value / 100);
 

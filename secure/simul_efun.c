@@ -14,16 +14,12 @@
 #include <std.h>
 #include <commands.h>
 #include <configuration.h>
-#include <files.h>
+#include <libfiles.h>
 
 #pragma no_clone
 #pragma no_inherit
 #pragma strict_types
 
-/* Define this if you have CFUN's turned on. If not, then LPC functions will
- * be used rather than CFUN implementations in the gamedriver.
- */
-#define CFUN
 
 /* Prototypes */
 varargs string getuid(object ob);
@@ -36,8 +32,7 @@ static nomask void dump_elem(mixed sak, string tab);
 /*
  * No one is allowed to shadow the simulated efuns
  */
-int
-query_prevent_shadow()
+int query_prevent_shadow()
 {
     return 1;
 }
@@ -60,20 +55,24 @@ void write_vbfc(mixed data)
     this_player()->catch_vbfc(data, 0);
 }
 
+
 void tell_object(object liveob, string message)
 {
     liveob->catch_tell(message);
 }
+
 
 static string getnames(object ob)
 {
     return ({string}) ob->query_real_name();
 }
 
+
 static string slice_cmds(mixed *ar)
 {
     return ar[0];
 }
+
 
 /*
  * Function name: get_localcmd
@@ -90,10 +89,12 @@ varargs string *get_localcmd(mixed ob = previous_object())
     return map(query_actions(ob, QA_VERB), #'slice_cmds);
 }
 
+
 void localcmd()
 {
     ({string}) this_player()->catch_tell(implode(get_localcmd(previous_object()), " ") + "\n");
 }
+
 
 int cat(string file, varargs mixed *argv)
 {
@@ -128,15 +129,18 @@ int cat(string file, varargs mixed *argv)
     return (sizeof(lines) == 1 && sizeof(lines[0]) <= 3) ? 0 : sizeof(lines);
 }
 
+
 varargs mixed *filter_array(mixed arr, mixed func, mixed ob, mixed ex)
 {
     return filter(arr, func, ob, ex);
 }
 
+
 varargs mixed *map_array(mixed arr, mixed func, mixed ob, mixed ex)
 {
     return map(arr, func, ob, ex);
 }
+
 
 /*
  * Function name: exclude_array
@@ -162,6 +166,7 @@ public mixed exclude_array(mixed arr, int from, int to)
 
     return a + b;
 }
+
 
 /*
  * Function name: inventory
@@ -191,6 +196,7 @@ varargs nomask object inventory(mixed ob, mixed num)
 	return 0;
 }
 
+
 /*
  * Function name: all_environment
  * Description:   Gives an array of all containers which an object is in, i.e.
@@ -215,6 +221,7 @@ nomask object *all_environment(object ob)
     return r;
 }
 
+
 /*
  * query_xverb should return the part of the verb that had to be filled in
  * when an add_action(xxx, "yyyyy", 1) was executed.
@@ -225,6 +232,7 @@ nomask string query_xverb()
 
     return query_verb()[size..];
 }
+
 
 /*
  * Function name: one_of_list
@@ -248,6 +256,7 @@ varargs mixed one_of_list(mixed array, int seed)
     return array[random(sizeof(array))];
 }
 
+
 /*
  *
  * These are the LPC backwardscompatible simulated efuns.
@@ -260,8 +269,7 @@ varargs mixed one_of_list(mixed array, int seed)
  *                This can only be done if the euid of the object is 0.
  * Arguments:     object ob - the object to set the euid for
  */
-void
-export_uid(object ob)
+void export_uid(object ob)
 {
     string euid, euid2;
     euid = explode(geteuid(ob),":")[1];
@@ -271,9 +279,6 @@ export_uid(object ob)
     if (euid == "0")
         configure_object(ob, OC_EUID, euid2 + ":#");
 }
-
-
-
 
 
 /*
@@ -291,6 +296,7 @@ public string strchar(int x)
     return to_string(({x}));
 }
 
+
 /*
  * Function name: type_name
  * Description  : This function will return the type of a variable in string
@@ -298,8 +304,7 @@ public string strchar(int x)
  * Arguments    : mixed etwas - the variable to type.
  * Returns      : string - the name of the type.
  */
-static string
-type_name(mixed etwas)
+static string type_name(mixed etwas)
 {
     if (intp(etwas))
 	return "int";
@@ -320,13 +325,13 @@ type_name(mixed etwas)
     return "!UNKNOWN!";
 }
 
+
 /*
  * Function name: dump_array
  * Description:   Dumps a variable with write() for debugging purposes.
  * Arguments:     a: Anything including an array
  */
-nomask varargs void
-dump_array(mixed a, string tab)
+nomask varargs void dump_array(mixed a, string tab)
 {
     int             n,
                     m;
@@ -355,13 +360,13 @@ dump_array(mixed a, string tab)
 	dump_mapping(a, tab);
 }
 
+
 /*
  * Function name: dump_mapping
  * Description:   Dumps a variable with write() for debugging purposes.
  * Arguments:     a: Anything including an array
  */
-nomask varargs void
-dump_mapping(mapping m, string tab)
+nomask varargs void dump_mapping(mapping m, string tab)
 {
     mixed *d;
     int i, s;
@@ -434,16 +439,17 @@ dump_mapping(mapping m, string tab)
     this_player()->catch_tell("])\n");
 }
 
+
 /*
  * Function name: inherit_list
  * Description:   Returns the inherit list of an object.
  * Arguments:     ob - the object to list.
  */
-nomask string *
-inherit_list(object ob)
+nomask string *inherit_list(object ob)
 {
     return ({mixed}) SECURITY->do_debug("inherit_list", ob);
 }
+
 
 static nomask void dump_elem(mixed sak, string tab)
 {
@@ -461,12 +467,13 @@ static nomask void dump_elem(mixed sak, string tab)
 	if (objectp(sak))
 	    this_player()->catch_tell(object_name(sak));
 	else if (floatp(sak))
-	    this_player()->catch_tell(ftoa(sak));
+	    this_player()->catch_tell(to_string(sak));
 	else
 	    this_player()->catch_tell(sprintf("%O",sak));
     }
     this_player()->catch_tell("\n");
 }
+
 
 /*
  * Function:    secure_var
@@ -474,18 +481,16 @@ static nomask void dump_elem(mixed sak, string tab)
  * Arguments:   var - the variable
  * Returns:     the secured copy
  */
-mixed
-secure_var(mixed var)
+mixed secure_var(mixed var)
 {
-    if (pointerp(var) ||
-	mappingp(var))
+    if (pointerp(var) || mappingp(var))
     {
-	return map(var, secure_var);
+    	return map(var, #'secure_var);
     }
     return var;
 }
 
-#ifdef _FUNCTION
+
 /*
  * Function name: composite_util
  * Description  : Returns the composition of function f applied to the result
@@ -495,10 +500,11 @@ secure_var(mixed var)
  *                mixed x    - the argument to perform the functions on.
  * Returns      : mixed - the result of the composition.
  */
-static mixed compose_util(function f, function g, mixed x)
-{
-    return f(g(x));
-}
+// static mixed compose_util(function f, function g, mixed x)
+// {
+//     return f(g(x));
+// }
+
 
 /*
  * Function name: compose
@@ -508,69 +514,10 @@ static mixed compose_util(function f, function g, mixed x)
  * Arguments:     f, g: the functions to compose.
  * Returns:       a function which is the composition of f and g.
  */
-function compose(function f, function g)
-{
-    return &compose_util(f,g);
-}
-
-/*
- * Function name: apply_array
- * Description:   apply a function to an array of arguments
- * Arguments:     f: the function, v: the array
- * Returns:       f(v1,...vn) if v=({v1,...vn})
- */
-mixed applyv(function f, mixed *v)
-{
-    function g = papplyv(f, v);
-    return g();
-}
-
-/*
- * Function name: for_each
- * Description:   For each of the elements in the array 'elements', for_each
- *                calls func with it as as parameter.
- *                This is the same functionality as the efun map, but without
- *                the return value.
- * Arguments:     mixed elements      (the array/mapping of elements to use)
- *                function func       (the function to recieve the elements)
- */
-void for_each(mixed elements, function func)
-{
-#if 0
-    int i;
-    int sz;
-    mixed arr;
-
-    arr = elements;
-    if (mappingp(elements))
-        arr = m_values(elements);
-    sz = sizeof(arr);
-    for(i = 0; i < sz; i++)
-        func(arr[i]);
-#endif
-}
-
-/*
- * Function name: constant
- * Description:   returns the first argument and ignores the second
- * Arguments:     x, y
- * Returns:       x
- */
-mixed constant(mixed x, mixed y)
-{
-    return x;
-}
-
-/*
- * Function name: identity
- * Description:   returns its argument unmodified
- * Arguments:     x
- * Returns:       x
- */
-mixed identity(mixed x)
-{
-    return x;
-}
+// function compose(function f, function g)
+// {
+//     return &compose_util(f,g);
+// }
 
 
 /*
@@ -583,6 +530,7 @@ int not(mixed x)
 {
     return !x;
 }
+
 
 /*
  * Function name: minmax
@@ -607,64 +555,6 @@ mixed minmax(mixed value, mixed minimum, mixed maximum)
     return value;
 }
 
-/*
- * Function name: mkcompare_util
- * Description:   Compare two items and return a value meaningful for
- *                sort_array() (that is, 1, 0, or -1).
- * Arguments:     function f            - If specified, the comparison values
- *                                        will be derived by calling this
- *                                        function rather than simply comparing
- *                                        items directly.
- *                function compare_func - A function that determines how the
- *                                        items will be compared.  This is
- *                                        typically &operator(<)().
- *                mixed x               - The first item to compare.
- *                mixed y               - The second item to compare.
- * Returns:       1, 0, or -1, as determined by compare_func
- */
-int mkcompare_util(function f, function compare_fun, mixed x, mixed y)
-{
-    if (f)
-    {
-    	x = f(x);
-    	y = f(y);
-    }
-
-    if (compare_fun(x, y))
-    {
-        return -1;
-    }
-
-    if (compare_fun(y, x))
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
-/*
- * Function name: mkcompare
- * Description:   Takes a normal comparison function, like < and returns a
- *                pointer to the mkcompare_util() function, which is suitable
- *                for use with sort_array().
- *                See mkcompare_util() above.
- * Arguments:     function f - an optional function pointer argument.  If
- *                             specified, the comparison will be done on the
- *                             values derived from this function.  If not
- *                             specified, the objects to be sorted will be
- *                             compared directly.
- *                function compare_fun - This function determines how the
- *                                       sorted items are to be compared.  It
- *                                       defaults to &operator(<)().
- * Returns:       A function pointer useful with sort_array().
- */
-varargs function mkcompare(function f, function compare_fun = &operator(<)())
-{
-    return &mkcompare_util(f, compare_fun);
-}
-
-#endif
 
 /*
  * Strip spaces and newlines from both ends of a string.
@@ -697,3 +587,92 @@ int file_time(string path)
     set_this_object(previous_object());
     return (sizeof(v = get_dir(path, GETDIR_DATES)) ? v[0] : 0);
 }
+
+
+/*
+ * Function name: log_file
+ * Description:   Logs a message in the creators ~/log/ subdir in a given
+ *		  file.
+ *
+ * 		  The optional argument 'csize' controls the cycling size
+ * 		  of the log. If the argument is == 0 the default cycle
+ * 		  size is used, if the argument is == -1 the maximum cycle
+ * 		  size is used, if a positive integer is given, that cycle
+ * 		  size is used provided that it is less or equal to the
+ * 		  maximum cycle size.
+ *
+ * Arguments:     file: The filename.
+ *		  text: The text to add to the file
+ * 		  csize: The cycle size, if any (optional)
+ */
+ public varargs void
+ log_file(string file, string text, int csize)
+ {
+     mixed           path,
+                     oldeuid,
+                     cr;
+     string 	    *split, fnam;
+     int 	    il, fsize, msize, dsize;
+ 
+     cr = ({string}) SECURITY->creator_object(previous_object());
+ 
+     /* Let backbone objects log things in /log */
+     if (cr == ({string}) SECURITY->get_bb_uid())
+     {
+     path = "/log";
+     cr = ({string}) SECURITY->get_root_uid();
+     }
+     else
+     {
+     path = ({string}) SECURITY->query_wiz_path(cr) + "/log";
+     }
+ 
+     /* We swap to the userid of the user trying to do log_file */
+     oldeuid = geteuid(this_object());
+     configure_object(this_object(), OC_EUID, cr);
+ 
+     if (file_size(path) != -2)
+     {
+     /* We must create the path
+         */
+     split = explode(path + "/", "/");
+ 
+     for (fnam = "", il = 0; il < sizeof(split); il++)
+     {
+         fnam += "/" + split[il];
+         if (file_size(fnam) == -1)
+         mkdir(fnam);
+         else if (file_size(fnam) > 0)
+         {
+         this_object()->seteuid(oldeuid);
+         return;
+         }
+     }
+     }
+ 
+     file = path + "/" + file;
+ 
+#ifdef CYCLIC_LOG_SIZE
+ 
+     fsize = file_size(file);
+     msize = CYCLIC_LOG_SIZE[cr];
+     dsize = CYCLIC_LOG_SIZE[0];
+ 
+     if (csize > 0)
+     msize = ((csize > msize) ? (msize ? msize : csize) : csize);
+ 
+     if (csize == 0)
+     msize = (msize ? msize : dsize);
+ 
+     if (csize < 0)
+     msize = (msize == 0 ? dsize : msize);
+ 
+     if (msize > 0 && fsize > msize)
+     rename(file, file + ".old");
+ 
+#endif /* CYCLIC_LOG_SIZE */
+ 
+     write_file(file, text);
+     this_object()->seteuid(oldeuid);
+ 
+ }

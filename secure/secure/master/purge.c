@@ -17,7 +17,7 @@
 
 #pragma no_clone
 #pragma no_include
-#pragma save_binary
+
 #pragma strict_types
 
 #include <std.h>
@@ -29,7 +29,7 @@
 #define ONE_DAY         (43200)   /* heartbeats       */
 #define ONE_HOUR        (1800)    /* heartbeats       */
 #define ONE_MINUTE      (30)      /* heartbeats       */
-#define STAT(s)         (pow(itof(s), 0.3333333333))
+#define STAT(s)         (pow(to_float(s), 0.3333333333))
 #define ALPHABET        ("abcdefghijklmnopqrstuvwxyz")
 #define PLAYER_FILES(c) ("/players/" + (c) + "/*")
 
@@ -158,7 +158,7 @@ player_age()
 static nomask int
 player_average()
 {
-    return (ftoi(STAT(acc_exp[0]) + STAT(acc_exp[1]) + STAT(acc_exp[2]) +
+    return (to_int(STAT(acc_exp[0]) + STAT(acc_exp[1]) + STAT(acc_exp[2]) +
 	STAT(acc_exp[3]) + STAT(acc_exp[4]) + STAT(acc_exp[5])) / 6);
 }
 

@@ -5,19 +5,19 @@
  */
 
 #ifndef WA_TYPES_DEF
-#include "/sys/wa_types.h"
+#include "/inc/wa_types.h"
 #endif
 
 #ifndef SS_TYPES_DEF
-#include "/sys/ss_types.h"
+#include "/inc/ss_types.h"
 #endif
 
 #ifndef PROP_DEF
-#include "/sys/stdproperties.h"
+#include "/inc/stdproperties.h"
 #endif
 
 #ifndef F_FORMULAS
-#include "/config/sys/formulas2.h"
+#include "/conf/sys/formulas2.h"
 #endif
 
 #ifndef F_FORMULAS
@@ -28,7 +28,7 @@
  * use as well.
  */
 #ifndef MATH_FILE
-#define MATH_FILE "/sys/global/math"
+#define MATH_FILE "/lib/language/math"
 #endif
 
 /*
@@ -40,8 +40,8 @@
  * 0.27777777 ~= 1.0/3.6; the one point extra in F_STAT_TO_EXP is to account
  * for rounding errors.
  */
-#define F_EXP_TO_STAT(xp)   (ftoi(pow((10.0 * itof(xp)), 0.27777777)))
-#define F_STAT_TO_EXP(stat) (ftoi(pow(itof(stat), 3.6) / 10.0) + 1)
+#define F_EXP_TO_STAT(xp)   (to_int(pow((10.0 * to_float(xp)), 0.27777777)))
+#define F_STAT_TO_EXP(stat) (to_int(pow(to_float(stat), 3.6) / 10.0) + 1)
 
 /*
  * Armour
@@ -131,7 +131,7 @@
 /*
  * Bows.
  */
-#define F_LAUNCH_W_FATIGUE_TIME(x) (20.0 + itof((x)->query_stat(SS_STR)))
+#define F_LAUNCH_W_FATIGUE_TIME(x) (20.0 + to_float((x)->query_stat(SS_STR)))
 #define F_LAUNCH_W_DAM_FACTOR      100
 #define F_BOWSTRING_SNAP_CHANCE     20
 #define F_PROJECTILE_BREAK_CHANCE   30
@@ -163,7 +163,7 @@
 #define F_KILL_NEUTRAL_ALIGNMENT        (10)
 #define F_MAX_ABS_ALIGNMENT		(1200)
 #define F_KILL_ADJUST_ALIGN(k_al, v_al) \
-    (int)call_other(MATH_FILE, "delta_align_on_kill", (k_al), (v_al))
+    ({int})call_other(MATH_FILE, "delta_align_on_kill", (k_al), (v_al))
 #define F_QUEST_ADJUST_ALIGN(my_align, quest_align) \
     (F_KILL_ADJUST_ALIGN((my_align), -(quest_align)))
 #define F_PANIC_WIMP_LEVEL(dis)		(10 + 3 * (dis))
@@ -253,7 +253,7 @@
 #define F_DEATH_MIN_EXP_PLATFORM(m)	(((m) * 6) / 10)
 
 #define F_EXP_ON_KILL(k_av, v_av) \
-    (int)call_other(MATH_FILE, "exp_on_kill", (k_av), (v_av))
+    ({int})call_other(MATH_FILE, "exp_on_kill", (k_av), (v_av))
 #define F_KILL_GIVE_EXP(av)	        (((av) * (av) * 400) / ((av) + 50))
 #define F_EXP_TEAM_BONUS(size)          (100 + ((size) * 10))
 
@@ -281,7 +281,7 @@
 
 #define F_RELAX_TIME_AFTER_COMBAT(tme)  ((tme) + 60 + (6 * ((tme) % 10)))
 
-#define F_SPEED_MOD(quickness)          ((5.0 - (itof(quickness) / 50.0)) / 5.0)
+#define F_SPEED_MOD(quickness)          ((5.0 - (to_float(quickness) / 50.0)) / 5.0)
 
 /*
  * Healing alco

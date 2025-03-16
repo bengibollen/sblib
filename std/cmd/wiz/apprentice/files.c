@@ -33,7 +33,7 @@
 #define MAX_TREE_SIZE   ( 60)
 #define TAIL_READ_CHUNK (800)
 
-#define REOPEN_SOUL	("reopen_soul")
+//#define REOPEN_SOUL	("reopen_soul")
 
 #define SPACES ("                              ")
 
@@ -51,7 +51,7 @@ cat_file(string path)
 	return 0;
     }
 
-    path = FTPATH((string)this_interactive()->query_path(), path);
+    path = FTPATH(({string})this_interactive()->query_path(), path);
     if (!stringp(path))
     {
 	notify_fail("Bad file name format.\n");
@@ -285,7 +285,7 @@ list_files(string path)
 	}
     }
 
-    path = FTPATH((string)this_interactive()->query_path() + "/", path);
+    path = FTPATH(({string})this_interactive()->query_path() + "/", path);
 
     /* List a single file. */
     if (file_size(path) > 0)
@@ -463,7 +463,7 @@ more_file(string path)
 	return 0;
     }
 
-    path = FTPATH((string)this_interactive()->query_path(), path);
+    path = FTPATH(({string})this_interactive()->query_path(), path);
     if (!sizeof(path))
     {
 	notify_fail("Bad file name format.\n");
@@ -628,9 +628,9 @@ tail_input_player(string str)
 	this_interactive()->remove_prop(WIZARD_I_TAIL_LIMIT);
 	return;
 
-    case 'u':
-	call_other(this_interactive(), REOPEN_SOUL);
-	return;
+    // case 'u':
+	// call_other(this_interactive(), REOPEN_SOUL);
+	// return;
 
     default:
 	write("Invalid command. \"q/x\" to quit or RETURN to continue --- ");
@@ -690,18 +690,18 @@ tail_lines()
  * Description  : When the euid of this object has been set to the euid
  *                of the wizard again, print more of the file.
  */
-public nomask void
-tail_input_player_reloaded()
-{
-    if ((previous_object() != this_interactive()) ||
-      (calling_function() != REOPEN_SOUL))
-    {
-	write("Illegal call to tail_input_player_reloaded().\n");
-	return;
-    }
+// public nomask void
+// tail_input_player_reloaded()
+// {
+//     if ((previous_object() != this_interactive()) ||
+//       (calling_function() != REOPEN_SOUL))
+//     {
+// 	write("Illegal call to tail_input_player_reloaded().\n");
+// 	return;
+//     }
 
-    tail_lines();
-}
+//     tail_lines();
+// }
 
 nomask int
 tail_file(string path)

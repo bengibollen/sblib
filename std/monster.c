@@ -7,7 +7,7 @@
    This is more or less still here for compatibility reasons.
 
 */
-#pragma save_binary
+
 #pragma strict_types
 
 #include "/sys/formulas.h"

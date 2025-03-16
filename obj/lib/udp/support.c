@@ -6,7 +6,7 @@
   This code is meant to be shared among all muds needing his feature.
 */
 #pragma strict_types
-#pragma save_binary
+
 
 #include <std.h>
 #include <udp.h>

@@ -76,7 +76,7 @@ inherit "/lib/cache";
 #define CHECK_SO_WIZ    if (WIZ_CHECK < WIZ_NORMAL) return 0; \
                         if (this_interactive() != this_player()) return 0
 
-#include "/cmd/wiz/normal/edit.c"
+// #include "/cmd/wiz/normal/edit.c"
 #include "/cmd/wiz/normal/files.c"
 
 static nomask int somelog(string str, string logname, string log);
@@ -356,7 +356,7 @@ cmdsoul(string str)
         return 1;
     }
 
-    str = FTPATH((string)this_interactive()->query_path(), str);
+    str = FTPATH(({string})this_interactive()->query_path(), str);
 
     if (member(str, cmdsoul_list) >= 0)
     {
@@ -1052,7 +1052,7 @@ possess(string arg)
         return 0;
     }
 
-    p_name = (string)victim->query_possessed();
+    p_name = ({string})victim->query_possessed();
 
     if (!living(victim))
     {
@@ -1085,7 +1085,7 @@ possess(string arg)
             {
                 victim->command("quit");
                 write("You exorcised " + capitalize(p_name) + ".\n");
-                tell_object(find_player(p_name), "You were exorcised by " + capitalize((string)this_interactive()->query_real_name()) + ".\n");
+                tell_object(find_player(p_name), "You were exorcised by " + capitalize(({string})this_interactive()->query_real_name()) + ".\n");
             }
             else
                 write(capitalize(v_name) + " is unpossessed.\n");
@@ -1096,7 +1096,7 @@ possess(string arg)
             {
                 victim->command("quit");
                 write("You exorcised " + capitalize(p_name) + ".\n");
-                tell_object(find_player(p_name), "You were exorcised by " + capitalize((string)this_interactive()->query_real_name()) + ".\n");
+                tell_object(find_player(p_name), "You were exorcised by " + capitalize(({string})this_interactive()->query_real_name()) + ".\n");
             }
             else
                 write(capitalize(v_name) + " is unpossessed.\n");
@@ -1111,7 +1111,7 @@ possess(string arg)
     }
     else
     {
-        if (sizeof((string)victim->query_possessed()))
+        if (sizeof(({string})victim->query_possessed()))
         {
             notify_fail(capitalize(v_name) + " is already possessed by " + capitalize(p_name) + ".\n");
             return 0;
@@ -1640,7 +1640,7 @@ snoop_on(string str)
         }
         if (snoop(on))
         {
-            tell_object(on, capitalize((string)this_interactive()->
+            tell_object(on, capitalize(({string})this_interactive()->
                 query_real_name()) + " broke your snoop.\n");
             write("Broken snoop by " + capitalize(argv[1]) + ".\n");
         }
@@ -1965,7 +1965,7 @@ toolsoul(string str)
         return 1;
     }
 
-    str = FTPATH((string)this_interactive()->query_path(), str);
+    str = FTPATH(({string})this_interactive()->query_path(), str);
 
     if (member(str, tool_list) >= 0)
     {
@@ -2098,8 +2098,7 @@ typolog(string str)
 /* **************************************************************************
  * vis - become visible
  */
-nomask int
-vis()
+nomask int vis()
 {
     CHECK_SO_WIZ;
 
@@ -2127,14 +2126,14 @@ somelog(string str, string logname, string log)
 
     if (!sizeof(str))
     {
-        str = (string)this_interactive()->query_real_name();
+        str = ({string})this_interactive()->query_real_name();
     }
     if (remove = wildmatch("-r*", str))
     {
         str = extract(str, 3);
     }
 
-    file = (string)SECURITY->query_wiz_path(str) + "/log";
+    file = ({string})SECURITY->query_wiz_path(str) + "/log";
     if (!sizeof(file))
     {
         return (notify_fail("No " + logname + " for: " + str + ".\n"), 0);

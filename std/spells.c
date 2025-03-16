@@ -51,11 +51,11 @@
  * the standard fail-message
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";
-inherit "/cmd/std/command_driver";
+inherit "/std/command_driver";
 
 #include <std.h>
 

@@ -406,7 +406,7 @@ unalias(string str)
     }
 
     write("Alias \""+ str +"\" removed. Used to be: "+ m_alias_list[str] +".\n");
-    m_delkey(m_alias_list, str);
+    m_delete(m_alias_list, str);
     return 1;
 }
 
@@ -519,6 +519,6 @@ unnick(string str)
 	return notify_fail("Nickname \""+ str +"\" does not exist!\n");
 
     write("Nickname \""+ str +"\" removed. Used to be: "+ m_nick_list[str] +".\n");
-    m_delkey(m_nick_list, str);
+    m_delete(m_nick_list, str);
     return 1;
 }

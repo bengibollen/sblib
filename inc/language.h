@@ -7,7 +7,7 @@
 #ifndef LANG_DEF
 #define LANG_DEF
 
-#define LANG_FILE "/sys/global/language"
+#define LANG_FILE "/lib/language/language"
 
 /*
  * LANG_PWORD    -- Get the plural form of a noun.

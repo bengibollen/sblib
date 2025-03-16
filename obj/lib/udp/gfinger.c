@@ -6,7 +6,7 @@
   This code is meant to be shared among all muds needing his feature.
 */
 #pragma strict_types
-#pragma save_binary
+
 
 #include <std.h>
 #include <udp.h>
@@ -155,15 +155,15 @@ finger_player(string player)
 
     str += ob->long(this_object());
 
-    pron = capitalize((string)ob->query_pronoun());
+    pron = capitalize(({string})ob->query_pronoun());
 
     str += pron + " holds the rank of "+
 	capitalize(WIZ_RANK_NAME(SECURITY->query_wiz_rank(ob->query_real_name()))) + ".\n";
-    str1 = lower_case((string)ob->query_real_name());
+    str1 = lower_case(({string})ob->query_real_name());
 
-    str2 = (string)SECURITY->query_wiz_dom(str1);
+    str2 = ({string})SECURITY->query_wiz_dom(str1);
     if (sizeof(str2)) {
-        str3 = (string)SECURITY->query_domain_lord(str2);
+        str3 = ({string})SECURITY->query_domain_lord(str2);
 	if (SECURITY->query_wiz_rank(ob->query_real_name()) == WIZ_LORD)
 	    str += pron + " is liege of the domain " + str2 + ".\n";
 	else {

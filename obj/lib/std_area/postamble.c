@@ -13,7 +13,7 @@ clean_up()
 	if (living(ob[i]))
 	{
 	    remove_alarm(Alarm);
-	    Alarm = set_alarm(itof(Timeout), 0.0, clean_up);
+	    Alarm = set_alarm(to_float(Timeout), 0.0, clean_up);
 	    return;
 	}
     }
@@ -29,7 +29,7 @@ public nomask void
 enter_inv(object ob, object from)
 {
     remove_alarm(Alarm);
-    Alarm = set_alarm(itof(Timeout), 0.0, clean_up);
+    Alarm = set_alarm(to_float(Timeout), 0.0, clean_up);
     ::enter_inv(ob, from);
 }
 
@@ -38,5 +38,5 @@ set_cleanup_time(int time)
 {
     Timeout = time;
     remove_alarm(Alarm);
-    Alarm = set_alarm(itof(Timeout), 0.0, clean_up);
+    Alarm = set_alarm(to_float(Timeout), 0.0, clean_up);
 }

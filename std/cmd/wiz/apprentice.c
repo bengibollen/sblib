@@ -901,7 +901,7 @@ finger_wizards(string *names, int details)
     }
 
     /* Find out the longest name, so we can synchronise the two tables. */
-    length = applyv(max, map(names, sizeof));
+    length = max(map(names, sizeof));
 
     /* Must do this in two steps because map() returns (mixed *). */
     present = map(users(), geteuid);

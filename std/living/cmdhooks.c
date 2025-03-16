@@ -24,15 +24,15 @@ static string   *wiz_souls,             /* The wizard soul names */
 /*
  * Prototypes
  */
-public void update_hooks();
+nomask public void update_hooks();
 public varargs int communicate(string str = "");
 public varargs int acommunicate(string str = "");
 static int my_commands(string str);
 
-#define REOPEN_SOUL_ALLOWED ([ "exec_done_editing" : WIZ_CMD_NORMAL, \
-                               "pad_done_editing"  : WIZ_CMD_NORMAL, \
-                               "load_many_delayed" : WIZ_CMD_NORMAL, \
-                               "tail_input_player" : WIZ_CMD_APPRENTICE ])
+// #define REOPEN_SOUL_ALLOWED ([ "exec_done_editing" : WIZ_CMD_NORMAL, \
+//                                "pad_done_editing"  : WIZ_CMD_NORMAL, \
+//                                "load_many_delayed" : WIZ_CMD_NORMAL, \
+//                                "tail_input_player" : WIZ_CMD_APPRENTICE ])
 #define REOPEN_SOUL_RELOAD  "_reloaded"
 
 /*
@@ -40,17 +40,16 @@ static int my_commands(string str);
  * Description  : Start the command parsing. The last added action is
  *                evaluated first, so speech is checked first.
  */
-static void
-cmdhooks_reset()
+static void cmdhooks_reset()
 {
     update_hooks();
 
-    add_action(my_commands, "", 1);
-    add_action(communicate, "'", 2);
-    add_action(acommunicate, "a'", 2);
+    add_action(#'my_commands, "", 1);
+    add_action(#'communicate, "'", 2);
+    add_action(#'acommunicate, "a'", 2);
 
     /* Get the different race-sounds. */
-    if (!m_sizeof(com_sounds = RACESOUND[query_race()]))
+    if (!sizeof(com_sounds = RACESOUND[query_race()]))
     {
         com_sounds = ([ ]);
     }
@@ -63,10 +62,9 @@ cmdhooks_reset()
  * Arguments    : string str - the command line argument.
  * Returns      : int 1/0 - success/failure.
  */
-public varargs int
-communicate(string str)
+public varargs int communicate(string str)
 {
-    return CMD_LIVE_SPEECH->say_text(str);
+    return ({int}) CMD_LIVE_SPEECH->say_text(str);
 }
 
 /*
@@ -76,10 +74,9 @@ communicate(string str)
  * Arguments    : string str - the command line argument.
  * Returns      : int 1/0 - success/failure.
  */
-public varargs int
-acommunicate(string str)
+public varargs int acommunicate(string str)
 {
-    return CMD_LIVE_SPEECH->asay(str);
+    return ({int}) CMD_LIVE_SPEECH->asay(str);
 }
 
 /*
@@ -89,8 +86,7 @@ acommunicate(string str)
  *                being the interactive party for security reasons.
  * Returns      : string - the last string the player said.
  */
-public nomask string
-query_say_string()
+public nomask string query_say_string()
 {
     if (this_interactive() != this_object())
     {
@@ -108,8 +104,7 @@ query_say_string()
  *                from the speech soul itself.
  * Arguments    : string str - the text to say.
  */
-public nomask void
-set_say_string(string str)
+public nomask void set_say_string(string str)
 {
     if (object_name(previous_object()) == CMD_LIVE_SPEECH)
     {
@@ -127,10 +122,9 @@ set_say_string(string str)
  *                person speaking is this_player().
  * Returns      : string - the race sound the receiver hears.
  */
-public string
-race_sound()
+public string race_sound()
 {
-    string raceto = previous_object(-1)->query_race();
+    string raceto = ({string}) previous_object(-1)->query_race();
 
     if (!com_sounds[raceto])
     {
@@ -146,8 +140,7 @@ race_sound()
  *                he or she speaks. By default this is 'say'.
  * Returns      : string - the race sound the receiver hears.
  */
-public string
-actor_race_sound()
+public string actor_race_sound()
 {
     return "say";
 }
@@ -158,8 +151,7 @@ actor_race_sound()
  *                understand the speech of this player.
  * Returns      : mapping - the mapping.
  */
-public mapping
-query_com_sounds()
+public mapping query_com_sounds()
 {
     return secure_var(com_sounds);
 }
@@ -172,13 +164,13 @@ query_com_sounds()
  *                  the usage to another newer soul/souls.
  * Arguments:       souls: an array with all souls that should be started
  */
-nomask public string *
-start_souls(string *souls)
+nomask public string *start_souls(string *souls)
 {
     int il, rflag;
     mixed ob;
     string *replace_souls, *used_souls, *tmp;
     mapping replaced;
+    object logger = find_object("lib/log.c");
 
     used_souls = ({});
     replaced = ([]);
@@ -188,7 +180,10 @@ start_souls(string *souls)
         rflag = 0;
         for (replace_souls = ({}), il = 0; il < sizeof(souls); il++)
         {
+
             ob = souls[il];
+            logger->debug("start_souls: " + ob);
+            
             catch(ob->teleledningsanka());
             ob = find_object(ob);
             if (ob)
@@ -197,13 +192,13 @@ start_souls(string *souls)
                     continue;
                 else
                 {
-                    tmp = ob->replace_soul();
+                    tmp = ({string *}) ob->replace_soul();
                     replaced[ob] = 1;
                 }
 
                 if (stringp(tmp))
                 {
-                    replace_souls += ({ tmp });
+                    replace_souls += ({ (string) tmp });
                     rflag = 1;
                 }
                 else if (pointerp(tmp))
@@ -235,8 +230,7 @@ start_souls(string *souls)
  * Description  : Give back the array with filenames of wizard souls.
  * Returns      : string * - the wizard soul list.
  */
-nomask public string *
-query_wizsoul_list()
+nomask public string *query_wizsoul_list()
 {
     return secure_var(wiz_souls);
 }
@@ -246,8 +240,7 @@ query_wizsoul_list()
  * Description:     Load the wizard souls into the player.
  * Returns:         True if successful.
  */
-static nomask int
-load_wiz_souls()
+static nomask int load_wiz_souls()
 {
     int rank;
 
@@ -258,9 +251,9 @@ load_wiz_souls()
     }
 
     /* Only wizards can have wizard souls. */
-    if (rank = SECURITY->query_wiz_rank(geteuid(this_object())))
+    if (rank = ({int}) SECURITY->query_wiz_rank(geteuid(this_object())))
     {
-        wiz_souls = WIZ_SOUL(rank)->get_soul_list();
+        wiz_souls = ({string *}) WIZ_SOUL(rank)->get_soul_list();
     }
     else
     {
@@ -283,8 +276,7 @@ load_wiz_souls()
  * Description  : Load the command souls into the player.
  * Returns      : int 1/0 - success/failure.
  */
-nomask public int
-load_command_souls()
+nomask public int load_command_souls()
 {
     soul_souls = query_cmdsoul_list();
     if (!sizeof(soul_souls))
@@ -302,10 +294,9 @@ load_command_souls()
  * Description:     Load the tool souls into the player.
  * Returns:         True upon success.
  */
-nomask public int
-load_tool_souls()
+nomask public int load_tool_souls()
 {
-    if ((SECURITY->query_wiz_rank(geteuid()) < WIZ_NORMAL) ||
+    if ((({int}) SECURITY->query_wiz_rank(geteuid()) < WIZ_NORMAL) ||
         !interactive(this_object()))
     {
         tool_souls = ({});
@@ -331,8 +322,7 @@ load_tool_souls()
  * Arguments:       str - the argument string.
  * Returns:         True if the command was found.
  */
-static int
-my_commands(string str)
+static int my_commands(string str)
 {
     int    i, rv;
     object ob;
@@ -348,6 +338,7 @@ my_commands(string str)
          */
         size = sizeof(wiz_souls);
         i = -1;
+
         while(++i < size)
         {
             ob = find_object(wiz_souls[i]);
@@ -356,20 +347,24 @@ my_commands(string str)
                 if (catch(wiz_souls[i]->teleledningsanka()))
                     tell_object(this_object(),
                         "Yikes, baaad soul: " + wiz_souls[i] + "\n");
+
                 ob = find_object(wiz_souls[i]);
+
                 if (!ob)
                     continue;
             }
-            if (ob->exist_command(verb))
+
+            if (({int}) ob->exist_command(verb))
             {
                 ob->open_soul(0);
                 export_uid(ob);
                 ob->open_soul(1);
-                rv = ob->do_command(verb, str);
+                rv = ({int}) ob->do_command(verb, str);
                 ob->open_soul(0);
-		if (SECURITY->query_restrict(query_real_name()) &
-		    RESTRICT_LOG_COMMANDS)
-		    SECURITY->log_restrict(verb, str);
+
+                if (({int}) SECURITY->query_restrict(query_real_name()) & RESTRICT_LOG_COMMANDS)
+                    SECURITY->log_restrict(verb, str);
+
                 if (rv)
                     return 1;
             }
@@ -377,6 +372,7 @@ my_commands(string str)
 
         size = sizeof(tool_souls);
         i = -1;
+
         while(++i < size)
         {
             ob = find_object(tool_souls[i]);
@@ -385,20 +381,24 @@ my_commands(string str)
                 if (catch(tool_souls[i]->teleledningsanka()))
                     tell_object(this_object(),
                         "Yikes, baaad soul: " + tool_souls[i] + "\n");
+
                 ob = find_object(tool_souls[i]);
+
                 if (!ob)
                     continue;
             }
-            if (ob->exist_command(verb))
+
+            if (({int}) ob->exist_command(verb))
             {
                 ob->open_soul(0);
                 export_uid(ob);
                 ob->open_soul(1);
-                rv = (int)ob->do_command(verb, str);
+                rv = ({int}) ob->do_command(verb, str);
                 ob->open_soul(0);
-		if (SECURITY->query_restrict(query_real_name()) &
-		    RESTRICT_LOG_COMMANDS)
-		    SECURITY->log_restrict(verb, str);
+
+                if (({int}) SECURITY->query_restrict(query_real_name()) & RESTRICT_LOG_COMMANDS)
+                    SECURITY->log_restrict(verb, str);
+
                 if (rv)
                     return 1;
             }
@@ -410,25 +410,29 @@ my_commands(string str)
     while(++i < size)
     {
         ob = find_object(soul_souls[i]);
+
         if (!ob)
         {
             if (catch(soul_souls[i]->teleledningsanka()))
                 tell_object(this_object(),
                     "Yikes, baaad soul: " + soul_souls[i] + "\n");
+
             ob = find_object(soul_souls[i]);
+
             if (!ob)
                 continue;
         }
-        if (ob->exist_command(verb))
+
+        if (({int}) ob->exist_command(verb))
         {
-            if (ob->do_command(verb, str))
+            if (({int}) ob->do_command(verb, str))
                 return 1;
         }
     }
 
     /* Allow npcs to cast spells using the spell name as a verb. */
     if (query_npc() &&
-        (ob = this_object()->find_spell(verb)))
+        (ob = ({object}) this_object()->find_spell(verb)))
     {
         this_object()->start_spell(verb, str, ob);
         return 1;
@@ -442,34 +446,32 @@ my_commands(string str)
  * Description  : This function allows for the euid of this player to be
  *                re-exported in only a very limited number of cases.
  */
-nomask public void
-reopen_soul()
-{
-    object ob  = previous_object();
-    string fun = calling_function();
+// nomask public void reopen_soul()
+// {
+//     object ob  = previous_object();
+//     string fun = calling_function();
 
-    /* Check carefully. */
-    if ((!sizeof(REOPEN_SOUL_ALLOWED[fun])) ||
-        (object_name(ob) != REOPEN_SOUL_ALLOWED[fun]) ||
-        (!interactive(this_object())))
-    {
-        return;
-    }
+//     /* Check carefully. */
+//     if ((!sizeof(REOPEN_SOUL_ALLOWED[fun])) ||
+//         (object_name(ob) != REOPEN_SOUL_ALLOWED[fun]) ||
+//         (!interactive(this_object())))
+//     {
+//         return;
+//     }
 
-    ob->open_soul(0);
-    export_uid(ob);
-    ob->open_soul(1);
-    call_other(ob, (fun + REOPEN_SOUL_RELOAD));
-    ob->open_soul(0);
-}
+//     ob->open_soul(0);
+//     export_uid(ob);
+//     ob->open_soul(1);
+//     call_other(ob, (fun + REOPEN_SOUL_RELOAD));
+//     ob->open_soul(0);
+// }
 
 /*
  * Function name: update_hooks
  * Description  : This function loads and initializes all wizards souls,
  *                tool souls and command souls the player can have.
  */
-nomask public void
-update_hooks()
+nomask public void update_hooks()
 {
     load_wiz_souls();
     load_tool_souls();
@@ -482,9 +484,8 @@ update_hooks()
  *                  still suffers the attack delay.
  * Returns:         True if a spell was being prepared
  */
-varargs public int
-cmdhooks_break_spell(string msg)
+varargs public int cmdhooks_break_spell(string msg)
 {
     /* Functionality moved into spells.c */
-    return this_object()->break_spell(msg);
+    return ({int}) this_object()->break_spell(msg);
 }

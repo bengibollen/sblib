@@ -1,4 +1,4 @@
-#pragma save_binary
+
 #pragma strict_types
 
 /*
@@ -15,7 +15,7 @@ find_call_out(string func)
 
     for (i = 0; i < sizeof(calls); i++)
 	if (calls[i][1] == func)
-	    return ftoi(calls[i][2]);
+	    return to_int(calls[i][2]);
     return -1;
 }
 
@@ -36,7 +36,7 @@ remove_call_out(string func)
 	if (calls[i][1] == func)
 	{
 	    remove_alarm(calls[i][0]);
-	    return ftoi(calls[i][2]);
+	    return to_int(calls[i][2]);
 	}
     return -1;
 }
@@ -58,7 +58,7 @@ call_out(string func, mixed delay, mixed arg)
 
     repeat = 0.0;
     if (intp(delay))
-	delay = itof(delay);
+	delay = to_float(delay);
     if (delay < 0.0)
     {
 	repeat = -delay;

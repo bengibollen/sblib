@@ -1,6 +1,6 @@
 /*
  * Function name: check_adverb
- * Defined in   : /cmd/std/command_driver.c
+ * Defined in   : /std/command_driver.c
  * Description  : This function returns the full adverb a player meant or
  *                a default adverb if the player didn't specify an adverb.
  *                NO_ADVERB will be returned if the match failed.

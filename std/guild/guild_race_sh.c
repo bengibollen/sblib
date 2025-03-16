@@ -148,8 +148,7 @@ query_guild_title_race()
  *                      returns the family name and not a normal guild
  *                      title.
  */
-public int
-query_guild_family_name()
+public int query_guild_family_name()
 {
     return 0;
 }

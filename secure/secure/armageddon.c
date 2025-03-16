@@ -10,7 +10,7 @@
  */
 
 #pragma no_clone
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/creature";
@@ -175,7 +175,7 @@ shutdown_dodelay()
 	period = 1;
     }
 
-    shutdown_alarm = set_alarm((itof(period) * 60.0), 0.0,
+    shutdown_alarm = set_alarm((to_float(period) * 60.0), 0.0,
         shutdown_dodelay);
     shutdown_delay -= period;
 }
@@ -335,7 +335,7 @@ query_delay()
         return -1;
     }
 
-    return ftoi(call[2]) + (shutdown_delay * 60);
+    return to_int(call[2]) + (shutdown_delay * 60);
 }
 
 /*
@@ -401,7 +401,7 @@ shutdown_time()
     /* Get the remaining time until the next alarm and the time needed
      * after the next alarm is called.
      */
-    return ftoi(get_alarm(shutdown_alarm)[2]) + (shutdown_delay * 60);
+    return to_int(get_alarm(shutdown_alarm)[2]) + (shutdown_delay * 60);
 }
 
 /*

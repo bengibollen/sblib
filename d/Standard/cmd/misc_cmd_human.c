@@ -17,7 +17,7 @@
 #pragma strict_types
 #pragma no_clone
 
-inherit "/cmd/std/command_driver";
+inherit "/std/command_driver";
 
 #include <macros.h>
 #include <std.h>

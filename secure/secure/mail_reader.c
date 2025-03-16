@@ -75,7 +75,7 @@
 
 #pragma no_inherit
 #pragma no_shadow
-#pragma save_binary
+
 #pragma strict_types
 
 
@@ -629,7 +629,7 @@ alias(string str)
             return 0;
         }
 
-        m_delkey(pAliases, list[1]);
+        m_delete(pAliases, list[1]);
         SAVE_MAIL;
 
         WRITE("Mailreader alias \"" + list[1] + "\" removed.\n");
@@ -639,7 +639,7 @@ alias(string str)
     /* Player wants to add a new alias. We remove the old alias first if
      * it exists, to make space.
      */
-    m_delkey(pAliases, list[0]);
+    m_delete(pAliases, list[0]);
 
     if (SECURITY->exist_player(list[0]) ||
         IN_ARRAY(capitalize(list[0]), SECURITY->query_domain_list()))
@@ -1611,7 +1611,7 @@ undelete(int *mark_arr)
     {
         if (gTo_delete[to_unmark])
         {
-            m_delkey(gTo_delete, to_unmark);
+            m_delete(gTo_delete, to_unmark);
             marked += ({ to_unmark });
         }
         else
@@ -2829,7 +2829,7 @@ set_alias(string alias, string *names)
     }
 
     /* make sure we don't get double aliases. */
-    m_delkey(gAliases, alias);
+    m_delete(gAliases, alias);
 
     /* Check if the alias only uses player names. */
     foreach(string pname: names)

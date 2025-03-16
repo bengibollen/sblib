@@ -11,8 +11,7 @@
  * Function name: hold_reset
  * Description:   initialize holding routines
  */
-nomask void
-hold_reset()
+nomask void hold_reset()
 {
     add_subloc(SUBLOC_HELD, this_object());
 }
@@ -24,8 +23,7 @@ hold_reset()
  * Returns:       1 - item successfully held
  *                string - An error message (item not held)
  */
-public int
-hold(object tool)
+public int hold(object tool)
 {
     mixed res;
 
@@ -46,8 +44,7 @@ hold(object tool)
  * Description:   Release a held item
  * Arguments:     object tool - the object to release
  */
-public void
-release(object tool)
+public void release(object tool)
 {
     empty_slot(tool);
     query_combat_object()->cb_modify_procuse();
@@ -59,18 +56,17 @@ release(object tool)
  * Arguments:     object ob - the onlooker
  * Returns:       The (string) description
  */
-public string
-show_held(object for_obj)
+public string show_held(object for_obj)
 {
     mixed *a;
     int il, size;
     string str, p, pr;
 
-    a = (object *)this_object()->query_tool(-1) -
-        (object *)this_object()->query_weapon(-1) -
-        (object *)this_object()->query_armour(-1);
+    a = ({object *}) this_object()->query_tool(-1) -
+        ({object *}) this_object()->query_weapon(-1) -
+        ({object *}) this_object()->query_armour(-1);
 
-    if (!sizeof(a = filter(a, objectp)))
+    if (!sizeof(a = filter(a, #'objectp)))
     {
         return "";
     }
@@ -86,10 +82,10 @@ show_held(object for_obj)
         pr = "You are";
     }
 
-    a = filter(map(a, &->query_hold_desc(for_obj)), stringp);
+    a = filter(map(a, (: ({string}) $1->query_hold_desc(for_obj) :)), #'stringp);
     /* Only use table form when displaying inventory. */
-    if (for_obj->query_option(OPT_TABLE_INVENTORY) &&
-        for_obj->query_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS))
+    if (({int}) for_obj->query_option(OPT_TABLE_INVENTORY) &&
+        ({int}) for_obj->query_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS))
     {
         return HANGING_INDENT("Held    : " + COMPOSITE_WORDS(a), 10, 0);
     }

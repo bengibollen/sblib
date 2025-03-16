@@ -29,7 +29,7 @@
     calling the necessary functions externally, like /lib/pub does.
 */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/heap";

@@ -83,7 +83,7 @@
  *       init_container_recover(arg);
  *   }
  */
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/container";
@@ -292,7 +292,7 @@ do_default_open(string str)
 
     for (i = 0; i < sizeof(items); i++)
     {
-        what = (string)items[i]->real_short(tp);
+        what = ({string})items[i]->real_short(tp);
 
         if (!(items[i]->query_prop(CONT_I_CLOSED)))
         {
@@ -381,7 +381,7 @@ do_default_close(string str)
 
     for (i = 0; i < sizeof(items); i++)
     {
-        what = (string)items[i]->real_short(tp);
+        what = ({string})items[i]->real_short(tp);
 
         if (items[i]->query_prop(CONT_I_CLOSED))
         {

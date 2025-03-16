@@ -5,7 +5,7 @@
   code that is common to both non humanoid creatures and humanoid npc's.
 
 */
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/living";
@@ -131,7 +131,7 @@ query_race_name()
     str = ::query_race_name();
 
     if (!str)
-	return (string) DEFAULT_PLAYER->query_race();
+	return ({string}) DEFAULT_PLAYER->query_race();
     else
 	return str;
 }

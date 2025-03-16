@@ -4,7 +4,7 @@
 #include <config.h>
 #include <input_to.h>  // For INPUT_* flags
 #include <log.h>       // For logging
-#include <files.h>     // For PLAYER_OBJECT
+#include <libfiles.h>     // For PLAYER_OBJECT
 
 // inherit "/lib/telnetneg.c";
 

@@ -210,7 +210,7 @@ remove_siteban(string ipmask)
     write("Reason: " + sitebans[ipmask][SITEBAN_COMMENT] + "\n");
 
     name = getwho();
-    m_delkey(sitebans, ipmask);
+    m_delete(sitebans, ipmask);
     this_object()->log_syslog(SITEBAN_LOG, sprintf("%s %-7s %-15s %-11s\n",
         ctime(time()), "removed", ipmask, capitalize(name)));
     save_master();

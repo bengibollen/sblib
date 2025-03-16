@@ -531,7 +531,7 @@ track_room()
         track_now(this_player(), track_skill);
     else
     {
-        set_alarm(itof(time), 0.0, &track_now(this_player(), track_skill));
+        set_alarm(to_float(time), 0.0, &track_now(this_player(), track_skill));
 
         seteuid(getuid());
         paralyze = clone_object("/std/paralyze");

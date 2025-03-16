@@ -40,7 +40,7 @@
  * }
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 #include <language.h>
@@ -148,8 +148,7 @@ query_unsellable()
  * Arguments    : int num - a certain number related to appraise skill.
  * Returns      : string - the description. Note it must start with a space.
  */
-public string
-appraise_keep(int num)
+public string appraise_keep(int num)
 {
     if (query_keep())
     {

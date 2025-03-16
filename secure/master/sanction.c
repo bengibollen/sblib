@@ -439,8 +439,7 @@ remove_sanction(string giver, string receiver, string type, string path)
  *                wizardhood.
  * Arguments    : string name - the domain or wizard loosing its sanction.
  */
-static void
-remove_all_sanctions(string name)
+static void remove_all_sanctions(string name)
 {
     string *files;
     int    index;

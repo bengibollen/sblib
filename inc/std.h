@@ -26,12 +26,10 @@
  * This is the macro for finding the filename for saving the player object.
  * The second macro returns the filename for a banished-file.
  */
-#define PLAYER_FILE(n)  ("/players/" + extract((n), 0, 0) + "/" + (n))
-#define BANISH_FILE(n)  ("/players/banished/" + extract((n), 0, 0) + \
-			 "/" + (n))
-#define PINFO_FILE(n)   ("/players/pinfo/" + extract((n), 0, 0) + "/" + (n))
-#define DELETED_FILE(n) ("/players/deleted/" + extract((n), 0, 0) + \
-			 "/" + (n))
+#define PLAYER_FILE(n)  ("/players/" + (n))
+#define BANISH_FILE(n)  ("/players/banished/" + (n))
+#define PINFO_FILE(n)   ("/players/pinfo/" + (n))
+#define DELETED_FILE(n) ("/players/deleted/" + (n))
 #define SANCTION_DIR    "/players/sanctions/"
 
 /*

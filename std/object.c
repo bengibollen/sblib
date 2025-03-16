@@ -14,6 +14,9 @@
 #include <ss_types.h>
 #include <std.h>
 #include <stdproperties.h>
+#include <configuration.h>
+#include <libfiles.h>
+#include <config.h>
 
 #define SEARCH_PARALYZE "_search_paralyze_"
 
@@ -46,7 +49,7 @@ public  void    remove_prop(string prop);
 varargs void    add_name(mixed name, int noplural);
 public  mixed   query_prop(string prop);
 public  varargs mixed   query_adj(int arg);
-        mixed   query_adjs();
+public  string *query_adjs();
         void    set_no_show_composite(int i);
 public  nomask varargs int check_recoverable(int flag);
         int     search_hidden(object obj, object who);
@@ -345,8 +348,7 @@ query_long()
  * Arguments:     for_obj: The object for which visibilty should be checked
  * Returns:       1 if this object can be seen.
  */
-public int
-check_seen(object for_obj)
+public int check_seen(object for_obj)
 {
     if (!objectp(for_obj) ||
         obj_no_show ||
@@ -396,21 +398,21 @@ short(object for_obj)
  *                  if not defined we assume that we are doing a vbfc
  *                  through the vbfc_object
  */
-varargs public string
-vbfc_short(object pobj)
-{
-    if (!objectp(pobj))
-    {
-        pobj = previous_object(-1);
-    }
-    if (!({int}) this_object()->check_seen(pobj) ||
-        !CAN_SEE_IN_ROOM(pobj))
-    {
-        return "something";
-    }
+// varargs public string
+// vbfc_short(object pobj)
+// {
+//     if (!objectp(pobj))
+//     {
+//         pobj = previous_object(-1);
+//     }
+//     if (!({int}) this_object()->check_seen(pobj) ||
+//         !CAN_SEE_IN_ROOM(pobj))
+//     {
+//         return "something";
+//     }
 
-    return short(pobj);
-}
+//     return short(pobj);
+// }
 
 /*
  * Function name: query_short
@@ -693,8 +695,7 @@ update_state()
                   9: The container is closed, can't remove
                  10: The container is closed, can't put object there
  */
-varargs public int
-move(mixed dest, mixed subloc)
+varargs public int move(mixed dest, mixed subloc)
 {
     object          old;
     int             is_room, rw, rv, is_live_dest, is_live_old,
@@ -1304,8 +1305,7 @@ remove_name(mixed name)
  * Arguments:     arg: If true then the entire list is returned.
  * Returns:       A string or an array as described above.
  */
-varargs public mixed
-query_name(int arg)
+varargs public mixed query_name(int arg)
 {
     return query_list(obj_names, arg);
 }
@@ -1354,8 +1354,7 @@ add_adj(mixed adj)
  * Arguments    : mixed adj - either a string or array of string with the
  *                            adjectives to remove.
  */
-public void
-remove_adj(mixed adj)
+public void remove_adj(mixed adj)
 {
     obj_adjs = del_list(obj_adjs, adj);
 }
@@ -1382,8 +1381,7 @@ varargs public mixed query_adj(int arg)
  * Returns      : string * - an array of all adjectives of this object
  *                           or 0 if there are no adjectives.
  */
-public string *
-query_adjs()
+public string *query_adjs()
 {
     return query_list(obj_adjs, 1);
 }
@@ -1396,8 +1394,7 @@ query_adjs()
  * Arguments    : mixed short - the short description in either a string or
  *                              VBFC in string or functionpointer form.
  */
-public void
-set_short(mixed short)
+public void set_short(mixed short)
 {
     if (!obj_no_change)
         obj_short = short;
@@ -1411,8 +1408,7 @@ set_short(mixed short)
  *                               string or VBFC in string or functionpointer
  *                               form.
  */
-public void
-set_pshort(mixed pshort)
+public void set_pshort(mixed pshort)
 {
     if (!obj_no_change)
         obj_pshort = pshort;
@@ -1425,8 +1421,7 @@ set_pshort(mixed pshort)
  *                form.
  * Arguments    : mixed long - the long description.
  */
-public void
-set_long(mixed long)
+public void set_long(mixed long)
 {
     if (!obj_no_change)
         obj_long = long;
@@ -1436,8 +1431,7 @@ set_long(mixed long)
  * Function name: set_lock
  * Description:   Locks out all changes to this object through set_ functions.
  */
-public void
-set_lock()
+public void set_lock()
 {
     obj_no_change = 1;
 }
@@ -1447,8 +1441,7 @@ set_lock()
  * Description:   Gives the lock status of this object
  * Returns:       True if changes to this object is locked out
  */
-public int
-query_lock()
+public int query_lock()
 {
     return obj_no_change;
 }
@@ -1457,8 +1450,7 @@ query_lock()
  * Function name: set_no_show
  * Description:   Don't show these objects.
  */
-public void
-set_no_show()
+public void set_no_show()
 {
     obj_no_show = 1;
     set_no_show_composite(1);
@@ -1470,8 +1462,7 @@ set_no_show()
  *                in composite descriptions you have to set_no_show_composite(0)
  *                to since it is automatically set when setting no_show.
  */
-public void
-unset_no_show()
+public void unset_no_show()
 {
     obj_no_show = 0;
 }
@@ -1480,8 +1471,7 @@ unset_no_show()
  * Function name: query_no_show
  * Description:   Return no show status.
  */
-public int
-query_no_show()
+public int query_no_show()
 {
     return obj_no_show;
 }
@@ -1492,8 +1482,7 @@ query_no_show()
  *                this object is part of the game like any other.
  * Arguments:     1 - don't show, 0 - show it again
  */
-void
-set_no_show_composite(int i)
+void set_no_show_composite(int i)
 {
     obj_no_show_c = i;
 }
@@ -1502,8 +1491,7 @@ set_no_show_composite(int i)
  * Function name: unset_no_show_composite
  * Description:   Show an object in compisite descriptions again.
  */
-void
-unset_no_show_composite()
+void unset_no_show_composite()
 {
     obj_no_show_c = 0;
 }
@@ -1512,8 +1500,7 @@ unset_no_show_composite()
  * Function name: query_no_show_composite
  * Description:   Return status if to be shown in composite descriptions
  */
-int
-query_no_show_composite()
+int query_no_show_composite()
 {
     return obj_no_show_c;
 }
@@ -1526,8 +1513,7 @@ query_no_show_composite()
  *                 the code which handles the magical
  *                 effect. (Filename for a shadow.)
  */
-varargs void
-add_magic_effect(mixed what)
+varargs void add_magic_effect(mixed what)
 {
     if (!what)
         what = previous_object();
@@ -1545,8 +1531,7 @@ add_magic_effect(mixed what)
  * Arguments:      What effect.
  * Returns:        If the effect was found.
  */
-varargs int
-remove_magic_effect(mixed what)
+varargs int remove_magic_effect(mixed what)
 {
     int il;
 
@@ -1558,7 +1543,7 @@ remove_magic_effect(mixed what)
     if (il == -1)
         return 0;
 
-    magic_effects = exclude_array(magic_effects, il, il);
+    magic_effects = magic_effects[il] = ({});
     return 1;
 }
 
@@ -1567,12 +1552,11 @@ remove_magic_effect(mixed what)
  * Description:    Returns the magical effects upon this
  *                 object.
  */
-object *
-query_magic_effects()
+object *query_magic_effects()
 {
     if (!pointerp(magic_effects))
         magic_effects = ({});
-    magic_effects = filter(magic_effects, objectp);
+    magic_effects = filter(magic_effects, #'objectp);
     return magic_effects;
 }
 
@@ -1605,16 +1589,16 @@ query_magic_res(string prop)
     mixed value;
     object *list;
 
-    list = this_object()->query_magic_effects();
+    list = ({object*}) this_object()->query_magic_effects();
 
     if (!sizeof(list))
-        return (int)this_object()->query_prop(PRE_OBJ_MAGIC_RES + prop);
+        return ({int})this_object()->query_prop(PRE_OBJ_MAGIC_RES + prop);
 
     max_add = 100;
 
     for (i = 0; i < sizeof(list); i++)
     {
-        value = list[i]->query_magic_protection(prop, this_object());
+        value = ({mixed}) list[i]->query_magic_protection(prop, this_object());
         if (intp(value))
             value = ({ value, 0 });
         if (pointerp(value))
@@ -1630,7 +1614,7 @@ query_magic_res(string prop)
         max_add = 100 - max_add;
 
     max = max_stat > max_add ? max_stat : max_add;
-    max += (int)this_object()->query_prop(PRE_OBJ_MAGIC_RES + prop);
+    max += ({int}) this_object()->query_prop(PRE_OBJ_MAGIC_RES + prop);
 
     return max < 100 ? max : 100;
 }
@@ -1643,8 +1627,7 @@ query_magic_res(string prop)
  * Arguments:      prop - The element property to defend.
  *                 protectee  - Magic protection for who or what?
  */
-varargs mixed
-query_magic_protection(string prop, object protectee = previous_object())
+varargs mixed query_magic_protection(string prop, object protectee = previous_object())
 {
     if (protectee == this_object())
         return query_prop(prop);
@@ -1718,8 +1701,7 @@ item_id(string str)
  *                mixed desc: desc of the item (string or VBFC)
  * Returns:       True or false.
  */
-public int
-add_item(mixed names, mixed desc)
+public int add_item(mixed names, mixed desc)
 {
     if (query_prop(ROOM_I_NO_EXTRA_ITEM))
         return 0;
@@ -1731,6 +1713,7 @@ add_item(mixed names, mixed desc)
         obj_items = obj_items + ({ ({ names, desc }) });
     else
         obj_items = ({ ({ names, desc }) });
+    return 1;
 }
 
 /*
@@ -1828,7 +1811,7 @@ cmditem_action(string str)
         return 0;
 
     verb = query_verb();
-    notify_fail(capitalize(verb) + " what?\n", 0);
+    notify_fail(capitalize(verb) + " what?\n");
     if (!str)
         return 0;
 
@@ -1884,7 +1867,7 @@ add_cmd_item(mixed names, string *cmd_arr, mixed desc_arr)
         names = ({ names });
 
     if (!pointerp(cmd_arr))
-        cmd_arr = ({ cmd_arr });
+        cmd_arr = to_array(cmd_arr);
 
     if (!pointerp(desc_arr))
         desc_arr = ({ desc_arr });
@@ -1899,6 +1882,8 @@ add_cmd_item(mixed names, string *cmd_arr, mixed desc_arr)
 
     if (sizeof(cmd_arr))
         obj_commands = obj_commands + (cmd_arr - obj_commands);
+
+    return 1;
 }
 
 /*
@@ -2010,17 +1995,17 @@ set_trusted(int arg)
         return;
 
     if ((geteuid(cobj) != getuid()) &&
-        (geteuid(cobj) != SECURITY->query_domain_lord(getuid())) &&
-        (SECURITY->query_wiz_rank(geteuid(cobj)) < WIZ_ARCH) &&
+        (geteuid(cobj) != ({string}) SECURITY->query_domain_lord(getuid())) &&
+        (({int}) SECURITY->query_wiz_rank(geteuid(cobj)) < WIZ_ARCH) &&
         (geteuid(cobj) != ROOT_UID))
     {
         return;
     }
 
     if (arg)
-        seteuid(getuid(this_object()));
+        configure_object(this_object(), OC_EUID, geteuid(this_object()));
     else
-        seteuid(0);
+        configure_object(this_object(), OC_EUID, 0);
 }
 
 /*
@@ -2101,20 +2086,19 @@ linkdeath_hook(object player, int linkdeath)
  *                of this object.
  * Arguments:     num - use this number instead of skill if given.
  */
-public string
-appraise_value(int num)
+public string appraise_value(int num)
 {
     int value, skill, seed;
 
     if (!num)
-        skill = this_player()->query_skill(SS_APPR_VAL);
+        skill = ({int}) this_player()->query_skill(SS_APPR_VAL);
     else
         skill = num;
 
     skill = 1000 / (skill + 1);
     value = query_prop(OBJ_I_VALUE);
     sscanf(OB_NUM(this_object()), "%d", seed);
-    skill = random(skill, seed);
+    skill = random(skill);
     value = cut_sig_fig(value + (skill % 2 ? -skill % 70 : skill) *
         value / 100);
 
@@ -2127,20 +2111,19 @@ appraise_value(int num)
  *                of this object.
  * Arguments:     num - use this number instead of skill if given.
  */
-public string
-appraise_weight(int num)
+public string appraise_weight(int num)
 {
     int value, skill, seed;
 
     if (!num)
-        skill = this_player()->query_skill(SS_APPR_OBJ);
+        skill = ({int}) this_player()->query_skill(SS_APPR_OBJ);
     else
         skill = num;
 
     skill = 1000 / (skill + 1);
     value = query_prop(OBJ_I_WEIGHT);
     sscanf(OB_NUM(this_object()), "%d", seed);
-    skill = random(skill, seed);
+    skill = random(skill);
     value = cut_sig_fig(value + (skill % 2 ? -skill % 70 : skill) *
         value / 100);
 
@@ -2156,20 +2139,19 @@ appraise_weight(int num)
  *                of this object.
  * Arguments:     num - use this number instead of skill if given.
  */
-public string
-appraise_volume(int num)
+public string appraise_volume(int num)
 {
     int value, skill, seed;
 
     if (!num)
-        skill = this_player()->query_skill(SS_APPR_OBJ);
+        skill = ({int}) this_player()->query_skill(SS_APPR_OBJ);
     else
         skill = num;
 
     skill = 1000 / (skill + 1);
     value = query_prop(OBJ_I_VOLUME);
     sscanf(OB_NUM(this_object()), "%d", seed);
-    skill = random(skill, seed);
+    skill = random(skill);
     value = cut_sig_fig(value + (skill % 2 ? -skill % 70 : skill) *
         value / 100);
 
@@ -2218,14 +2200,14 @@ appraise_object(int num)
         " and you guess its volume is about " + appraise_volume(num) +
         ". You estimate its worth to " + appraise_value(num) + "." +
         appraise_light(num));
-    if (this_object()->check_recoverable() == 1)
+    if (({int}) this_object()->check_recoverable() == 1)
     {
         write(" " + capitalize(LANG_THESHORT(this_object())) +
             " seems to be able to last a while.");
     }
-    if (this_object()->query_keepable())
+    if (({int}) this_object()->query_keepable())
     {
-        write(this_object()->appraise_keep(num));
+        write(({string}) this_object()->appraise_keep(num));
     }
     write("\n");
 }
@@ -2247,13 +2229,13 @@ check_recoverable(int flag)
     /* Armours and weapons have a chance to fail on recovery.
      */
     if (!flag &&
-        this_object()->may_not_recover())
+        ({int}) this_object()->may_not_recover())
     {
         return 0;
     }
 
     /* Check for recover string */
-    str = (string)this_object()->query_recover();
+    str = ({string}) this_object()->query_recover();
     if (sizeof(str) > 0)
     {
         if (sscanf(str, "%s:%s", path, arg) != 2)
@@ -2289,8 +2271,7 @@ query_value()
  * Description:   Perform the search now.
  * Arguments:     arr - An array consisting of ({ searcher, str })
  */
-void
-search_now(mixed *arr)
+void search_now(object searcher, string str)
 {
     string fun;
     string hidden = "";
@@ -2298,15 +2279,15 @@ search_now(mixed *arr)
 
     if (query_prop(ROOM_I_IS))
     {
-        if (CAN_SEE_IN_ROOM(arr[0]))
+        if (CAN_SEE_IN_ROOM(searcher))
         {
-            found = all_inventory(this_object()) - ({ arr[0] });
-            found = filter(found, &search_hidden(, arr[0]));
+            found = all_inventory(this_object()) - ({ searcher });
+            found = filter(found, #'search_hidden, searcher);
 
             if (sizeof(found))
             {
-                dead = filter(found, &is_live_dead(, 0));
-                live = filter(found, &is_live_dead(, 1));
+                dead = filter(found, #'is_live_dead, 0);
+                live = filter(found, #'is_live_dead, 1);
             }
 
             if (sizeof(dead))
@@ -2325,11 +2306,10 @@ search_now(mixed *arr)
 
             if (sizeof(hidden))
             {
-                tell_object(arr[0], "You find " + hidden + ".\n");
-                tell_room(environment(arr[0]), QCTNAME(arr[0]) + " finds " +
-                    hidden + ".\n", ( ({ arr[0] }) + live));
-                live->catch_tell(arr[0]->query_The_name(live) +
-                    " finds you.\n");
+                tell_object(searcher, "You find " + hidden + ".\n");
+                tell_room(environment(searcher), QCTNAME(searcher) + " finds " +
+                    hidden + ".\n", ( ({ searcher }) + live));
+                live->catch_tell(({string}) searcher->query_The_name(live) + " finds you.\n");
             }
         }
     }
@@ -2337,18 +2317,18 @@ search_now(mixed *arr)
     fun = query_prop(OBJ_S_SEARCH_FUN);
     if (fun)
     {
-        fun = call_other(this_object(), fun, arr[0], arr[1]);
+        fun = ({string}) call_other(this_object(), fun, searcher, str);
     }
 
     if (sizeof(fun))
     {
-        tell_object(arr[0], fun);
+        tell_object(searcher, fun);
     }
     else if (!sizeof(found))
     {
-        tell_object(arr[0], "Your search reveals nothing special.\n");
+        tell_object(searcher, "Your search reveals nothing special.\n");
     }
-    present(SEARCH_PARALYZE, arr[0])->remove_object();
+    present(SEARCH_PARALYZE, searcher)->remove_object();
 }
 
 /*
@@ -2364,21 +2344,19 @@ search_now(mixed *arr)
  * Returns      : int 1/0 - living/dead if "what" is 1, dead/living if
  *                          "what" is 0.
  */
-int
-is_live_dead(object obj, int what)
+int is_live_dead(object obj, int what)
 {
     return (living(obj) == what);
 }
 
-int
-search_hidden(object obj, object who)
+int search_hidden(object obj, object who)
 {
-    if (!obj->query_prop(OBJ_I_HIDE))
+    if (!({int}) obj->query_prop(OBJ_I_HIDE))
     {
         return 0;
     }
 
-    if (who && !who->query_wiz_level() && !CAN_SEE(who, obj))
+    if (who && !({int}) who->query_wiz_level() && !CAN_SEE(who, obj))
     {
         return 0;
     }
@@ -2402,12 +2380,12 @@ search_object(string str)
 
     if (time < 1)
     {
-        search_now(({ this_player(), str }));
+        search_now(this_player(), str);
     }
     else
     {
-        set_alarm((float) time, 0.0, &search_now( ({ this_player(), str }) ));
-        seteuid(getuid(this_object()));
+        call_out(#'search_now, time, this_player(), str );
+        configure_object(this_object(), OC_EUID, geteuid(this_object()));
         obj = clone_object("/std/paralyze");
         if (query_prop(ROOM_I_IS))
             obj->set_standard_paralyze("searching");
@@ -2432,21 +2410,14 @@ search_object(string str)
 varargs int
 stop_search(mixed arg)
 {
-    mixed *calls = get_all_alarms();
+    mixed call;
     int i, s;
 
-    for (i = 0, s = sizeof(calls); i < s; i++)
-    {
-        if (calls[i][1] == "search_now")
+    call = find_call_out("search_now");
+        if (call[3] == this_player())
         {
-            /* This fourth level of indirection is necessary because the
-             * argument to search_now() is an array, not a direct arg. */
-            if (calls[i][4][0][0] == this_player())
-            {
-                remove_alarm(calls[i][0]);
-            }
+            remove_call_out("search_now");
         }
-    }
     return 0;
 }
 
@@ -2463,7 +2434,7 @@ stat_object()
     mixed tmp;
 
     str = "File: " + object_name(this_object()) + ", Creator: " +
-        creator(this_object()) + ", Uid: " + getuid(this_object()) +
+        getuid(this_object()) + ", Uid: " + getuid(this_object()) +
         ", Euid: " + geteuid(this_object()) + "\n";
     if (tstr = query_prop(OBJ_S_WIZINFO))
         str += "Special info:\n\t" + tstr;
@@ -2492,8 +2463,8 @@ stat_object()
         tstr += "no_show\t";
     if (!query_no_show() && query_no_show_composite())
         tstr += "no_show_composite\t";
-    if ((this_object()->query_recover()) &&
-        (!(this_object()->may_not_recover())))
+    if ((({string}) this_object()->query_recover()) &&
+        (!(({int}) this_object()->may_not_recover())))
         tstr += "recoverable";
     if (sizeof(tstr))
         str += tstr + "\n";
@@ -2509,7 +2480,7 @@ stat_object()
 mixed
 query_alarms()
 {
-    return get_all_alarms();
+    return call_out_info();
 }
 
 /*
@@ -2525,6 +2496,6 @@ init()
 
     while(--index >= 0)
     {
-        add_action(cmditem_action, obj_commands[index]);
+        add_action(#'cmditem_action, obj_commands[index]);
     }
 }

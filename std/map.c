@@ -1,4 +1,4 @@
-#pragma save_binary
+
 
 inherit "/std/map/map";
 

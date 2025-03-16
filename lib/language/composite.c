@@ -179,7 +179,7 @@ desc_same(object *oblist, object for_obj)
 	    return 0;
 	}
 
-	pshort = (string)ob->plural_short(for_obj);
+	pshort = ({string})ob->plural_short(for_obj);
 
 	if (!stringp(pshort) && !stringp(sshort))
 	{

@@ -5,7 +5,7 @@
  */
 
 
-inherit "/cmd/std/command_driver";
+inherit "/std/command_driver";
 
 #include <filepath.h>
 #include <language.h>

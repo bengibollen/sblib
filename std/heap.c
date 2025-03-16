@@ -4,7 +4,7 @@
  * This is a heap object for things like coins, matches and such stuff.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";
@@ -588,7 +588,7 @@ count(string str)
     }
 
     intg = this_player()->query_stat(SS_INT);
-    delay = 60.0 / itof(intg);
+    delay = 60.0 / to_float(intg);
     /* count_arg contains interval, coins per count and total so far */
     count_alarm = set_alarm(delay, 0.0, &count_up(delay, 5 * (intg / 10 + 1), 0));
     add_action(stop, "", 1);

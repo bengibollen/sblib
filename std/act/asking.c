@@ -4,7 +4,7 @@
  * A simple support for helping answering questions.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 #include <macros.h>

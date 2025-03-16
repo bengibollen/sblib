@@ -10,7 +10,7 @@
 #ifndef LD_DEFINED
 #define LD_DEFINED
 
-#include "/config/sys/living_desc2.h"
+#include "/conf/sys/living_desc2.h"
 
 #define LD_SAYS 		" says: "
 #define LD_UNDERSTANDS(str)     (str)
@@ -23,7 +23,7 @@
 
 #define LD_APPRAISE(w, v)	"You appraise that the weight is " + 	\
   				w + " and you guess " + \
-				this_object()->query_possessive() + \
+				  ({string}) this_object()->query_possessive() + \
 				" volume is about " \
   				+ v + ".\n"
 
@@ -32,7 +32,7 @@
   				"No spell will be cast.\n"
 
 /* Day / Night things */
-#define LD_IS_NIGHT(o)		"It's Night.\n" + o->short() + ".\n"
+#define LD_IS_NIGHT(o)		"It's Night.\n" + ({string}) o->short() + ".\n"
 
 /* combat */
 #define LD_FIGHT1(c)		c + (c != "you" ? " is" : " are")
@@ -40,7 +40,7 @@
   				" and " + cl[sizeof(ctants)-1] + " are"
 
 #define LD_FIGHT_DESC(tx, o)	capitalize(tx) + " fighting " +		\
-		  		o->query_the_name(this_object()) + ".\n"
+			({string}) o->query_the_name(this_object()) + ".\n"
 
 /* leftovers */
 #define LD_BONES  ({ "skull", "thighbone", "kneecap", "rib" })
@@ -64,20 +64,20 @@
 
 /* longdesc */
 #define LD_PRESENT_YOU(o)	"You are " + 				\
-  				LANG_ADDART(o->query_nonmet_name()) + 	\
+  				LANG_ADDART(({string}) o->query_nonmet_name()) + 	\
                                 ", presenting yourself as:\n" +		\
-				o->query_presentation() + ".\n"
+								({string}) o->query_presentation() + ".\n"
 
-#define LD_PRESENT_TO(o)	o->query_name() + " is " + 		\
-  				LANG_ADDART(o->query_nonmet_name()) + 	\
+#define LD_PRESENT_TO(o)	({string}) o->query_name() + " is " + 		\
+  				LANG_ADDART(({string}) o->query_nonmet_name()) + 	\
   				", presenting " + 			\
-  				o->query_objective() + "self as:\n" +	\
-				o->query_presentation() + ".\n"
+  				({string}) o->query_objective() + "self as:\n" +	\
+				  ({string}) o->query_presentation() + ".\n"
 
 #define LD_NONMET_GHOST(o)	"It is " + 				\
-				LANG_ADDART(o->query_nonmet_name()) + "\n"
+				LANG_ADDART(({string}) o->query_nonmet_name()) + "\n"
 
-#define LD_MET_GHOST(o)		"It is the " + o->query_name() + "\n"
+#define LD_MET_GHOST(o)		"It is the " + ({string}) o->query_name() + "\n"
 
 /* drink_eat.c */
 #define LD_NOTICE_HEADACHE	"You notice that you have " + \

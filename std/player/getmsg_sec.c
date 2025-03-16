@@ -36,7 +36,7 @@ query_met(mixed name)
     return 1;
 #else
     if (objectp(name))
-	str = (string) name->query_real_name();
+	str = ({string}) name->query_real_name();
     else if (stringp(name))
     {
        	str = name;
@@ -102,7 +102,7 @@ remove_introduced(string str)
     if (!introduced_name[str])
         return 0;
 
-    m_delkey(introduced_name, str);
+    m_delete(introduced_name, str);
     return 1;
 }
 

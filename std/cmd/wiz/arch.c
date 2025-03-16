@@ -35,7 +35,7 @@
 #pragma no_inherit
 #pragma strict_types
 
-inherit "/cmd/std/command_driver";
+inherit "/std/command_driver";
 
 #include <adverbs.h>
 #include <composite.h>

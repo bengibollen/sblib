@@ -300,7 +300,7 @@
  *
  * The array of sould that all mobiles should have
  */
-#define NPC_SOULS ({ "/cmd/std/soul_cmd", "/cmd/std/misc_cmd" })
+#define NPC_SOULS ({ "/std/cmd/std/soul_cmd", "/std/cmd/std/misc_cmd" })
 
 /*
  * MAX_IDLE_TIME

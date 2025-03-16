@@ -29,7 +29,7 @@
  *   }
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 #include <filter_funs.h>

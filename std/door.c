@@ -168,7 +168,7 @@
  * 80 liters. The height of the standard door is 2 meters.
  *
  */
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";

@@ -8,7 +8,7 @@
  */
 
 #pragma strict_types
-#pragma save_binary
+
 
 inherit "/std/launch_weapon";
 inherit "/lib/keep";

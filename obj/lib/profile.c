@@ -4,7 +4,7 @@
  * this file as necessary.  A call to start_profiling() is required
  * in the objects constructor.
  */
-#pragma save_binary
+
 #pragma strict_types
 
 #ifdef  DO_PROFILE

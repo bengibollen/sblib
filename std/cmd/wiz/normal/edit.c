@@ -16,9 +16,9 @@
 #include <options.h>
 #include <std.h>
 
-#define EXEC_DONE	("exec_done_editing")
+//#define EXEC_DONE	("exec_done_editing")
 #define PAD_DONE	("pad_done_editing")
-#define REOPEN_SOUL	("reopen_soul")
+// #define REOPEN_SOUL	("reopen_soul")
 
 #define WIZARD_S_PAD_MESSAGE ("_wizard_s_pad_message")
 
@@ -194,18 +194,18 @@ exec_write(string str)
  * Description  : When the euid of this object has been set to the euid
  *                of the wizard again, we can execute the lines.
  */
-public nomask void
-exec_done_editing_reloaded()
-{
-    if ((previous_object() != this_interactive()) ||
-	(calling_function() != REOPEN_SOUL))
-    {
-	write("Illegal call to exec_done_editing_reloaded().\n");
-	return;
-    }
+// public nomask void
+// exec_done_editing_reloaded()
+// {
+//     if ((previous_object() != this_interactive()) ||
+// 	(calling_function() != REOPEN_SOUL))
+//     {
+// 	write("Illegal call to exec_done_editing_reloaded().\n");
+// 	return;
+//     }
 
-    exec_write(exec_code[this_interactive()->query_real_name()]);
-}
+//     exec_write(exec_code[this_interactive()->query_real_name()]);
+// }
 
 /*
  * Function name: exec_done_editing
@@ -215,18 +215,18 @@ exec_done_editing_reloaded()
  *                and then execute the stuff.
  * Arguments    : string str - the
  */
-public nomask void
-exec_done_editing(string str)
-{
-    if (MASTER_OB(previous_object()) != EDITOR_OBJECT)
-    {
-	write("Illegal call to exec_done_editing().\n");
-	return;
-    }
+// public nomask void
+// exec_done_editing(string str)
+// {
+//     if (MASTER_OB(previous_object()) != EDITOR_OBJECT)
+//     {
+// 	write("Illegal call to exec_done_editing().\n");
+// 	return;
+//     }
 
-    exec_code[this_interactive()->query_real_name()] = str;
-    call_other(this_interactive(), REOPEN_SOUL);
-}
+//     exec_code[this_interactive()->query_real_name()] = str;
+//     call_other(this_interactive(), REOPEN_SOUL);
+// }
 
 nomask int
 exec_code(string str)

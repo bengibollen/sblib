@@ -13,8 +13,7 @@ public mixed query_weapon(int which);
  * Function name: wield_reset
  * Description:   initialize the wield routines
  */
-static nomask void
-wield_reset()
+static nomask void wield_reset()
 {
     add_subloc(SUBLOC_WIELD, this_object());
 }
@@ -25,8 +24,7 @@ wield_reset()
  * Arguments:     object for_obj - the onlooker
  * Returns:       A string describing the worn items
  */
-public string
-show_wielded(object for_obj)
+public string show_wielded(object for_obj)
 {
     mixed *a;
     string str, p, pr;
@@ -40,8 +38,8 @@ show_wielded(object for_obj)
 
     if (for_obj != this_object())
     {
-        p = this_object()->query_possessive();
-        pr = capitalize(this_object()->query_pronoun()) + " is";
+        p = ({string}) this_object()->query_possessive();
+        pr = capitalize(({string}) this_object()->query_pronoun()) + " is";
     }
     else
     {
@@ -49,11 +47,11 @@ show_wielded(object for_obj)
         pr = "You are";
     }
 
-    a = map(a, &->query_wield_desc(p)) - ({ 0 });
+    a = map(a, (: ({string}) $1->query_wield_desc(p) :)) - ({ 0 });
 
     /* Only use table form when displaying inventory. */
-    if (for_obj->query_option(OPT_TABLE_INVENTORY) &&
-        for_obj->query_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS))
+    if (({int}) for_obj->query_option(OPT_TABLE_INVENTORY) &&
+        ({int}) for_obj->query_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS))
     {
         return HANGING_INDENT("Wielded : " + COMPOSITE_WORDS(a), 10, 0);
     }
@@ -71,8 +69,7 @@ show_wielded(object for_obj)
  * Returns:       string - error message (weapon not wielded)
  *                1 - successs (weapon wielded)
  */
-public mixed
-wield(object weapon)
+public mixed wield(object weapon)
 {
     mixed val;
 
@@ -81,7 +78,7 @@ wield(object weapon)
         return val;
     }
 
-    if (weapon->move(this_object(), SUBLOC_WIELD))
+    if (({int}) weapon->move(this_object(), SUBLOC_WIELD))
     {
         clear_tool_slots(weapon);
         return "You cannot wield this weapon for some strange reason.\n";
@@ -89,7 +86,7 @@ wield(object weapon)
 
     combat_reload();
 
-    if (stringp(val = query_combat_object()->cb_wield_weapon(weapon)))
+    if (stringp(val = ({string}) query_combat_object()->cb_wield_weapon(weapon)))
     {
         clear_tool_slots(weapon);
         weapon->move(this_object());
@@ -104,8 +101,7 @@ wield(object weapon)
  * Description:   Unwield a weapon
  * Arguments:     The weapon to unwield
  */
-public void
-unwield(object weapon)
+public void unwield(object weapon)
 {
     /* We do this to remove the weapon from the wielded-subloc. */
     if (environment(weapon) == this_object())
@@ -120,10 +116,9 @@ unwield(object weapon)
     query_combat_object()->cb_unwield(weapon);
 }
 
-static int
-check_weapon_object(object wep)
+static int check_weapon_object(object wep)
 {
-    return (wep->check_weapon());
+    return (({int}) wep->check_weapon());
 }
 
 /*
@@ -136,18 +131,17 @@ check_weapon_object(object wep)
  * Returns      : object   - the corresponding weapon or 0.
  *                object * - all weapons in an array for which == -1.
  */
-public mixed
-query_weapon(int which)
+public mixed query_weapon(int which)
 {
     object weapon;
 
     if (which == -1)
     {
-        return filter(query_tool(-1), check_weapon_object);
+        return filter(query_tool(-1), #'check_weapon_object);
     }
 
     if ((weapon = query_tool(which)) &&
-        (weapon->query_attack_id() == which) &&
+        (({int}) weapon->query_attack_id() == which) &&
         check_weapon_object(weapon))
     {
         return weapon;

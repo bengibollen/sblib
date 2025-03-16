@@ -1,5 +1,5 @@
 /*
- * /cmd/std/command_driver.c
+ * /std/command_driver.c
  *
  * These routines handles the actual finding and execution of commands.
  * It is called from cmdhooks.c in the living object that performs the
@@ -11,6 +11,8 @@
 
 inherit "/lib/commands";
 inherit "/std/callout";
+
+#include <log.c>
 
 #include <std.h>
 

@@ -4,7 +4,7 @@
  * The standard torch code.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";
@@ -109,7 +109,7 @@ torch_value()
     	return 0;
 
     if (Burn_Alarm && sizeof(get_alarm(Burn_Alarm)))
-	v = ftoi(get_alarm(Burn_Alarm)[2]);
+	v = to_int(get_alarm(Burn_Alarm)[2]);
     else
 	v = Time_Left;
 
@@ -225,7 +225,7 @@ query_time(int flag = 0)
     mixed   alarm;
 
     if (flag && Burn_Alarm && sizeof(alarm = get_alarm(Burn_Alarm)))
-	return ftoi(alarm[2]);
+	return to_int(alarm[2]);
     return Time_Left;
 }
 
@@ -262,7 +262,7 @@ set_time_left(int left)
     if (Burn_Alarm)
     {
 	remove_alarm(Burn_Alarm);
-	Burn_Alarm = set_alarm(itof(Time_Left), 0.0, burned_out);
+	Burn_Alarm = set_alarm(to_float(Time_Left), 0.0, burned_out);
     }
 }
 
@@ -326,7 +326,7 @@ light_me_after_delay()
     remove_prop(TEMP_STDTORCH_CHECKED);
     add_prop(OBJ_I_LIGHT, Light_Strength);
     add_prop(OBJ_I_HAS_FIRE, 1);
-    Burn_Alarm = set_alarm(itof(Time_Left), 0.0, burned_out);
+    Burn_Alarm = set_alarm(to_float(Time_Left), 0.0, burned_out);
     return 1;
 }
 
@@ -413,7 +413,7 @@ extinguish_me()
 
     if (sizeof(alarm = get_alarm(Burn_Alarm)))
     {
-	Time_Left = ftoi(get_alarm(Burn_Alarm)[2]);
+	Time_Left = to_int(get_alarm(Burn_Alarm)[2]);
 	remove_alarm(Burn_Alarm);
     }
 
@@ -568,7 +568,7 @@ query_torch_recover()
 
     if (Burn_Alarm && sizeof(get_alarm(Burn_Alarm)))
     {
-	tmp = ftoi(get_alarm(Burn_Alarm)[2]);
+	tmp = to_int(get_alarm(Burn_Alarm)[2]);
     }
     else
     {
@@ -596,7 +596,7 @@ init_torch_recover(string arg)
     {
 	add_prop(OBJ_I_LIGHT, tmp);
 	add_prop(OBJ_I_HAS_FIRE, 1);
-	Burn_Alarm = set_alarm(itof(Time_Left), 0.0, burned_out);
+	Burn_Alarm = set_alarm(to_float(Time_Left), 0.0, burned_out);
     }
 }
 

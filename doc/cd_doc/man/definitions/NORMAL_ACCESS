@@ -15,6 +15,6 @@
  *            An array holding all objects satisfying arr[0] and acsfunc.
  */
 #define NORMAL_ACCESS(arr, acsfunc, acsobj) \
-  (object *)call_other(CMDPARSE_STD, "normal_access", arr, acsfunc, acsobj)
+  ({object *})call_other(CMDPARSE_STD, "normal_access", arr, acsfunc, acsobj)
 
 See also: PARSE_COMMAND and PARSE_COMMAND_ONE

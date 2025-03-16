@@ -205,7 +205,7 @@ check_so_junior()
 	return 0;
     }
 
-    if (sscanf((string)this_player()->query_real_name(), "%sjr", name) != 1)
+    if (sscanf(({string})this_player()->query_real_name(), "%sjr", name) != 1)
     {
 	/* Should never happen! */
 	remove_object();
@@ -584,7 +584,7 @@ home(string str)
 	    }
 	}
 
-	str = (string)SECURITY->wiz_home(str);
+	str = ({string})SECURITY->wiz_home(str);
     }
 
     if (this_player()->move_living("X", str))
@@ -702,12 +702,12 @@ show_stat(object ob, int what)
 
 /*
     if (what & STAT_PLAYER)
-	str += (string)ob->stat_playervars();
+	str += ({string})ob->stat_playervars();
  */
     if (what & STAT_LIVING)
-	str += (string)ob->stat_living();
+	str += ({string})ob->stat_living();
     if (what & STAT_OBJECT)
-	str += (string)ob->stat_object();
+	str += ({string})ob->stat_object();
 
     write(str);
     return 1;

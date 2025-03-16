@@ -31,7 +31,7 @@
  * Weapons recover by default.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";
@@ -1392,8 +1392,7 @@ did_parry(object att, int aid, int dt)
  * Description  : This function will be true if the weapon may not recover.
  * Returns      : int - 1 - no recovery, 0 - recovery.
  */
-nomask int
-may_not_recover()
+nomask int may_not_recover()
 {
     return will_not_recover;
 }

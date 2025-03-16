@@ -12,7 +12,7 @@
  *      is kept for backwards compatibility. It can be queried using
  *      function query_alco_strength().
  */
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";

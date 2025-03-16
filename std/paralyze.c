@@ -63,7 +63,7 @@ init()
 
     if (remove_time)
     {
-        set_alarm(itof(remove_time), 0.0, stop_paralyze);
+        set_alarm(to_float(remove_time), 0.0, stop_paralyze);
     }
 
     add_action(stop, "", 1);

@@ -6,7 +6,7 @@
  */
 
 #pragma no_inherit
-#pragma save_binary
+
 #pragma strict_types
 
 #include <macros.h>
@@ -252,7 +252,7 @@ query_prevent_shadow()
 public string
 query_possessed()
 {
-    return (string)possessed->query_real_name();
+    return ({string})possessed->query_real_name();
 }
 
 /*

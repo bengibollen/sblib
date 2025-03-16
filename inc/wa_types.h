@@ -194,6 +194,6 @@
 #define A_MAX_AC    ({ 100, 100, 100, 100, 100, 100, 100, 100, \
 		       100, 100, 100, 100, 100, 100, 100, 100 })
 
-#include "/config/sys/wa_types2.h"
+#include "/conf/sys/wa_types2.h"
 
 #endif

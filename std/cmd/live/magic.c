@@ -13,7 +13,7 @@
 #pragma strict_types
 #pragma no_shadow
 
-inherit "/cmd/std/command_driver";
+inherit "/std/command_driver";
 
 nomask mapping
 query_cmdlist()

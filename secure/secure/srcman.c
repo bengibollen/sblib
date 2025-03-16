@@ -4,7 +4,7 @@
  * Handle search requests in source documentation.
  */
 #pragma strict_types
-#pragma save_binary
+
 
 #include <macros.h>
 #include <std.h>
@@ -122,7 +122,7 @@ init_docdir(string mdir)
     if (m_sizeof(docdirs) >= MAXLOCAL_DIRS)
     {
 	stmp = m_indexes(docdirs)[random(m_sizeof(docdirs) - 1) + 1];
-	m_delkey(docdirs, stmp);
+	m_delete(docdirs, stmp);
     }
 
     sdirs = read_index(mdir);

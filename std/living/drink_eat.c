@@ -15,8 +15,7 @@
  *			function from the property: LIVE_I_MAX_INTOX
  * Returns:		Max intoxication level.
  */
-int
-intoxicated_max()
+int intoxicated_max()
 {
     return query_stat(SS_CON) * 2;
 }
@@ -27,8 +26,7 @@ intoxicated_max()
  *			function from the property: LIVE_I_MIN_INTOX
  * Returns:		Min intoxication level.
  */
-int
-intoxicated_min()
+int intoxicated_min()
 {
     return -query_stat(SS_CON);
 }
@@ -39,8 +37,7 @@ intoxicated_min()
  *			function from the property: LIVE_I_MAX_DRINK
  * Returns:		Max liquid level.
  */
-int
-drink_max()
+int drink_max()
 {
       return 500 + query_stat(SS_CON) * 100;    /* 0.5 - Max 10.5 litres */
 }
@@ -51,8 +48,7 @@ drink_max()
  *			function from the property: LIVE_I_MAX_EAT
  * Returns:		Max food level.
  */
-int
-eat_max()
+int eat_max()
 {
       /* A newbie with CON 10 will be fully stuffed from eating 400g of food */
       return 100 + query_stat(SS_CON) * 30;  /* 0.1 - 3.1kg */
@@ -62,13 +58,12 @@ eat_max()
  * Function name: 	drink_eat_reset
  * Description:   	Initializes the drink / food routines
  */
-static void
-drink_eat_reset()
+static void drink_eat_reset()
 {
-    add_prop(LIVE_I_MAX_INTOX, intoxicated_max);
-    add_prop(LIVE_I_MIN_INTOX, intoxicated_min);
-    add_prop(LIVE_I_MAX_DRINK, drink_max);
-    add_prop(LIVE_I_MAX_EAT,   eat_max);
+    add_prop(LIVE_I_MAX_INTOX, intoxicated_max());
+    add_prop(LIVE_I_MIN_INTOX, intoxicated_min());
+    add_prop(LIVE_I_MAX_DRINK, drink_max());
+    add_prop(LIVE_I_MAX_EAT,   eat_max());
 }
 
 /*

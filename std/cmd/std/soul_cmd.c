@@ -20,7 +20,7 @@
 #pragma no_clone
 #pragma strict_types
 
-inherit "/cmd/std/command_driver";
+inherit "/std/command_driver";
 
 #include <adverbs.h>
 #include <cmdparse.h>

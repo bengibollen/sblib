@@ -586,7 +586,7 @@ guild_command(string str)
 		return 0;
 	    }
 
-	    args = exclude_array(args, 1, 1);
+	    args[1] = ({});
 	    num_args--;
 	    break;
 
@@ -999,7 +999,7 @@ guild_command(string str)
 	    case WIZ_ARCH:
 	    case WIZ_KEEPER:
 		/* Remove the entry, save the master and give feedback. */
-		m_delkey(guilds, guild);
+		m_delete(guilds, guild);
 		save_master();
                 update_guild_cache();
 

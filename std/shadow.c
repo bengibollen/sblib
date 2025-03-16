@@ -4,7 +4,7 @@
  * This is a generic shadow object.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 #include "/sys/macros.h"

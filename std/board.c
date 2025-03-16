@@ -57,7 +57,7 @@
  * During display, the rank length is abbreviated to 7 characters.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";
@@ -934,7 +934,7 @@ done_editing(string message)
           !this_player()->query_prop(OBJ_I_INVIS))
 	    say(QCTNAME(this_player()) + " quits writing a note.\n");
 
-	m_delkey(writing, this_player());
+	m_delete(writing, this_player());
 	return 0;
     }
 
@@ -948,7 +948,7 @@ done_editing(string message)
     head = writing[this_player()][..MAX_HEADER_LENGTH] + sprintf("%3d ",
 	sizeof(explode(message, "\n"))) +
 	writing[this_player()][AUTHOR_BEGIN..];
-    m_delkey(writing, this_player());
+    m_delete(writing, this_player());
 
     post_note(head, message);
 

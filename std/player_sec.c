@@ -205,7 +205,7 @@ query_decay_skill(mixed list, int skill)
     sk = (sizeof(SS_SKILL_DESC[skill]) ? SS_SKILL_DESC[skill][4] : 0);
     sklist += ({ ((sk > MIN_SKILL_LEVEL) ? sk : MIN_SKILL_LEVEL) });
 
-    maximum = applyv(max, sklist);
+    maximum = max(sklist);
 
     return (query_base_skill(skill) > maximum);
 }

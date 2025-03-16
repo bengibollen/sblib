@@ -4,7 +4,7 @@
  * Support for herbs that is used for potions as well.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 #include <files.h>

@@ -73,7 +73,7 @@ do_die(object killer)
 	killer = previous_object();
     }
 
-    if (sscanf((string)query_shadow_who()->query_real_name(),
+    if (sscanf(({string})query_shadow_who()->query_real_name(),
 	"%sjr", name) != 1)
     {
 	illegal_shadow_use();
@@ -143,7 +143,7 @@ shadow_me(object player)
 {
     string name;
 
-    if (sscanf((string)player->query_real_name(), "%sjr", name) != 1)
+    if (sscanf(({string})player->query_real_name(), "%sjr", name) != 1)
     {
 	tell_object(player,
 	    "ACK! You should have never gotten this shadow!\n");

@@ -95,10 +95,10 @@
  * MONEY_WCOL_TEXT will do the same, but with an arbitrary column width.
  * The array must be ({ cc, sc, gc, pc })
  */
-#define MONEY_TEXT(arr)     ((string)MONEY_FN->money_text(arr))
-#define MONEY_TEXT_NUM(arr) ((string)MONEY_FN->money_text((arr), 1))
-#define MONEY_COL_TEXT(arr) ((string)MONEY_FN->money_col_text(arr, 2))
-#define MONEY_WCOL_TEXT(arr, width) ((string)MONEY_FN->money_col_text(arr, width))
+#define MONEY_TEXT(arr)     (({string})MONEY_FN->money_text(arr))
+#define MONEY_TEXT_NUM(arr) (({string})MONEY_FN->money_text((arr), 1))
+#define MONEY_COL_TEXT(arr) (({string})MONEY_FN->money_col_text(arr, 2))
+#define MONEY_WCOL_TEXT(arr, width) (({string})MONEY_FN->money_col_text(arr, width))
 
 /*
  * MONEY_TEXT_SPLIT returns a string describing the value of the coins
@@ -151,7 +151,7 @@
 #define MONEY_PARSE_OB(str, ob) MONEY_FN->parse_coins(str, ob)
 
 /* We include the file keeping the mud-specific coin types. */
-#include "/config/sys/money2.h"
+#include "/conf/sys/money2.h"
 
 /* No new definitions beyond this line. */
 #endif

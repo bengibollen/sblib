@@ -22,7 +22,7 @@
 #pragma no_inherit
 #pragma strict_types
 
-inherit "/cmd/std/command_driver";
+inherit "/std/command_driver";
 
 #include <adverbs.h>
 #include <cmdparse.h>
@@ -230,7 +230,7 @@ show_subloc_fights(object on, object for_obj)
     eob = (object)on->query_attack();
 
     return " fighting " + (eob == for_obj ? "you" :
-                           (string)eob->query_the_name(for_obj)) + ".\n";
+                           ({string})eob->query_the_name(for_obj)) + ".\n";
 }
 
 public string
@@ -1542,8 +1542,8 @@ show_stats(string str)
     write(start_be + LANG_ADDART(COMPOSITE_WORDS(stats)) +  " " + ob->query_nonmet_name() + ".\n");
 
     /* brutalfactor */
-    actual_brute = GET_NUM_DESC_SUB(ftoi(ob->query_brute_factor(0) * 1000.0), 1000, brute_fact, SD_STAT_DENOM, 2);
-    orig_brute = GET_NUM_DESC_SUB(ftoi(ob->query_brute_factor(1) * 1000.0), 1000, brute_fact, SD_STAT_DENOM, 2);
+    actual_brute = GET_NUM_DESC_SUB(to_int(ob->query_brute_factor(0) * 1000.0), 1000, brute_fact, SD_STAT_DENOM, 2);
+    orig_brute = GET_NUM_DESC_SUB(to_int(ob->query_brute_factor(1) * 1000.0), 1000, brute_fact, SD_STAT_DENOM, 2);
 
     write(start_be + actual_brute + ".\n");
     if (actual_brute != orig_brute)

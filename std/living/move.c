@@ -18,7 +18,7 @@
  * copies.
  * WARNING: Only query this mapping as move_opposites[x]; do not assign!
  */
-static private mapping move_opposites = SECURITY->query_move_opposites();
+static private mapping move_opposites = ({mapping}) SECURITY->query_move_opposites();
 
 /*
  * Function name: move_reset
@@ -79,7 +79,7 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
         if (!environment(this_object()))
         {
             tell_object(this_object(), "PANIC Move error: " + msg);
-            to_dest = this_object()->query_default_start_location();
+            to_dest = ({string}) this_object()->query_default_start_location();
             msg = LOAD_ERR(to_dest);
             to_dest = find_object(to_dest);
         }
@@ -92,7 +92,7 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
         }
     }
 
-    if (!to_dest->query_prop(ROOM_I_IS))
+    if (!({int}) to_dest->query_prop(ROOM_I_IS))
     {
         return 7;
     }
@@ -109,8 +109,8 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
     }
     else if (how == "X")
     {
-        msgin = this_object()->query_mm_in() + "\n";
-        msgout = this_object()->query_mm_out() + "\n";
+        msgin = ({string}) this_object()->query_mm_in() + "\n";
+        msgout = ({string}) this_object()->query_mm_out() + "\n";
 	/* When transing, the team does not follow. */
 	dont_follow = 1;
     }
@@ -118,17 +118,17 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
     {
         if (query_prop(LIVE_I_SNEAK))
         {
-            msgin = this_object()->query_m_in() + " sneaking";
-            msgout = this_object()->query_m_out() + " sneaking " + how + ".\n";
+            msgin = ({string}) this_object()->query_m_in() + " sneaking";
+            msgout = ({string}) this_object()->query_m_out() + " sneaking " + how + ".\n";
         }
         else
         {
-            msgin = this_object()->query_m_in();
-            msgout = this_object()->query_m_out() + " " + how + ".\n";
+            msgin = ({string}) this_object()->query_m_in();
+            msgout = ({string}) this_object()->query_m_out() + " " + how + ".\n";
         }
 
         if (sizeof(from_desc =
-            environment()->query_prop(ROOM_S_EXIT_FROM_DESC)))
+            ({string}) environment()->query_prop(ROOM_S_EXIT_FROM_DESC)))
         {
             msgin += " " + from_desc;
         }
@@ -161,9 +161,9 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
         this_object()->adjust_combat_on_move(1);
 
         /* Leave footprints. */
-        if (!env->query_prop(ROOM_I_INSIDE) &&
-            (env->query_prop(ROOM_I_TYPE) == ROOM_NORMAL) &&
-            !query_prop(LIVE_I_NO_FOOTPRINTS))
+        if (!({int}) env->query_prop(ROOM_I_INSIDE) &&
+            (({int}) env->query_prop(ROOM_I_TYPE) == ROOM_NORMAL) &&
+            !({int}) query_prop(LIVE_I_NO_FOOTPRINTS))
         {
             env->add_prop(ROOM_S_DIR, ({ how, query_race_name() }) );
         }
@@ -229,18 +229,18 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
     /* See is people were hunting us or if we were hunting people. */
     this_object()->adjust_combat_on_move(0);
 
-    dragged = filter(query_prop(TEMP_DRAGGED_ENEMIES), objectp);
+    dragged = filter(query_prop(TEMP_DRAGGED_ENEMIES), #'objectp);
     if (sizeof(dragged))
     {
 	foreach(object dragee: dragged)
         {
             tell_room(environment(dragee), QCTNAME(dragee) +
-                " leaves following " + QTNAME(this_object()) + ".\n", dragee);
+                " leaves following " + QTNAME(this_object()) + ".\n", ({dragee}));
             dragee->move_living("M", to_dest);
             tell_room(environment(dragee), QCTNAME(dragee) +
                 " arrives following " + QTNAME(this_object()) + ".\n",
                 ({ dragee, this_object() }) );
-            tell_object(this_object(), dragee->query_The_name(this_object()) +
+            tell_object(this_object(), ({string}) dragee->query_The_name(this_object()) +
                 " arrives following you.\n");
         }
         remove_prop(TEMP_DRAGGED_ENEMIES);
@@ -262,7 +262,7 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
                 com = "";
             }
         }
-        else if (com = env->query_dircmd())
+        else if (com = ({string}) env->query_dircmd())
         {
             com = vb + " " + com;
         }
@@ -276,7 +276,7 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
         while(++index < size)
         {
             if ((environment(team[index]) == env) &&
-                this_object()->check_seen(team[index]))
+                ({int}) this_object()->check_seen(team[index]))
             {
                 team[index]->follow_leader(com);
             }
@@ -357,13 +357,13 @@ reveal_me(int tellme)
         if (check_seen(list[index]))
         {
             tell_object(list[index],
-                this_object()->query_The_name(list[index]) +
+                ({string}) this_object()->query_The_name(list[index]) +
                 " decides to come out of hiding.\n");
         }
         else
         {
             tell_object(list[index], "You are startled to find " +
-                this_object()->query_art_name(list[index]) +
+                ({string}) this_object()->query_art_name(list[index]) +
                 " suddenly standing next to you!\n");
         }
     }

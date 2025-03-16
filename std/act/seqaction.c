@@ -28,7 +28,7 @@
   in the call to these VBFC functions (as it normally is).
 
 */
-#pragma save_binary
+
 #pragma strict_types
 
 #include <macros.h>
@@ -140,7 +140,7 @@ seq_heartbeat(int steps)
         for (il = 0 ; il < sizeof(calls) ; il++)
             if (calls[il][1] == "seq_heartbeat")
                 remove_alarm(calls[il][0]);
-        set_alarm(itof(newstep) * (SEQ_SLOW / 2.0 + rnd() * SEQ_SLOW), 0.0,
+        set_alarm(to_float(newstep) * (SEQ_SLOW / 2.0 + rnd() * SEQ_SLOW), 0.0,
                   &seq_heartbeat(newstep));
     }
 }

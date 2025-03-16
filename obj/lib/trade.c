@@ -184,7 +184,7 @@
 
 */
 #pragma strict_types
-#pragma save_binary
+
 
 #include "/sys/stdproperties.h"
 #include "/sys/macros.h"

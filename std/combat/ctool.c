@@ -9,7 +9,7 @@
   engaged in combat. The actual object resides in 'limbo'.
 */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/combat/cplain";

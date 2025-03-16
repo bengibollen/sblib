@@ -22,8 +22,7 @@
  * Description:	    Calculate the maximum weight this living can budge.
  * Returns:         The weight.
  */
-int
-max_weight()
+int max_weight()
 {
     return query_prop(CONT_I_WEIGHT) + (query_stat(SS_STR) + 10) * 1000;
 }
@@ -33,8 +32,7 @@ max_weight()
  * Description:	    Calculate the maximum volume this living can budge.
  * Returns:         The volume.
  */
-int
-max_volume()
+int max_volume()
 {
     return query_prop(CONT_I_VOLUME) + (query_stat(SS_STR) + 10) * 1000;
 }
@@ -44,12 +42,11 @@ max_volume()
  * Description  : This function is called to reset the properties that are
  *                related to carrying or being carried.
  */
-static nomask void
-carry_reset()
+static nomask void carry_reset()
 {
     add_prop(OBJ_I_NO_GET, 1);	/* Lifeforms can't be picked up */
-    add_prop(CONT_I_MAX_WEIGHT, max_weight);
-    add_prop(CONT_I_MAX_VOLUME, max_volume);
+    add_prop(CONT_I_MAX_WEIGHT, max_weight());
+    add_prop(CONT_I_MAX_VOLUME, max_volume());
 }
 
 /*
@@ -57,8 +54,7 @@ carry_reset()
  * Description:     Calculate how encumbered we are in % in weight
  * Returns:         The number in %
  */
-int
-query_encumberance_weight()
+int query_encumberance_weight()
 {
     int cont;
 
@@ -71,8 +67,7 @@ query_encumberance_weight()
  * Description:     Calculate how encumbered we are in % in volume
  * Returns:         The number in %
  */
-int
-query_encumberance_volume()
+int query_encumberance_volume()
 {
     int cont;
 

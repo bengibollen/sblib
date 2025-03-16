@@ -84,7 +84,7 @@ transport_to(string ex, mixed room, int delay)
 	/* Next to dest */
 	if (!(lastr = this_object()->link_room(LINK_ROOM, or, delay)))
 	    return 0;
-	backstr = (string) or->make_link(this_object(), lastr);
+	backstr = ({string}) or->make_link(this_object(), lastr);
 	lastr->add_exit(or, ex, 0);
 	lastr->link_master(room);    /* Destination is master of corridor */
 

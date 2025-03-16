@@ -6,7 +6,7 @@
  * the player and swaps the socket to that object.
  */
 #pragma no_inherit
-#pragma save_binary
+
 #pragma strict_types
 
 #include <composite.h>

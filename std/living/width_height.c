@@ -28,20 +28,19 @@
  * Arguments    : string str - the desired height description.
  * Returns      : int 1/0 - success/failure.
  */
-public int
-set_height_desc(string str)
+public int set_height_desc(string str)
 {
     int attr;
     int index;
     int height;
     string race = query_race();
 
-    if ((index = member(str, HEIGHTDESC)) < 0)
+    if ((index = member(HEIGHTDESC, str)) < 0)
     {
         return 0;
     }
 
-    if (member(race, RACES) < 0)
+    if (member(RACES, race) < 0)
     {
         race = "human";
     }
@@ -65,26 +64,25 @@ set_height_desc(string str)
  * Arguments    : string str - the desired width description.
  * Returns      : int 1/0 - success/failure.
  */
-public int
-set_width_desc(string str)
+public int set_width_desc(string str)
 {
     int attr;
     int index;
     int width;
     string race = query_race();
 
-    if ((index = member(str, WIDTHDESC)) < 0)
+    if ((index = member(WIDTHDESC, str)) < 0)
     {
         return 0;
     }
 
-    if (member(race, RACES) < 0)
+    if (member(RACES, race) < 0)
     {
         race = "human";
     }
 
     attr = RACEATTR[race][5];
-    width = (attr * this_object()->query_prop(CONT_I_HEIGHT) *
+    width = (attr * ({int}) this_object()->query_prop(CONT_I_HEIGHT) *
         (index + 7) / 10);
     width -= random(width * attr / 8000);
 
@@ -101,8 +99,7 @@ set_width_desc(string str)
  *                string width  - the desired width description.
  * Returns      : int 1/0 - success/failure.
  */
-public int
-set_size_descs(string height, string width)
+public int set_size_descs(string height, string width)
 {
     if (!set_height_desc(height))
     {
@@ -122,8 +119,7 @@ set_size_descs(string height, string width)
  * Description  : Call this function to set a random width description to
  *                the humanoid living.
  */
-public int
-set_random_width_desc()
+public int set_random_width_desc()
 {
     return set_width_desc(one_of_list(WIDTHDESC));
 }
@@ -133,8 +129,7 @@ set_random_width_desc()
  * Description  : Call this function to set a random height description to
  *                the humanoid living.
  */
-public int
-set_random_height_desc()
+public int set_random_height_desc()
 {
     return set_height_desc(one_of_list(HEIGHTDESC));
 }
@@ -144,8 +139,7 @@ set_random_height_desc()
  * Description  : Call this function to set a random width and random height
  *                description to the humanoid living.
  */
-public int
-set_random_size_descs()
+public int set_random_size_descs()
 {
     return set_size_descs(one_of_list(HEIGHTDESC), one_of_list(WIDTHDESC));
 }

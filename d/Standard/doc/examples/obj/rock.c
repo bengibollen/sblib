@@ -35,8 +35,7 @@ create_object()
  * special variables that need to be save, so the last character should be a
  * ':' after the filename.
  */
-string
-query_recover()
+string query_recover()
 {
     return EX_OBJ + "rock:";
 }

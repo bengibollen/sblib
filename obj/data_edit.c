@@ -7,7 +7,7 @@
  */
 
 #pragma no_inherit
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";
@@ -513,7 +513,7 @@ data_remove(string str)
     /* Only one argument means remove that variable. */
     if (sizeof(words) == 1)
     {
-	m_delkey(data, var);
+	m_delete(data, var);
 
 	write("Variable '" + var + "' removed from the datafile.\n");
 	return;
@@ -556,7 +556,7 @@ data_remove(string str)
 	    return;
 	}
 
-	m_delkey(data[var], element);
+	m_delete(data[var], element);
 	write("Element '" + element + "' removed from mapping '" + var +
 	    "'.\n");
 	return;

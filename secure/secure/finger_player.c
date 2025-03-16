@@ -419,9 +419,9 @@ public string
 round_stat(int stat)
 {
     if (stat > 100000)
-	return sprintf("%2.1fM", itof(stat) / 1000000.0);
+	return sprintf("%2.1fM", to_float(stat) / 1000000.0);
     else if (stat > 1000)
-	return sprintf("%2.1fk", itof(stat) / 1000.0);
+	return sprintf("%2.1fk", to_float(stat) / 1000.0);
 
     return sprintf("%d", stat);
 }

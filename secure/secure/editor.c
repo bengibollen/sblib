@@ -12,7 +12,7 @@
 #pragma no_clone
 #pragma no_inherit
 #pragma resident
-#pragma save_binary
+
 #pragma strict_types
 
 #include <filepath.h>

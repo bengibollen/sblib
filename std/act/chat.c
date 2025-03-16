@@ -16,7 +16,7 @@
    set_cchat_time(int)	       Set the mean value for combat chat intervall
 
 */
-#pragma save_binary
+
 #pragma strict_types
 
 #include <macros.h>

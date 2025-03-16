@@ -16,7 +16,7 @@
 
 #pragma no_clone
 #pragma no_inherit
-#pragma save_binary
+
 #pragma strict_types
 
 #include <mail.h>
@@ -436,7 +436,7 @@ step4(string *mbox_dirs, string mbox_path, string *mboxes, mapping msg_map)
 	     * Update the mboxes array.
 	     */
 
-	    mboxes = exclude_array(mboxes, 0, 0);
+	    mboxes = mboxes[1..];
 
 	    /*
 	     * Load the mbox.
@@ -534,7 +534,7 @@ step5(mapping msg_map)
      * Remove the message directory from the message map.
      */
 
-    m_delkey(msg_map, msg_dir);
+    m_delete(msg_map, msg_dir);
 
     /*
      * Remove the messages.

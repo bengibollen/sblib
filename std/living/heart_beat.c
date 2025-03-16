@@ -8,26 +8,24 @@
 */
 
 /* You can disable heart_beat completely with this define. */
-#undef
 
 #include <config.h>		/* for STATUE_WHEN_LINKDEAD */
 #include <macros.h>
 
 static int stop_time;		/* Time when heart_beat was stopped */
 
-static void heart_beat();
 
 /*
  * Function name:   start_heart
  * Description:     Starts the heart beat for the living object and sees to
  *                  it that it heals as much as it shall due to lost time.
  */
-static void
-start_heart()
+static void start_heart()
 {
 #ifdef HEART_NEEDED
     if (stop_time)
-	heart_beat((time() - stop_time)/2);
+    	heart_beat((time() - stop_time)/2);
+
     stop_time = 0;
     remove_call_out("heart_beat");
     set_alarm(2.0, 2.0, heart_beat);
@@ -39,8 +37,7 @@ start_heart()
  * Description:   Stop the heart beat for the living object and mark
  *                the time for later reference.
  */
-static void
-stop_heart()
+static void stop_heart()
 {
 #ifdef HEART_NEEDED
     if (!stop_time)
@@ -54,8 +51,7 @@ stop_heart()
  * Function name:   heart_beat
  * Description:     Perform all heart_beat routines.
  */
-static int
-heart_beat()
+static int heart_beat()
 {
 #ifdef HEART_NEEDED
 
@@ -68,8 +64,7 @@ heart_beat()
 #endif
 }
 
-void
-restart_heart()
+void restart_heart()
 {
 #ifdef HEART_NEEDED
     set_alarm(2.0, 2.0, heart_beat);

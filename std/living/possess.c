@@ -10,25 +10,24 @@ static string possessed;	/* Possessing demon */
  * Function name: remove_object
  * Description:   Destruct this object, but check for possessed first
  */
-private void
-possessed_remove()
+private void possessed_remove()
 {
     object ob;
 
     while (ob = present("possob", this_object()))
     {
-	if (function_exists("create_object", ob) == POSSESSION_OBJECT)
-	{
-	    command("$quit");
-	}
-	else
-	{
-	    ob->remove_object();
-	    if (ob)
-            {
-		SECURITY->do_debug("destroy", ob);
-            }
-	}
+		if (function_exists("create_object", ob) == POSSESSION_OBJECT)
+		{
+			command("$quit");
+		}
+		else
+		{
+			ob->remove_object();
+			if (ob)
+				{
+			SECURITY->do_debug("destroy", ob);
+				}
+		}
     }
 }
 
@@ -37,8 +36,7 @@ possessed_remove()
  * Description:	  Sets possessd status.
  * Arguments:	  demon - The one who possesses
  */
-public nomask void
-set_possessed(string demon)
+public nomask void set_possessed(string demon)
 {
     if (function_exists("possess", previous_object()) != POSSESSION_OBJECT)
 	return;
@@ -50,8 +48,7 @@ set_possessed(string demon)
  * Function name: query_possessed
  * Description:	  Returns possessed status
  */
-public nomask string
-query_possessed()
+public nomask string query_possessed()
 {
     return possessed;
 }

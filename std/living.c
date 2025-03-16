@@ -35,6 +35,7 @@ inherit "/std/container";
 #include <std.h>
 #include <stdproperties.h>
 #include <wa_types.h>
+#include <configuration.h>
 
 #include "/std/living/living.h"
 #include "/std/living/savevars.c"
@@ -42,7 +43,7 @@ inherit "/std/container";
 #include "/std/living/gender.c"
 #include "/std/living/stats.c"
 #include "/std/living/carry.c"
-#include "/std/living/heart_beat.c"
+//#include "/std/living/heart_beat.c"
 #include "/std/living/drink_eat.c"
 #include "/std/living/cmdhooks.c"
 #include "/std/living/description.c"
@@ -65,8 +66,7 @@ static int tell_active_flag;      /* Flag to check in catch_vbfc() */
  * Description:   Should return true if create_living shall be called
  *                in the master object of a living.
  */
-public int
-query_init_master()
+public int query_init_master()
 {
     return 0;
 }
@@ -75,8 +75,7 @@ query_init_master()
  * Function name: create_container
  * Description:   Create the living object. (constructor)
  */
-nomask void
-create_container()
+nomask void create_container()
 {
     if (!(IS_CLONE ||
 	  query_init_master()))
@@ -86,8 +85,7 @@ create_container()
 
     if (!geteuid(this_object()))   /* Get our own uid if not prepared */
     {
-	setuid();
-	seteuid(getuid(this_object()));
+	    configure_object(this_object(), OC_EUID, getuid(this_object()));
     }
 
     add_prop(LIVE_I_IS, 1);
@@ -111,7 +109,7 @@ create_container()
     combat_reset();
     hold_reset();
 
-    enable_commands();
+    configure_object(this_object(), OC_COMMANDS_ENABLED, 1);
     cmdhooks_reset();
 
     create_living();
@@ -132,8 +130,7 @@ create_container()
  * Function name: create_living
  * Description:   Create the living object. (standard)
  */
-public void
-create_living()
+public void create_living()
 {
     set_name("living");	/* Default name for living objects */
 }
@@ -142,22 +139,19 @@ create_living()
  * Function name: reset_container
  * Description:   Reset the living object.
  */
-public nomask void
-reset_container() { reset_living(); }
+public nomask void reset_container() { reset_living(); }
 
 /*
  * Function name: reset_living
  * Description:   Reset the living object. (standard)
  */
-public void
-reset_living() { ::reset_container(); }
+public void reset_living() { ::reset_container(); }
 
 /*
  * Function name: init
  * Description:   Tells us of new players in our neigbourhood
  */
-nomask void
-init()
+nomask void init()
 {
     ::init();
     combat_init();
@@ -172,8 +166,7 @@ init()
  * Function name: encounter
  * Description:   Called when encountering an object
  */
-public void
-encounter(object obj)
+public void encounter(object obj)
 {
     obj->init();
 }
@@ -188,8 +181,7 @@ encounter(object obj)
  * Returns      : int - the amount of eval-cost ticks if the command was
  *                    successful, or 0 if unsuccessfull.
  */
-public int
-command(string cmd)
+public int command(string cmd)
 {
     return efun::command(cmd);
 }
@@ -201,8 +193,7 @@ command(string cmd)
  *                other things.
  * Returns      : int 1/0 - the result from CAN_SEE_IN_ROOM()
  */
-public nomask int
-can_see_in_room()
+public nomask int can_see_in_room()
 {
     return CAN_SEE_IN_ROOM(this_object());
 }
@@ -217,10 +208,9 @@ can_see_in_room()
  *                object from_player - the originator of the message in case
  *                    the message is in array form.
  */
-public void
-catch_vbfc(mixed str, object from_player = 0)
+public void catch_vbfc(mixed str, object from_player = 0)
 {
-    if (!query_interactive(this_object()) && !query_tell_active())
+    if (!interactive(this_object()) && !query_tell_active())
     {
 	return;
     }
@@ -235,20 +225,20 @@ catch_vbfc(mixed str, object from_player = 0)
 	    (!CAN_SEE_IN_ROOM(this_object()) ||
 		!CAN_SEE(this_object(), from_player)))
 	{
-	    write_socket(str[2]);
+	    write(str[2]);
 	}
-	else if (this_object()->query_met(from_player))
+	else if (({int}) this_object()->query_met(from_player))
 	{
-	    write_socket(str[0]);
+	    write(str[0]);
 	}
 	else
 	{
-	    write_socket(str[1]);
+	    write(str[1]);
 	}
     }
     else
     {
-	write_socket(process_string(str, 1));
+	write(process_string(str));
     }
 }
 
@@ -256,8 +246,7 @@ catch_vbfc(mixed str, object from_player = 0)
  * Function name: catch_msg
  * Description  : See catch_vbfc.
  */
-public void
-catch_msg(mixed str, object from_player = 0)
+public void catch_msg(mixed str, object from_player = 0)
 {
     catch_vbfc(str, from_player);
 }
@@ -266,8 +255,7 @@ catch_msg(mixed str, object from_player = 0)
  * Function name: remove_object
  * Description:   Destruct this object, but check for possessed first
  */
-public int
-remove_object()
+public int remove_object()
 {
     possessed_remove();
     if (query_combat_object())
@@ -281,8 +269,7 @@ remove_object()
  *    Technically, it should be part of /std/living/possess.c, but since
  *    the lfun is more general, it is left here.
  */
-string
-modify_command(string cmd)
+string modify_command(string cmd)
 {
     return cmd;
 }
@@ -292,8 +279,7 @@ modify_command(string cmd)
  * Description:   Return a list of all add_actioned commands
  */
 
-nomask string *
-local_cmd()
+nomask string *local_cmd()
 {
     return get_localcmd();
 }
@@ -304,17 +290,22 @@ local_cmd()
  *                all messages to us.
  * Arguments:     i - a number, 1 or 0, on or off
  */
-void set_tell_active(int i) { tell_active_flag = i; }
+void set_tell_active(int i)
+{
+    tell_active_flag = i;
+}
 
 /*
  * Functione name: query_tell_active
  * Description:    Query the tell_active_flag
  * Returns:        The flag
  */
-int query_tell_active() { return tell_active_flag; }
+int query_tell_active()
+{
+    return tell_active_flag;
+}
 
-public string
-show_subloc(string subloc, object on, object for_obj)
+public string show_subloc(string subloc, object on, object for_obj)
 {
     if (subloc == SUBLOC_HELD)
     {

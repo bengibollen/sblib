@@ -8,12 +8,12 @@ inherit "/lib/wearable_item";
 
 void create_object()
 {
- set_name(({"shades", "glasses"}));
- add_adj(({"sun", "black", "wraparound", "pair", "of"}));
- set_short("pair of shades");
- set_long("A pair of black wraparound shades.\n");
- add_prop(OBJ_S_WIZINFO, "These let you see in the dark.\n");
- config_wearable_item(A_EYES, 1, 0, 0);		// 1 layer, no layering allowed, we don't define wear() and remove()
+  set_name(({"shades", "glasses"}));
+  add_adj(({"sun", "black", "wraparound", "pair", "of"}));
+  set_short("pair of shades");
+  set_long("A pair of black wraparound shades.\n");
+  add_prop(OBJ_S_WIZINFO, "These let you see in the dark.\n");
+  config_wearable_item(A_EYES, 1, 0, 0);		// 1 layer, no layering allowed, we don't define wear() and remove()
 }
 
 // Tie into the /cmd/live/items command for 'wear'

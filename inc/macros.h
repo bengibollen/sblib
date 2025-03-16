@@ -63,7 +63,7 @@
 /*
  * IN_ARRAY(item, arr) is true when the item is a member of array.
  */
-#define IN_ARRAY(item, arr) (member((item), (arr)) != -1)
+#define IN_ARRAY(item, arr) (member((arr), (item)) != -1)
 
 /*
  * LOAD_ERR(file) tries to load the module 'file' and if it fails, returns
@@ -111,11 +111,11 @@
  * TART_NONMETNAME - NONMETNAME preceided by the capitalized article The.
  */
 #define UNSEEN_NAME     ("Someone")
-#define MYNAME          ((string)this_interactive()->query_real_name())
-#define METNAME         ((string)this_player()->query_name())
+#define MYNAME          (({string})this_interactive()->query_real_name())
+#define METNAME         (({string})this_player()->query_name())
 #define NONMETNAME      (capitalize(this_player()->query_nonmet_name()))
 #define ART_NONMETNAME  (capitalize(LANG_ADDART(this_player()->query_nonmet_name())))
-#define TART_NONMETNAME ("The " + (string)this_player()->query_nonmet_name())
+#define TART_NONMETNAME ("The " + ({string})this_player()->query_nonmet_name())
 
 /*
  * Here are some useful macros for using when figuring out player names.
@@ -149,7 +149,7 @@
 /*
  * Can ob1 see ob2?
  */
-#define CAN_SEE(ob1, ob2)	((int)ob2->check_seen(ob1))
+#define CAN_SEE(ob1, ob2)	(({int})ob2->check_seen(ob1))
 /*
  * Can ob1 see anything in a specific room or is it too dark?
  * Can ob1 see anything in his/hers environment or is it too dark?

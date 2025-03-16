@@ -25,7 +25,7 @@
     this file directly and externally set up.
 */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/heap";

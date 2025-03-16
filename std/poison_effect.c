@@ -41,7 +41,7 @@
  *
  * void   init_poison_recover(string my_args) { my_recovery_code; }
  */
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/object";
@@ -234,7 +234,7 @@ query_silent()
 public void
 set_time(int t)
 {
-    p_time = itof(t);
+    p_time = to_float(t);
 }
 
 /*
@@ -245,7 +245,7 @@ set_time(int t)
 public int
 query_time()
 {
-    return ftoi(p_time);
+    return to_int(p_time);
 }
 
 /*
@@ -261,7 +261,7 @@ query_time_left()
     if (a_time &&
         sizeof(arr = get_alarm(a_time)))
     {
-        return ftoi(arr[2]);
+        return to_int(arr[2]);
     }
     else if (query_prop(POISON_F_TIME_LEFT))
     {
@@ -280,7 +280,7 @@ query_time_left()
 public void
 set_interval(int i)
 {
-    interval = itof(i);
+    interval = to_float(i);
 }
 
 /*
@@ -292,7 +292,7 @@ set_interval(int i)
 public int
 query_interval()
 {
-    return ftoi(interval);
+    return to_int(interval);
 }
 
 /*
@@ -550,7 +550,7 @@ damage_player()
             if (random(100) < res)
             {
                 poisonee->add_tmp_stat(damage[index + 1], - 1,
-                    ftoi(p_time * rnd()));
+                    to_int(p_time * rnd()));
             }
             break;
 
@@ -876,8 +876,8 @@ query_auto_load()
     }
 
     return MASTER + ":" +
-        ftoi(time_left) + "," +
-        ftoi(interval) + "," +
+        to_int(time_left) + "," +
+        to_int(interval) + "," +
         type + "," +
         strength + "," +
         silent + "," +
@@ -962,9 +962,9 @@ public string
 stat_object()
 {
     return ::stat_object() +
-        "Time      : " + ftoi(p_time) + "\n" +
+        "Time      : " + to_int(p_time) + "\n" +
         "Time left : " + query_time_left() + "\n" +
-        "Interval  : " + ftoi(interval) + "\n" +
+        "Interval  : " + to_int(interval) + "\n" +
         "Strength  : " + strength + "\n" +
         "Type      : " + type + "\n" +
         "Silent    : " + silent + "\n" +

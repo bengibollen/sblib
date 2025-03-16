@@ -18,7 +18,7 @@
  to change the 'COMBAT_FILE' define in config.h
 */
 
-#pragma save_binary
+
 #pragma strict_types
 
 #include <std.h>
@@ -1564,7 +1564,7 @@ heart_beat()
 
     if ((tmp = me->query_prop(LIVE_I_ATTACK_DELAY)))
     {
-        if ((tmp -= ftoi(speed)) > 0)
+        if ((tmp -= to_int(speed)) > 0)
         {
             me->add_prop(LIVE_I_ATTACK_DELAY, tmp);
             return;

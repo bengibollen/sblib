@@ -11,7 +11,7 @@
   as weapons or armours, only intrinsic combat capabilities.
 
 */
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/combat/cbase";

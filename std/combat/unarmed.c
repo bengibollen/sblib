@@ -6,7 +6,7 @@
   These routines can inherited by all living objects that need
   unarmed combat values of a standardized type.
  */
-#pragma save_binary
+
 #pragma strict_types
 
 #include <formulas.h>

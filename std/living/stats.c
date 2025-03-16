@@ -20,8 +20,7 @@ static int	*stat_extra;  /* Extra to add to the stats */
  * Function name:   ss_reset
  * Description:     Reset stats and skills at start of character.
  */
-static void
-ss_reset()
+static void ss_reset()
 {
     stats = allocate(SS_NO_STATS);
     delta_stat = allocate(SS_NO_STATS);
@@ -39,8 +38,7 @@ ss_reset()
  *                  newskill: The new skill level
  * Returns:         The cost in experience points
  */
-nomask public int
-query_skill_cost(int oldskill, int newskill)
+nomask public int query_skill_cost(int oldskill, int newskill)
 {
     return stat_to_exp(newskill) - stat_to_exp(oldskill);
 }
@@ -54,8 +52,7 @@ query_skill_cost(int oldskill, int newskill)
  *		    val  - The extra value to modify stat with
  * Returns:	    The extra stat value
  */
-public int
-set_stat_extra(int stat, int val)
+public int set_stat_extra(int stat, int val)
 {
     if (stat < 0 || stat >= SS_NO_STATS)
 	return 0;
@@ -70,8 +67,7 @@ set_stat_extra(int stat, int val)
  * Arguments:	    stat - What stat to ask about
  * Returns:	    The extra stat value
  */
-public int
-query_stat_extra(int stat)
+public int query_stat_extra(int stat)
 {
     if (stat < 0 || stat >= SS_NO_STATS)
 	return 0;
@@ -93,8 +89,7 @@ query_stat_extra(int stat)
  *                    Default: 0%
  * Returns      : int - the value of the stat, or 0 if failed.
  */
-varargs int
-set_base_stat(int stat, int value, int deviation = 0)
+varargs int set_base_stat(int stat, int value, int deviation = 0)
 {
     int offset;
 
@@ -123,8 +118,7 @@ set_base_stat(int stat, int value, int deviation = 0)
  * Arguments:       stat: The index in the array of stats
  * Returns:         The value of a stat, -1 on failure.
  */
-public int
-query_base_stat(int stat)
+public int query_base_stat(int stat)
 {
     if ((stat < 0) ||
         (stat >= SS_NO_STATS))
@@ -140,8 +134,7 @@ query_base_stat(int stat)
  * Description:     Calculate the avarage of all stats of a living
  * Returns:         The calculated avarage
  */
-public int
-query_average_stat()
+public int query_average_stat()
 {
     return (query_base_stat(SS_STR) + query_base_stat(SS_DEX) +
 	query_base_stat(SS_CON) + query_base_stat(SS_INT) +
@@ -155,8 +148,7 @@ query_average_stat()
  * Arguments    : int stat - the stat to query.
  * Returns      : int - the relative stat value as percentage.
  */
-public int
-query_relative_stat(int stat)
+public int query_relative_stat(int stat)
 {
     int average;
 
@@ -179,8 +171,7 @@ query_relative_stat(int stat)
  * Arguments    : int stat  - the stat that expires
  *                int value - the value to subtract.
  */
-void
-expire_tmp_stat(int stat, int value)
+void expire_tmp_stat(int stat, int value)
 {
     delta_stat[stat] -= value;
 }
@@ -194,24 +185,22 @@ expire_tmp_stat(int stat, int value)
  *                     to keep the change.
  * Returns:       1 - Ok, 0 - Change rejected.
  */
-public int
-add_tmp_stat(int stat, int ds, int dt)
+public int add_tmp_stat(int stat, int ds, int dt)
 {
     int tmp, i, start;
     int *end;
 
     tmp = query_stat(stat) - query_base_stat(stat);
 
-    if ((ds + tmp > 10 + query_base_stat(stat) / 10) ||
-        (dt <= 0))
+    if ((ds + tmp > 10 + query_base_stat(stat) / 10) || (dt <= 0))
     {
-	return 0;
+    	return 0;
     }
 
     delta_stat[stat] += ds;
 
     dt = MIN(dt, F_TMP_STAT_MAX_TIME);
-    call_out(#'expire_tmp_stat(stat, ds), (float) (dt * F_INTERVAL_BETWEEN_HP_HEALING));
+    call_out(#'expire_tmp_stat, (dt * F_INTERVAL_BETWEEN_HP_HEALING), stat, ds);
 
     return 1;
 }
@@ -222,22 +211,20 @@ add_tmp_stat(int stat, int ds, int dt)
  * Arguments    : int stat - Which stat to find.
  * Returns      : int - the stat value.
  */
-public int
-query_stat(int stat)
+public int query_stat(int stat)
 {
-    int i, tmp;
+    int i, value;
 
-    if ((stat < 0) ||
-        (stat >= SS_NO_STATS))
+    if ((stat < 0) || (stat >= SS_NO_STATS))
     {
-	return -1;
+    	return -1;
     }
 
-    tmp = query_base_stat(stat);
-    tmp += delta_stat[stat];
-    tmp += stat_extra[stat];
+    value = query_base_stat(stat);
+    value += delta_stat[stat];
+    value += stat_extra[stat];
 
-    return (tmp > 0 ? tmp : 1);
+    return (value > 0 ? value : 1);
 }
 
 /*
@@ -247,8 +234,7 @@ query_stat(int stat)
  * Arguments    : int stat - the stat to find.
  * Returns      : int - the percentage
  */
-public int
-query_rel_stat(int stat)
+public int query_rel_stat(int stat)
 {
     return (100 * query_stat(stat)) / query_average_stat();
 }
@@ -259,8 +245,7 @@ query_rel_stat(int stat)
  * Arguments    : int exp - the experience points to be translated.
  * Returns      : int     - the new skill/stat value
  */
-nomask int
-exp_to_stat(int exp)
+nomask int exp_to_stat(int exp)
 {
     return F_EXP_TO_STAT(exp);
 }
@@ -272,8 +257,7 @@ exp_to_stat(int exp)
  * Arguments:       exp: The number of experience points to be translated.
  * Returns:         The amount of experience
  */
-nomask int
-stat_to_exp(int stat)
+nomask int stat_to_exp(int stat)
 {
     return F_STAT_TO_EXP(stat);
 }
@@ -284,8 +268,7 @@ stat_to_exp(int stat)
  *                will be translated to quest experience only. This is used
  *                used only from default setup in player_sec::new_init()
  */
-static void
-stats_to_acc_exp()
+static void stats_to_acc_exp()
 {
     int il, sum, tmp;
 
@@ -317,8 +300,7 @@ stats_to_acc_exp()
  * Function name: acc_exp_to_stats
  * Description:   Translates the current accumulated exp into stats.
  */
-void
-acc_exp_to_stats()
+void acc_exp_to_stats()
 {
     int il, tmp;
 
@@ -338,8 +320,7 @@ acc_exp_to_stats()
  *		  by a guild that wants its stat to behave like the normal.
  * Arguments:     stat - Which stat to update.
  */
-public void
-update_stat(int stat)
+public void update_stat(int stat)
 {
     set_base_stat(stat, exp_to_stat(query_acc_exp(stat)));
 }
@@ -349,8 +330,7 @@ update_stat(int stat)
  * Description  : Copies the current stats into the PLAYER_AI_LAST_STATS
  *                property for later reference.
  */
-public void
-update_last_stats()
+public void update_last_stats()
 {
     int index;
     int *last_stats = allocate(SS_NO_EXP_STATS + 1);
@@ -370,8 +350,7 @@ update_last_stats()
  *                of the player have changed. If so, inform the player of
  *                his stat increase.
  */
-public void
-check_last_stats()
+public void check_last_stats()
 {
     int index, changed = 0;
     int *last_stats = query_prop(PLAYER_AI_LAST_STATS);
@@ -459,8 +438,7 @@ check_last_stats()
  *                    of the experience in his normal stats, as well as the
  *                    due tax in the guild stats.
  */
-varargs static void
-update_acc_exp(int exp, int taxfree)
+varargs static void update_acc_exp(int exp, int taxfree)
 {
     int   index;
     int   total;
@@ -474,11 +452,11 @@ update_acc_exp(int exp, int taxfree)
          * divide by the old total experience, so subtract the negative delta
          * to add it to the new total.
          */
-        factor = 1.0 + (itof(exp) / itof(query_exp() - exp));
+        factor = 1.0 + (to_float(exp) / to_float(query_exp() - exp));
         index = -1;
         while(++index < SS_NO_EXP_STATS)
         {
-            set_acc_exp(index, ftoi(factor * itof(query_acc_exp(index))));
+            set_acc_exp(index, to_int(factor * to_float(query_acc_exp(index))));
         }
 
         /* Recalculate the stats. */
@@ -520,8 +498,7 @@ update_acc_exp(int exp, int taxfree)
  *                the experience in the stats. If not, those stats are
  *                updated.
  */
-static void
-check_acc_exp()
+static void check_acc_exp()
 {
     int index = -1;
     int sum = query_exp();
@@ -556,8 +533,7 @@ check_acc_exp()
  *                int exp  - the experience value to set the stat to.
  * Returns      : int      - 1/0 - set/unset.
  */
-public nomask int
-set_guild_stat(int stat, int exp)
+public nomask int set_guild_stat(int stat, int exp)
 {
     int change  = exp - query_acc_exp(stat);
     int stat_value;
@@ -583,7 +559,7 @@ set_guild_stat(int stat, int exp)
     if (interactive(this_object()))
     {
 	SECURITY->log_syslog("CHANGE_STAT", ctime(time()) + " " +
-	    capitalize(this_object()->query_real_name()) + " " +
+	    capitalize(({string}) this_object()->query_real_name()) + " " +
 	    SS_STAT_DESC[stat] + " " + query_base_stat(stat) +
 	    " (was: " + stat_value + ")\n");
     }
@@ -599,8 +575,7 @@ set_guild_stat(int stat, int exp)
  * Arguments    : int stat - the stat to clear (guild stat only!)
  * Returns      : int      - 1/0 - cleared/not cleared
  */
-public nomask int
-clear_guild_stat(int stat)
+public nomask int clear_guild_stat(int stat)
 {
     return set_guild_stat(stat, 1);
 }

@@ -357,7 +357,7 @@ query_path()
     if (path)
         return path;
     else if (query_wiz_level())
-        path = (string) SECURITY->query_wiz_path(query_real_name());
+        path = ({string}) SECURITY->query_wiz_path(query_real_name());
     return path;
 }
 
@@ -1305,7 +1305,7 @@ remove_remembered(string name)
     if (query_remembered(name))
     {
         result = 1;
-        m_delkey(m_remember_name, name);
+        m_delete(m_remember_name, name);
     }
 
     return result;

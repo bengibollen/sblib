@@ -12,12 +12,11 @@ static mapping tool_slots = ([]);  /* The object occupying a certain slot */
  * Arguments:     the object to look for
  * Returns:       1/0 - slots removed/no slots removed
  */
-static nomask int
-clear_tool_slots(object tool)
+static nomask int clear_tool_slots(object tool)
 {
-    int size = m_sizeof(tool_slots);
-    tool_slots = filter(tool_slots, &operator(!=)(, tool));
-    return (m_sizeof(tool_slots) != size);
+    int size = sizeof(tool_slots);
+    tool_slots = filter(tool_slots, #'!=, tool);
+    return (sizeof(tool_slots) != size);
 }
 
 /*
@@ -27,13 +26,12 @@ clear_tool_slots(object tool)
  * Returns:       1 - slots successfully occupied
  *                string - An error message
  */
-nomask mixed
-occupy_slot(object tool)
+nomask mixed occupy_slot(object tool)
 {
     int i, size, *slots;
     string name;
 
-    slots = tool->query_slots();
+    slots = ({int *}) tool->query_slots();
     size = sizeof(slots);
 
     /*
@@ -44,7 +42,7 @@ occupy_slot(object tool)
     {
         if (tool_slots[slots[i]])
 	{
-            name = tool_slots[slots[i]]->short();
+            name = ({string}) tool_slots[slots[i]]->short();
             name = (sizeof(name) ? "The " + name : "Something");
             return name + " is in the way.\n";
 	}
@@ -65,8 +63,7 @@ occupy_slot(object tool)
  * Arguments:     object tool - the object to look for
  * Returns:       1/0 - slots remove/slots not removed
  */
-nomask int
-empty_slot(object tool)
+nomask int empty_slot(object tool)
 {
     if (!clear_tool_slots(tool))
     {
@@ -90,8 +87,7 @@ empty_slot(object tool)
  *                the slot or 0.  If -1 is given as an argument, an array
  *                of objects.
  */
-public mixed
-query_tool(int slot)
+public mixed query_tool(int slot)
 {
     object *tools, *values, tool, tmp;
     int i;
@@ -131,8 +127,7 @@ query_tool(int slot)
  *                item it contains
  * Returns:       The tool mapping
  */
-public mapping
-query_tool_map()
+public mapping query_tool_map()
 {
     return tool_slots + ([]);
 }

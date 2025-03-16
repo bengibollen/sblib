@@ -8,7 +8,7 @@
 			       a certain %chance. (arg is %chance)
 
 */
-#pragma save_binary
+
 #pragma strict_types
 
 #include <macros.h>

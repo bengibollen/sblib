@@ -4,7 +4,7 @@
  * This file holds the functions for manipulating adverbs. I stripped the
  * adverbs from /cmd/std/soul_cmd.c and made it accessible for everyone.
  * However, if you want to make a soul that uses adverbs, you'd rather access
- * the adverbs throught /cmd/std/command_driver.c which holds the functions
+ * the adverbs throught /std/command_driver.c which holds the functions
  * parse_adverb and parse_adverb_with_space. For more information... see that
  * file.
  *

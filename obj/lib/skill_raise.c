@@ -10,7 +10,7 @@
  */
 
 #pragma strict_types
-#pragma save_binary
+
 #pragma strict_types
 
 #include <macros.h>

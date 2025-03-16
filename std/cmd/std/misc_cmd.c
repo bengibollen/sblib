@@ -5,15 +5,14 @@
  */
 #pragma strict_types
 
-inherit "/cmd/std/command_driver.c";
+inherit "/std/command_driver.c";
 
 /*
  * Function name: replace_soul
  * Description  : This soul is replaced with the following souls.
  * Returns      : string * - the souls we replace this soul with.
  */
-public string *
-replace_soul()
+public string *replace_soul()
 {
     return
 	({

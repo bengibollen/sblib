@@ -8,7 +8,7 @@
 #pragma no_clone
 #pragma strict_types
 
-inherit "/cmd/std/command_driver";
+inherit "/std/command_driver";
 
 #include <filepath.h>
 
@@ -79,7 +79,7 @@ find_item(object prev, string str)
 	ob_list = all_inventory(prev);
 	for (i = 0 ; i < sizeof(ob_list) ; i++)
 	{
-	    if ((string)ob_list[i]->short() == tmp)
+	    if (({string})ob_list[i]->short() == tmp)
 	    {
 		return ob_list[i];
 	    }
@@ -271,7 +271,7 @@ print_value(mixed ret)
     }
     else if (floatp(ret))
     {
-	write(ftoa(ret) + "\n");
+	write(to_string(ret) + "\n");
     }
     else if (functionp(ret))
     {

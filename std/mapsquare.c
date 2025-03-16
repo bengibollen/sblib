@@ -5,7 +5,7 @@
 
    JnA 910720
 */
-#pragma save_binary
+
 
 inherit "std/room";
 

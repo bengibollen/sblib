@@ -26,7 +26,7 @@
 #include <state_desc.h>
 
 #ifdef DAY_AND_NIGHT
-#include <time.h>
+#include <libtime.h>
 #endif
 
 private static int appearance_offset;
@@ -37,8 +37,7 @@ private static int is_linkdead;
  * Description  : Set the linkdeath-status of the player.
  * Arguments    : int i - true if the player is linkdead.
  */
-public void
-set_linkdead(int i)
+public void set_linkdead(int i)
 {
     if (i)
 	is_linkdead = time();
@@ -52,8 +51,7 @@ set_linkdead(int i)
  * Returns      : int - if false, the player is not linkdead. Else it
  *                      returns the time the player linkdied.
  */
-public int
-query_linkdead()
+public int query_linkdead()
 {
     return is_linkdead;
 }
@@ -65,8 +63,7 @@ query_linkdead()
  *                we unmark them as such by masking this function.
  * Returns      : int - 1.
  */
-public int
-query_humanoid()
+public int query_humanoid()
 {
     return 1;
 }
@@ -80,8 +77,7 @@ query_humanoid()
  *                             are supposed to have met.
  * Returns      : int 1 - always as NPC's always know everyone.
  */
-public int
-query_met(mixed name)
+public int query_met(mixed name)
 {
     return 1;
 }
@@ -94,14 +90,15 @@ query_met(mixed name)
  * Arguments:       obj: Object in question, has it met me?
  * Returns:         True if object has not met me.
  */
-public int
-notmet_me(object obj)
+public int notmet_me(object obj)
 {
 #ifdef MET_ACTIVE
-    if (obj && query_interactive(obj))
-	return !obj->query_met(this_object());
+    if (obj && interactive(obj))
+    	return !({int}) obj->query_met(this_object());
+
+    return 0;
 #else
-    return !this_player()->query_met(this_object());
+    return !({int}) this_player()->query_met(this_object());
 #endif
 }
 
@@ -111,8 +108,7 @@ notmet_me(object obj)
  *                  E.g.: "fatty".
  * Returns:         The name
  */
-public string
-query_real_name()
+public string query_real_name()
 {
     return lower_case(::query_name());
 }
@@ -123,8 +119,7 @@ query_real_name()
  *                  E.g.: "Fatty".
  * Returns:         The name
  */
-public string
-query_name()
+public varargs string query_name()
 {
     return capitalize(::query_name());
 }
@@ -135,10 +130,9 @@ query_name()
  *                  this living is not quite so living. E.g.: "Fatty".
  * Returns:         The name
  */
-public string
-query_met_name()
+public string query_met_name()
 {
-    if (this_object()->query_ghost())
+    if (({int}) this_object()->query_ghost())
 	return "ghost of " + query_name();
     else
 	return query_name();
@@ -154,8 +148,7 @@ query_met_name()
  *                humanoids it can be blocked with LIVE_I_NO_GENDER_DESC.
  * Returns      : string - the name of the living when unmet.
  */
-public string
-query_nonmet_name()
+public string query_nonmet_name()
 {
     string *adj, str;
     string gender;
@@ -167,17 +160,17 @@ query_nonmet_name()
     /* Get the gender description only if needed. */
     if (query_humanoid() &&
 	!query_prop(LIVE_I_NO_GENDER_DESC) &&
-	(this_object()->query_gender() != G_NEUTER))
-	gender = this_object()->query_gender_string() + " ";
+	(({int}) this_object()->query_gender() != G_NEUTER))
+	gender = ({string}) this_object()->query_gender_string() + " ";
     else
 	gender = "";
 
-    if (sizeof((adj = this_object()->query_adj(1))) > 0)
+    if (sizeof((adj = ({string *}) this_object()->query_adj(1))) > 0)
 	str = implode(adj[..1], " ") + " " + gender +
-	    this_object()->query_race_name() +
+        ({string}) this_object()->query_race_name() +
 	    (query_wiz_level() ? (" " + LD_WIZARD) : "");
     else
-	str = gender + this_object()->query_race_name() +
+	str = gender + ({string}) this_object()->query_race_name() +
 	    (query_wiz_level() ? (" " + LD_WIZARD) : "");
 
     if (query_ghost())
@@ -193,8 +186,7 @@ query_nonmet_name()
  *                  E.g.: "Ghost of Fatty".
  * Returns:         The capitalized name of the living when met.
  */
-public string
-query_Met_name()
+public string query_Met_name()
 {
     return capitalize(query_met_name());
 }
@@ -211,8 +203,7 @@ query_Met_name()
  *                  been done through a protected vbfc
  * Returns:         Name prefixed with article.
  */
-public varargs string
-query_art_name(object pobj)
+public varargs string query_art_name(object pobj)
 {
     string pre, aft;
 
@@ -252,13 +243,12 @@ query_art_name(object pobj)
  *                  been done through a protected vbfc
  * Returns:         Name prefixed with capitalized article.
  */
-public varargs string
-query_Art_name(object pobj)
+public varargs string query_Art_name(object pobj)
 {
     string desc = query_art_name(pobj);
 
     /* Capitalize the right character if the description starts with ( or [. */
-    if (wildmatch("[\\[(]*", desc))
+    if (desc[0] in "([")
         return desc[..0] + capitalize(desc[1..]);
 
     return capitalize(desc);
@@ -276,8 +266,7 @@ query_Art_name(object pobj)
  *                  been done through a protected vbfc
  * Returns:         Possessive name prefixed with article.
  */
-public varargs string
-query_art_possessive_name(object pobj)
+public varargs string query_art_possessive_name(object pobj)
 {
     return LANG_POSS(query_art_name(pobj));
 }
@@ -294,8 +283,7 @@ query_art_possessive_name(object pobj)
  *                  been done through a protected vbfc
  * Returns:         Possessive name prefixed with capitalized article.
  */
-public varargs string
-query_Art_possessive_name(object pobj)
+public varargs string query_Art_possessive_name(object pobj)
 {
     return LANG_POSS(query_Art_name(pobj));
 }
@@ -312,8 +300,7 @@ query_Art_possessive_name(object pobj)
  *                  been done through a protected vbfc
  * Returns:         Name prefixed with "the".
  */
-public varargs string
-query_the_name(object pobj)
+public varargs string query_the_name(object pobj)
 {
     string pre = "", aft = "";
 
@@ -353,13 +340,12 @@ query_the_name(object pobj)
  *                  been done through a protected vbfc
  * Returns:         Name prefixed with "The".
  */
-public varargs string
-query_The_name(object pobj)
+public varargs string query_The_name(object pobj)
 {
     string desc = query_the_name(pobj);
 
     /* Capitalize the right character if the description starts with ( or [. */
-    if (wildmatch("[\\[(]*", desc))
+    if (desc[0] in "([")
         return desc[..0] + capitalize(desc[1..]);
 
     return capitalize(desc);
@@ -377,8 +363,7 @@ query_The_name(object pobj)
  *                  been done through a protected vbfc
  * Returns:         Possessive name prefixed with "the".
  */
-public varargs string
-query_the_possessive_name(object pobj)
+public varargs string query_the_possessive_name(object pobj)
 {
     return LANG_POSS(query_the_name(pobj));
 }
@@ -395,8 +380,7 @@ query_the_possessive_name(object pobj)
  *                  been done through a protected vbfc
  * Returns:         Possessive name prefixed with "The".
  */
-public varargs string
-query_The_possessive_name(object pobj)
+public varargs string query_The_possessive_name(object pobj)
 {
     return LANG_POSS(query_The_name(pobj));
 }
@@ -407,8 +391,7 @@ query_The_possessive_name(object pobj)
  *                calculates a title from the stats.
  * Returns      : string - the title.
  */
-public string
-query_exp_title()
+public string query_exp_title()
 {
     if (query_wiz_level())
 	return LD_WIZARD;
@@ -424,24 +407,23 @@ query_exp_title()
  *              E.g.: "Fatty the donut-fan, wizard, male gnome (eating)"
  * Returns:     The presentation string
  */
-public string
-query_presentation()
+public string query_presentation()
 {
-    string a, b, c;
+    string title, exp_title, align_title;
 
-    a = query_title();
-    b = this_object()->query_exp_title();
+    title = query_title();
+    exp_title = ({string}) this_object()->query_exp_title();
 #ifndef NO_ALIGN_TITLE
-    c = this_object()->query_al_title();
+    align_title = ({string}) this_object()->query_al_title();
 #endif
 
     return query_name() +
-	(sizeof(a) ? (" " + a + ",") : "") +
-	(sizeof(b) ? (" " + b + ",") : "") + " " +
-	this_object()->query_gender_string() + " " +
-        this_object()->query_race_name()
+	(sizeof(title) ? (" " + title + ",") : "") +
+	(sizeof(exp_title) ? (" " + exp_title + ",") : "") + " " +
+	({string}) this_object()->query_gender_string() + " " +
+    ({string}) this_object()->query_race_name()
 #ifndef NO_ALIGN_TITLE
-	+ (sizeof(c) ? (" (" + c + ")") : "")
+	+ (sizeof(align_title) ? (" (" + align_title + ")") : "")
 #endif
 	; /* Oke, it is ugly to have a semi-colon on a separate line. */
 }
@@ -452,8 +434,7 @@ query_presentation()
  *                  object given. Handles invisibility and met/nonmet.
  * Returns:         The short string.
  */
-public varargs string
-short(object for_obj)
+public varargs string short(object for_obj)
 {
     string desc;
     string extra;
@@ -464,7 +445,7 @@ short(object for_obj)
 #ifdef MET_ACTIVE
     if (notmet_me(for_obj))
     {
-	desc = this_object()->query_nonmet_name();
+	desc = ({string}) this_object()->query_nonmet_name();
 #ifdef STATUE_WHEN_LINKDEAD
 	if (is_linkdead)
 	    desc = STATUE_DESC + " " + LANG_ADDART(desc);
@@ -473,7 +454,7 @@ short(object for_obj)
     else
 #endif
     {
-	desc = this_object()->query_met_name();
+	desc = ({string}) this_object()->query_met_name();
 #ifdef STATUE_WHEN_LINKDEAD
 	if (is_linkdead)
 	    desc = STATUE_DESC + " " + desc;
@@ -491,16 +472,15 @@ short(object for_obj)
  * Description:   Gives short as seen by previous object
  * Returns:	  string holding short()
  */
-public string
-vbfc_short()
+public string vbfc_short()
 {
     object for_obj;
 
     for_obj = previous_object(-1);
-    if (!this_object()->check_seen(for_obj))
+    if (!({int}) this_object()->check_seen(for_obj))
 	return LD_SOMEONE;
 
-    return this_object()->short(for_obj);
+    return ({string}) this_object()->short(for_obj);
 }
 
 /*
@@ -508,12 +488,13 @@ vbfc_short()
  * Description:     Get the number of scars a player has
  * Returns:         int holding number of scars
  */
-public int
-num_scar()
+public int num_scar()
 {
     int i, j, n,scar;
 
-    j = 1; n = 0; scar = this_object()->query_scar();
+    j = 1;
+    n = 0;
+    scar = ({int}) this_object()->query_scar();
 
     while (i < F_MAX_SCAR)
     {
@@ -528,14 +509,13 @@ num_scar()
  * Description:     Get the composite string holding the scar description
  * Returns:         string holding scar description.
  */
-public string
-desc_scar()
+public string desc_scar()
 {
     int i, j, scar;
     string *scar_desc, *my_scars;
 
     scar_desc = F_SCAR_DESCS;
-    scar = this_object()->query_scar();
+    scar = ({int}) this_object()->query_scar();
     j = 1;
     my_scars = 0;
     while(i < F_MAX_SCAR)
@@ -561,24 +541,23 @@ desc_scar()
  * Description:     Finds out which scars this living has.
  * Returns:         A string with the scars.
  */
-string
-show_scar(mixed for_obj)
+string show_scar(mixed for_obj)
 {
     int num;
 
     num = num_scar();
 
     if (!num)
-	return "";
+    	return "";
 
     if (!objectp(for_obj))
-	for_obj = this_player();
+	    for_obj = this_player();
 
     if (for_obj == this_object())
-	return LD_YOUR_SCARS(num, desc_scar()) + ".\n";
+	    return LD_YOUR_SCARS(num, desc_scar()) + ".\n";
 
-    return capitalize(this_object()->query_pronoun()) + LD_HAS_SCARS(num) +
-        " " + this_object()->query_possessive() + " " + desc_scar() + ".\n";
+    return capitalize(({string}) this_object()->query_pronoun()) + LD_HAS_SCARS(num) +
+        " " + ({string}) this_object()->query_possessive() + " " + desc_scar() + ".\n";
 }
 
 /*
@@ -591,52 +570,51 @@ show_scar(mixed for_obj)
  *                  object for_obj: return the living-description
  * Returns:         The description string
  */
-public varargs string
-long(mixed for_obj)
+public varargs string long(mixed for_obj)
 {
     string          cap_pronoun, res;
     object 	    eob;
 
     if (stringp(for_obj))   /* Items */
-	return ::long(for_obj);
+	    return ::long(for_obj);
 
     if (!objectp(for_obj))
-	for_obj = this_player();
+	    for_obj = this_player();
 
     if (for_obj == this_object())
-	res = LD_PRESENT_YOU(this_object());
+	    res = LD_PRESENT_YOU(this_object());
     else
     {
-	res = query_long();
-	if (!stringp(res) &&
-	    !functionp(res))
-	{
-	    cap_pronoun = capitalize((string)this_object()->query_pronoun());
-	    if (!notmet_me(for_obj))
-		res = LD_PRESENT_TO(this_object());
-	    else if (!(this_object()->short(for_obj)))
-		return "";
-	    else
-		res = cap_pronoun + " is " +
-			LANG_ADDART(this_object()->short(for_obj)) + ".\n";
+        res = query_long();
+        if (!stringp(res) && !closurep(res))
+        {
+            cap_pronoun = capitalize(({string})this_object()->query_pronoun());
+            if (!notmet_me(for_obj))
+                res = LD_PRESENT_TO(this_object());
+            else
+                if (!(({string}) this_object()->short(for_obj)))
+                    return "";
+            else
+                res = cap_pronoun + " is " +
+                    LANG_ADDART(({string}) this_object()->short(for_obj)) + ".\n";
 
-	    if (this_object()->query_ghost())
-	    {
+            if (({int}) this_object()->query_ghost())
+    	    {
 #ifdef MET_ACTIVE
-		if (notmet_me(for_obj))
-		    return LD_NONMET_GHOST(this_object());
-		else
+                if (notmet_me(for_obj))
+                    return LD_NONMET_GHOST(this_object());
+                else
 #endif
-		    return LD_MET_GHOST(this_object());
-	    }
-	}
-	else
-	    res = check_call(res);
+        		    return LD_MET_GHOST(this_object());
+    	    }
+        }
+        else
+            res = check_call(res);
     }
 
-    res += this_object()->show_scar(for_obj);
+    res += ({string}) this_object()->show_scar(for_obj);
 
-    return res + this_object()->show_sublocs(for_obj);
+    return res + ({string}) this_object()->show_sublocs(for_obj);
 }
 
 /*
@@ -646,8 +624,7 @@ long(mixed for_obj)
  *                and should only be called internally by do_glance.
  * Arguments    : object *livings - the livings in the room.
  */
-static void
-describe_combat(object *livings)
+static void describe_combat(object *livings)
 {
     int     index;
     int     size;
@@ -656,7 +633,7 @@ describe_combat(object *livings)
     object  victim;
     mapping fights = ([ ]);
 
-    livings = filter(livings, objectp);
+    livings = filter(livings, #'objectp);
 
     /* Sanity check. No need to print anything if there aren't enough
      * people to actually fight. Note that if there is only one living, it
@@ -676,7 +653,7 @@ describe_combat(object *livings)
     while(++index < size)
     {
 	/* Only if the living is actually fighting. */
-	if (objectp(victim = livings[index]->query_attack()))
+	if (objectp(victim = ({object}) livings[index]->query_attack()))
 	{
 	    if (pointerp(fights[victim]))
 		fights[victim] += ({ livings[index] });
@@ -686,33 +663,33 @@ describe_combat(object *livings)
     }
 
     /* No combat going on. */
-    if (!m_sizeof(fights))
-	return;
+    if (!sizeof(fights))
+	    return;
 
     /* First we describe the combat of the player him/herself. This will
      * be a nice compound message. Start with 'outgoing' combat.
      */
-    if (objectp(victim = this_object()->query_attack()))
+    if (objectp(victim =({object}) this_object()->query_attack()))
     {
 	fights[victim] -= ({ this_object() });
 
 	/* Victim is fighting back. */
-	if (victim->query_attack() == this_object())
+	if (({object}) victim->query_attack() == this_object())
 	{
 	    text = "You are in combat with " +
-		victim->query_the_name(this_object());
+		({string}) victim->query_the_name(this_object());
 	    fights[this_object()] -= ({ victim });
 	    subst = " also";
 	}
 	else
 	    text = "You are fighting " +
-		victim->query_the_name(this_object());
+		({string}) victim->query_the_name(this_object());
 
 	/* Other people helping us attacking the same target. */
 	if (sizeof(fights[victim]))
 	    text += ", assisted by " + FO_COMPOSITE_ALL_LIVE(fights[victim],
 							     this_object());
-	m_delkey(fights, victim);
+	m_delete(fights, victim);
 
 	/* Other people hitting on me. */
 	if (index = sizeof(fights[this_object()]))
@@ -735,15 +712,15 @@ describe_combat(object *livings)
      * to circumvent printing two lines of 'a fights b' and 'b fights a'
      * since I think that is a silly way of putting things.
      */
-    m_delkey(fights, this_object());
+    m_delete(fights, this_object());
     livings = m_indices(fights);
     size = sizeof(livings);
     index = -1;
     while(++index < size)
     {
 	/* Victim is fighting (one of his) attackers. */
-	if (objectp(victim = livings[index]->query_attack()) &&
-	    (member(victim, fights[livings[index]]) >= 0))
+	if (objectp(victim = ({object}) livings[index]->query_attack()) &&
+	    (member(fights[livings[index]], victim) >= 0))
 	{
 	    fights[livings[index]] -= ({ victim });
 
@@ -751,18 +728,18 @@ describe_combat(object *livings)
                 fights[victim] -= ({ livings[index] });
 
 	    /* Start with the the name of one of the fighters. */
-	    text += livings[index]->query_The_name(this_object());
+	    text += ({string}) livings[index]->query_The_name(this_object());
 
 	    /* Then the people helping the first combatant. */
 	    if (sizeof(fights[victim]))
 	    {
 		text += ", with the assistance of " +
 		    FO_COMPOSITE_ALL_LIVE(fights[victim], this_object()) + ",";
-		m_delkey(fights, victim);
+		m_delete(fights, victim);
 	    }
 
 	    /* Then the second living in the fight. */
-	    text += " and " + victim->query_the_name(this_object());
+	    text += " and " + ({string}) victim->query_the_name(this_object());
 
 	    /* And the helpers on the other side. */
 	    if (sizeof(fights[livings[index]]))
@@ -777,10 +754,10 @@ describe_combat(object *livings)
 		this_object())) +
 		((sizeof(fights[livings[index]]) == 1) ? " is" : " are") +
 		" fighting " +
-		livings[index]->query_the_name(this_object()) + ".\n";
+		({string}) livings[index]->query_the_name(this_object()) + ".\n";
 	}
 
-	m_delkey(fights, livings[index]);
+	m_delete(fights, livings[index]);
     }
 
     write(text);
@@ -799,15 +776,14 @@ describe_combat(object *livings)
  *                            else write the long-description.
  * Returns      : int 1 - always.
  */
-public int
-do_glance(int brief)
+public int do_glance(int brief)
 {
     object env;
     string item;
 
     /* Don't waste the long description on NPC's. */
     if (!interactive(this_object()))
-	return 0;
+    	return 0;
 
     /* Wizard gets to see the filename of the room we enter and a flag if
      * there is WIZINFO in the room.
@@ -815,40 +791,40 @@ do_glance(int brief)
     env = environment();
     if (query_wiz_level())
     {
-	if (stringp(env->query_prop(OBJ_S_WIZINFO)))
-	    write("Wizinfo ");
+        if (stringp(({string}) env->query_prop(OBJ_S_WIZINFO)))
+            write("Wizinfo ");
 
-	write(object_name(env) + "\n");
+    	write(object_name(env) + "\n");
     }
 
     /* It is dark. */
     if (!CAN_SEE_IN_ROOM(this_object()))
     {
- 	if (!stringp(item = env->query_prop(ROOM_S_DARK_LONG)))
- 	    write(LD_DARK_LONG);
- 	else
- 	    write(item);
-	return 1;
+        if (!stringp(item = ({string}) env->query_prop(ROOM_S_DARK_LONG)))
+            write(LD_DARK_LONG);
+        else
+            write(item);
+
+        return 1;
     }
 
     /* Describe the room and its contents. */
 #ifdef DAY_AND_NIGHT
-    if (!env->query_prop(ROOM_I_INSIDE) &&
-	((HOUR > 21) ||
-	 (HOUR < 5)) &&
-	((env->query_prop(OBJ_I_LIGHT) +
-	 query_prop(LIVE_I_SEE_DARK)) < 2))
+    if (!({int}) env->query_prop(ROOM_I_INSIDE) &&
+	((HOUR > 21) || (HOUR < 5)) &&
+	((({int}) env->query_prop(OBJ_I_LIGHT) +
+    ({int}) query_prop(LIVE_I_SEE_DARK)) < 2))
 	write(LD_IS_NIGHT(env));
     else
 #endif
     {
 	if (brief)
   	{
-	    write(capitalize(env->short()) + ".\n");
-	    write(env->exits_description());
+	    write(capitalize(({string}) env->short()) + ".\n");
+	    write(({string}) env->exits_description());
 	}
 	else
-	    write(env->long());
+	    write(({string}) env->long());
     }
 
     env->show_visible_contents(this_object());
@@ -868,8 +844,7 @@ do_glance(int brief)
  *                A reasonable value of the offset is within +-50
  * Arguments:     off: the offset
  */
-void
-set_appearance_offset(int off)
+void set_appearance_offset(int off)
 {
     appearance_offset = off;
 }
@@ -883,8 +858,7 @@ set_appearance_offset(int off)
  *                A reasonable value for the offset is within +-50
  * Returns:       The offset
  */
-int
-query_appearance_offset()
+int query_appearance_offset()
 {
     return appearance_offset;
 }
@@ -897,26 +871,25 @@ query_appearance_offset()
  * Arguments:     ob: the object to give an opinion about
  * Returns:       The opinion as int.
  */
-public int
-my_opinion(object ob)
+public int my_opinion(object ob)
 {
     int op, op_offset;
 
     if (!living(ob))
 	return -1;
-    op = query_opinion() - ob->query_appearance();
+    op = query_opinion() - ({int}) ob->query_appearance();
     op = op > 0 ? op : - op;
     op = op < 50 ? op : 100 - op;
 
-    op_offset = ob->query_appearance_offset();
+    op_offset = ({int}) ob->query_appearance_offset();
     if (op_offset)
 	op += op_offset;
     else
-	if (query_race_name() != ob->query_race_name())
+	if (query_race_name() != ({string}) ob->query_race_name())
 	    op += 10;
 
-    if (query_race_name() == ob->query_race_name() &&
-	query_gender() != ob->query_gender())
+    if (query_race_name() == ({string}) ob->query_race_name() &&
+	query_gender() != ({int}) ob->query_gender())
 	op -= 5;
     if (query_intoxicated() > 0)
 	op -= query_intoxicated() / 4;
@@ -931,12 +904,10 @@ my_opinion(object ob)
  *		  living object.
  * Arguments:     num - use this number instead of the skill.
  */
-public void
-appraise_object(int num)
+public void appraise_object(int num)
 {
-    write("\n" + this_object()->long(this_player()) + "\n");
-    write(break_string(LD_APPRAISE(appraise_weight(num), appraise_volume(num)),
-	75) + "\n");
+    write("\n" + ({string}) this_object()->long(this_player()) + "\n");
+    write(LD_APPRAISE(appraise_weight(num), appraise_volume(num)) + "\n");
 }
 
 /*
@@ -944,13 +915,12 @@ appraise_object(int num)
  * Description:	  Returns the alignment text for this object.
  * Returns:	  The alignment text.
  */
-string
-query_align_text()
+string query_align_text()
 {
     int a, prc;
     string t, *names;
 
-    a = this_object()->query_alignment();
+    a = ({int}) this_object()->query_alignment();
 
     if (a < 0)
     {
@@ -977,8 +947,7 @@ query_align_text()
  *                living. It is shown by this_player().
  * Arguments    : object ob - the object shown.
  */
-public void
-show_hook(object ob)
+public void show_hook(object ob)
 {
     return;
 }

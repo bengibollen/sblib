@@ -13,7 +13,7 @@
  *  improvement that can be done.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 #include <macros.h>

@@ -59,7 +59,7 @@ query_presentation()
 	", " + this_object()->query_gender_string() + " " +
 	this_object()->query_race_name()
 #ifndef NO_ALIGN_TITLE
-	+ " (" + (string)this_object()->query_al_title() + ")"
+	+ " (" + ({string})this_object()->query_al_title() + ")"
 #endif
 	; /* Yeah, yeah, a semi-colon on a separate line isn't nice. */
 }

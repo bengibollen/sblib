@@ -84,11 +84,11 @@ modify_on_death()
      * more points. */
     reduce_combat = F_DIE_REDUCE_XP(query_exp_combat());
     reduce_general = F_DIE_REDUCE_XP(query_exp_general());
-    stat_factor = 1.0 - (itof(reduce_combat + reduce_general) / itof(query_exp()));
+    stat_factor = 1.0 - (to_float(reduce_combat + reduce_general) / to_float(query_exp()));
 
     while(++index < SS_NO_EXP_STATS)
     {
-        set_acc_exp(index, ftoi(itof(query_acc_exp(index)) * stat_factor));
+        set_acc_exp(index, to_int(to_float(query_acc_exp(index)) * stat_factor));
     }
 
     /* Remove the death penalty from the combat and general experience. */

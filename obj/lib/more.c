@@ -1,4 +1,4 @@
-#pragma save_binary
+
 
 static int    more_line,
     	      chunk;

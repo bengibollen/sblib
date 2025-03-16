@@ -5,7 +5,7 @@
  *		Genesis, April to July 1992.
  */
 
-#pragma save_binary
+
 
 inherit "/std/object";
 inherit "/lib/herb_support";

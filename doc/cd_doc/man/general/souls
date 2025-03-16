@@ -25,7 +25,7 @@ functions. The same soul is used by all players. If you HAVE to have
 a global variable you can set a property in the player for that use,
 but please try to avoid doing that.
 
-The soul must inherit "/cmd/std/command_driver" in order to work. This
+The soul must inherit "/std/command_driver" in order to work. This
 file contains the function for identifying and executing the given
 command.
 
@@ -89,7 +89,7 @@ Here is a short example of the previously discussed command soul.
 
 /* Example of command soul */
 
-inherit "/cmd/std/command_driver";
+inherit "/std/command_driver";
 
 string
 get_soul_id()

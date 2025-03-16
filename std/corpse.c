@@ -5,7 +5,7 @@
  * when a player or monster die.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 inherit "/std/container";
@@ -395,11 +395,11 @@ set_decay(int d)
     /* If we are too far away, do some decay first. */
     if (decay > DECAY_LIMIT)
     {
-        decay_id = set_alarm((itof(decay - DECAY_LIMIT) * DECAY_UNIT), 0.0, decay_fun);
+        decay_id = set_alarm((to_float(decay - DECAY_LIMIT) * DECAY_UNIT), 0.0, decay_fun);
     }
     else
     {
-        decay_id = set_alarm((itof(decay) * DECAY_UNIT), 0.0, decay_remove);
+        decay_id = set_alarm((to_float(decay) * DECAY_UNIT), 0.0, decay_remove);
     }
 }
 
@@ -430,15 +430,15 @@ query_decay_left()
     if (decay_id)
     {
         call = get_alarm(decay_id);
-        left = ftoi(call[2]);
+        left = to_int(call[2]);
         if (call[1] == DECAY_FUN)
-            left += (DECAY_LIMIT * ftoi(DECAY_UNIT));
+            left += (DECAY_LIMIT * to_int(DECAY_UNIT));
         return left;
     }
 
     /* If we end up here, the decay has been stopped, so the answer will
      * probably be 0. */
-    return decay * ftoi(DECAY_UNIT);
+    return decay * to_int(DECAY_UNIT);
 }
 
 /*

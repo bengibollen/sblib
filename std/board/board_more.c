@@ -43,7 +43,7 @@
  */
 
 #pragma strict_types
-#pragma save_binary
+
 
 inherit "/std/object";
 

@@ -46,7 +46,7 @@ map_file(mixed xyc)
     if ((slx < 0) || (slx > MAP_SL_MAX) || (sly < 0) || (sly > MAP_SL_MAX))
 	return MAP_DEFAULT_ROOM;
 
-    base_file = (string) SECURITY->find_maplink(xyc);
+    base_file = ({string}) SECURITY->find_maplink(xyc);
 
     if (!base_file)
 	return MAP_DEFAULT_ROOM;

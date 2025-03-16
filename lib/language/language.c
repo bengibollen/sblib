@@ -18,8 +18,7 @@ int    *stat_levels, *exp_levels;
 string *exp_titles;
 mixed  stat_strings;
 
-void
-create()
+void create()
 {
     nums = ({ "one", "two", "three", "four", "five", "six", "seven",
               "eight", "nine", "ten","eleven","twelve","thirteen",
@@ -47,8 +46,7 @@ create()
 }
 
 
-string
-article(string str)
+string article(string str)
 {
     if (!str)
     {
@@ -56,22 +54,20 @@ article(string str)
     }
 
     str = lower_case(str);
-    if (wildmatch("the *", str))
+    if (str[..3] == "the ")
     {
         return "";
     }
 
-    if (wildmatch("[aeiou]*", str))
+    if (str[0] in "[aeiou]")
     {
         return "an";
     }
 
     return "a";
 }
-#endif
 
-string
-add_article(string str)
+string add_article(string str)
 {
     string s;
 
@@ -86,8 +82,7 @@ add_article(string str)
  * Arguments    : int num - the number.
  * Returns      : string - the text representation.
  */
-string
-word_number(int num)
+string word_number(int num)
 {
     int tmp;
 
@@ -118,8 +113,7 @@ word_number(int num)
  * Arguments    : int num - the number.
  * Returns      : string - the text representation.
  */
-string
-word_ord_number(int num)
+string word_ord_number(int num)
 {
     int tmp;
 
@@ -159,8 +153,7 @@ word_ord_number(int num)
  * Arguments    : int num - the number.
  * Returns      : string - the text representation.
  */
-string
-word_ord_ext(int num)
+string word_ord_ext(int num)
 {
     switch(num % 10)
     {
@@ -182,8 +175,7 @@ word_ord_ext(int num)
  * Arguments    : string str - the text representation of an ordinal number.
  * Returns      : int - the number.
  */
-int
-number_ord_word(string str)
+int number_ord_word(string str)
 {
     int i, j;
     string sstr, *nt;
@@ -212,8 +204,7 @@ number_ord_word(string str)
 
 /* lpc singular to plural converter
 */
-string
-plural_word(string str)
+string plural_word(string str)
 {
     string tmp, slask;
     int sl, ch;
@@ -243,8 +234,8 @@ plural_word(string str)
     if (sl < 2)
 	return str;
     ch = str[sl];
-    tmp = extract(str, 0, sl - 2);
-    slask = extract(str, sl - 1, sl - 1);
+    tmp = str[..(sl - 2)];
+    slask = (string) str[sl - 1];
     switch (ch)
     {
     case 's':
@@ -264,10 +255,9 @@ plural_word(string str)
     }
     return str + "s";
 }
-#endif
 
-string
-plural_sentence(string str)
+
+string plural_sentence(string str)
 {
     int  c;
     string *a;
@@ -292,31 +282,29 @@ plural_sentence(string str)
 
 /* Verb in present tence (not ready yet)
 */
-string
-verb_present(string str)
+string verb_present(string str)
 {
   return str;
 }
 
 /* Name in possessive form
 */
-string
-name_possessive(string str)
+string name_possessive(string str)
 {
     if (!sizeof(str))
-	return 0;
+    	return 0;
 
     switch (str)
     {
-    case "it": return "its";
-    case "It": return "Its";
-    case "he": return "his";
-    case "He": return "His";
-    case "she": return "her";
-    case "She": return "Her";
+        case "it": return "its";
+        case "It": return "Its";
+        case "he": return "his";
+        case "He": return "His";
+        case "she": return "her";
+        case "She": return "Her";
     }
-    if (extract(str, sizeof(str) - 1) == "s")
-	return (str + "'");
+    if ((string) str[<1] == "s")
+    	return (str + "'");
     return (str + "'s");
 }
 
@@ -327,8 +315,7 @@ name_possessive(string str)
  * Arguments    : string str - the text representation of the number.
  * Returns      : int - the number.
  */
-int
-number_word(string str)
+int number_word(string str)
 {
     string *ex;
     int value, pos;
@@ -354,7 +341,7 @@ number_word(string str)
     if (value)
     {
 	if (ex[1][0] == ' ' || ex[1][0] == '-')
-	    ex[1] = extract(ex[1], 1, sizeof(ex[1]) - 1);
+	    ex[1] = ex[1][1..<1];
 	if ((pos = member(ex[1], nums)) == -1)
 	    return 0;
 	else
@@ -375,8 +362,7 @@ number_word(string str)
     return value;
 }
 
-string
-singular_form(string str)
+string singular_form(string str)
 {
     string singular, one, two, three;
     int last;
@@ -401,10 +387,9 @@ singular_form(string str)
 	return "dwarf";
     }
 
-    last = sizeof(str);
-    one  = extract(str, last - 1, last - 1);
-    two  = extract(str, last - 2, last - 2);
-    three = extract(str, last - 3, last - 3);
+    one  = (string) str[<1];
+    two  = (string) str[<2];
+    three = (string) str[<3];
 
     if (one != "s")
     {
@@ -412,17 +397,17 @@ singular_form(string str)
     }
     if (two != "e" || three == "c")
     {
-        return extract(str, 0, last - 2);
+        return str[..<2];
     }
     if (three == "i")
     {
-        return extract(str, 0, last - 4) + "y";
+        return str[..<4] + "y";
     }
     if (three == "v")
     {
-        return extract(str, 0, last - 4) + "fe";
+        return str[..<4] + "fe";
     }
-    return extract(str, 0, last - 3);
+    return str[..<3];
 }
 
 /*
@@ -432,25 +417,24 @@ singular_form(string str)
  * Arguments    : object ob - the object to get the short for.
  * Returns      : string - the short description _without_ article.
  */
-string
-lang_short(object ob)
+string lang_short(object ob)
 {
     int heapsize;
 
-    if (ob->query_prop(HEAP_I_IS))
+    if (({int}) ob->query_prop(HEAP_I_IS))
     {
-        heapsize = ob->num_heap();
+        heapsize = ({int}) ob->num_heap();
         if (heapsize == 1)
         {
-            return ob->singular_short();
+            return ({string}) ob->singular_short();
         }
         else if (heapsize >= 1000)
         {
-            return "huge heap of " + ob->plural_short();
+            return "huge heap of " + ({string}) ob->plural_short();
         }
-        return ob->short();
+        return ({string}) ob->short();
     }
-    return ob->short();
+    return ({string}) ob->short();
 }
 
 /*
@@ -460,14 +444,13 @@ lang_short(object ob)
  * Arguments    : object ob - the object to get the short for.
  * Returns      : string - the short description _with_ article.
  */
-string
-lang_a_short(object ob)
+string lang_a_short(object ob)
 {
-    if (ob->query_prop(HEAP_I_IS))
+    if (({int}) ob->query_prop(HEAP_I_IS))
     {
-        return ob->short();
+        return ({string}) ob->short();
     }
-    return add_article(ob->short());
+    return add_article(({string}) ob->short());
 }
 
 /*
@@ -477,25 +460,24 @@ lang_a_short(object ob)
  * Arguments    : object ob - the object to get the description with "the" of.
  * Returns      : string - the proper short description.
  */
-string
-lang_the_short(object ob)
+string lang_the_short(object ob)
 {
     int heapsize;
 
-    if (ob->query_prop(HEAP_I_IS))
+    if (({int}) ob->query_prop(HEAP_I_IS))
     {
-        heapsize = ob->num_heap();
+        heapsize = ({int}) ob->num_heap();
         if (heapsize == 1)
         {
-            return "the " + ob->singular_short();
+            return "the " + ({string}) ob->singular_short();
         }
         else if (heapsize >= 1000)
         {
-            return "the huge heap of " + ob->plural_short();
+            return "the huge heap of " + ({string}) ob->plural_short();
         }
-        return ob->short();
+        return ({string}) ob->short();
     }
-    return "the " + ob->short();
+    return "the " + ({string}) ob->short();
 }
 
 /*
@@ -506,24 +488,23 @@ lang_the_short(object ob)
  * Arguments    : string str - the text to parse.
  * Returns      : int 1/0 - if true, the term is called offensive.
  */
-int
-lang_is_offensive(string str)
+int lang_is_offensive(string str)
 {
-    int index = sizeof(offensive);
+    // int index = sizeof(offensive);
 
-    if (!stringp(str))
-    {
-        return 0;
-    }
+    // if (!stringp(str))
+    // {
+    //     return 0;
+    // }
 
-    str = lower_case(str);
-    while(--index >= 0)
-    {
-        if (wildmatch(offensive[index], str))
-        {
-            return 1;
-        }
-    }
+    // str = lower_case(str);
+    // while(--index >= 0)
+    // {
+    //     if (wildmatch(offensive[index], str))
+    //     {
+    //         return 1;
+    //     }
+    // }
 
     return 0;
 }
@@ -544,8 +525,7 @@ lang_is_offensive(string str)
  *                    calm but also "extremely panicky" as worst form.
  * Returns      : string - the associated (sub +) main description.
  */
-varargs string
-get_num_desc(int value, int maximum, string *maindescs, string *subdescs = 0, int turnindex = 0)
+varargs string get_num_desc(int value, int maximum, string *maindescs, string *subdescs = 0, int turnindex = 0)
 {
     int mainindex, subindex;
 
@@ -596,8 +576,7 @@ get_num_desc(int value, int maximum, string *maindescs, string *subdescs = 0, in
  *                    are levels.
  * Returns      : string - the description associated with the level.
  */
-string
-get_num_level_desc(int value, int *levels, string *descs)
+string get_num_level_desc(int value, int *levels, string *descs)
 {
     int index = sizeof(levels);
 
@@ -619,8 +598,7 @@ get_num_level_desc(int value, int *levels, string *descs)
  *                int level - the level to describe.
  * Returns      : string - the associated description.
  */
-string
-get_stat_level_desc(int stat, int level)
+string get_stat_level_desc(int stat, int level)
 {
     if (stat < 0 || stat >= SS_NO_EXP_STATS)
     {
@@ -637,8 +615,7 @@ get_stat_level_desc(int stat, int level)
  *                int index - the index in the array.
  * Returns      : string - the associated description.
  */
-string
-get_stat_index_desc(int stat, int index)
+string get_stat_index_desc(int stat, int index)
 {
     if (stat < 0 || stat >= SS_NO_EXP_STATS ||
         index < 0 || index >= SD_NUM_STATLEVS)

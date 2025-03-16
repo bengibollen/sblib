@@ -8,7 +8,7 @@
 */
 
 #ifndef SD_DEFINED
-#include "/config/sys/state_desc2.h"
+#include "/conf/sys/state_desc2.h"
 #endif
 
 #ifndef SD_DEFINED
@@ -66,9 +66,9 @@
     "close to", "very close to" })
 #define SD_SIZEOF_ADVANCE_DESCS   5
 
-#define GET_STAT_LEVEL_DESC(stat, level) ((string)SD_LANG_FILE->get_stat_level_desc((stat), (level)))
-#define GET_STAT_INDEX_DESC(stat, index) ((string)SD_LANG_FILE->get_stat_index_desc((stat), (index)))
-#define GET_EXP_LEVEL_DESC(level)        ((string)SD_LANG_FILE->get_exp_level_desc(level))
+#define GET_STAT_LEVEL_DESC(stat, level) (({string})SD_LANG_FILE->get_stat_level_desc((stat), (level)))
+#define GET_STAT_INDEX_DESC(stat, index) (({string})SD_LANG_FILE->get_stat_index_desc((stat), (index)))
+#define GET_EXP_LEVEL_DESC(level)        (({string})SD_LANG_FILE->get_exp_level_desc(level))
 
 /* Observe that the denominators below are reversed for the first two
    of the statlev descs above.

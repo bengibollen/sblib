@@ -4,7 +4,7 @@
  *  Random walk: Standard action module for mobiles.
  */
 
-#pragma save_binary
+
 #pragma strict_types
 
 static  int      monster_ranmove;       /* Intervall between walks  */
