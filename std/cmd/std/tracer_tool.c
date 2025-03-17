@@ -398,7 +398,7 @@ Clean(string str)
 
     while(++index < size)
     {
-        if (query_interactive(ob_list[index]))
+        if (interactive(ob_list[index]))
             continue;
 
         catch(write("Destructing: " +

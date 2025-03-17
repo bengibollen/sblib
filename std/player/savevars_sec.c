@@ -1086,13 +1086,13 @@ query_option(int opt)
     switch (opt)
     {
     case OPT_MORE_LEN:
-        return atoi(options[..2]);
+        return to_int(options[..2]);
 
     case OPT_SCREEN_WIDTH:
-        return atoi(options[3..5]);
+        return to_int(options[3..5]);
 
     case OPT_WHIMPY:
-        return atoi(options[6..7]);
+        return to_int(options[6..7]);
 
     case OPT_BRIEF:
     case OPT_ECHO:

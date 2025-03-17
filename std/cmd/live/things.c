@@ -47,6 +47,7 @@ inherit "/std/command_driver";
 #include <std.h>
 #include <stdproperties.h>
 #include <subloc.h>
+#include <configuration.h>
 
 #define ENV (environment(this_player()))
 #define PREV_LIGHT CAN_SEE_IN_ROOM(this_player())
@@ -70,7 +71,7 @@ static string gItem;         /* string to hold pseudoitem from look command */
 void
 create()
 {
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
 
 /* **************************************************************************
@@ -162,7 +163,7 @@ light_fail(string str)
 
     if (!sizeof(str))
         str = query_verb() + " things";
-    if (!stringp(s = environment(this_player())->query_prop(ROOM_S_DARK_MSG)))
+    if (!stringp(s = environment(({string}) this_player())->query_prop(ROOM_S_DARK_MSG)))
         notify_fail("It is too dark to " + str + ".\n");
     else
         notify_fail(s + " " + str + ".\n");
@@ -200,13 +201,13 @@ move_err_short(int ierr, object ob, object dest)
     switch (ierr)
     {
     case 1:
-        if (ob->query_prop(HEAP_I_IS) && ob->num_heap() > 1)
+        if (({int}) ob->query_prop(HEAP_I_IS) && ({int}) ob->num_heap() > 1)
             str += " are too heavy.\n";
         else
             str += " is too heavy.\n";
         break;
     case 2:
-        str2 = ob->query_prop(OBJ_M_NO_DROP);
+        str2 = ({mixed}) ob->query_prop(OBJ_M_NO_DROP);
         if (!stringp(str2))
             str += " cannot be dropped.\n";
         else
@@ -215,7 +216,7 @@ move_err_short(int ierr, object ob, object dest)
     case 3:
         if (query_verb() == "give")
         {
-            str2 = ob->query_prop(OBJ_M_NO_GIVE);
+            str2 = ({mixed}) ob->query_prop(OBJ_M_NO_GIVE);
             if (!stringp(str2))
                 str += " cannot be given away.\n";
             else
@@ -644,7 +645,7 @@ item_access(object ob)
 {
     if (!objectp(ob))
         return 0;
-    return (int) ob->item_id(gItem);
+    return ({int}) ob->item_id(gItem);
 }
 
 int
@@ -687,7 +688,7 @@ varargs int is_visible(object ob, object cobj)
     if (!objectp(ob))
         return 0;
 
-    if (cobj && (env = (object)cobj->query_room()) &&
+    if (cobj && (env = ({object}) cobj->query_room()) &&
                 (cobj->query_prop(CONT_I_TRANSP) ||
                 !cobj->query_prop(CONT_I_CLOSED)))
     {

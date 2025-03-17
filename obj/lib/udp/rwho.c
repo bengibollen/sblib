@@ -32,9 +32,9 @@ send_rwho_q(string mud, string askwiz)
     if (!mappingp(minfo))
 	return 0;
 
-    if (stringp(minfo["HOSTADDRESS"]) && (atoi(minfo["PORTUDP"]) > 0))
+    if (stringp(minfo["HOSTADDRESS"]) && (to_int(minfo["PORTUDP"]) > 0))
     {
-	TO->send_udp(minfo["HOSTADDRESS"], atoi(minfo["PORTUDP"]),
+	TO->send_udp(minfo["HOSTADDRESS"], to_int(minfo["PORTUDP"]),
 		     "@@@" + UDP_RWHO_Q +
 		     "||NAME:" + TO->query_my_name() +
 		     "||PORTUDP:" + TO->query_my_udpport() +
@@ -75,7 +75,7 @@ rwho_q(mapping p)
 
 	if (p["PORTUDP"])
 	{
-	    TO->send_udp(p["HOSTADDRESS"], atoi(p["PORTUDP"]),
+	    TO->send_udp(p["HOSTADDRESS"], to_int(p["PORTUDP"]),
 				    "@@@" + UDP_RWHO_A +
 				    "||NAME:" + TO->query_my_name() +
 				    "||PORTUDP:" + TO->query_my_udpport() +

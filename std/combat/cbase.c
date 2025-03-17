@@ -2010,7 +2010,7 @@ cb_attacked_by(object ob)
 {
     cb_add_enemy(ob);
 
-    if (!attack_ob || (!query_interactive(attack_ob) && query_interactive(ob)))
+    if (!attack_ob || (!interactive(attack_ob) && interactive(ob)))
     {
         attack_ob = ob;
     }
@@ -2109,7 +2109,7 @@ cb_query_enemy(int arg)
 public nomask mixed
 cb_query_attack()
 {
-    if (attack_ob && !attack_ob->query_ghost() &&
+    if (attack_ob && !({int}) attack_ob->query_ghost() &&
         environment(attack_ob) == environment(me))
     {
         return attack_ob;

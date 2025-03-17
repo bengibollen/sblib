@@ -253,7 +253,7 @@ init_recover(string arg)
     if (sizeof(args) == 4)
     {
         leftover_init(args[3], args[2]);
-        set_heap_size(atoi(args[0]));
+        set_heap_size(to_int(args[0]));
     }
     else
     {

@@ -358,7 +358,7 @@ delete(string arg)
         }
         else
         {
-            index2 = atoi(parts[index]);
+            index2 = to_int(parts[index]);
 
             if ((index2 < 1) || (index2 > sizeof(lines)))
             {
@@ -691,7 +691,7 @@ input(string str)
     case "~a":
         if (sizeof(arg))
         {
-            line = atoi(arg);
+            line = to_int(arg);
             checkrange();
         }
         else
@@ -750,7 +750,7 @@ EDIT_END + "         Finish text.\n" +
     case "~i":
         if (sizeof(arg))
         {
-            line = atoi(arg);
+            line = to_int(arg);
             line--;
             checkrange();
         }
@@ -806,7 +806,7 @@ EDIT_END + "         Finish text.\n" +
 
     /* Show <arg> lines. Default: 10 lines. */
     case "~s":
-        display(sizeof(arg) ? atoi(arg) : 10);
+        display(sizeof(arg) ? to_int(arg) : 10);
         break;
 
     /* We do not recognize the command. Give an error message. */

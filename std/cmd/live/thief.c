@@ -16,7 +16,7 @@ inherit "/std/command_driver";
 
 #include <cmdparse.h>
 #include <composite.h>
-#include <files.h>
+#include <libfiles.h>
 #include <filter_funs.h>
 #include <formulas.h>
 #include <macros.h>
@@ -25,6 +25,7 @@ inherit "/std/command_driver";
 #include <stdproperties.h>
 #include <tasks.h>
 #include <wa_types.h>
+#include <configuration.h>
 
 // Define where to log steals, or undef to not log.
 //#undef "/some_dir/open/STEAL"
@@ -32,40 +33,40 @@ inherit "/std/command_driver";
 // Prototypes
 private int query_the_value(object ob);
 
+
 /*
  * Function name: create
  * Description  : This function is called the moment this object is created
  *                and loaded into memory.
  */
-public void
-create()
+public void create()
 {
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
+
 
 /*************************************************************************
  * Return a proper name of the soul in order to get a nice printout.
  */
-public string
-get_soul_id()
+public string get_soul_id()
 {
     return "thief";
 }
 
+
 /*************************************************************************
  * This is a command soul.
  */
-public int
-query_cmd_soul()
+public int query_cmd_soul()
 {
     return 1;
 }
 
+
 /*************************************************************************
  * The list of verbs and functions. Please add new in alfabetical order.
  */
-public mapping
-query_cmdlist()
+public mapping query_cmdlist()
 {
     return ( ([
                 "backstab": "backstab",
@@ -73,16 +74,17 @@ query_cmdlist()
              ]) );
 }
 
+
 /*
  * Function name: using_soul
  * Description:   Called once by the living object using this soul. Adds
  *                sublocations responsible for extra descriptions of the
  *                living object.
  */
-public void
-using_soul(object live)
+public void using_soul(object live)
 {
 }
+
 
 /************************************************************************
  * Here follows the support functions for the commands below            *
@@ -95,8 +97,7 @@ using_soul(object live)
  * Arguments:     object who - Player to remove the bonus from
  * Returns:       void
  */
-public void
-remove_extra_skill(object who)
+public void remove_extra_skill(object who)
 {
     int tmp;
 
@@ -105,10 +106,10 @@ remove_extra_skill(object who)
         return;
     }
 
-    if ((tmp = who->query_prop(LIVE_I_VICTIM_ADDED_AWARENESS)) < 2)
+    if ((tmp = ({int}) who->query_prop(LIVE_I_VICTIM_ADDED_AWARENESS)) < 2)
     {
         who->set_skill_extra(SS_AWARENESS,
-            who->query_skill_extra(SS_AWARENESS) - F_AWARENESS_BONUS);
+            ({int}) who->query_skill_extra(SS_AWARENESS) - F_AWARENESS_BONUS);
         who->remove_prop(LIVE_I_VICTIM_ADDED_AWARENESS);
     }
     else
@@ -117,6 +118,7 @@ remove_extra_skill(object who)
     }
 }
 
+
 /*
  * Function name: query_internal_value
  * Description:   This is used to determine the combined value of
@@ -124,8 +126,7 @@ remove_extra_skill(object who)
  * Arguments:     object ob - The container whos inventory we are checking
  * Returns:       int - The combined value of all objects inside ob
  */
-private int
-query_internal_value(object ob)
+private int query_internal_value(object ob)
 {
     object *inv = deep_inventory(ob);
     int sum = 0;
@@ -147,6 +148,7 @@ query_internal_value(object ob)
     return sum;
 }
 
+
 /*
  * Function name: query_the_value
  * Description:   This is used to determine the value of
@@ -154,8 +156,7 @@ query_internal_value(object ob)
  * Arguments:     object ob - the object whos value we are checking
  * Returns:       int - ob's value
  */
-private int
-query_the_value(object ob)
+private int query_the_value(object ob)
 {
     if (!objectp(ob))
     {
@@ -164,26 +165,27 @@ query_the_value(object ob)
 
     if (IS_HEAP_OBJECT(ob))
     {
-        return ob->heap_value();
+        return ({int}) ob->heap_value();
     }
 
     if (IS_HERB_OBJECT(ob))
     {
-        return ob->query_herb_value();
+        return ({int}) ob->query_herb_value();
     }
 
     if (IS_POTION_OBJECT(ob))
     {
-        return ob->query_potion_value();
+        return ({int}) ob->query_potion_value();
     }
 
     if (IS_CONTAINER_OBJECT(ob))
     {
-        return (ob->query_value() + ob->query_internal_value(ob));
+        return (({int}) ob->query_value() + ({int}) ob->query_internal_value(ob));
     }
 
-    return ob->query_value();
+    return ({int}) ob->query_value();
 }
+
 
 /*
  * Function name: check_watchers_see_steal
@@ -200,8 +202,7 @@ query_the_value(object ob)
  *                  need to waste the processing otherwise.
  *                  Also: Wizards see all steals automatically in the room.
  */
-private void
-check_watchers_see_steal(object place, object victim, object thief,
+private void check_watchers_see_steal(object place, object victim, object thief,
                          int chance, object item)
 {
     mixed  tmp;
@@ -333,8 +334,7 @@ check_watchers_see_steal(object place, object victim, object thief,
 /*************************************************************************
  * Backstab  -  Nail 'em in the back I say
  */
-private void
-perform_backstab(string str, object whom)
+private void perform_backstab(string str, object whom)
 {
     mixed tmp;
     object ob;
@@ -612,8 +612,8 @@ perform_backstab(string str, object whom)
     return;
 }
 
-public int
-backstab(string str)
+
+public int backstab(string str)
 {
     if (this_player()->query_prop(LIVE_I_BACKSTABBING))
     {
@@ -629,11 +629,11 @@ backstab(string str)
     return 1;
 }
 
+
 /*************************************************************************
  * Steal  -  Rob 'em till they are blind
  */
-public int
-steal(string str)
+public int steal(string str)
 {
     mixed tmp;
     object item;
@@ -1384,7 +1384,7 @@ steal(string str)
         success, caught, log[9], "");
 
     setuid();
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     write_file(LOG_STEALS, tmp);
 #endif
 

@@ -1650,7 +1650,7 @@ destruct_environment_of(object ob)
         catch(ob->move(environment(ob)));
     }
 
-    if (!query_interactive(ob))
+    if (!interactive(ob))
     {
         return;
     }
@@ -1913,7 +1913,7 @@ modify_command(string cmd, object ob)
 
     if (sizeof(str = command_substitute[cmd]))
     {
-        if (query_interactive(ob) && !ob->query_wiz_level() &&
+        if (interactive(ob) && !ob->query_wiz_level() &&
             pointerp(m_domains[domain = environment(ob)->query_domain()]))
         {
             m_domains[domain][FOB_DOM_CMNDS]++;
@@ -1922,7 +1922,7 @@ modify_command(string cmd, object ob)
     }
 
     /* No modification for NPC's */
-    if (!query_interactive(ob))
+    if (!interactive(ob))
     {
         return cmd;
     }

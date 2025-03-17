@@ -917,9 +917,9 @@ save_player(string pl_name)
     }
 
     pack_bits();
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     save_object(PLAYER_FILE(pl_name));
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     /* Discard the props again */
     saved_props = 0;
@@ -943,7 +943,7 @@ load_player(string pl_name)
         return 0;
     }
 
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     ret = restore_object(PLAYER_FILE(pl_name));
     seteuid(0);
     return ret;
@@ -1143,7 +1143,7 @@ new_save(string pl_name, string pwd, string pfile)
     }
 
     write("Creating new player: " + pl_name + "\n");
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     set_name(pl_name);
     set_password(pwd);
     set_player_file(pfile);

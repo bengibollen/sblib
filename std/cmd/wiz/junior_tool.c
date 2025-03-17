@@ -785,7 +785,7 @@ tell(string str)
 	return 0;
     }
 
-    if (!query_interactive(ob))
+    if (!interactive(ob))
     {
 	notify_fail(ob->query_The_name(this_player()) +
 	    " is link dead right now.\n");

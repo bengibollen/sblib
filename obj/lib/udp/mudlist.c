@@ -48,7 +48,7 @@ void
 send_mudlist_q(string host, mixed port)
 {
     if (stringp(port))
-	port = atoi(port);
+	port = to_int(port);
 
     TO->send_udp(host, port,
 		 "@@@" + UDP_MUDLIST_Q +
@@ -71,7 +71,7 @@ mudlist_q(mapping p)
     {
 	names = TO->query_known_muds();
 	for (il = 0; il < sizeof(names); il+=5)
-	    TO->send_udp(p["HOSTADDRESS"], atoi(p["PORTUDP"]),
+	    TO->send_udp(p["HOSTADDRESS"], to_int(p["PORTUDP"]),
 			 "@@@" + UDP_MUDLIST_A +
 			 build_mudlist(names[il..il+4]) + "@@@\n");
 	return 1;

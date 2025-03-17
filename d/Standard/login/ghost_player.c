@@ -100,7 +100,7 @@ enter_new_player(string name, string pass)
      */
     if (!SECURITY->load_player())
     {
-	seteuid(getuid(this_object()));
+	configure_object(this_object(), OC_EUID, getuid(this_object()));
 	set_password(pass);
 	set_player_file(MASTER);
 
@@ -173,7 +173,7 @@ enter_new_player(string name, string pass)
 	ask_player();  /* Some questions are still needed */
 	return;
     }
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     /*
      * Is this a normal CDlib player with a bad playerfile ?

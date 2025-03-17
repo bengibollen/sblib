@@ -921,7 +921,7 @@ read_nur(string arg1, string arg2, int mread)
     {
         board_name = arg2;
 
-        if ((note_number = atoi(arg1)) < 1)
+        if ((note_number = to_int(arg1)) < 1)
         {
             return MBS_NUM_ZERO;
         }
@@ -956,8 +956,8 @@ read_nur(string arg1, string arg2, int mread)
 	note_info = MC->read_item(CurrBoard, note_number, mread);
 
 	if (note_info[0] == MBS_NO_ERR &&
-	    atoi(BdMap[CurrBoard][SB_LNOTE][1..]) <
-		atoi(note_info[1][1..]))
+	    to_int(BdMap[CurrBoard][SB_LNOTE][1..]) <
+		to_int(note_info[1][1..]))
 	{
 	    BdMap[CurrBoard][SB_LNOTE] = note_info[1];
 	    shuffle_boards();
@@ -969,7 +969,7 @@ read_nur(string arg1, string arg2, int mread)
 
     if ((!sizeof(board_name) && !select_nur(0)) ||
         ((note_info = MC->find_next_unread(CurrBoard,
-        atoi(BdMap[CurrBoard][SB_LNOTE][1..])))[0] == 0))
+        to_int(BdMap[CurrBoard][SB_LNOTE][1..])))[0] == 0))
     {
         write(NO_NEWS);
         return MBS_NO_ERR;
@@ -1160,7 +1160,7 @@ select_board(int what, int headers, string board, string item)
     if (headers)
     {
         return MC->print_headers(what, blist[SB_SPATH],
-	           atoi(blist[SB_LNOTE][1..]),
+	           to_int(blist[SB_LNOTE][1..]),
 	           ({ "category", "domain", "newsgroup" })[Selection],
 		   CurrItem[Selection]);
     }
@@ -1935,7 +1935,7 @@ find_nur_insel(int sw)
 	    bsval = b_ind = 0;
 	do
 	{
-	    note_info = MC->find_next_unread(blist[b_ind], atoi(BdMap[blist[b_ind]][SB_LNOTE][1..]));
+	    note_info = MC->find_next_unread(blist[b_ind], to_int(BdMap[blist[b_ind]][SB_LNOTE][1..]));
 	    if (note_info[0] > 0)
 	    {
 		if (CurrBoard != blist[b_ind])

@@ -335,7 +335,7 @@ search_for_herbs(object herbalist, string herb_file = 0)
     int difficulty;
     int specific;
 
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     if (!herbs || !sizeof(herbs))
         return no_find();

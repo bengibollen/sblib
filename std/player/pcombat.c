@@ -92,7 +92,7 @@ remove_invited(object ob)
 public void
 attacked_by(object attacker)
 {
-    if (!query_interactive(this_object()))
+    if (!interactive(this_object()))
     {
 	tell_object(this_object(), "You are linkdeath, so you cannot " +
 	    "be attacked by " +

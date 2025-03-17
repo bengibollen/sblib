@@ -136,7 +136,7 @@ init_map()
 	    Areadir = explode(line[9..sizeof(line)], "\n")[0];
 	else if (sizeof(line) >= 9 && line[0..8] == "#TIMEOUT ")
 	{
-	    Timeout = atoi(explode(line[9..sizeof(line)], "\n")[0]);
+	    Timeout = to_int(explode(line[9..sizeof(line)], "\n")[0]);
 	    Timeout = Timeout < 10 ? 10 : Timeout > 120 ? 120 : Timeout;
 	}
 	else if (sizeof(line) >= 10 && line[0..9] == "#TRASHCAN ")

@@ -300,7 +300,7 @@ monster_ranwalk()
     {
         if (monster_home)
         {
-            seteuid(getuid(this_object()));
+            configure_object(this_object(), OC_EUID, getuid(this_object()));
             this_object()->move_living("home", monster_home);
         }
         il = 10 + random(monster_ranmove);

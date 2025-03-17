@@ -228,12 +228,12 @@ elog(string arg)
 	    elog("?");
 	    return 0;
 	}
-	if (atoi(args[2]) > 30 || atoi(args[2]) < 1)
+	if (to_int(args[2]) > 30 || to_int(args[2]) < 1)
 	{
 	    notify_fail("You can only search 1 - 30 days back.\n");
 	    break;
 	}
-	data = compile_dates(atoi(args[2]));
+	data = compile_dates(to_int(args[2]));
 	elog_mess[who] = ({ set_alarm(ELOG_REPEAT_TIME, 0.0, &find_log(({ who, 0, args[1] }) + ({ data }) + ({ 0 }))) });
 	write_file(SECURITY->query_wiz_path(who) + "/private/ENTER_SEARCH", "Search started " + ctime(time()) + "\n");
 	break;
@@ -251,12 +251,12 @@ elog(string arg)
 	    notify_fail("The player " + capitalize(args[0]) + " doesn't exist.\n");
 	    return 0;
 	}
-	if (atoi(args[1]) > 30 || atoi(args[1]) < 1)
+	if (to_int(args[1]) > 30 || to_int(args[1]) < 1)
 	{
 	    notify_fail("You can only search 1 - 30 days back.\n");
 	    break;
 	}
-	data = compile_dates(atoi(args[1]));
+	data = compile_dates(to_int(args[1]));
 	elog_mess[who] = ({ set_alarm(ELOG_REPEAT_TIME, 0.0, &find_log(({ who, 1, capitalize(args[0]) }) + ({ data }) + ({ 0 }))) });
 	write_file(SECURITY->query_wiz_path(who) + "/private/ENTER_SEARCH", "Search started " + ctime(time()) + "\n");
 	break;
@@ -278,7 +278,7 @@ compile_dates(int back)
     int date;
     mixed rval = ({});
 
-    date = atoi(ctime(time())[8..10]);
+    date = to_int(ctime(time())[8..10]);
 
     while (back--)
     {

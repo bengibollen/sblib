@@ -827,7 +827,7 @@ suspend(string str)
         return 1;
 
     case 3:
-        number = atoi(words[1]);
+        number = to_int(words[1]);
         if (number < 1)
         {
             notify_fail("The <number> of hours/days must be positive.\n");

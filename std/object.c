@@ -1025,7 +1025,7 @@ check_call(mixed retval, object for_obj = previous_object())
  * Function name: reset_euid
  * Description  : This function can be called externally to make sure that
  *                the euid of this object is set exactly to the uid of the
- *                object. All it does is: seteuid(getuid(this_object()));
+ *                object. All it does is: configure_object(this_object(), OC_EUID, getuid(this_object()));
  */
 public void
 reset_euid()

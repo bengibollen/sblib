@@ -7,7 +7,7 @@
 #ifndef MAIL_DEFINED
 #define MAIL_DEFINED
 
-#include "/config/sys/mail2.h"
+#include "/conf/sys/mail2.h"
 
 #ifndef FILES_DEFINED
 #include "/sys/files.h"

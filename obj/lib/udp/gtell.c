@@ -35,9 +35,9 @@ send_gtell(string mud, string wiz_from, string wiz_to, string msg)
     msg = implode(explode(msg,"|"),"");
     msg = implode(explode(msg,"@@@"),"");
 
-    if (stringp(minfo["HOSTADDRESS"]) && atoi(minfo["PORTUDP"]))
+    if (stringp(minfo["HOSTADDRESS"]) && to_int(minfo["PORTUDP"]))
     {
-	TO->send_udp(minfo["HOSTADDRESS"], atoi(minfo["PORTUDP"]),
+	TO->send_udp(minfo["HOSTADDRESS"], to_int(minfo["PORTUDP"]),
 		     "@@@" + UDP_GTELL +
 		     "||NAME:" + TO->query_my_name() +
 		     "||PORTUDP:" + TO->query_my_udpport() +
@@ -89,7 +89,7 @@ gtell(mapping p)
 	    log_file("UDP_fakegtell", sprintf("%s: %s\n@ %s\n",
 					     ctime(time()), p["HOSTADDRESS"],
 					     tmsg + "> " + rect + "\n"));
-	    TO->send_udp(minfo["HOSTADDRESS"], atoi(minfo["PORTUDP"]),
+	    TO->send_udp(minfo["HOSTADDRESS"], to_int(minfo["PORTUDP"]),
 			 "@@@" + UDP_WARNING +
 			 "||MSG:Faked gtell message, " + tmsg + "> " + rect +
 			 "||FAKEHOST:" + p["HOSTADDRESS"] +
@@ -103,7 +103,7 @@ gtell(mapping p)
 			   p["WIZTO"] + " was not found.\n");
 	    return 0;
 	}
-	if (!query_interactive(pl)) {
+	if (!interactive(pl)) {
 	    send_gtell(p["NAME"], "UDPmanager", p["WIZFROM"],
 		       p["WIZTO"] + " is link-dead.\n");
 	    return 0;

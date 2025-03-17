@@ -83,7 +83,7 @@ load_player(string pl_name)
     if (member(" ", explode(pl_name, "")) >= 0)
         return 0;
 
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     ret = restore_object(PLAYER_FILE(pl_name));
     seteuid(0);
 
@@ -127,7 +127,7 @@ query_finger_player()
 public int
 notmet_me(object obj)
 {
-    if (obj && query_interactive(obj))
+    if (obj && interactive(obj))
 	return !obj->query_met(this_object());
     return !this_player()->query_met(this_object());
 }
@@ -272,7 +272,7 @@ query_option(int opt)
     switch(opt)
     {
     case OPT_WHIMPY:
-        return atoi(options[6..7]);
+        return to_int(options[6..7]);
     default:
         return 0;
     }

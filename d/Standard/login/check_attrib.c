@@ -17,7 +17,7 @@ create_object()
 {
     obj_names = ({"selector"});
     setuid();
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     restore_object(PATH + "attributes");
 }
 

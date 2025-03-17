@@ -21,7 +21,7 @@
 int send_support_q(string host, mixed port, string cmd, string param)
 {
     if (stringp(port))
-	port = atoi(port);
+	port = to_int(port);
 
     TO->send_udp(host, port,
 		 "@@@" + UDP_SUPPORTED_Q +
@@ -46,7 +46,7 @@ int support_q(mapping p)
 	    ((sizeof(p["PARAM"]) &&
 	      !call_other(TO, "support_" + p["CMD"], p["PARAM"]))))
 	{
-	    TO->send_udp(p["HOSTADDRESS"], atoi(p["PORTUDP"]),
+	    TO->send_udp(p["HOSTADDRESS"], to_int(p["PORTUDP"]),
 			 "@@@" + UDP_SUPPORTED_A +
 			 "||NAME:" + TO->query_my_name() +
 			 "||PORTUDP:" + TO->query_my_udpport() +
@@ -58,7 +58,7 @@ int support_q(mapping p)
 	}
 	else
 	{
-	    TO->send_udp(p["HOSTADDRESS"], atoi(p["PORTUDP"]),
+	    TO->send_udp(p["HOSTADDRESS"], to_int(p["PORTUDP"]),
 			 "@@@" + UDP_SUPPORTED_A +
 			 "||NAME:" + TO->query_my_name() +
 			 "||PORTUDP:" + TO->query_my_udpport() +
@@ -120,7 +120,7 @@ cmd_support(string arg)
 	p = TO->query_mud_info(args[0]);
 	if (sizeof(args) < 2)
 	    return 0;
-	if (atoi(p["PORTUDP"]) < 1)
+	if (to_int(p["PORTUDP"]) < 1)
 	{
 	    notify_fail(args[0] + " can not answer.\n");
 	    return 0;

@@ -32,9 +32,9 @@ send_gfinger_q(string mud, string wiz_from, string wiz_to)
     if (!mappingp(minfo))
 	return 0;
 
-    if (stringp(minfo["HOSTADDRESS"]) && atoi(minfo["PORTUDP"]))
+    if (stringp(minfo["HOSTADDRESS"]) && to_int(minfo["PORTUDP"]))
     {
-	TO->send_udp(minfo["HOSTADDRESS"], atoi(minfo["PORTUDP"]),
+	TO->send_udp(minfo["HOSTADDRESS"], to_int(minfo["PORTUDP"]),
 		     "@@@" + UDP_GFINGER_Q +
 		     "||NAME:" + TO->query_my_name() +
 		     "||PORTUDP:" + TO->query_my_udpport() +
@@ -75,7 +75,7 @@ gfinger_q(mapping p)
 	if (!stringp(p["ASKWIZ"]) || !stringp(p["PLAYER"]))
 	    return 0;
 
-	TO->send_udp(p["HOSTADDRESS"], atoi(p["PORTUDP"]),
+	TO->send_udp(p["HOSTADDRESS"], to_int(p["PORTUDP"]),
 		     "@@@" + UDP_GFINGER_A +
 		     "||NAME:" + TO->query_my_name() +
 		     "||PORTUDP:" + TO->query_my_udpport() +
@@ -178,7 +178,7 @@ finger_player(string player)
 
     if (li) {
 	str += "Currently logged on from: " + ob->query_login_from() + "\n";
-	if (query_interactive(ob)) {
+	if (interactive(ob)) {
 	    if (query_idle(ob) > 0)
 		str += "Idle time: " + CONVTIME(query_idle(ob)) + ".\n";
 	}

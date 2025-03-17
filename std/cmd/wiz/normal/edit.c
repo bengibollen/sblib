@@ -450,7 +450,7 @@ pad(string str)
         }
 
 	read_pad_file();
-        index = atoi(args[1]);
+        index = to_int(args[1]);
         if (!pad_notes[index])
         {
 	    notify_fail("No note '" + index + "' on your notepad.\n");
@@ -511,7 +511,7 @@ pad(string str)
 
     default:
         /* Wizard may read a particular note number on his/her notepad. */
-	index = atoi(args[0]);
+	index = to_int(args[0]);
 	if (index &&
 	    (size == 1))
 	{

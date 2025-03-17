@@ -1439,7 +1439,7 @@ parse_range(string str)
         }
         else
         {
-            index = atoi(part);
+            index = to_int(part);
             /* Too large to too small number. If parts[index] is a string
              * value, index will be zero and therewith eliminated.
              */

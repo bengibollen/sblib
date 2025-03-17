@@ -217,8 +217,7 @@ command_wield()
 /* **************************************************************************
  * Return a proper name of the soul in order to get a nice printout.
  */
-string
-get_soul_id()
+string get_soul_id()
 {
     return "items";
 }
@@ -226,8 +225,7 @@ get_soul_id()
 /* **************************************************************************
  * This is a command soul.
  */
-int
-query_cmd_soul()
+int query_cmd_soul()
 {
     return 1;
 }
@@ -238,31 +236,29 @@ query_cmd_soul()
  *                sublocations responsible for extra descriptions of the
  *                living object.
  */
-public void
-using_soul(object live)
+public void using_soul(object live)
 {
 }
 
 /* **************************************************************************
  * The list of verbs and functions. Please add new in alfabetical order.
  */
-mapping
-query_cmdlist()
+mapping query_cmdlist()
 {
     return
 	([
-             "drink"      : "drink",
-             "eat"        : "eat",
-             "extinguish" : "extinguish",
-             "hold"       : "hold",
-             "light"      : "light",
-             "read"       : "read",
-             "mread"      : "read",
-             "release"    : "release",
-             "remove"     : "remove",
-             "unwield"    : "unwield",
-  	     "wear"       : "wear",
-             "wield"      : "wield",
+        "drink"      : "drink",
+        "eat"        : "eat",
+        "extinguish" : "extinguish",
+        "hold"       : "hold",
+        "light"      : "light",
+        "read"       : "read",
+        "mread"      : "read",
+        "release"    : "release",
+        "remove"     : "remove",
+        "unwield"    : "unwield",
+        "wear"       : "wear",
+        "wield"      : "wield",
 	]);
 }
 
@@ -277,8 +273,7 @@ query_cmdlist()
  * Returns:       object * - an array consisting of the objects that were
  *                           successfully used
  */
-varargs public object *
-use_items(object *items, function f, int silent)
+varargs public object *use_items(object *items, closure f, int silent)
 {
     mixed res;
     object *used;
@@ -288,7 +283,7 @@ use_items(object *items, function f, int silent)
     for (i = 0, used = ({}), fail_msg = ""; i < sizeof(items); i++)
     {
         /* Call the function to "use" the item */
-        res = f(items[i]);
+        res = funcall(f, items[i]);
 
         if (!res)
 	{
@@ -350,8 +345,7 @@ use_items(object *items, function f, int silent)
  *                object * - an array consisting of the objects that were
  *                           successfully used
  */
-varargs public object *
-use_described_items(string str, object *obs, function f, int silent,
+varargs public object *use_described_items(string str, object *obs, closure f, int silent,
     int use_one)
 {
     mixed *items;
@@ -360,7 +354,7 @@ use_described_items(string str, object *obs, function f, int silent,
         !parse_command(str, obs, "[the] %i", items) ||
         !sizeof(items = NORMAL_ACCESS(items, 0, 0)))
     {
-        notify_fail(capitalize(query_verb()) + " what?\n", 0);
+        notify_fail(capitalize(query_verb()) + " what?\n");
         return 0;
     }
 
@@ -374,12 +368,11 @@ use_described_items(string str, object *obs, function f, int silent,
     return use_items(items, f, silent);
 }
 
-public int
-drink(string str)
+public int drink(string str)
 {
     object *drinkable;
 
-    if (!(drinkable = USE_INV(str, &->command_drink(), 0, 0)))
+    if (!(drinkable = USE_INV(str, (: ({mixed}) $1->command_drink() :), 0, 0)))
     {
         return 0;
     }
@@ -390,12 +383,11 @@ drink(string str)
     return 1;
 }
 
-public int
-eat(string str)
+public int eat(string str)
 {
     object *eatable;
 
-    if (!(eatable = USE_INV(str, &->command_eat(), 0, 0)))
+    if (!(eatable = USE_INV(str, (: ({mixed}) $1->command_eat() :), 0, 0)))
     {
         return 0;
     }
@@ -406,107 +398,98 @@ eat(string str)
     return 1;
 }
 
-public int
-extinguish(string str)
+public int extinguish(string str)
 {
-    return !!USE_ENV(str, &->command_extinguish(), 0, 0);
+    return !!USE_ENV(str, (: ({mixed}) $1->command_extinguish() :), 0, 0);
 }
 
-public int
-hold(string str)
+public int hold(string str)
 {
-    return !!USE_INV(str, &->command_hold(), 1, 0);
+    return !!USE_INV(str, (: ({mixed}) $1->command_hold() :), 1, 0);
 }
 
-public int
-light(string str)
+public int light(string str)
 {
-    return !!USE_ENV(str, &->command_light(), 0, 0);
+    return !!USE_ENV(str, (: ({mixed}) $1->command_light() :), 0, 0);
 }
 
-public int
-read(string str)
+public int read(string str)
 {
-    return !!USE_ENV(str, &->command_read(FCHAR(query_verb()) == "m"), 1, 1);
+    return !!USE_ENV(str, (: ({mixed}) $1->command_read(FCHAR(query_verb()) == "m") :), 1, 1);
 }
 
-public int
-release(string str)
+public int release(string str)
 {
     mixed *items;
 
     if (!sizeof(str) || !parse_command(str, all_inventory(this_player()),
         "[the] %i", items))
     {
-        notify_fail(capitalize(query_verb()) + " what?\n", 0);
+        notify_fail(capitalize(query_verb()) + " what?\n");
 	return 0;
     }
 
-    items = CMDPARSE_STD->normal_access(items, 0, 0, 1);
+    items = ({mixed *}) CMDPARSE_STD->normal_access(items, 0, 0, 1);
 
-    return !!use_items(items, &->command_release(), 1);
+    return !!use_items(items, (: ({mixed}) $1->command_release() :), 1);
 }
 
-public int
-remove(string str)
+public int remove(string str)
 {
     mixed *items;
     object *inv;
 
     if (!sizeof(str))
     {
-        notify_fail(capitalize(query_verb()) + " what?\n", 0);
+        notify_fail(capitalize(query_verb()) + " what?\n");
 	return 0;
     }
 
-    inv = this_player()->query_clothing(-1);
+    inv = ({object *}) this_player()->query_clothing(-1);
     inv += all_inventory(this_player()) - inv;
 
     if (!parse_command(str, inv, "[the] %i", items))
     {
-        notify_fail(capitalize(query_verb()) + " what?\n", 0);
+        notify_fail(capitalize(query_verb()) + " what?\n");
 	return 0;
     }
 
-    items = CMDPARSE_STD->normal_access(items, 0, 0, 1);
+    items = ({mixed *}) CMDPARSE_STD->normal_access(items, 0, 0, 1);
 
-    return !!use_items(items, &->command_remove(), 1);
+    return !!use_items(items, (: ({mixed}) $1->command_remove() :), 1);
 }
 
-public int
-unwield(string str)
+public int unwield(string str)
 {
     mixed *items;
     object *inv;
 
     if (!sizeof(str))
     {
-        notify_fail(capitalize(query_verb()) + " what?\n", 0);
+        notify_fail(capitalize(query_verb()) + " what?\n");
 	return 0;
     }
 
-    inv = this_player()->query_weapon(-1);
+    inv = ({mixed}) this_player()->query_weapon(-1);
     inv += all_inventory(this_player()) - inv;
 
     if (!parse_command(str, inv, "[the] %i", items))
     {
-        notify_fail(capitalize(query_verb()) + " what?\n", 0);
+        notify_fail(capitalize(query_verb()) + " what?\n");
 	return 0;
     }
 
-    items = CMDPARSE_STD->normal_access(items, 0, 0, 1);
+    items = ({mixed *}) CMDPARSE_STD->normal_access(items, 0, 0, 1);
 
-    return !!use_items(items, &->command_unwield(), 1);
+    return !!use_items(items, (: ({mixed}) $1->command_unwield() :), 1);
 }
 
-public int
-wear(string str)
+public int wear(string str)
 {
-    return !!USE_INV(str, &->command_wear(), 1, 0);
+    return !!USE_INV(str, (: ({mixed}) $1->command_wear() :), 1, 0);
 }
 
-public int
-wield(string str)
+public int wield(string str)
 {
-    return !!USE_INV(str, &->command_wield(), 1, 0);
+    return !!USE_INV(str, (: ({mixed}) $1->command_wield() :), 1, 0);
 }

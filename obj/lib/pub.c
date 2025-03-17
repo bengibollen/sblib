@@ -41,7 +41,7 @@ fix_drink(mixed data)
 {
     object ob;
 
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     ob = clone_object("/std/drink");
     ob->set_name(data[0]);
     ob->set_adj(data[1]);
@@ -68,7 +68,7 @@ fix_food(mixed data)
 {
     object ob;
 
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     ob = clone_object("/std/food");
     ob->set_name(data[0]);
     ob->set_adj(data[1]);

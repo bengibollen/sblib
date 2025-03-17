@@ -356,7 +356,7 @@ aft_find_file(string file)
     mapping tmp;
 
     /* May be the index number in the list of files. */
-    if (index = atoi(file))
+    if (index = to_int(file))
     {
 	if ((index > 0) &&
 	    (index <= sizeof(aft_sorted)))

@@ -745,7 +745,7 @@ modify(string str)
         return 0;
     }
 
-    amount = atoi(words[3]);
+    amount = to_int(words[3]);
     reason = (self ? "self" : implode(words[4..], " "));
 
     words[2] = lower_case(words[2]);
@@ -1118,7 +1118,7 @@ possess(string arg)
         }
     }
 
-    if (!query_interactive(victim))
+    if (!interactive(victim))
     {
         if (SECURITY->exist_player(v_name))
         {
@@ -1183,7 +1183,7 @@ valid_possess(object demon, object possessed)
     }
 
     /* You can possess objects in your domain */
-    if (!query_interactive(possessed) &&
+    if (!interactive(possessed) &&
         ((dom == on) || (dom == SECURITY->query_wiz_dom(on))))
     {
         return 1;
@@ -1534,7 +1534,7 @@ shutdown_game(string str)
         return 0;
     }
 
-    grace = atoi(argv[0]);
+    grace = to_int(argv[0]);
     if ((grace >= 1) ||
         (argv[0] == "now"))
     {

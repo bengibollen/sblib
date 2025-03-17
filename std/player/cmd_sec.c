@@ -277,7 +277,7 @@ save_me(int value_items)
     set_logout_time();
     seteuid(0);
     SECURITY->save_player();
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     /* If the player is a mortal, we will restart autosave. */
     start_autosave();

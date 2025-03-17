@@ -384,7 +384,7 @@ make_leftover_heap()
         return 0;
 
     if (!geteuid(this_object()))
-        seteuid(getuid(this_object()));
+        configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     ob = CLONE_COPY;
     ob->config_split(leave_behind, this_object());

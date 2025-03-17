@@ -446,7 +446,7 @@ load_headers()
     if (msg_num)
     {
         headers = map(sort_array(
-            map(notes, &atoi() @ &extract(, 1))), extract_headers);
+            map(notes, &to_int() @ &extract(, 1))), extract_headers);
     }
     else
         headers = ({ });
@@ -573,7 +573,7 @@ long(int start = 1, int end = msg_num)
 	if (allowed || (name == query_author(start + 1)))
 	{
 	    str += sprintf("%2d: %s\n", (start + 1), headers[start][0] + " " +
-	        TIME2FORMAT(atoi(headers[start][1][1..]),
+	        TIME2FORMAT(to_int(headers[start][1][1..]),
 	            (show_lvl ? "yy" : "yyyy")));
 	}
     }
@@ -591,7 +591,7 @@ init()
     ::init();
 
     /* Only interactive players can write notes on boards. */
-    if (!query_interactive(this_player()))
+    if (!interactive(this_player()))
 	return;
 
     add_action(list_notes, "list");
@@ -726,7 +726,7 @@ list_notes(string str)
 	break;
 
     case 2:
-	end = atoi(parts[1]);
+	end = to_int(parts[1]);
 	break;
 
     default:
@@ -735,7 +735,7 @@ list_notes(string str)
 	return 0;
     }
 
-    write(long(atoi(parts[0]), end));
+    write(long(to_int(parts[0]), end));
     return 1;
 }
 
@@ -1103,14 +1103,14 @@ read_msg(string what_msg, int mr)
 	mr = (query_verb() == "mread");
 
     if ((!mr) &&
-	(atoi(headers[note][0][42..44]) > MAX_NO_MREAD))
+	(to_int(headers[note][0][42..44]) > MAX_NO_MREAD))
     {
 	write("Too long note. More automatically invoked.\n");
 	mr = 1;
     }
 
     text = headers[note][0] + " " +
-        TIME2FORMAT(atoi(headers[note][1][1..]), "yyyy") + "\n\n";
+        TIME2FORMAT(to_int(headers[note][1][1..]), "yyyy") + "\n\n";
     if (mr == 1)
 	this_player()->more(text + read_file(board_name + "/" + headers[note][1], 2));
     else

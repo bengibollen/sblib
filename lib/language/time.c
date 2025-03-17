@@ -372,19 +372,19 @@ time2format(int timestamp, string format)
         }
         if (format[0..1] == "dd")
         {
-            result += sprintf("%02d", atoi(timestring[8..9]));
+            result += sprintf("%02d", to_int(timestring[8..9]));
             format = format[2..];
             continue;
         }
         if (format[0..1] == "-d")
         {
-            result += sprintf("%2d", atoi(timestring[8..9]));
+            result += sprintf("%2d", to_int(timestring[8..9]));
             format = format[2..];
             continue;
         }
         if (format[0..0] == "d")
         {
-            result += atoi(timestring[8..9]);
+            result += to_int(timestring[8..9]);
             format = format[1..];
             continue;
         }

@@ -101,7 +101,7 @@ static void get_name(string str);
 static void
 clean_up()
 {
-    if (!query_interactive(this_object()))
+    if (!interactive(this_object()))
     {
         destruct();
     }
@@ -182,7 +182,7 @@ logon()
 {
     set_screen_width(80);
 
-    if (!query_interactive(this_object()))
+    if (!interactive(this_object()))
     {
         destruct();
         return 0;
@@ -285,7 +285,7 @@ start_player2(object ob)
      * LOGIN_NEW_PLAYER since that doesn't leave a 'notify' message when
      * destructed.
      */
-    if (query_interactive(ob))
+    if (interactive(ob))
     {
         if (environment(ob))
         {
@@ -483,7 +483,7 @@ start_player()
     }
 
     /* If you already have a link, you are asked to switch terminals */
-    if (query_interactive(other_copy))
+    if (interactive(other_copy))
     {
         write_socket("You are already playing !\n");
         write_socket("Throw the other copy out ? ");

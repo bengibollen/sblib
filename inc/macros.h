@@ -74,7 +74,7 @@
 /*
  * FCHAR(str) return the first character of 'str'.
  */
-#define FCHAR(str) extract((str), 0, 0)
+#define FCHAR(str) str[0..0]
 
 /*
  * LCALLfun makes a call_other to the function 'fun' in this_object(). By

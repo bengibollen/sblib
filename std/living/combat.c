@@ -833,7 +833,7 @@ public int query_relaxed_from_combat()
  */
 public object query_attack()
 {
-    CEX; return ({object})combat_extern->cb_query_attack();
+    CEX; return ({object}) combat_extern->cb_query_attack();
 }
 
 /*******************************************

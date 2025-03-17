@@ -77,7 +77,7 @@ reset_living()
 int
 team_join(object member)
 {
-    if (query_interactive(member))
+    if (interactive(member))
 	return 0;		/* mobile leaders overplayers */
     return ::team_join(member);
 }
@@ -211,7 +211,7 @@ catch_tell(string str)
 public void
 catch_vbfc(mixed str, object from_player = 0)
 {
-    if (!query_interactive(this_object()) && !query_tell_active())
+    if (!interactive(this_object()) && !query_tell_active())
     {
         return;
     }

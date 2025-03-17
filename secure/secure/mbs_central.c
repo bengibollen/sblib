@@ -1185,8 +1185,8 @@ query_unread_news(string bpath, string last)
     if (!last || !entry[BBP_LNOTE])
         return 0;
 
-    il = atoi(last[1..]);
-    ic = atoi(entry[BBP_LNOTE][1..]);
+    il = to_int(last[1..]);
+    ic = to_int(entry[BBP_LNOTE][1..]);
 
     return (il < ic);
 }
@@ -1225,10 +1225,10 @@ query_board_status(string bpath, string last)
 	    st += "]";
 
             /* News status? */
-	    il = atoi(last[1..]);
+	    il = to_int(last[1..]);
             if (entry[BBP_LNOTE])
             {
-                ic = atoi(entry[BBP_LNOTE][1..]);
+                ic = to_int(entry[BBP_LNOTE][1..]);
                 if (il < ic)
                     return "U" + st;
             }
@@ -1352,7 +1352,7 @@ print_headers(int select, string spath, int lnote, string order, string oitem)
     }
 
     if (!select && (!blist[BBP_LNOTE] ||
-            atoi(blist[BBP_LNOTE][1..]) <= lnote))
+            to_int(blist[BBP_LNOTE][1..]) <= lnote))
     {
 	write("No news is good news.\n");
 	return MBS_NO_ERR;
@@ -1374,7 +1374,7 @@ print_headers(int select, string spath, int lnote, string order, string oitem)
 	{
 	    if (!select)
 	    {
-		if (atoi(hds[i][1][1..]) > lnote)
+		if (to_int(hds[i][1][1..]) > lnote)
 		    write(sprintf("%-4s%s\n", ("" + (i + 1) + ":"),
 				  hds[i][0]));
 	    }
@@ -1455,7 +1455,7 @@ find_next_unread(string board, int tme)
 
     for (i = 0, sz = sizeof(hds) ; i < sz ; i++)
     {
-	if (tme < atoi(hds[i][1][1..]))
+	if (tme < to_int(hds[i][1][1..]))
 	    return ({ i + 1, hds[i][1] });
     }
 
@@ -1516,7 +1516,7 @@ remove_item(string board, string item)
     else
     {
 	hds = bd->query_headers();
-	if (sizeof(hds) < atoi(item))
+	if (sizeof(hds) < to_int(item))
 	    return MBS_BAD_NNUM;
 	bd->remove_msg("note " + item);
     }
@@ -2256,7 +2256,7 @@ static nomask int
 tmfunc(string tm)
 {
     if (sizeof(tm))
-	return time() - atoi(tm[1..]);
+	return time() - to_int(tm[1..]);
     else
 	return 0;
 }

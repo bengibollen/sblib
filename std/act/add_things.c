@@ -49,7 +49,7 @@ add_weapon(string file)
     if (!this_object()->seq_query("add_weapon"))
         this_object()->seq_new("add_weapon");
 
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     weapon = clone_object(file);
     if (!weapon)
     	return 0;
@@ -87,7 +87,7 @@ add_armour(string file)
     if (!this_object()->seq_query("add_armour"))
 	this_object()->seq_new("add_armour");
 
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     armour = clone_object(file);
     if (!armour)
     	return 0;

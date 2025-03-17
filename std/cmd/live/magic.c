@@ -15,12 +15,11 @@
 
 inherit "/std/command_driver";
 
-nomask mapping
-query_cmdlist()
+nomask mapping query_cmdlist()
 {
     return ([
 	        "abort"  : "abort",
-                "cast"   : "cast",
+            "cast"   : "cast",
 	        "spells" : "spells",
            ]);
 }
@@ -28,8 +27,7 @@ query_cmdlist()
 /* **************************************************************************
  * Return a proper name of the soul in order to get a nice printout.
  */
-string
-get_soul_id()
+string get_soul_id()
 {
     return "magic";
 }
@@ -37,8 +35,7 @@ get_soul_id()
 /* **************************************************************************
  * This is a command soul.
  */
-int
-query_cmd_soul()
+int query_cmd_soul()
 {
     return 1;
 }
@@ -49,16 +46,15 @@ query_cmd_soul()
  * Arguments:     string str - arguments to the "abort" command
  * Returns:       1/0 - command success/failure
  */
-int
-abort(string str)
+int abort(string str)
 {
     if (str != "spell")
     {
-        notify_fail("Abort what?\n", 0);
+        notify_fail("Abort what?\n");
         return 0;
     }
 
-    if (this_player()->abort_spell())
+    if (({int}) this_player()->abort_spell())
     {
         return 1;
     }
@@ -73,15 +69,14 @@ abort(string str)
  * Arguments:     string str - arguments to "cast" command
  * Returns:       1/0 - spell command executed/not executed
  */
-int
-cast(string str)
+int cast(string str)
 {
     object ob;
     string spell, arg;
 
     if (!sizeof(str))
     {
-        notify_fail("Cast what?\n", 0);
+        notify_fail("Cast what?\n");
         return 0;
     }
 
@@ -90,13 +85,13 @@ cast(string str)
         spell = str;
     }
 
-    if (ob = this_player()->find_spell(spell))
+    if (ob = ({object}) this_player()->find_spell(spell))
     {
         this_player()->start_spell(spell, arg, ob);
         return 1;
     }
 
-    notify_fail("Cast what?\n", 0);
+    notify_fail("Cast what?\n");
     return 0;
 }
 
@@ -107,10 +102,9 @@ cast(string str)
  * Function name: spells
  * Description:   List the active spells.
  */
-int
-spells(string str)
+int spells(string str)
 {
-    object *spellobjs = this_player()->query_spellobjs();
+    object *spellobjs = ({object *}) this_player()->query_spellobjs();
 
     if (!sizeof(spellobjs))
     {
@@ -118,6 +112,6 @@ spells(string str)
         return 1;
     }
 
-    map(spellobjs, &->list_spells());
+    map(spellobjs, (: ({void}) $1->list_spells() :));
     return 1;
 }

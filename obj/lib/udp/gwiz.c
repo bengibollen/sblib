@@ -30,8 +30,8 @@ send_gwizmsg(string wizname, string msg, int emote)
     for (muds = ({}), il = 0; il < sizeof(ix); il++)
     {
 	p = TO->query_mud_info(ix[il]);
-	if (stringp(p["HOSTADDRESS"]) && atoi(p["PORTUDP"]))
-	    TO->send_udp(p["HOSTADDRESS"], atoi(p["PORTUDP"]),
+	if (stringp(p["HOSTADDRESS"]) && to_int(p["PORTUDP"]))
+	    TO->send_udp(p["HOSTADDRESS"], to_int(p["PORTUDP"]),
 			 "@@@" + UDP_GWIZMSG +
 			 "||NAME:" + TO->query_my_name() +
 			 "||PORTUDP:" + TO->query_my_udpport() +
@@ -79,7 +79,7 @@ gwizmsg(mapping p)
 	else if (!stringp(p["WIZNAME"]))
 	    return 0;
 
-    if (p["EMOTE"] && atoi(p["EMOTE"]))
+    if (p["EMOTE"] && to_int(p["EMOTE"]))
 	    smsg = p["WIZNAME"] + "." + p["NAME"] + " " + p["GWIZ"];
 	else
 	    smsg = p["WIZNAME"] + "." + p["NAME"] + ": " + p["GWIZ"];
@@ -89,7 +89,7 @@ gwizmsg(mapping p)
 	    log_file("UDP_fakegwiz", sprintf("%s: %s\n@ %s\n",
 					     ctime(time()), p["HOSTADDRESS"],
 					     smsg));
-	    TO->send_udp(mi["HOSTADDRESS"], atoi(mi["PORTUDP"]),
+	    TO->send_udp(mi["HOSTADDRESS"], to_int(mi["PORTUDP"]),
 			 "@@@" + UDP_WARNING +
 			 "||MSG:Faked gwiz message, " + smsg +
 			 "||FAKEHOST:" + p["HOSTADDRESS"] +

@@ -1186,7 +1186,7 @@ tell(string str)
             continue;
         }
 
-        if (!query_interactive(target))
+        if (!interactive(target))
         {
             write(capitalize(names[index]) + " is link dead right now.\n");
             continue;

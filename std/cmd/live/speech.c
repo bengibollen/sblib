@@ -25,7 +25,7 @@ inherit "/std/command_driver";
 #include <adverbs.h>
 #include <cmdparse.h>
 #include <composite.h>
-#include <files.h>
+#include <libfiles.h>
 #include <filter_funs.h>
 #include <flags.h>
 #include <language.h>
@@ -35,6 +35,7 @@ inherit "/std/command_driver";
 #include <ss_types.h>
 #include <std.h>
 #include <stdproperties.h>
+#include <configuration.h>
 
 #define LANGUAGE_ALL_RSAY    (55) /* When will you understand all rsay     */
 #define LANGUAGE_MIN_RSAY    (15) /* Below this you understand no rsay     */
@@ -44,42 +45,42 @@ inherit "/std/command_driver";
  * Prototype.
  */
 varargs int say_text(string str, string adverb = "");
-public int say_to(string str, function format);
+public int say_to(string str, closure format);
+
 
 /*
  * Function name: create
  * Description  : This function is called the moment this object is created
  *                and loaded into memory.
  */
-void
-create()
+void create()
 {
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
+
 
 /* **************************************************************************
  * Return a proper name of the soul in order to get a nice printout.
  */
-string
-get_soul_id()
+string get_soul_id()
 {
     return "speech";
 }
 
+
 /* **************************************************************************
  * This is a command soul.
  */
-int
-query_cmd_soul()
+int query_cmd_soul()
 {
     return 1;
 }
 
+
 /* **************************************************************************
  * The list of verbs and functions. Please add new in alfabetical order.
  */
-mapping
-query_cmdlist()
+mapping query_cmdlist()
 {
     return ([
              "asay":"asay",
@@ -100,16 +101,17 @@ query_cmdlist()
            ]);
 }
 
+
 /*
  * Function name: using_soul
  * Description  : Called once by the living object using this soul. Adds
  *                sublocations responsible for extra descriptions of the
  *                living object.
  */
-public void
-using_soul(object live)
+public void using_soul(object live)
 {
 }
+
 
 /* **************************************************************************
  * Here follows the actual functions. Please add new functions in the
@@ -119,8 +121,7 @@ using_soul(object live)
 /* **************************************************************************
  * ASay - Say something using an adverb.
  */
-int
-asay(string str)
+int asay(string str)
 {
     string *how;
 
@@ -147,11 +148,11 @@ asay(string str)
     return say_text(how[0], how[1]);
 }
 
+
 /* **************************************************************************
  * Ask - Ask someone something.
  */
-int
-ask(string str)
+int ask(string str)
 {
     object *oblist;
     object *wizards;
@@ -200,20 +201,20 @@ ask(string str)
 
     if (!sizeof(msg))
     {
-        write("Ask what to " + oblist[0]->query_the_name(this_player()) +
+        write("Ask what to " + ({string}) oblist[0]->query_the_name(this_player()) +
             "?\n");
         return 1;
     }
 
-    if (tmp = this_player()->query_prop(LIVE_M_MOUTH_BLOCKED))
+    if (tmp = ({mixed}) this_player()->query_prop(LIVE_M_MOUTH_BLOCKED))
     {
         write(stringp(tmp) ? tmp : "You are gagged and cannot ask.\n");
         return 1;
     }
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
-        write("You ask " + oblist[0]->query_the_name(this_player()) +
+        write("You ask " + ({string}) oblist[0]->query_the_name(this_player()) +
             ": " + msg + "\n");
     }
     else
@@ -226,15 +227,15 @@ ask(string str)
         oblist - ({ this_player() });
     for (index = 0; index < sizeof(wizards); index++)
     {
-        wizards[index]->catch_tell(this_player()->query_The_name(wizards[index]) +
-            " asks " + oblist[0]->query_the_name(wizards[index]) + ": " +
+        wizards[index]->catch_tell(({string}) this_player()->query_The_name(wizards[index]) +
+            " asks " + ({string}) oblist[0]->query_the_name(wizards[index]) + ": " +
 	    msg + "\n");
     }
 
     this_player()->reveal_me(1);
     say(QCTNAME(this_player()) + " asks " + QTNAME(oblist[0]) +
         " something.\n", wizards + oblist + ({ this_player() }) );
-    tell_object(oblist[0], this_player()->query_The_name(oblist[0]) +
+    tell_object(oblist[0], ({string}) this_player()->query_The_name(oblist[0]) +
         " asks you: " + msg + "\n");
     oblist[0]->catch_question(msg);
     oblist[0]->reveal_me(1);
@@ -242,13 +243,13 @@ ask(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * Commune - talk with the wizards.
  *
  * This is supposed to be used in extreme emergencies only.
  */
-int
-commune(string str)
+int commune(string str)
 {
     object *us;
     object spec;
@@ -261,7 +262,7 @@ commune(string str)
     string *alias;
     string timestamp = ctime(time())[11..15] + " ";
 
-    if (!query_interactive(this_player()))
+    if (!interactive(this_player()))
     {
         notify_fail("Only true players may commune with the deities.\n");
         return 0;
@@ -275,7 +276,7 @@ commune(string str)
         return 0;
     }
 
-    if (this_player()->query_wiz_level())
+    if (({int}) this_player()->query_wiz_level())
     {
         notify_fail("Communing is something relevant only to mortals, " +
             "seek an audience.\n");
@@ -290,7 +291,7 @@ commune(string str)
         return 1;
     }
 
-    if (wildmatch("to *", str))
+    if (str[..2] == "to ")
     {
         str = str[3..];
     }
@@ -304,7 +305,7 @@ commune(string str)
     }
 
     wiz = lower_case(arg[0]);
-    str = capitalize(this_interactive()->query_real_name());
+    str = capitalize(({string}) this_interactive()->query_real_name());
     mess = implode(arg[1..], " ") + "\n";
 
     if (LANG_IS_OFFENSIVE(mess))
@@ -325,16 +326,16 @@ commune(string str)
     switch(wiz)
     {
     case "all":
-        us = filter(users(), &->query_wiz_level());
+        us = filter(users(), (: ({int}) $1->query_wiz_level() :));
         il = -1;
         size = sizeof(us);
 
         while(++il < size)
         {
-            if (!(us[il]->query_prop(WIZARD_I_BUSY_LEVEL) & BUSY_C))
+            if (!(({int}) us[il]->query_prop(WIZARD_I_BUSY_LEVEL) & BUSY_C))
             {
                 tell_object(us[il],
-                    (us[il]->query_option(OPT_TIMESTAMP) ? timestamp : "") +
+                    (({int}) us[il]->query_option(OPT_TIMESTAMP) ? timestamp : "") +
                     "COMMUNE anyone from " + str + ": " + mess);
                 flag = 1;
             }
@@ -446,6 +447,7 @@ commune(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * Converse - Carry on a conversation without having to type 'say'.
  */
@@ -456,8 +458,7 @@ commune(string str)
  *                text to say.
  * Arguments    : string str - the text the player wants to say.
  */
-nomask void
-converse_more(string str)
+nomask void converse_more(string str)
 {
     if ((str == "**") ||
         (str == "~q"))
@@ -480,8 +481,8 @@ converse_more(string str)
     input_to(converse_more);
 }
 
-int
-converse()
+
+int converse()
 {
     write("Entering conversation mode.\nGive '**' or '~q' to stop.\n");
     write("]");
@@ -489,11 +490,11 @@ converse()
     return 1;
 }
 
+
 /* **************************************************************************
  * reply - Allow mortals to reply when something is told to them.
  */
-int
-reply(string str)
+int reply(string str)
 {
     string *names;
     string who;
@@ -622,11 +623,11 @@ reply(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * rsay - say something in your racial tongue.
  */
-string
-race_text(string race, string text)
+string race_text(string race, string text)
 {
     object player = previous_object(-1);
     int skill = player->query_skill(SS_LANGUAGE);
@@ -672,8 +673,8 @@ race_text(string race, string text)
     return to_print;
 }
 
-void
-print_rsay(object *oblist, string say_string)
+
+void print_rsay(object *oblist, string say_string)
 {
     string qcomp, output;
 
@@ -699,8 +700,8 @@ print_rsay(object *oblist, string say_string)
         output + "\n");
 }
 
-int
-rsay(string str)
+
+int rsay(string str)
 {
     int     index;
     int     size;
@@ -752,8 +753,7 @@ rsay(string str)
 }
 
 
-void
-print_say(string adverb, object *oblist, string say_string)
+void print_say(string adverb, object *oblist, string say_string)
 {
     string qcomp, r_sound;
 
@@ -776,6 +776,7 @@ print_say(string adverb, object *oblist, string say_string)
         say_string + "\n");
 }
 
+
 /*
  * Function name: say_to
  * Description  : This function is called whenever the player starts his
@@ -786,8 +787,7 @@ print_say(string adverb, object *oblist, string say_string)
  *                string adverb - the adverb to use.
  * Returns      : int 1/0 - success/failure.
  */
-public int
-say_to(string str, function format)
+public int say_to(string str, function format)
 {
     object *oblist;
     string r_sound;
@@ -841,13 +841,13 @@ say_to(string str, function format)
     return 1;
 }
 
+
 /* **************************************************************************
  * say_text - say something to another player.
  *
  * This function is not called say() because of the simul-efun by that name.
  */
-varargs int
-say_text(string str, string adverb = "")
+varargs int say_text(string str, string adverb = "")
 {
     mixed tmp;
 
@@ -904,6 +904,7 @@ say_text(string str, string adverb = "")
     return 1;
 }
 
+
 /* **************************************************************************
  * Shout - shout something.
  */
@@ -914,8 +915,7 @@ say_text(string str, string adverb = "")
  *                person who does the shouting.
  * Returns      : string - the name/description of the living.
  */
-string
-shout_name()
+string shout_name()
 {
     object pobj = previous_object(); /* Reciever of message */
     if (object_name(pobj) == VBFC_OBJECT)
@@ -930,8 +930,8 @@ shout_name()
         " " + this_player()->query_race_name() + " voice";
 }
 
-int
-shout(string str)
+
+int shout(string str)
 {
     object *rooms;
     object troom;
@@ -1048,11 +1048,11 @@ shout(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * Tell - tell something to someone over a distance.
  */
-int
-tell(string str)
+int tell(string str)
 {
     object ob;
     string who;
@@ -1112,7 +1112,7 @@ tell(string str)
 	return 1;
     }
 
-    if ((who != "armageddon") && (!query_interactive(ob)))
+    if ((who != "armageddon") && (!interactive(ob)))
     {
 	write(capitalize(who) + " is link dead right now.\n");
 	return 1;
@@ -1149,11 +1149,11 @@ tell(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * Whisper - whisper something to someone.
  */
-void
-print_whisper(string adverb, object *oblist, string str)
+void print_whisper(string adverb, object *oblist, string str)
 {
     object *wizards;
 
@@ -1173,8 +1173,8 @@ print_whisper(string adverb, object *oblist, string str)
     oblist->catch_whisper(str);
 }
 
-int
-whisper(string str)
+
+int whisper(string str)
 {
     mixed tmp;
     string *how;

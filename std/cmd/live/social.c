@@ -45,6 +45,7 @@ inherit "/std/command_driver";
 #include <std.h>
 #include <stdproperties.h>
 #include <time.h>
+#include <configuration.h>
 
 nomask int sort_name(object a, object b);
 varargs int team(string str);
@@ -54,35 +55,34 @@ varargs int team(string str);
  * Description  : This function is called the moment this object is created
  *                and loaded into memory.
  */
-void
-create()
+void create()
 {
-    seteuid(getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
+
 
 /* **************************************************************************
  * Return a proper name of the soul in order to get a nice printout.
  */
-string
-get_soul_id()
+string get_soul_id()
 {
     return "social";
 }
 
+
 /* **************************************************************************
  * This is a command soul.
  */
-int
-query_cmd_soul()
+int query_cmd_soul()
 {
     return 1;
 }
 
+
 /* **************************************************************************
  * The list of verbs and functions. Please add new in alfabetical order.
  */
-mapping
-query_cmdlist()
+mapping query_cmdlist()
 {
     return ([
              "aggressive":"aggressive",
@@ -119,16 +119,17 @@ query_cmdlist()
              ]);
 }
 
+
 /*
  * Function name: using_soul
  * Description:   Called once by the living object using this soul. Adds
  *                sublocations responsible for extra descriptions of the
  *                living object.
  */
-public void
-using_soul(object live)
+public void using_soul(object live)
 {
 }
+
 
 /* **************************************************************************
  * Here follows the actual functions. Please add new functions in the
@@ -142,18 +143,17 @@ using_soul(object live)
  *
  * ** not ready yet, needs fixes in the combat system **
  */
-int
-aggressive(string str)
+int aggressive(string str)
 {
     write("Yes you are, very!\n");
     return 1;
 }
 
+
 /*
  * assist - Help a friend to kill someone else
  */
-int
-assist(string str)
+int assist(string str)
 {
     object *obs;
     object friend;
@@ -167,7 +167,7 @@ assist(string str)
         return 0;
     }
 
-    if (this_player()->query_ghost())
+    if (({int}) this_player()->query_ghost())
     {
         notify_fail("Umm yes, killed. That's what you are.\n");
         return 0;
@@ -175,18 +175,18 @@ assist(string str)
 
     if (!stringp(str))
     {
-        if (!sizeof(obs = this_player()->query_team_others()))
+        if (!sizeof(obs = ({object *}) this_player()->query_team_others()))
         {
             notify_fail("Assist whom? You are not in a team.\n");
             return 0;
         }
 
-        obs = ({ this_player()->query_leader() }) - ({ 0 }) + obs;
+        obs = ({ ({object}) this_player()->query_leader() }) - ({ 0 }) + obs;
 
         for (index = 0; index < sizeof(obs); index++)
         {
             if ((environment(this_player()) == environment(obs[index])) &&
-                (objectp(victim = obs[index]->query_attack())))
+                (objectp(victim = ({object}) obs[index]->query_attack())))
             {
                 friend = obs[index];
                 break;
@@ -205,8 +205,8 @@ assist(string str)
 
         if (sizeof(obs) > 1)
         {
-            notify_fail(break_string("Be specific, you can't assist " +
-                COMPOSITE_ALL_LIVE(obs) + " at the same time.", 76) + "\n");
+            notify_fail("Be specific, you can't assist " +
+                COMPOSITE_ALL_LIVE(obs) + " at the same time." + "\n");
             return 0;
         }
         else if (sizeof(obs) == 0)
@@ -224,19 +224,19 @@ assist(string str)
         return 1;
     }
 
-    victim = friend->query_attack();
+    victim = ({object}) friend->query_attack();
     if (!objectp(victim))
     {
-        write(friend->query_The_name(this_player()) +
+        write(({string}) friend->query_The_name(this_player()) +
             " is not fighting anyone.\n");
         return 1;
     }
 
-    if ((member(friend, this_player()->query_enemy(-1)) != -1) ||
+    if ((friend in ({object *}) this_player()->query_enemy(-1)) ||
         (victim == this_player()))
     {
-        write(break_string("Help " + friend->query_the_name(this_player()) +
-            " to kill you? There are easier ways to commit seppuku!", 76) +
+        write("Help " + ({string}) friend->query_the_name(this_player()) +
+            " to kill you? There are easier ways to commit seppuku!" +
             "\n");
         return 1;
     }
@@ -244,25 +244,25 @@ assist(string str)
     if (environment(victim) != environment(this_player()))
     {
         notify_fail("The main target of " +
-            friend->query_the_name(this_player()) + " is not in this room.\n");
+            ({string}) friend->query_the_name(this_player()) + " is not in this room.\n");
         return 0;
     }
 
-    if (member(victim, this_player()->query_team_others()) != -1)
+    if (victim in ({object *}) this_player()->query_team_others())
     {
-        notify_fail("But " + victim->query_the_name(this_player()) +
+        notify_fail("But " + ({string}) victim->query_the_name(this_player()) +
             " is a team with you.\n");
         return 0;
     }
 
-    if (this_player()->query_attack() == victim)
+    if (({object}) this_player()->query_attack() == victim)
     {
         write("You are already fighting " +
-            victim->query_the_name(this_player()) + ".\n");
+            ({string}) victim->query_the_name(this_player()) + ".\n");
         return 1;
     }
 
-    if (tmp = environment(this_player())->query_prop(ROOM_M_NO_ATTACK))
+    if (tmp = ({mixed}) environment(this_player())->query_prop(ROOM_M_NO_ATTACK))
     {
         if (stringp(tmp))
             write(tmp);
@@ -271,7 +271,7 @@ assist(string str)
         return 1;
     }
 
-    if (tmp = victim->query_prop(OBJ_M_NO_ATTACK))
+    if (tmp = ({mixed}) victim->query_prop(OBJ_M_NO_ATTACK))
     {
         if (stringp(tmp))
             write(tmp);
@@ -281,12 +281,12 @@ assist(string str)
         return 1;
     }
 
-    if ((!this_player()->query_npc()) &&
-        (this_player()->query_met(victim)) &&
-        (this_player()->query_prop(LIVE_O_LAST_KILL) != victim))
+    if ((!({int}) this_player()->query_npc()) &&
+        (({int}) this_player()->query_met(victim)) &&
+        (({object}) this_player()->query_prop(LIVE_O_LAST_KILL) != victim))
     {
         this_player()->add_prop(LIVE_O_LAST_KILL, victim);
-        write("Attack " + victim->query_the_name(this_player()) +
+        write("Attack " + ({string}) victim->query_the_name(this_player()) +
             "?!? Please confirm by trying again.\n");
         return 1;
     }
@@ -302,21 +302,21 @@ assist(string str)
         say(QCTNAME(this_player()) + " considers attacking " + QTNAME(victim) +
             ", though does not dare to do so.\n",
             ({ victim, this_player() }) );
-        tell_object(victim, this_player()->query_The_name(victim) +
+        tell_object(victim, ({string}) this_player()->query_The_name(victim) +
             " looks at you as if ready to attack, though you see fear in " +
-            this_player()->query_possessive() + " eyes.\n");
+            ({string}) this_player()->query_possessive() + " eyes.\n");
         return 1;
     }
 
     say(QCTNAME(this_player()) + " assists " + QTNAME(friend) +
         " and attacks " + QTNAME(victim) + ".\n",
         ({ this_player(), friend, victim }) );
-    tell_object(victim, this_player()->query_The_name(victim) +
+    tell_object(victim, ({string}) this_player()->query_The_name(victim) +
         " attacks you!\n");
-    tell_object(friend, this_player()->query_The_name(friend) +
-        " assists you and attacks " + victim->query_the_name(friend) + ".\n");
-    write("You assist " + friend->query_the_name(this_player()) +
-        " and attack " + victim->query_the_name(this_player()) + ".\n");
+    tell_object(friend, ({string}) this_player()->query_The_name(friend) +
+        " assists you and attacks " + ({string}) victim->query_the_name(friend) + ".\n");
+    write("You assist " + ({string}) friend->query_the_name(this_player()) +
+        " and attack " + ({string}) victim->query_the_name(this_player()) + ".\n");
 
     this_player()->attack_object(victim);
     this_player()->add_prop(LIVE_O_LAST_KILL, victim);
@@ -324,15 +324,15 @@ assist(string str)
     return 1;
 }
 
+
 /*
  * emote - Put here so NPC:s can emote (  No error messages if they do wrong,
  *         why waste cpu on NPC:s ? ;-)   )
  */
-int
-emote(string str)
+int emote(string str)
 {
     if (!sizeof(str) ||
-        !this_player()->query_npc())
+        !({int}) this_player()->query_npc())
     {
         return 0;
     }
@@ -351,11 +351,11 @@ emote(string str)
     return 1;
 }
 
+
 /*
  * forget - Forget someone we have remembered
  */
-int
-forget(string name)
+int forget(string name)
 {
     object ob;
     int    full;
@@ -374,10 +374,10 @@ forget(string name)
 
     ob = find_living(name);
     if (objectp(ob) &&
-        ob->query_prop(LIVE_I_NON_FORGET))
+        ({int}) ob->query_prop(LIVE_I_NON_FORGET))
     {
         notify_fail("It seems impossible to forget " +
-            ob->query_objective() + "!\n");
+            ({string}) ob->query_objective() + "!\n");
         return 0;
     }
 
@@ -395,11 +395,11 @@ forget(string name)
     return 1;
 }
 
+
 /*
  * introduce - Present yourself or someone else.
  */
-int
-intro_live(string str)
+int intro_live(string str)
 {
     string  intro_who;
     string  intro_to = "";
@@ -452,17 +452,17 @@ intro_live(string str)
     }
 
     if (!intro_self &&
-        !(this_player()->query_met(introducee->query_real_name())))
+        !(({int}) this_player()->query_met(introducee->query_real_name())))
     {
         notify_fail("You have not been properly introduced to " +
-            introducee->query_the_name(this_player()) + " yourself.\n");
+            ({string}) introducee->query_the_name(this_player()) + " yourself.\n");
         return 0;
     }
 
     if (introducee->query_prop(OBJ_I_INVIS) > 0)
     {
         notify_fail((intro_self ? "You are " :
-            (introducee->query_The_name(this_player()) + " is ")) +
+            (({string}) introducee->query_The_name(this_player()) + " is ")) +
             "invisible, making introductions impossible.\n");
         return 0;
     }
@@ -506,9 +506,9 @@ intro_live(string str)
     while(++index < size)
     {
         tell_object(all_targets[index],
-            this_player()->query_The_name(all_targets[index]) + " introduces " +
-            (intro_self ? (this_player()->query_objective() + "self") :
-                introducee->query_the_name(all_targets[index])) + " as:\n" +
+            ({string}) this_player()->query_The_name(all_targets[index]) + " introduces " +
+            (intro_self ? ({string}) (this_player()->query_objective() + "self") :
+                ({string}) introducee->query_the_name(all_targets[index])) + " as:\n" +
             str + ".\n");
     }
 
@@ -521,10 +521,10 @@ intro_live(string str)
         while(++index < size)
         {
             livings[index]->catch_msg(
-                this_player()->query_The_name(livings[index]) +
+                ({string}) this_player()->query_The_name(livings[index]) +
                 " introduces " +
-                (intro_self ? (this_player()->query_objective() + "self") :
-                    introducee->query_the_name(livings[index])) + " to " +
+                (intro_self ? (({string}) this_player()->query_objective() + "self") :
+                    ({string}) introducee->query_the_name(livings[index])) + " to " +
                 FO_COMPOSITE_ALL_LIVE(vis_targets, livings[index]) + ".\n");
         }
     }
@@ -532,15 +532,15 @@ intro_live(string str)
     if (!intro_self)
     {
         introducee->catch_msg(break_string(
-            this_player()->query_The_name(introducee) +
+            ({string}) this_player()->query_The_name(introducee) +
             " introduces you to " +
             FO_COMPOSITE_ALL_LIVE(vis_targets, introducee) + ".", 75) + "\n");
     }
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
         write("You " + query_verb() + " " + (intro_self ? "yourself" :
-            introducee->query_the_name(this_player())) + " to " +
+            ({string}) introducee->query_the_name(this_player())) + " to " +
             COMPOSITE_ALL_LIVE(vis_targets) + ".\n");
     }
     else
@@ -557,21 +557,21 @@ intro_live(string str)
     return 1;
 }
 
+
 /*
  * introduced - Give a list of livings we have been introduced to.
  */
-int
-introduced_list(string str)
+int introduced_list(string str)
 {
     object ob;
     mapping tmp;
 
-    tmp = this_player()->query_introduced();
+    tmp = ({mapping}) this_player()->query_introduced();
     if (mappingp(tmp))
     {
         write("You remember having been introduced to:\n");
-        write(break_string(implode(map(sort_array(m_indices(tmp)),
-            capitalize), ", "), 70) + "\n");
+        write(implode(map(sort_array(m_indices(tmp)),
+            #'capitalize), ", ") + "\n");
 
         return 1;
     }
@@ -582,29 +582,29 @@ introduced_list(string str)
     }
 }
 
+
 /*
  * invite - Invite someone to join my team
  */
-int
-invite(string str)
+int invite(string str)
 {
     return team("invite" + (sizeof(str) ? (" " + str) : ""));
 }
 
+
 /*
  * join - Join someones team
  */
-varargs int
-join(string str)
+varargs int join(string str)
 {
     return team("join" + (sizeof(str) ? (" " + str) : ""));
 }
 
+
 /*
  * kill - Start attacking someone with the purpose to kill
  */
-varargs int
-kill(string str)
+varargs int kill(string str)
 {
     object ob;
     mixed  tmp, *oblist;
@@ -615,7 +615,7 @@ kill(string str)
         return 0;
     }
 
-    if (this_player()->query_ghost())
+    if (({int}) this_player()->query_ghost())
     {
         notify_fail("Umm yes, killed. That's what you are.\n");
         return 0;
@@ -623,7 +623,7 @@ kill(string str)
 
     if (!sizeof(str))
     {
-        notify_fail("Kill what?\n", 0);
+        notify_fail("Kill what?\n");
         return 0;
     }
 
@@ -650,25 +650,25 @@ kill(string str)
        return 1;
     }
 
-    if (ob->query_ghost())
+    if (({int}) ob->query_ghost())
     {
-        write(ob->query_The_name(this_player()) + " is already dead!\n");
+        write(({string}) ob->query_The_name(this_player()) + " is already dead!\n");
         return 1;
     }
 
-    if (ob == this_player())
+    if (({int}) ob == this_player())
     {
         write("What? Attack yourself?\n");
         return 1;
     }
 
-    if (this_player()->query_attack() == ob)
+    if (({object}) this_player()->query_attack() == ob)
     {
         write("Yes, yes.\n");
         return 1;
     }
 
-    if (tmp = environment(this_player())->query_prop(ROOM_M_NO_ATTACK))
+    if (tmp = ({mixed}) environment(this_player())->query_prop(ROOM_M_NO_ATTACK))
     {
         if (stringp(tmp))
             write(tmp);
@@ -677,7 +677,7 @@ kill(string str)
         return 1;
     }
 
-    if (tmp = ob->query_prop(OBJ_M_NO_ATTACK))
+    if (tmp = ({mixed}) ob->query_prop(OBJ_M_NO_ATTACK))
     {
         if (stringp(tmp))
         {
@@ -686,7 +686,7 @@ kill(string str)
         else
         {
             write("You feel a divine force protecting " +
-                ob->query_the_name(this_player()) + ", your attack fails.\n");
+                ({string}) ob->query_the_name(this_player()) + ", your attack fails.\n");
         }
 
         return 1;
@@ -694,14 +694,14 @@ kill(string str)
 
     if (member(ob, this_player()->query_team_others()) != -1)
     {
-        write("You cannot attack " + ob->query_the_name(this_player()) +
-            " as " + ob->query_pronoun() + " is in your team.\n");
+        write("You cannot attack " + ({string}) ob->query_the_name(this_player()) +
+            " as " + ({string}) ob->query_pronoun() + " is in your team.\n");
         return 1;
     }
 
-    if (!this_player()->query_npc() &&
-        this_player()->query_met(ob) &&
-        (this_player()->query_prop(LIVE_O_LAST_KILL) != ob))
+    if (!({int}) this_player()->query_npc() &&
+        ({int}) this_player()->query_met(ob) &&
+        (({object}) this_player()->query_prop(LIVE_O_LAST_KILL) != ob))
     {
         this_player()->add_prop(LIVE_O_LAST_KILL, ob);
         /* Only ask if the person did not use the real name of the target. */
@@ -721,22 +721,22 @@ kill(string str)
         write("Umm... no. You do not have enough self-discipline to dare!\n");
         say(QCTNAME(this_player()) + " considers attacking " + QTNAME(ob) +
             ", though does not dare to do so.\n", ({ ob, this_player() }) );
-        tell_object(ob, this_player()->query_The_name(ob) +
+        tell_object(ob, ({string}) this_player()->query_The_name(ob) +
             " looks at you as if ready to attack, though you see fear in " +
-            this_player()->query_possessive() + " eyes.\n");
+            ({string}) this_player()->query_possessive() + " eyes.\n");
         return 1;
     }
 
     say(QCTNAME(this_player()) + " attacks " + QTNAME(ob) + ".\n",
         ({ this_player(), ob }) );
-    tell_object(ob, this_player()->query_The_name(ob) + " attacks you!\n");
+    tell_object(ob, ({string}) this_player()->query_The_name(ob) + " attacks you!\n");
 
     this_player()->attack_object(ob);
     this_player()->add_prop(LIVE_O_LAST_KILL, ob);
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
-        write("You attack " + ob->query_the_name(this_player()) + ".\n");
+        write("You attack " + ({string}) ob->query_the_name(this_player()) + ".\n");
     }
     else
     {
@@ -745,11 +745,11 @@ kill(string str)
     return 1;
 }
 
+
 /*
  * last - display information on when a player was last logged in.
  */
-int
-last(string str)
+int last(string str)
 {
     object player;
     int duration;
@@ -757,12 +757,12 @@ last(string str)
 
     if (!stringp(str))
     {
-        str = this_player()->query_real_name();
+        str = ({string}) this_player()->query_real_name();
     }
     else
     {
         str = lower_case(str);
-        if (!(this_player()->query_met(str)))
+        if (!(({int}) this_player()->query_met(str)))
         {
             notify_fail("You do not know anyone called " + capitalize(str) +
                 ".\n");
@@ -792,12 +792,12 @@ last(string str)
 
     if (objectp(player = find_player(str)))
     {
-        write("Login time : " + ctime(player->query_login_time()) + "\n");
+        write("Login time : " + ctime(({int}) player->query_login_time()) + "\n");
 
         if (player == this_player())
         {
             write("Duration   : " +
-                TIME2STR((time() - player->query_login_time()), 2) + "\n");
+                TIME2STR((time() - ({int}) player->query_login_time()), 2) + "\n");
         }
         else if (interactive(player))
         {
@@ -814,24 +814,24 @@ last(string str)
         else
         {
             write("Activity   : linkdead for " +
-                TIME2STR((time() - player->query_linkdead()), 2) + "\n");
+                TIME2STR((time() - ({int}) player->query_linkdead()), 2) + "\n");
         }
 
         return 1;
     }
 
-    if (!(SECURITY->exist_player(str)))
+    if (!(({int}) SECURITY->exist_player(str)))
     {
         write("A player by that name cannot be found in the realms.\n");
         return 1;
     }
 
-    player = SECURITY->finger_player(str);
-    write("Login time : " + ctime(player->query_login_time()) + "\n");
-    duration = (player->query_logout_time() - player->query_login_time());
+    player = ({object}) SECURITY->finger_player(str);
+    write("Login time : " + ctime(({int}) player->query_login_time()) + "\n");
+    duration = (({int}) player->query_logout_time() - ({int}) player->query_login_time());
     if (duration < 86400)
     {
-        write("Logout time: " + ctime(player->query_logout_time()) + "\n");
+        write("Logout time: " + ctime(({int}) player->query_logout_time()) + "\n");
         write("Duration   : " + TIME2STR(duration, 3) + "\n");
     }
     else
@@ -843,11 +843,11 @@ last(string str)
     return 1;
 }
 
+
 /*
  * leave - Leave a team or force someone to leave a team
  */
-int
-leave(string str)
+int leave(string str)
 {
     if (str == "team")
     {
@@ -858,11 +858,11 @@ leave(string str)
     return 0;
 }
 
+
 /*
  * remember - Remember one of the livings introduced to us
  */
-int
-remember_live(string str)
+int remember_live(string str)
 {
     object ob;
     mapping tmp;
@@ -871,19 +871,19 @@ remember_live(string str)
     if (!stringp(str) ||
         query_verb() == "remembered")
     {
-        tmp = this_player()->query_remembered();
+        tmp = ({mapping}) this_player()->query_remembered();
         if (mappingp(tmp))
         {
             if (num = m_sizeof(tmp))
             {
-                num = F_MAX_REMEMBERED(this_player()->query_stat(SS_INT),
+                num = F_MAX_REMEMBERED(({int}) this_player()->query_stat(SS_INT),
                     this_player()->query_stat(SS_WIS)) - num;
                 if (num < 0)
                     num = 0;
 
                 write("These are the people you remember:\n");
-                write(break_string(implode(map(sort_array(m_indices(tmp)),
-                    capitalize), ", "), 70) + "\n");
+                write(implode(map(sort_array(m_indices(tmp)),
+                    capitalize), ", ") + "\n");
                 write("Your brain can handle " + LANG_WNUM(num) +
                         " more name" + (num == 1 ? ".\n" : "s.\n") );
                 return 1;
@@ -904,7 +904,7 @@ remember_live(string str)
     str = lower_case(str);
 
     /* Silly people remembering themselves can get problems with 'who'. */
-    if (this_player()->query_real_name() == str)
+    if (({string}) this_player()->query_real_name() == str)
     {
         notify_fail("Sure, as if you would forget yourself if you did " +
             "not remember your name.\n");
@@ -912,13 +912,13 @@ remember_live(string str)
     }
 
     if (objectp(ob = find_living(str)) &&
-        (ob->query_prop(LIVE_I_NON_REMEMBER)))
+        (({int}) ob->query_prop(LIVE_I_NON_REMEMBER)))
     {
-        notify_fail("Remember " + ob->query_objective() + "? Never!\n");
+        notify_fail("Remember " + ({string}) ob->query_objective() + "? Never!\n");
         return 0;
     }
 
-    switch (this_player()->add_remembered(str))
+    switch (({int}) this_player()->add_remembered(str))
     {
     case -1:
         write("Your poor brain cannot handle any more people.\n");
@@ -936,11 +936,11 @@ remember_live(string str)
     }
 }
 
+
 /*
  * spar - fight someone for practice.
  */
-int
-spar(string str)
+int spar(string str)
 {
     object *oblist;
     int index;
@@ -956,21 +956,21 @@ spar(string str)
     index = -1;
     while(++index < size)
     {
-        if (this_player()->query_sparring_partner(oblist[index]))
+        if (({int}) this_player()->query_sparring_partner(oblist[index]))
         {
             write("You are already sparring with " +
-                oblist[index]->query_the_name(this_player()) + ".\n");
+                ({string}) oblist[index]->query_the_name(this_player()) + ".\n");
             continue;
         }
 
-        if (oblist[index]->query_sparring_partner(this_player()))
+        if (({int}) oblist[index]->query_sparring_partner(this_player()))
         {
             write("You accept the challenge to spar with " +
-                oblist[index]->query_the_name(this_player()) + ".\n");
+                ({string}) oblist[index]->query_the_name(this_player()) + ".\n");
             tell_object(oblist[index],
-                this_player()->query_The_name(oblist[index]) +
+                ({string}) this_player()->query_The_name(oblist[index]) +
                 " accepts your challenge to spar with " +
-                this_player()->query_objective() + ".\n");
+                ({string}) this_player()->query_objective() + ".\n");
             tell_room(QCTNAME(this_player()) +
                 " accepts the challenge to spar with " +
                 QTNAME(oblist[index]) + ".\n", ({ this_player(), oblist }) );
@@ -978,12 +978,12 @@ spar(string str)
         else
         {
             write("You challenge " +
-                oblist[index]->query_the_name(this_player()) +
+                ({string}) oblist[index]->query_the_name(this_player()) +
                 " to spar with you.\n");
             tell_object(oblist[index],
-                this_player()->query_The_name(oblist[index]) +
+                ({string}) this_player()->query_The_name(oblist[index]) +
                 " challenges you to spar with " +
-                this_player()->query_objective() + ".\n");
+                ({string}) this_player()->query_objective() + ".\n");
             tell_room(QCTNAME(this_player()) +
                 " challenges to spar with " +
                 QTNAME(oblist[index]) + ".\n", ({ this_player(), oblist }) );
@@ -992,6 +992,7 @@ spar(string str)
     }
     return 1;
 }
+
 
 /*
  * stop - Stop fighting
@@ -1003,8 +1004,7 @@ spar(string str)
  * Arguments    : object live - who made the offer.
  *                string str  - the target to which we made the offer.
  */
-static void
-remove_stop_fighting_offer(object live, string str)
+static void remove_stop_fighting_offer(object live, string str)
 {
     mapping offers = live->query_prop(LIVE_M_STOP_FIGHTING);
 
@@ -1032,8 +1032,8 @@ remove_stop_fighting_offer(object live, string str)
     }
 }
 
-int
-stop(string str)
+
+int stop(string str)
 {
     object *oblist;
     mapping offers;
@@ -1047,7 +1047,7 @@ stop(string str)
     /* Player wants to stop fighting his current enemy. */
     if (str == "fighting")
     {
-        oblist = ({ this_player()->query_attack() });
+        oblist = ({ ({object}) this_player()->query_attack() });
         if (!objectp(oblist[0]))
         {
             notify_fail("You are already as peaceful as can be.\n");
@@ -1075,7 +1075,7 @@ stop(string str)
     /* See if someone offered to stop fighting us. This offer must be accepted
      * within 10 seconds after the offer was made.
      */
-    offers = oblist[0]->query_prop(LIVE_M_STOP_FIGHTING);
+    offers = ({mixed}) oblist[0]->query_prop(LIVE_M_STOP_FIGHTING);
     str = object_name(this_player());
     if (mappingp(offers) &&
         (offers[str] >= (time() - 10)))
@@ -1091,9 +1091,9 @@ stop(string str)
         }
 
         write("You accept the offer to cease hostilities with " +
-            oblist[0]->query_the_name(this_player()) + " and stop fighting " +
-            oblist[0]->query_objective() + ".\n");
-        tell_object(oblist[0], this_player()->query_The_name(oblist[0]) +
+            ({string}) oblist[0]->query_the_name(this_player()) + " and stop fighting " +
+            ({string}) oblist[0]->query_objective() + ".\n");
+        tell_object(oblist[0], ({string}) this_player()->query_The_name(oblist[0]) +
             " accepts your offer to cease hostilities and stops fighting " +
             "you.\n");
         say(QCTNAME(this_player()) + " accepts the offer of " +
@@ -1106,14 +1106,14 @@ stop(string str)
     }
 
     /* Before we offer, are we fighting him? */
-    if (member(oblist[0], this_player()->query_enemy(-1)) == -1)
+    if (oblist[0] in this_player()->query_enemy(-1))
     {
         write("You are not fighting " +
-            oblist[0]->query_the_name(this_player()) + ".\n");
+            ({string}) oblist[0]->query_the_name(this_player()) + ".\n");
         return 1;
     }
 
-    offers = this_player()->query_prop(LIVE_M_STOP_FIGHTING);
+    offers = ({mapping}) this_player()->query_prop(LIVE_M_STOP_FIGHTING);
     str = object_name(oblist[0]);
     if (!mappingp(offers))
     {
@@ -1124,13 +1124,13 @@ stop(string str)
     if (!offers[str])
     {
         write("You offer to cease the hostilities with " +
-            oblist[0]->query_the_name(this_player()) +
-            ", giving " + oblist[0]->query_objective() +
+            ({string}) oblist[0]->query_the_name(this_player()) +
+            ", giving " + ({string}) oblist[0]->query_objective() +
             " a chance to stop fighting with you.\n");
-        tell_object(oblist[0], this_player()->query_The_name(oblist[0]) +
+        tell_object(oblist[0], ({string}) this_player()->query_The_name(oblist[0]) +
             " offers to cease the hostilities with you, giving you the " +
             "chance to stop fighting with " +
-            this_player()->query_objective() + " if you so choose. To " +
+            ({string}) this_player()->query_objective() + " if you so choose. To " +
             "accept this offer, you must indicate that you also wish to " +
             "stop fighting within a short period of time.\n");
         say(QCTNAME(this_player()) + " offer to cease hostilities with " +
@@ -1140,18 +1140,18 @@ stop(string str)
     else
     {
         write("You renew your offer to cease the hostilities with " +
-            oblist[0]->query_the_name(this_player()) +
-            ", giving " + oblist[0]->query_objective() +
+            ({string}) oblist[0]->query_the_name(this_player()) +
+            ", giving " + ({string}) oblist[0]->query_objective() +
             " a chance to stop fighting with you.\n");
-        tell_object(oblist[0], this_player()->query_The_name(oblist[0]) +
-            " renews " + this_player()->query_possessive() + " offer to " +
+        tell_object(oblist[0], ({string}) this_player()->query_The_name(oblist[0]) +
+            " renews " + ({string}) this_player()->query_possessive() + " offer to " +
             "cease the hostilities with you, giving you the chance to " +
-            "stop fighting with " + this_player()->query_objective() +
+            "stop fighting with " + ({string}) this_player()->query_objective() +
             " if you so choose. To accept this offer, you must indicate " +
             "that you also wish to stop fighting within a short period " +
             "of time.\n");
         say(QCTNAME(this_player()) + " renews " +
-            this_player()->query_possessive() + " offer to cease " +
+            ({string}) this_player()->query_possessive() + " offer to cease " +
             "hostilities with " + QTNAME(oblist[0]) + " and thus to stop " +
             "fighting each other.\n", ({ this_player(), oblist[0] }));
     }
@@ -1161,12 +1161,14 @@ stop(string str)
     this_player()->add_prop(LIVE_M_STOP_FIGHTING, offers);
 
     /* Purposely remove after 15 and not 10 seconds. */
-    set_alarm(15.0, 0.0, &remove_stop_fighting_offer(this_player(), str));
+    call_out("remove_stop_fighting_offer", 15,
+        ({ this_player(), str }) );
 
     /* Call the hook after all messages are printed. */
     oblist->hook_stop_fighting_offer(this_player());
     return 1;
 }
+
 
 /*
  * team - Handles all the team related commands.
@@ -1175,14 +1177,14 @@ stop(string str)
 #define FAIL_IF_LEADER(text) if (leader) { notify_fail("You cannot " + (text) + " as you are lead by " + leader->query_the_name(this_player()) + ".\n"); return 0; }
 #define FAIL_IF_NOT_LEADER(text) if (!sizeof(members)) { notify_fail("You cannot " + (text) + " as you are not leading a team.\n"); return 0; }
 
-static int
-team_invite(object *oblist)
+
+static int team_invite(object *oblist)
 {
     object *npcs = ({ });
     string fail = "";
 
     this_player()->reveal_me(1);
-    npcs = filter(oblist, &->query_npc());
+    npcs = filter(oblist, (: $1->query_npc() :));
     if (sizeof(npcs))
     {
         fail = capitalize(COMPOSITE_ALL_LIVE(npcs)) + " decline" +
@@ -1191,7 +1193,7 @@ team_invite(object *oblist)
         oblist -= npcs;
     }
 
-    npcs = filter(oblist, &operator(==)(, this_player()) @ &->query_leader());
+    npcs = filter(oblist, (: $1->query_leader() == this_player() :));
     if (sizeof(npcs))
     {
         fail += capitalize(COMPOSITE_ALL_LIVE(npcs)) +
@@ -1205,7 +1207,7 @@ team_invite(object *oblist)
         return 0;
     }
 
-    map(oblist, &->reveal_me(1));
+    map(oblist, (: $1->reveal_me(1) :));
     foreach(object ob: oblist)
     {
         this_player()->team_invite(ob);
@@ -1213,41 +1215,41 @@ team_invite(object *oblist)
 
     write(fail + "You invite " + COMPOSITE_ALL_LIVE(oblist) +
         " to join your team.\n");
-    targetbb(" invites you to join " + this_player()->query_possessive() +
+    targetbb(" invites you to join " + ({string}) this_player()->query_possessive() +
         " team.", oblist);
     all2actbb(" invites", oblist, " to join " +
-        this_player()->query_possessive() + " team.");
+        ({string}) this_player()->query_possessive() + " team.");
     return 1;
 }
 
-static int
-team_join(object leader)
+
+static int team_join(object leader)
 {
-    if (sizeof(this_player()->query_team()))
+    if (sizeof(({object *}) this_player()->query_team()))
     {
         write("You cannot join a team while you are leading a team.\n");
         return 1;
     }
     if (!IN_ARRAY(this_player(), leader->query_invited()))
     {
-        write(leader->query_The_name(this_player()) +
+        write(({string}) leader->query_The_name(this_player()) +
             " has not invited you as a team member.\n");
         return 1;
     }
-    if (leader->query_leader())
+    if (({int}) leader->query_leader())
     {
-        write("You cannot join " + leader->query_the_name(this_player()) +
-            " as " + leader->query_pronoun() + " joined a team " +
-            leader->query_objective() + "self.\n");
+        write("You cannot join " + ({string}) leader->query_the_name(this_player()) +
+            " as " + ({string}) leader->query_pronoun() + " joined a team " +
+            ({string}) leader->query_objective() + "self.\n");
         return 1;
     }
-    if (!leader->team_join(this_player()))
+    if (!({int}) leader->team_join(this_player()))
     {
         write("You fail to join your leader.\n");
         return 1;
     }
 
-    if (!this_player()->query_option(OPT_BRIEF))
+    if (!({int}) this_player()->query_option(OPT_BRIEF))
     {
         write("As you enter the team, you switch to brief mode.\n");
         this_player()->add_prop(TEMP_BACKUP_BRIEF_OPTION, 1);
@@ -1257,13 +1259,13 @@ team_join(object leader)
     write("Your leader is now " + leader->short() + ".\n");
     say(QCTNAME(this_player()) + " joins the team of " +
         QTNAME(leader) + ".\n", ({ leader, this_player() }));
-    tell_object(leader, this_player()->query_The_name(leader) +
+    tell_object(leader, ({string}) this_player()->query_The_name(leader) +
         " joins your team.\n");
     return 1;
 }
 
-static void
-team_leave(object member, object leader, int force)
+
+static void team_leave(object member, object leader, int force)
 {
     leader->team_leave(member);
 
@@ -1282,17 +1284,17 @@ team_leave(object member, object leader, int force)
     }
 }
 
-varargs int
-team(string str)
+
+varargs int team(string str)
 {
     string  arg = "";
     int     done;
     int     size = 0;
     object *oblist = ({ });
-    object  leader = this_player()->query_leader();
+    object  leader = ({object}) this_player()->query_leader();
     object  rear;
     object  member;
-    object *members = this_player()->query_team();
+    object *members = ({object *}) this_player()->query_team();
 
     if (!sizeof(str))
     {
@@ -1311,12 +1313,12 @@ team(string str)
         FAIL_IF_NOT_LEADER("disband your team");
         write("You disband your team.\n");
 	members->catch_msg(QCTNAME(this_player()) + " disbands " +
-            this_player()->query_possessive() + " team and forces you to leave.\n");
+        ({string}) this_player()->query_possessive() + " team and forces you to leave.\n");
         members = FILTER_PRESENT(members);
-        all2actbb(" disbands " + this_player()->query_possessive() +
+        all2actbb(" disbands " + ({string}) this_player()->query_possessive() +
             " team, forcing", members, " to leave.");
 
-        map(members, &team_leave(, this_player(), 1));
+        map(members, (: team_leave($1, this_player(), 1) :));
         return 1;
 
     case "invite":
@@ -1329,14 +1331,14 @@ team(string str)
         return team_invite(oblist);
 
     case "invited":
-        oblist = (object *)this_player()->query_invited();
+        oblist = ({object *}) this_player()->query_invited();
         if (sizeof(oblist))
         {
             write("You have invited " + COMPOSITE_ALL_LIVE(oblist) +
                 " to join your team.\n");
             done = 1;
         }
-        oblist = filter(users(), &operator(>)(, -1) @ &member(this_player(), ) @ &->query_invited());
+        oblist = filter(users(), (: member(({object *}) $1->query_invited(), this_player()) > -1 :));
         if (sizeof(oblist))
         {
             write("You have been invited to join the team of " +
@@ -1367,7 +1369,7 @@ team(string str)
 
     case "leader":
         FAIL_IF_NOT_LEADER("assign a new team leader");
-        if (this_player()->query_attack())
+        if (({int}) this_player()->query_attack())
         {
             notify_fail("You cannot re-arrange your team while you are in combat.\n");
             return 0;
@@ -1387,7 +1389,7 @@ team(string str)
 
         if (!IN_ARRAY(leader, members))
         {
-            write(rear->query_The_name(this_player()) +
+            write(({string}) rear->query_The_name(this_player()) +
                 " is not a member of your team.\n");
             return 1;
         }
@@ -1407,8 +1409,8 @@ team(string str)
             leader->team_join(ob);
         }
 
-        done = this_player()->query_option(OPT_BRIEF);
-        write("You make " + leader->query_the_name(this_player()) +
+        done = ({int}) this_player()->query_option(OPT_BRIEF);
+        write("You make " + ({string}) leader->query_the_name(this_player()) +
             " the leader of your team" +
             (done ? "" : " and switch into brief mode") + ".\n");
         if (!done)
@@ -1416,16 +1418,16 @@ team(string str)
             this_player()->add_prop(TEMP_BACKUP_BRIEF_OPTION, 1);
             this_player()->set_option(OPT_BRIEF, 1);
         }
-        leader->catch_tell(this_player()->query_The_name(leader) +
-            " makes you the leader of " + this_player()->query_possessive() + " team.\n");
-        if (leader->query_prop(TEMP_BACKUP_BRIEF_OPTION))
+        leader->catch_tell(({string}) this_player()->query_The_name(leader) +
+            " makes you the leader of " + ({string}) this_player()->query_possessive() + " team.\n");
+        if (({int}) leader->query_prop(TEMP_BACKUP_BRIEF_OPTION))
         {
             tell_object(leader, "As you lead the team, you switch back to verbose mode.\n");
             leader->remove_prop(TEMP_BACKUP_BRIEF_OPTION);
             leader->set_option(OPT_BRIEF, 0);
         }
         all2actbb(" makes", ({ leader}), " the leader of " +
-            this_player()->query_possessive() + " team.");
+            ({string}) this_player()->query_possessive() + " team.");
         members->catch_msg("You are now lead by " + QTNAME(leader) + ".\n");
         return 1;
 
@@ -1437,10 +1439,10 @@ team(string str)
                 notify_fail("Leave your team and what else?\n");
                 return 0;
             }
-            tell_object(leader, this_player()->query_The_name(leader) +
+            tell_object(leader, ({string}) this_player()->query_The_name(leader) +
                 " leaves your team.\n");
             write("You leave the team of " +
-                leader->query_the_name(this_player()) + ".\n");
+                ({string}) leader->query_the_name(this_player()) + ".\n");
             say(QCTNAME(this_player()) + " leaves the team of " +
                 QTNAME(leader) + ".\n", ({ leader, this_player() }));
             team_leave(this_player(), leader, 0);
@@ -1464,28 +1466,28 @@ team(string str)
             oblist = ({ member });
         }
 
-        map(oblist, &team_leave(, this_player(), 1));
+        map(oblist, (: team_leave($1, this_player(), 1) :));
         write("You force " + COMPOSITE_ALL_LIVE(oblist) + " to leave your team.\n");
         oblist->catch_msg(QCTNAME(this_player()) + " forces you to leave " +
-            this_player()->query_possessive() + " team.\n");
+            ({string}) this_player()->query_possessive() + " team.\n");
         oblist = FILTER_PRESENT(oblist);
         all2actbb(" forces", oblist, " to leave " +
-            this_player()->query_possessive() + " team.");
+            ({string}) this_player()->query_possessive() + " team.");
         return 1;
 
     case "list":
         if (leader)
         {
-            members = (object *)leader->query_team() - ({ this_player() });
+            members = ({object *})leader->query_team() - ({ this_player() });
             write("The leader of your team is " +
-                leader->query_the_name(this_player()) + ". ");
+                ({string}) leader->query_the_name(this_player()) + ". ");
             switch(sizeof(members))
             {
             case 0:
                 write("You are the only member.\n");
                 return 1;
             case 1:
-                write("The other member is " + members[0]->query_the_name(this_player()) + ".\n");
+                write("The other member is " + ({string}) members[0]->query_the_name(this_player()) + ".\n");
                 return 1;
             default:
                 write("The other members are " + COMPOSITE_ALL_LIVE(members) + ".\n");
@@ -1519,13 +1521,13 @@ team(string str)
 
         if (!IN_ARRAY(rear, members))
         {
-            write(rear->query_The_name(this_player()) +
+            write(({string}) rear->query_The_name(this_player()) +
                 " is not a member of your team.\n");
             return 1;
         }
         if (rear == members[sizeof(members)-1])
         {
-            write(rear->query_The_name(this_player()) +
+            write(({string}) rear->query_The_name(this_player()) +
                 " already is the rearguard of the team.\n");
             return 1;
         }
@@ -1535,11 +1537,11 @@ team(string str)
         members -= ({ rear });
 
         write("You alter the formation of the team, placing "+
-            rear->query_the_name(this_player()) + " at the rearguard.\n");
-        all2actbb(" alters the formation of " + this_player()->query_possessive() +
+            ({string}) rear->query_the_name(this_player()) + " at the rearguard.\n");
+        all2actbb(" alters the formation of " + ({string}) this_player()->query_possessive() +
             " team, placing", ({ rear }), " at the rearguard.");
         rear->catch_tell(this_player()->query_The_name(rear) +
-            " places you at the rearguard of " + this_player()->query_possessive() +
+            " places you at the rearguard of " + ({string}) this_player()->query_possessive() +
             " team.\n");
         return 1;
 
@@ -1551,6 +1553,7 @@ team(string str)
     write("Impossible end of team command.\n");
     return 1;
 }
+
 
 /*
  * who - Tell what players are logged in and who we know
@@ -1564,11 +1567,11 @@ team(string str)
  *                string letter - the letter to search for.
  * Returns      : int 1/0 - true if the letter is used.
  */
-nomask int
-index_arg(string str, string letter)
+nomask int index_arg(string str, string letter)
 {
     return (member(letter, explode(str, "")) != -1);
 }
+
 
 /*
  * Function name: get_name
@@ -1578,20 +1581,20 @@ index_arg(string str, string letter)
  * Arguments    : object player - the player to return the name for.
  * Returns      : string - the name to print.
  */
-nomask string
-get_name(object player)
+nomask string get_name(object player)
 {
-    string name = capitalize(player->query_real_name());
+    string name = capitalize(({string}) player->query_real_name());
 
     /* If the player is linkdead, we add an asterisk (*) to the name. */
     if (!interactive(player) &&
-        !player->query_npc())
+        !({int}) player->query_npc())
     {
         name += "*";
     }
 
     return name;
 }
+
 
 /*
  * Function name: print_who
@@ -1601,11 +1604,10 @@ get_name(object player)
  *                int    size  - the number of people logged in.
  * Returns      : int 1 - always.
  */
-nomask int
-print_who(string opts, object *list, int size)
+nomask int print_who(string opts, object *list, int size)
 {
     int i, j;
-    int scrw = this_player()->query_option(OPT_SCREEN_WIDTH);
+    int scrw = ({int}) this_player()->query_option(OPT_SCREEN_WIDTH);
     string to_write = "";
     string *title;
     string tmp;
@@ -1648,12 +1650,12 @@ print_who(string opts, object *list, int size)
 
     for(i = 0; i < sizeof(list); i++)
     {
-        tmp = list[i]->query_presentation();
+        tmp = ({string}) list[i]->query_presentation();
         if (!interactive(list[i]) &&
-            !list[i]->query_npc())
+            !({int}) list[i]->query_npc())
         {
             title = explode(tmp, " ");
-            title[(list[i]->query_wiz_level() ? 1 : 0)] += "*";
+            title[(({int}) list[i]->query_wiz_level() ? 1 : 0)] += "*";
             tmp = implode(title, " ");
         }
         if ((scrw == -1) || (sizeof(tmp) < scrw))
@@ -1662,11 +1664,11 @@ print_who(string opts, object *list, int size)
         }
         else /* Split a too long title in a nice way. */
         {
-            title = explode(break_string(tmp, (scrw - 2)), "\n");
+            title = explode(tmp, "\n");
             tmp = sprintf("%-*s\n", scrw, title[0]);
 
-            title = explode(break_string(
-                implode(title[1..], " "), (scrw - 8)), "\n");
+            title = explode(
+                implode(title[1..], " "), "\n");
 
             for(j = 0; j < sizeof(title); j++)
                 tmp += (sprintf("      %-*s\n", (scrw - 6), title[j]));
@@ -1695,6 +1697,7 @@ print_who(string opts, object *list, int size)
     return 1;
 }
 
+
 /*
  * Function name: sort_name
  * Description  : This sort function sorts on the name of the player. Since
@@ -1705,14 +1708,14 @@ print_who(string opts, object *list, int size)
  * Returns      : int -1 - name of player a comes before that of player b.
  *                     1 - name of player b comes before that of player a.
  */
-nomask int
-sort_name(object a, object b)
+nomask int sort_name(object a, object b)
 {
-    string aname = a->query_real_name();
-    string bname = b->query_real_name();
+    string aname = ({string}) a->query_real_name();
+    string bname = ({string}) b->query_real_name();
 
     return ((aname == bname) ? 0 : ((aname < bname) ? -1 : 1));
 }
+
 
 /*
  * Function name: filter_who_no_invis_wizard
@@ -1720,15 +1723,14 @@ sort_name(object a, object b)
  * Arguments    : object player - the player to test.
  * Returns      : int 1/0 - TRUE when not an invis wizard.
  */
-int
-filter_who_no_invis_wizard(object player)
+int filter_who_no_invis_wizard(object player)
 {
-    return (!player->query_wiz_level() ||
-        (player->query_prop(OBJ_I_INVIS) < 100));
+    return (!({int}) player->query_wiz_level() ||
+        (({int}) player->query_prop(OBJ_I_INVIS) < 100));
 }
 
-int
-who(string opts)
+
+int who(string opts)
 {
     object  *list = users();
     object  npc;
@@ -1753,30 +1755,29 @@ who(string opts)
     if (!index_arg(opts, "i") &&
         objectp(find_object(OWN_STATUE)))
     {
-        list += ((object *)find_object(OWN_STATUE)->query_linkdead_players() - list);
+        list += (({object *})find_object(OWN_STATUE)->query_linkdead_players() - list);
     }
 #endif
 #endif
 
     /* This filters out players logging in and such. */
-    list = filter(list, &operator(==)(LIVING_OBJECT) @
-        &function_exists("create_container"));
+    list = filter(list, (: function_exists("create_container", $1) == LIVING_OBJECT :));
     size = sizeof(list);
 
     /* Player may indicate to see only wizards or mortals. */
     if (index_arg(opts, "w"))
     {
-        list = filter(list, &->query_wiz_level());
+        list = filter(list, (: $1->query_wiz_level() :));
     }
     else if (index_arg(opts, "m"))
     {
-        list = filter(list, &not() @ &->query_wiz_level());
+        list = filter(list, (: !$1->query_wiz_level() :));
     }
 
     /* Wizards won't see the NPC's and wizards are not subject to the
      * met/nonmet system if that is active.
      */
-    if (this_player()->query_wiz_level())
+    if (({int}) this_player()->query_wiz_level())
     {
         return print_who(opts, list, size);
     }
@@ -1817,8 +1818,8 @@ who(string opts)
     size_list = sizeof(list);
     while(++index < size_list)
     {
-        if ((!(memory[list[index]->query_real_name()])) &&
-            (!(list[index]->query_prop(LIVE_I_ALWAYSKNOWN))))
+        if ((!(({string}) memory[list[index]->query_real_name()])) &&
+            (!(({int}) list[index]->query_prop(LIVE_I_ALWAYSKNOWN))))
         {
             list[index] = 0;
         }

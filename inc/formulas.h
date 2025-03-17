@@ -272,8 +272,8 @@
 #define F_DAMAGE(pen, dam) ((pen) - (dam))
 
 #define F_DARE_ATTACK(ob1, ob2) \
-	((ob1)->query_prop(NPC_I_NO_FEAR) || \
-	 ((ob2)->query_average_stat() <= ((ob1)->query_stat(SS_DIS) * 2)))
+	(({int}) (ob1)->query_prop(NPC_I_NO_FEAR) || \
+	 (({int}) (ob2)->query_average_stat() <= (({int}) (ob1)->query_stat(SS_DIS) * 2)))
 
 #define F_UNARMED_HIT(skill, dex)    ((skill) / 7 + (dex) / 20)
 #define F_UNARMED_PEN(skill, str)    ((skill) / 10 + (str) / 20)

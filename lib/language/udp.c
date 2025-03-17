@@ -80,7 +80,7 @@ reset()
     for (ix = m_indexes(known_muds), il = 0; il < sizeof(ix); il++)
     {
 	p = known_muds[ix[il]];
-	if (atoi(p["PORTUDP"]) > 0)
+	if (to_int(p["PORTUDP"]) > 0)
 	{
 	    if (p["MUDLIST_Q"] == 0)
 	    {
@@ -173,8 +173,8 @@ set_mud_info(string name, mapping p)
     if (!name || !stringp(name) ||
 	!p["NAME"] || !stringp(p["NAME"]) ||
 	!p["HOSTADDRESS"] || !stringp(p["HOSTADDRESS"]) ||
-	!p["PORTUDP"] || !atoi(p["PORTUDP"]) ||
-	!p["PORT"] || !atoi(p["PORT"]))
+	!p["PORTUDP"] || !to_int(p["PORTUDP"]) ||
+	!p["PORT"] || !to_int(p["PORT"]))
 	return;
     q = reverse[p["HOSTADDRESS"] + ":" + p["PORTUDP"]];
     if (q)
