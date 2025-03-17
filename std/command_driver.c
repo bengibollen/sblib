@@ -10,11 +10,10 @@
 #pragma strict_types
 
 inherit "/lib/commands";
-inherit "/std/callout";
-
-#include <log.c>
 
 #include <std.h>
+#include <libfiles.h>
+#include <configuration.h>
 
 /*
  * Prototype.
@@ -36,8 +35,7 @@ static mapping cmdlist = query_cmdlist();
  *                should be ([ "verb" : "function" ]).
  * Returns      : mapping - the verb & function - mapping.
  */
-public mapping
-query_cmdlist()
+public mapping query_cmdlist()
 {
     return ([ ]);
 }
@@ -47,8 +45,7 @@ query_cmdlist()
  * Description  : This function is called from the spell object when a
  *                new spell is added.
  */
-public void
-update_commands()
+public void update_commands()
 {
     cmdlist = query_cmdlist();
 }
@@ -60,10 +57,9 @@ update_commands()
  *                string arg  - the command line argument.
  * Returns      : int - 1/0 depending on success.
  */
-nomask public int
-do_command(string verb, string arg)
+nomask public int do_command(string verb, string arg)
 {
-    return call_other(this_object(), cmdlist[verb], arg);
+    return ({int}) call_other(this_object(), cmdlist[verb], arg);
 }
 
 /*
@@ -71,8 +67,7 @@ do_command(string verb, string arg)
  * Description  : Check if a command exists.
  * Returns      : int - 1/0 depending on success.
  */
-nomask public int
-exist_command(string verb)
+nomask public int exist_command(string verb)
 {
     return stringp(cmdlist[verb]);
 }
@@ -81,12 +76,11 @@ exist_command(string verb)
  * Function name: open_soul
  * Description  : Set the euid of the soul to 0.
  */
-nomask public void
-open_soul(int state)
+nomask public void open_soul(int state)
 {
     if (state)
     {
-        seteuid(getuid(this_object()));
+        configure_object(this_object(), OC_EUID, getuid(this_object()));
     }
     else
     {
@@ -101,8 +95,7 @@ open_soul(int state)
  *                don't speak Swedish, rest assured that the name of this
  *                function isn't real Swedish either.
  */
-void
-teleledningsanka()
+void teleledningsanka()
 {
     SECURITY->remote_setuid();
 }
@@ -113,8 +106,7 @@ teleledningsanka()
  *                starts to use the soul and can be used for initialization.
  * Arguments    : object live - the living that is going to use this soul.
  */
-public void
-using_soul(object live)
+public void using_soul(object live)
 {
 }
 
@@ -123,8 +115,7 @@ using_soul(object live)
  * Description  : Used to make it impossible to shadow any soul.
  * Returns      : int 1 - always
  */
-nomask public int
-query_prevent_shadow()
+nomask public int query_prevent_shadow()
 {
     return 1;
 }
@@ -134,8 +125,7 @@ query_prevent_shadow()
  * Description:   This function gives all alarms set in this object.
  * Returns:       The list as given by get_all_alarms.
  */
-mixed
-query_alarms()
+mixed query_alarms()
 {
-    return get_all_alarms();
+    return call_out_info();
 }

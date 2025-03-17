@@ -383,11 +383,11 @@ static void save_master()
  *                its authorisation information is reset in order to allow
  *                for a new uid/euid when another player uses the same soul.
  */
-void
-remote_setuid()
+void remote_setuid()
 {
     if (function_exists("open_soul", previous_object()) == COMMAND_DRIVER)
     {
         configure_object(previous_object(), OC_EUID, "0:0");
     }
 }
+

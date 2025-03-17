@@ -43,7 +43,7 @@
  *            An array holding all objects for which 'dofun' returned 1.
  */
 #define CMDPARSE_ONE_ITEM(c, dofun, afun) \
-    ((object *)CMDPARSE_STD->do_verb_1obj(c, dofun, afun, this_object()))
+    (({object *})CMDPARSE_STD->do_verb_1obj(c, dofun, afun, this_object()))
 
 /*
  * CMDPARSE_IN_ITEM
@@ -74,7 +74,7 @@
  *            An array holding all objects for which 'dofun' returned 1.
  */
 #define CMDPARSE_IN_ITEM(c, pfun, dofun, afun) \
-    ((object *)CMDPARSE_STD->do_verb_inside(c, pfun, dofun, afun, this_object()))
+    (({object *})CMDPARSE_STD->do_verb_inside(c, pfun, dofun, afun, this_object()))
 
 /*
  * CMDPARSE_WITH_ITEM
@@ -105,7 +105,7 @@
  *            An array holding all objects for which 'dofun' returned 1.
  */
 #define CMDPARSE_WITH_ITEM(c, chfun, dofun, afun1, afun2) \
-    ((object *)CMDPARSE_STD->do_verb_with(c, chfun, dofun, afun1, afun2, this_object()))
+    (({object *})CMDPARSE_STD->do_verb_with(c, chfun, dofun, afun1, afun2, this_object()))
 
 /*
  * PARSE_COMMAND
@@ -124,7 +124,7 @@
  *            object * - an array with matching objects, ({ }) or 0.
  */
 #define PARSE_COMMAND(str, env, pattern) \
-    ((object *)CMDPARSE_STD->parse_command_access((str), (env), (pattern)))
+    (({object *})CMDPARSE_STD->parse_command_access((str), (env), (pattern)))
 
 /*
  * PARSE_COMMAND_ONE
@@ -135,7 +135,7 @@
  * items were found (if you care whether it was 0 or > 1).
  */
 #define PARSE_COMMAND_ONE(str, env, pattern) \
-    ((object)CMDPARSE_STD->parse_command_one((str), (env), (pattern)))
+    (({object})CMDPARSE_STD->parse_command_one((str), (env), (pattern)))
 
 /*
  * PARSE_COMMAND_SIZE
@@ -162,7 +162,7 @@
  *            An array holding all objects satisfying arr[0] and acsfunc.
  */
 #define NORMAL_ACCESS(arr, acsfunc, acsobj) \
-    ((object *)CMDPARSE_STD->normal_access(arr, acsfunc, acsobj))
+    (({object *})CMDPARSE_STD->normal_access(arr, acsfunc, acsobj))
 
 /*
  * VISIBLE_ACCESS
@@ -182,7 +182,7 @@
  *            An array holding all objects satisfying arr[0] and acsfunc.
  */
 #define VISIBLE_ACCESS(arr, acsfunc, acsobj) \
-    ((object *)CMDPARSE_STD->visible_access(arr, acsfunc, acsobj, 0))
+    (({object *})CMDPARSE_STD->visible_access(arr, acsfunc, acsobj, 0))
 
 /*
  * FIND_STR_IN_OBJECT
@@ -193,7 +193,7 @@
  * Always returns an array with objects, or sometimes an empty array.
  */
 #define FIND_STR_IN_OBJECT(str, obj) \
-    ((object *)CMDPARSE_STD->find_str_in_object(str, obj))
+    (({object *})CMDPARSE_STD->find_str_in_object(str, obj))
 
 /*
  * FIND_STR_IN_ARR
@@ -204,7 +204,7 @@
  * Always returns an array with objects, or sometimes an empty array.
  */
 #define FIND_STR_IN_ARR(str, arr) \
-    ((object *)CMDPARSE_STD->find_str_in_arr(str, arr))
+    (({object *})CMDPARSE_STD->find_str_in_arr(str, arr))
 
 /*
  * CMDPARSE_ITEMLIST
@@ -224,7 +224,7 @@
  * ret[3]		 True if no normal objects
  *
  */
-#define CMDPARSE_ITEMLIST(str) CMDPARSE_STD->parse_itemlist(str)
+#define CMDPARSE_ITEMLIST(str) ({mixed *}) CMDPARSE_STD->parse_itemlist(str)
 
 /*
  * PARSE_THIS
@@ -237,7 +237,7 @@
  *
  * for more information do see "man parse_this" in the chapter "soul"
  */
-#define PARSE_THIS(s, p) (object *)COMMAND_DRIVER->parse_this(s, p)
+#define PARSE_THIS(s, p) ({object *})COMMAND_DRIVER->parse_this(s, p)
 
 /* ACTION_OTHER - An unclassified action */
 #define ACTION_OTHER     0

@@ -16,13 +16,13 @@ public string *replace_soul()
 {
     return
 	({
-	    "/cmd/live/info",
-	    "/cmd/live/items",
-	    "/cmd/live/magic",
-	    "/cmd/live/social",
-	    "/cmd/live/speech",
-	    "/cmd/live/state",
-            "/cmd/live/thief",
-	    "/cmd/live/things",
+//	    "/std/cmd/live/info",
+	    "/std/cmd/live/items",
+	    "/std/cmd/live/magic",
+	    "/std/cmd/live/social",
+	    "/std/cmd/live/speech",
+	    "/std/cmd/live/state",
+        "/std/cmd/live/thief",
+	    "/std/cmd/live/things",
 	});
 }

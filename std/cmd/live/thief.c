@@ -27,7 +27,7 @@ inherit "/std/command_driver";
 #include <wa_types.h>
 
 // Define where to log steals, or undef to not log.
-#undef "/some_dir/open/STEAL"
+//#undef "/some_dir/open/STEAL"
 
 // Prototypes
 private int query_the_value(object ob);

@@ -205,11 +205,11 @@ nomask public string *start_souls(string *souls)
                 {
                     replace_souls += tmp;
                     rflag = 1;
-                    if (member(souls[il], tmp) >= 0)
+                    if (souls[il] in tmp)
                         tmp = 0;
                 }
 
-                if ((tmp == 0) && (member(souls[il], used_souls) < 0))
+                if ((tmp == 0) && !(souls[il] in used_souls))
                 {
                     ob->using_soul(this_object());
                     used_souls += ({ souls[il] });

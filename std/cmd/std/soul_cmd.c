@@ -26,7 +26,7 @@ inherit "/std/command_driver";
 #include <cmdparse.h>
 #include <composite.h>
 #include <const.h>
-#include <files.h>
+#include <libfiles.h>
 #include <filter_funs.h>
 #include <language.h>
 #include <living_desc.h>
@@ -34,6 +34,7 @@ inherit "/std/command_driver";
 #include <ss_types.h>
 #include <stdproperties.h>
 #include <options.h>
+#include <configuration.h>
 
 #define SUBLOC_SOULEXTRADESC ("_soul_cmd_extra")
 #define SOULDESC(x)          (this_player()->add_prop(LIVE_S_SOULEXTRA, (x)))
@@ -306,14 +307,14 @@ public string
 show_subloc(string subloc, object on, object for_obj)
 {
     if ((subloc != SUBLOC_SOULEXTRADESC) ||
-        on->query_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS) ||
-        (!sizeof(subloc = on->query_prop(LIVE_S_SOULEXTRA))))
+        ({int}) on->query_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS) ||
+        (!sizeof(subloc = ({string}) on->query_prop(LIVE_S_SOULEXTRA))))
     {
         return "";
     }
 
     return (((for_obj == on) ? "You are " :
-        (capitalize(on->query_pronoun()) + " is ")) + subloc + ".\n");
+        capitalize((({string}) on->query_pronoun()) + " is ")) + subloc + ".\n");
 }
 
 /*
@@ -342,13 +343,12 @@ dump_emotions()
     int size = sizeof(ALPHABET);
     string *words;
 
-    setuid();
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid());
     catch(rm(DUMP_EMOTIONS_OUT));
+
     while(++index < size)
     {
-        words = filter(m_indices(query_cmdlist()),
-            &wildmatch((ALPHABET[index..index] + "*")));
+        words = filter(m_indices(query_cmdlist()), (: ALPHABET[index] == $1[0] :) );
 
         if (!sizeof(words))
         {
@@ -360,7 +360,7 @@ dump_emotions()
             words[0] = (words[0] + "                ")[..11];
         }
         write_file(DUMP_EMOTIONS_OUT,
-            sprintf("%-76#s\n\n", implode(sort_array(words), "\n")));
+            sprintf("%-76#s\n\n", implode(sort_array(words, #'>), "\n")));
     }
 
     return 1;
@@ -376,8 +376,7 @@ dump_emotions()
  *                int    depth   - the depth still to search.
  * Returns      : object * - the neighbouring rooms.
  */
-object *
-find_neighbour(object *found, object *search, int depth)
+object * find_neighbour(object *found, object *search, int depth)
 {
     int index;
     int size;
@@ -398,34 +397,34 @@ find_neighbour(object *found, object *search, int depth)
     size = sizeof(search);
     while(++index < size)
     {
-        exit_arr = (mixed *)search[index]->query_exit();
+        exit_arr = ({mixed *})search[index]->query_exit();
 
         index2 = -3;
         size2 = sizeof(exit_arr);
         while((index2 += 3) < size2)
         {
-            if (functionp(exit_arr[index2]))
+            if (closurep(exit_arr[index2]))
                 continue;
             if (objectp(exit_arr[index2]))
                 troom = exit_arr[index2];
             else
                 troom = find_object(exit_arr[index2]);
             if (objectp(troom) &&
-                (member(troom, rooms) < 0))
+                !(troom in rooms))
             {
                 rooms += ({ troom });
                 new_search += ({ troom });
             }
         }
 
-        doors = search[index]->query_prop(ROOM_AO_DOOROB);
+        doors = ({object *}) search[index]->query_prop(ROOM_AO_DOOROB);
 
         index2 = -1;
         size2 = sizeof(doors);
         while (++index2 < size2)
         {
-            if (objectp(troom = find_object(doors[index2]->query_other_room())) &&
-                member(troom, rooms) < 0)
+            if (objectp(troom = find_object(({string}) doors[index2]->query_other_room())) &&
+                !(troom in rooms))
             {
                 rooms += ({ troom });
             }
@@ -473,9 +472,9 @@ admire(string str)
     }
 
     actor("You show", oblist, " your admiration.");
-    all2act(" shows", oblist, " " + this_player()->query_possessive() +
+    all2act(" shows", oblist, " " + ({string}) this_player()->query_possessive() +
         " admiration.", "", ACTION_INGRATIATORY);
-    target(" shows you " + this_player()->query_possessive() + " admiration.",
+    target(" shows you " + ({string}) this_player()->query_possessive() + " admiration.",
         oblist, "", ACTION_INGRATIATORY);
     return 1;
 }
@@ -615,7 +614,7 @@ avert(string str)
     if (!stringp(str))
     {
         write("You avert your eyes.\n");
-        all(" averts " + this_player()->query_possessive() + " eyes.", "",
+        all(" averts " + ({string}) this_player()->query_possessive() + " eyes.", "",
 	    ACTION_OTHER);
         return 1;
     }
@@ -635,9 +634,9 @@ avert(string str)
     }
 
     actor("You avert your eyes from", oblist, ".");
-    all2act(" averts " + this_player()->query_possessive() +
+    all2act(" averts " + ({string}) this_player()->query_possessive() +
         " eyes from", oblist, 0, "", ACTION_OTHER);
-    target(" averts " + this_player()->query_possessive() +
+    target(" averts " + ({string}) this_player()->query_possessive() +
         " eyes from you.", oblist, "", ACTION_OTHER);
     return 1;
 }
@@ -692,7 +691,7 @@ bat(string str)
     if (!stringp(how[0]))
     {
         write("You bat your eyelashes" + how[1] + ".\n");
-        allbb(" bats " + this_player()->query_possessive() +
+        allbb(" bats " + ({string}) this_player()->query_possessive() +
             " eyelashes" + how[1] + ".", how[1], ACTION_VISUAL);
         return 1;
     }
@@ -712,9 +711,9 @@ bat(string str)
     }
 
     actor("You bat your eyelashes" + how[1] + " at", oblist);
-    all2actbb(" bats " + this_player()->query_possessive() +
+    all2actbb(" bats " + ({string}) this_player()->query_possessive() +
         " eyelashes" + how[1] + " at", oblist, 0, how[1], ACTION_VISUAL);
-    targetbb(" bats " + this_player()->query_possessive() +
+    targetbb(" bats " + ({string}) this_player()->query_possessive() +
         " eyelashes" + how[1] + " at you.", oblist, how[1], ACTION_VISUAL);
     return 1;
 }
@@ -800,10 +799,10 @@ beg(string str)
         actor("You fall on your knees and beg" +
             (sizeof(oblist) > 1 ? " each of" : ""), oblist,
             " for forgiveness.");
-        all2act(" falls on " + this_player()->query_possessive() +
+        all2act(" falls on " + ({string}) this_player()->query_possessive() +
             "knees and begs", oblist, " for forgiveness.", "",
 	    ACTION_AURAL | ACTION_VISUAL);
-        target(" falls on " + this_player()->query_possessive() +
+        target(" falls on " + ({string}) this_player()->query_possessive() +
             " knees and begs you for forgiveness.", oblist, "",
 	    ACTION_AURAL | ACTION_VISUAL);
         return 1;
@@ -842,7 +841,7 @@ bite(string str)
     }
 
     write("You bite on your bottom lip.\n");
-    allbb(" bites on " + this_player()->query_possessive() + " bottom lip.", "",
+    allbb(" bites on " + ({string}) this_player()->query_possessive() + " bottom lip.", "",
         ACTION_OTHER);
     return 1;
 }
@@ -900,7 +899,7 @@ blank(string str)
 
     write("You stare off into space, a blank look overcoming your face.\n");
     allbb(" stares off into space, a blank look overcoming " +
-        this_player()->query_possessive() + " face.", "", ACTION_VISUAL);
+        ({string}) this_player()->query_possessive() + " face.", "", ACTION_VISUAL);
     return 1;
 }
 
@@ -931,9 +930,9 @@ blow(string str)
         return 0;
     }
 
-    if (wildmatch("kiss *", str))
+    if (str[..4] == "kiss ")
     {
-        how = parse_adverb_with_space(extract(str, 5), BLANK_ADVERB, 0);
+        how = parse_adverb_with_space(str[5..], BLANK_ADVERB, 0);
 
         if (!stringp(how[0]))
         {
@@ -1087,10 +1086,10 @@ bounce(string str)
     actor("B O I N G !!\nYou bounce around" + how[1] +
         " until you bump into", oblist);
     all2act(" bounces around" + how[1] + " until " +
-        this_player()->query_pronoun() + " bumps into", oblist, 0, how[1],
+        ({string}) this_player()->query_pronoun() + " bumps into", oblist, 0, how[1],
         ACTION_CONTACT | ACTION_HACTIVITY | ACTION_VISUAL);
     target(" bounces around" + how[1] + " until " +
-        this_player()->query_pronoun() + " bumps into you.", oblist,
+        ({string}) this_player()->query_pronoun() + " bumps into you.", oblist,
         how[1], ACTION_CONTACT | ACTION_HACTIVITY | ACTION_VISUAL);
     return 1;
 }
@@ -1144,8 +1143,8 @@ brighten(string str)
 
     write("You think about it, then it dawns on you! Your face brightens!\n");
     all(" thinks about it, then it dawns on " +
-        this_player()->query_objective() + "... " +
-        capitalize(this_player()->query_possessive()) + " face brightens.", "",
+        ({string}) this_player()->query_objective() + "... " +
+        capitalize(({string}) this_player()->query_possessive()) + " face brightens.", "",
         ACTION_OTHER);
     return 1;
 }
@@ -1196,7 +1195,7 @@ cackle(string str)
 
     SOULDESC("cackling" + str);
     write("You cackle" + str + ".\n");
-    all(" throws " + this_player()->query_possessive() +
+    all(" throws " + ({string}) this_player()->query_possessive() +
         " head back and cackles" + str + "!", str,
 	ACTION_AURAL | ACTION_LACTIVITY);
     return 1;
@@ -1228,7 +1227,7 @@ caress(string str)
     if (oblist[0] == this_player())
     {
         write("You caress yourself" + how[1] + ".\n");
-        all(" caresses " + this_player()->query_objective() +
+        all(" caresses " + ({string}) this_player()->query_objective() +
             "self" + how[1] + ".", how[1], ACTION_VISUAL | ACTION_LACTIVITY);
         return 1;
     }
@@ -1294,7 +1293,7 @@ choke(string str)
     SOULDESC("choking on something");
     write("Cough, cough, cough, hark !!! You choke on something.\n");
     all("'s face colour slowly darkens as " +
-        this_player()->query_pronoun() + " chokes.", "",
+        ({string}) this_player()->query_pronoun() + " chokes.", "",
 	ACTION_AURAL | ACTION_VISUAL);
     return 1;
 }
@@ -1399,7 +1398,7 @@ clear(string str)
     }
 
     write("You clear your throat to attract attention!\n");
-    all(" clears " + this_player()->query_possessive() +
+    all(" clears " + ({string}) this_player()->query_possessive() +
         " throat to attract attention.", "", ACTION_AURAL);
     return 1;
 }
@@ -1483,10 +1482,10 @@ compliment(string str)
     }
 
     actor("You give your deepest compliments to", oblist);
-    all2act(" gives " + this_player()->query_possessive() +
+    all2act(" gives " + ({string}) this_player()->query_possessive() +
         " deepest compliments to", oblist, "", "",
         ACTION_AURAL | ACTION_INGRATIATORY);
-    target(" gives you " + this_player()->query_possessive() +
+    target(" gives you " + ({string}) this_player()->query_possessive() +
         " deepest compliments.", oblist, "",
 	ACTION_AURAL | ACTION_INGRATIATORY);
     return 1;
@@ -1501,7 +1500,7 @@ confuse(string str)
     {
         SOULDESC("looking very confused");
         write("You confuse yourself and look very confused.\n");
-        all(" confuses " + this_player()->query_objective() +
+        all(" confuses " + ({string}) this_player()->query_objective() +
             "self and looks very confused.");
         return 1;
     }
@@ -1524,12 +1523,12 @@ confuse(string str)
     {
         actor("You try to confuse", oblist, "...\n... And succeed... " +
             ((sizeof(oblist) == 1) ?
-                capitalize(oblist[0]->query_pronoun()) + " is" :
+                capitalize(({string}) oblist[0]->query_pronoun()) + " is" :
                 "They are") + " very confused.");
         all2act(" tries to confuse", oblist, ", who suddenly look" +
             ((sizeof(oblist) == 1) ? "s" : "") + " very confused indeed.");
         target(" tries to confuse you. You have no idea what " +
-            this_player()->query_pronoun() +
+            ({string}) this_player()->query_pronoun() +
             " did to confuse you, but you are very confused!", oblist);
     }
 
@@ -1665,7 +1664,7 @@ cross(string str)
     }
 
     write("You cross your fingers for good luck.\n");
-    all(" crosses " + this_player()->query_possessive() +
+    all(" crosses " + ({string}) this_player()->query_possessive() +
         " fingers for good luck.");
     return 1;
 }
@@ -1703,7 +1702,7 @@ cry(string str)
     }
 
     SOULDESC("crying");
-    str = this_player()->query_possessive();
+    str = ({string}) this_player()->query_possessive();
     actor("You rest your head on", oblist,
         "'s shoulder and cry your heart out.");
     all2act(" rests " + str + " head on", oblist,
@@ -1871,7 +1870,7 @@ despair(string str)
     }
 
     write("You tear a lump of hair off your scalp.\n");
-    all(" tears a lump of hair off " + this_player()->query_possessive() +
+    all(" tears a lump of hair off " + ({string}) this_player()->query_possessive() +
         " scalp in despair.");
     SOULDESC("looking desperate");
     return 1;
@@ -1944,7 +1943,7 @@ duh(string str)
         return 0;
     }
 
-    str = ((sizeof(oblist) == 1) ? oblist[0]->query_objective() : "them");
+    str = ((sizeof(oblist) == 1) ? ({string}) oblist[0]->query_objective() : "them");
 
     actor("You let", oblist, " know what you think of " + str + "!");
     all2act(" goes duhhh at", oblist, ", making " + str + " feel pretty dumb!");
@@ -2000,7 +1999,7 @@ excuse(string str)
         }
 
         write("You excuse yourself" + how[1] + ".\n");
-        all(" excuses " + this_player()->query_objective() + "self" +
+        all(" excuses " + ({string}) this_player()->query_objective() + "self" +
             how[1] + ".", how[1]);
         return 1;
     }
@@ -2052,7 +2051,7 @@ eyebrow(string str)
     if (!stringp(how[0]))
     {
         write("You raise an eyebrow" + how[1] + ".\n");
-        allbb(" raises " + this_player()->query_possessive() +
+        allbb(" raises " + ({string}) this_player()->query_possessive() +
             " eyebrow" + how[1] + ".", how[1]);
 
         return 1;
@@ -2067,9 +2066,9 @@ eyebrow(string str)
     }
 
     actor("You raise your eyebrow" + how[1] + " at", oblist);
-    all2actbb(" raises " + this_player()->query_possessive() +
+    all2actbb(" raises " + ({string}) this_player()->query_possessive() +
         " eyebrow" + how[1] + " at", oblist, 0, how[1]);
-    targetbb(" raises " + this_player()->query_possessive() + " eyebrow" +
+    targetbb(" raises " + ({string}) this_player()->query_possessive() + " eyebrow" +
         how[1] + " at you.", oblist, how[1]);
     return 1;
 }
@@ -2137,13 +2136,13 @@ ffinger(string str)
 
     actor("With your middle finger you make it very clear to", oblist,
         " that you want " +
-        (sizeof(oblist) == 1 ? oblist[0]->query_objective(): "them") +
+        (sizeof(oblist) == 1 ? ({string}) oblist[0]->query_objective(): "them") +
         " to fuck off.");
-    all2actbb(" implies with " + this_player()->query_possessive() +
-        " middle finger, that " + this_player()->query_pronoun() +
+    all2actbb(" implies with " + ({string}) this_player()->query_possessive() +
+        " middle finger, that " + ({string}) this_player()->query_pronoun() +
         " wants", oblist, " to fuck off.");
-    targetbb(" implies with " + this_player()->query_possessive() +
-        " middle finger, that " + this_player()->query_pronoun() +
+    targetbb(" implies with " + ({string}) this_player()->query_possessive() +
+        " middle finger, that " + ({string}) this_player()->query_pronoun() +
         " wants you to fuck off.", oblist);
     return 1;
 }
@@ -2184,7 +2183,7 @@ flex(string str)
     }
 
     write("You flex your muscles" + str + ".\n");
-    allbb(" flexes " + this_player()->query_possessive() + " muscles" + str +
+    allbb(" flexes " + ({string}) this_player()->query_possessive() + " muscles" + str +
         ".", str);
     return 1;
 }
@@ -2253,7 +2252,7 @@ fondle(string str)
     if (oblist[0] == this_player())
     {
         write("You fondle yourself" + how[1] + ".\n");
-        allbb(" fondles " + this_player()->query_objective() + "self" +
+        allbb(" fondles " + ({string}) this_player()->query_objective() + "self" +
             how[1], how[1], ACTION_OTHER);
         return 1;
     }
@@ -2286,12 +2285,12 @@ forgive(string str)
     if (oblist[0] == this_player())
     {
         write("You forgive yourself" + how[1] + ".\n");
-        allbb(" forgives " + this_player()->query_objective() + "self" +
+        allbb(" forgives " + ({string}) this_player()->query_objective() + "self" +
             how[1], how[1]);
         return 1;
     }
 
-    str = ((sizeof(oblist) == 1) ? oblist[0]->query_possessive() : "their");
+    str = ((sizeof(oblist) == 1) ? ({string}) oblist[0]->query_possessive() : "their");
     actor("You forgive", oblist, " " + str + " sins" + how[1] + ".");
     all2act(" forgives", oblist, " " + str + " sins" + how[1] + ".", how[1]);
     target(" forgives you your sins" + how[1] + ".", oblist, how[1]);
@@ -2530,7 +2529,7 @@ greet(string str)
 
     actor("You greet", oblist,".  How friendly!");
     all2act(" greets", oblist);
-    target(" raises " + this_player()->query_possessive() +
+    target(" raises " + ({string}) this_player()->query_possessive() +
         " hand and greets you!", oblist);
     return 1;
 }
@@ -2585,7 +2584,7 @@ grin(string str)
     /* Goodaligned players do not grin evilly by default. */
     if (how[1] == NO_DEFAULT_ADVERB_WITH_SPACE)
     {
-        how[1] = ((this_player()->query_alignment() > 0) ?
+        how[1] = ((({int}) this_player()->query_alignment() > 0) ?
             "merrily" : "evilly");
         how[1] = ADD_SPACE_TO_ADVERB(how[1]);
     }
@@ -2723,7 +2722,7 @@ grumble(string str)
 
     /* Quod licet Jovi, non licet bovi according to Plugh, Mercade ;-) */
     how = parse_adverb_with_space(str,
-        (this_player()->query_wiz_level() ? "angrily" : "unhappily"), 0);
+        (({int}) this_player()->query_wiz_level() ? "angrily" : "unhappily"), 0);
 
     if (!stringp(how[0]))
     {
@@ -2758,7 +2757,7 @@ hang(string str)
     }
 
     write("You hang your head in shame.\n");
-    allbb(" hangs " + this_player()->query_possessive() + " head in shame.");
+    allbb(" hangs " + ({string}) this_player()->query_possessive() + " head in shame.");
     return 1;
 }
 
@@ -2920,9 +2919,9 @@ ignore(string str)
     }
 
     actor("You start to ignore", oblist);
-    all2actbb(" turns " + this_player()->query_possessive() + " back on",
+    all2actbb(" turns " + ({string}) this_player()->query_possessive() + " back on",
         oblist);
-    targetbb(" turns " + this_player()->query_possessive() + " back on you " +
+    targetbb(" turns " + ({string}) this_player()->query_possessive() + " back on you " +
         "and starts to ignore you.", oblist);
     return 1;
 }
@@ -3028,7 +3027,7 @@ kiss(string str)
     parts = explode(str, " ");
     if ((size = sizeof(parts)) > 1)
     {
-        if (member(parts[size - 1], zones) != -1)
+        if (parts[size - 1] in zones)
         {
             location = parts[size - 1];
             str = implode(parts[..(size - 2)], " ");
@@ -3062,7 +3061,7 @@ kiss(string str)
     if (sizeof(location))
     {
         str = ((sizeof(oblist) == 1) ?
-            (oblist[0]->query_possessive() + " " + location + ".") :
+            (({string}) oblist[0]->query_possessive() + " " + location + ".") :
             ("their " + location + "s."));
         actor("You kiss", oblist, " on " + str);
         all2act(" kisses", oblist, " on " + str, "",
@@ -3119,10 +3118,10 @@ knee(string str)
         actor("You hit", oblist, " with your knee, sending " +
             ((sizeof(oblist) > 1) ? "them" : "him") +
             " to the ground, writhing in pain!");
-        all2act(" suddenly raises " + this_player()->query_possessive() +
+        all2act(" suddenly raises " + ({string}) this_player()->query_possessive() +
             " knee, sending", oblist, " to the floor, writhing in pain!", "",
             ACTION_CONTACT | ACTION_OFFENSIVE | ACTION_MACTIVITY);
-        target(" hits you with " + this_player()->query_possessive() +
+        target(" hits you with " + ({string}) this_player()->query_possessive() +
             " knee below your belt!\n" +
             "You double over and fall to the ground, writhing in " +
             "excrutiating pain,\nfeeling like you may throw up " +
@@ -3206,7 +3205,7 @@ laugh(string str)
     {
         SOULDESC("laughing" + how[1]);
         write("You laugh" + how[1] + " at yourself.\n");
-        all(" laughs" + how[1] + " at " + this_player()->query_objective() +
+        all(" laughs" + how[1] + " at " + ({string}) this_player()->query_objective() +
             "self.", how[1]);
         return 1;
     }
@@ -3265,7 +3264,7 @@ lick(string str)
         }
 
         write("You lick your lips" + how[1] + ".\n");
-        allbb(" licks " + this_player()->query_possessive() + " lips" +
+        allbb(" licks " + ({string}) this_player()->query_possessive() + " lips" +
             how[1] + ".", how[1], ACTION_VISUAL);
         return 1;
     }
@@ -3446,7 +3445,7 @@ mumble(string str)
     }
 
     if ((sizeof(str) > 60) &&
-        (!(this_player()->query_wiz_level())))
+        (!(({int}) this_player()->query_wiz_level())))
     {
         SOULDESC("mumbling about something");
         write("You mumble beyond the end of the line and become incoherent.\n");
@@ -3580,8 +3579,8 @@ nuzzle(string str)
         return 0;
     }
 
-    pos = ((sizeof(oblist) == 1) ? oblist[0]->query_possessive() : "their");
-    str = this_player()->query_possessive();
+    pos = ((sizeof(oblist) == 1) ? ({string}) oblist[0]->query_possessive() : "their");
+    str = ({string}) this_player()->query_possessive();
 
     actor("You put your arms around", oblist, " and nuzzle your face" +
         how[1] + " in " + pos + " neck.");
@@ -3684,11 +3683,11 @@ pat(string str)
 
     /* When patting yourself, pat on your tummy. */
     str = (sizeof(str) ? lower_case(str) : "tummy");
-    if (member(str, zones) != -1)
+    if (str in zones)
     {
         write("You pat yourself on your " + str + ".\n");
-        all(" pats " + this_player()->query_objective() +
-           "self on " + this_player()->query_possessive() + " " + str + ".",
+        all(" pats " + ({string}) this_player()->query_objective() +
+           "self on " + ({string}) this_player()->query_possessive() + " " + str + ".",
            "", ACTION_VISUAL);
         return 1;
     }
@@ -3696,7 +3695,7 @@ pat(string str)
     parts = explode(str, " ");
     if ((size = sizeof(parts)) > 1)
     {
-        if (member(parts[size - 1], zones) != -1)
+        if (parts[size - 1] in zones)
         {
             location = parts[size - 1];
             str = implode(parts[..(size - 2)], " ");
@@ -3723,7 +3722,7 @@ pat(string str)
     }
 
     str = ((sizeof(oblist) == 1) ?
-           (oblist[0]->query_possessive() + " " + location + ".") :
+           (({string}) oblist[0]->query_possessive() + " " + location + ".") :
            ("their " + location + "s."));
 
     actor("You pat", oblist, " on " + str);
@@ -3810,18 +3809,18 @@ pinch(string str)
     zones = ({ "cheek", "ear", "nose", "arm", "bottom" });
 
     str = (sizeof(str) ? lower_case(str) : "arm");
-    if (member(str, zones) != -1)
+    if (str in zones)
     {
         write("You pinch yourself in your " + str + ".\n");
-        all(" pinches " + this_player()->query_objective() +
-           "self in " + this_player()->query_possessive() + " " + str + ".");
+        all(" pinches " + ({string}) this_player()->query_objective() +
+           "self in " + ({string}) this_player()->query_possessive() + " " + str + ".");
         return 1;
     }
 
     parts = explode(str, " ");
     if ((size = sizeof(parts)) > 1)
     {
-        if (member(parts[size - 1], zones) != -1)
+        if (parts[size - 1] in zones)
         {
             location = parts[size - 1];
             str = implode(parts[..(size - 2)], " ");
@@ -3871,7 +3870,7 @@ point(string str)
     }
 
     str = lower_case(str);
-    if (member(str, POINT_DIRECTIONS) >= 0)
+    if (str in POINT_DIRECTIONS)
     {
         write("You point " + str + ".\n");
         allbb(" points " + str + ".");
@@ -3888,7 +3887,7 @@ point(string str)
         oblist = FIND_STR_IN_OBJECT(str, environment(this_player()));
         if (!sizeof(oblist))
         {
-            if (environment(this_player())->item_id(str))
+            if (({int}) environment(this_player())->item_id(str))
             {
                 write("You point at the " + str + ".\n");
                 allbb(" points at " + LANG_ADDART(str) + ".");
@@ -3908,7 +3907,7 @@ point(string str)
     if (oblist[0] == this_player())
     {
         write("You point at yourself.\n");
-        allbb(" points at " + this_player()->query_objective() + "self.");
+        allbb(" points at " + ({string}) this_player()->query_objective() + "self.");
         return 1;
     }
 
@@ -3930,18 +3929,18 @@ poke(string str)
     zones = ({ "eye", "ear", "nose", "thorax", "abdomen", "shoulder", "ribs" });
 
     str = (sizeof(str) ? lower_case(str) : "abdomen");
-    if (member(str, zones) != -1)
+    if (str in zones)
     {
         write("You poke yourself in your " + str + ".\n");
-        all(" pokes " + this_player()->query_objective() +
-            "self in " + this_player()->query_possessive() + " " + str + ".");
+        all(" pokes " + ({string}) this_player()->query_objective() +
+            "self in " + ({string}) this_player()->query_possessive() + " " + str + ".");
         return 1;
     }
 
     parts = explode(str, " ");
     if ((size = sizeof(parts)) > 1)
     {
-        if (member(parts[size - 1], zones) != -1)
+        if (parts[size - 1] in zones)
         {
             location = parts[size - 1];
             str = implode(parts[..(size - 2)], " ");
@@ -3986,7 +3985,7 @@ ponder(string str)
     }
 
     if ((sizeof(str) > 60) &&
-        (!(this_player()->query_wiz_level())))
+        (!(({int}) this_player()->query_wiz_level())))
     {
         SOULDESC("pondering the situation");
         write("You ponder beyond the end of the line and wake up from " +
@@ -4033,8 +4032,8 @@ pounce(string str)
         return 0;
     }
 
-    pos = ((sizeof(oblist) > 1) ? "their" : oblist[0]->query_possessive());
-    obj = ((sizeof(oblist) > 1) ? "them" : oblist[0]->query_objective());
+    pos = ((sizeof(oblist) > 1) ? "their" : ({string}) oblist[0]->query_possessive());
+    obj = ((sizeof(oblist) > 1) ? "them" : ({string}) oblist[0]->query_objective());
     actor("You pounce on", oblist, " like a cat, knocking " + obj +
         " flat on " + pos + " back!");
     all2act(" pounces on", oblist, " like a cat, knocking " + obj +
@@ -4142,7 +4141,7 @@ rolleyes(string str)
     }
 
     write("You roll your eyes" + str + ".\n");
-    all(" rolls " + this_player()->query_possessive() + " eyes" +
+    all(" rolls " + ({string}) this_player()->query_possessive() + " eyes" +
         str + ".", str);
     return 1;
 }
@@ -4248,10 +4247,10 @@ scratch(string str)
     zones = ({ "head", "chin", "back", "behind", "nose", "ear" });
 
     str = (sizeof(str) ? lower_case(str) : "head");
-    if (member(str, zones) != -1)
+    if (str in zones)
     {
         write("You scratch your " + str + ".\n");
-        allbb(" scratches " + this_player()->query_possessive() +
+        allbb(" scratches " + ({string}) this_player()->query_possessive() +
             " " + str + ".");
         return 1;
     }
@@ -4259,7 +4258,7 @@ scratch(string str)
     parts = explode(str, " ");
     if ((size = sizeof(parts)) > 1)
     {
-        if (member(parts[size - 1], zones) != -1)
+        if (parts[size - 1] in zones)
         {
             location = parts[size - 1];
             str = implode(parts[..(size - 2)], " ");
@@ -4310,7 +4309,7 @@ scream(string str)
     while(++index < size)
     {
         tell_room(rooms[index], "@@shout_name:" + CMD_LIVE_SPEECH +
-            "@@ screams loudly!\n", this_player());
+            "@@ screams loudly!\n", ({this_player()}));
     }
 
     all(" screams loudly. ARRGGGGGGHHHHHH!!!!");
@@ -4327,12 +4326,12 @@ shake(string str)
     if (!stringp(str))
     {
         write("You shake your head in disagreement.\n");
-        allbb(" shakes " + this_player()->query_possessive() +
+        allbb(" shakes " + ({string}) this_player()->query_possessive() +
               " head in disagreement.", attrs);
         return 1;
     }
 
-    if (wildmatch("head *", str))
+    if (str[..5] == "head ")
     {
         oblist = parse_this(str, "[head] [at] [the] %i", attrs);
 
@@ -4343,9 +4342,9 @@ shake(string str)
         }
 
         actor("You shake your head in disagreement at", oblist);
-        all2act(" shakes " + this_player()->query_possessive() +
+        all2act(" shakes " + ({string}) this_player()->query_possessive() +
             " head in disagreement at", oblist, "", "", attrs);
-        target(" shakes " + this_player()->query_possessive() +
+        target(" shakes " + ({string}) this_player()->query_possessive() +
             " head in disagreement at you.", oblist, "", attrs);
         return 1;
     }
@@ -4404,9 +4403,9 @@ show(string str)
     }
 
     /* Show the long description to the onlookers. */
-    if (full = wildmatch("full *", str))
+    if (full = (str[..5] == "full "))
     {
-        str = extract(str, 5);
+        str = str[5..];
     }
 
     if (sscanf(str, "%s covertly to %s", str, who) == 2)
@@ -4443,10 +4442,10 @@ show(string str)
     {
         write("You show your " + LANG_SHORT(obj) + " around" +
             (full ? " in full" : "") + ".\n");
-        str = " shows " + this_player()->query_possessive() + " " +
-            LANG_SHORT(obj) + " around.\n" + (full ? obj->long() : "");
-        say( ({ (this_player()->query_name() + str),
-            ("The " + this_player()->query_nonmet_name() + str) , "" }) );
+        str = " shows " + ({string}) this_player()->query_possessive() + " " +
+            LANG_SHORT(obj) + " around.\n" + (full ? ({string}) obj->long() : "");
+        say( ({ (({string}) this_player()->query_name() + str),
+            ("The " + ({string}) this_player()->query_nonmet_name() + str) , "" }) );
         FILTER_OTHER_LIVE(all_inventory(environment(this_player())))->show_hook(obj);
         return 1;
     }
@@ -4461,7 +4460,7 @@ show(string str)
             return 1;
         }
 
-        notify_fail("Show the " + obj->short() +
+        notify_fail("Show the " + ({string}) obj->short() +
             (covertly ? " covertly" : "") + " to whom?\n");
         return 0;
     }
@@ -4469,10 +4468,10 @@ show(string str)
     actor("You show your " + LANG_SHORT(obj) + (covertly ? " covertly" : "") +
         " to", oblist, (full ? " in full." : ""));
     all2actbb((covertly ? " covertly" : "") + " shows " +
-        (covertly ? "something" : (this_player()->query_possessive() +
+        (covertly ? "something" : (({string}) this_player()->query_possessive() +
          " " + LANG_SHORT(obj))) + " to", oblist, "", action);
     targetbb((covertly ? " covertly" : "") + " shows you " +
-        this_player()->query_possessive() + " " + LANG_SHORT(obj) + ".", oblist,
+        ({string}) this_player()->query_possessive() + " " + LANG_SHORT(obj) + ".", oblist,
         "", action);
     oblist->show_hook(obj);
 
@@ -4512,7 +4511,7 @@ shudder(string str)
     }
 
     if ((sizeof(str) > 60) &&
-        (!(this_player()->query_wiz_level())))
+        (!(({int}) this_player()->query_wiz_level())))
     {
         SOULDESC("shuddering");
         write("That is an afwul lot to shudder to think at one time.\n");
@@ -4581,7 +4580,7 @@ slap(string str)
     if (oblist[0] == this_player())
     {
         write("You slap yourself.\n");
-        all(" slaps " + this_player()->query_objective() + "self.", "", attrs);
+        all(" slaps " + ({string}) this_player()->query_objective() + "self.", "", attrs);
         return 1;
     }
 
@@ -4602,7 +4601,7 @@ smell(string str)
     if (!stringp(how[0]))
     {
         write("You smell the area around you" + how[1] + ".\n");
-        allbb(" smells the area around " + this_player()->query_objective() +
+        allbb(" smells the area around " + ({string}) this_player()->query_objective() +
             how[1] + ".", how[1]);
         environment(this_player())->hook_smelled();
         return 1;
@@ -4613,7 +4612,7 @@ smell(string str)
     switch(sizeof(oblist))
     {
     case 0:
-        if (environment(this_player())->item_id(how[0]))
+        if (({int}) environment(this_player())->item_id(how[0]))
         {
             write("You smell the " + how[0] + how[1] + ".\n");
             allbb(" smells " + LANG_ADDART(how[0]) + how[1] + ".");
@@ -4710,7 +4709,7 @@ snap(string str)
     }
 
     write("You snap your fingers.\n");
-    all(" snaps " + this_player()->query_possessive() + " fingers.");
+    all(" snaps " + ({string}) this_player()->query_possessive() + " fingers.");
     return 1;
 }
 
@@ -5037,7 +5036,7 @@ steam(string str)
 
     write("Steam comes boiling out of your ears.\n");
     allbb("'s face turns purple and steam starts to boil out of " +
-       this_player()->query_possessive() + " ears.", "", ACTION_VISUAL);
+       ({string}) this_player()->query_possessive() + " ears.", "", ACTION_VISUAL);
     return 1;
 }
 
@@ -5052,7 +5051,7 @@ stick(string str)
     if (!stringp(how[0]))
     {
         write("You" + how[1] + " stick your tongue out.\n");
-        all(how[1] + " sticks " + this_player()->query_possessive() +
+        all(how[1] + " sticks " + ({string}) this_player()->query_possessive() +
             " tongue out.", how[1]);
         return 1;
     }
@@ -5067,9 +5066,9 @@ stick(string str)
     }
 
     actor("You" + how[1] + " stick your tongue out at", oblist, ".");
-    all2act(how[1] + " sticks " + this_player()->query_possessive() +
+    all2act(how[1] + " sticks " + ({string}) this_player()->query_possessive() +
         " tongue out at", oblist, 0, how[1], ACTION_VISUAL | ACTION_OFFENSIVE);
-    target(how[1] + " sticks " + this_player()->query_possessive() +
+    target(how[1] + " sticks " + ({string}) this_player()->query_possessive() +
         " tongue out at you.", oblist, how[1],
         ACTION_VISUAL | ACTION_OFFENSIVE);
     return 1;
@@ -5085,7 +5084,7 @@ stomp(string str)
     }
 
     write("You stomp your feet angrily on the ground.\n");
-    all(" stomps " + this_player()->query_possessive() + " feet angrily " +
+    all(" stomps " + ({string}) this_player()->query_possessive() + " feet angrily " +
         "on the ground.", ACTION_MACTIVITY | ACTION_VISUAL | ACTION_AURAL);
     return 1;
 }
@@ -5131,7 +5130,7 @@ stretch(string str)
     }
 
     write("You stretch your tired body out.\nAhh, that feels good.\n");
-    allbb(" stretches " + this_player()->query_possessive() + " tired body.",
+    allbb(" stretches " + ({string}) this_player()->query_possessive() + " tired body.",
         ACTION_MACTIVITY);
     return 1;
 }
@@ -5241,7 +5240,7 @@ swoon(string str)
         write("You swoon" + how[1] + " and pass out momentarily as you " +
             "collapse to the ground.\n");
         all(" swoons" + how[1] + " and passes out momentarily as " +
-            this_player()->query_pronoun() + " collapses to the ground.",
+            ({string}) this_player()->query_pronoun() + " collapses to the ground.",
             how[1]);
         return 1;
     }
@@ -5288,7 +5287,7 @@ tackle(string str)
             " to the ground in a very unflattering way.", "",
             ACTION_CONTACT | ACTION_HACTIVITY);
         target(" comes running at you. " +
-            capitalize(this_player()->query_pronoun()) +
+            capitalize(({string}) this_player()->query_pronoun()) +
             " attempts to tackle you and succeeds. You fall to the ground " +
             "in a very unflattering way.", oblist, "",
             ACTION_CONTACT | ACTION_HACTIVITY);
@@ -5297,12 +5296,12 @@ tackle(string str)
     {
         actor("You try to tackle", oblist, " but fall flat on your face.");
         all2act(" tries to tackle", oblist, " but misses and falls flat on " +
-            this_player()->query_possessive() + " face.", "",
+            ({string}) this_player()->query_possessive() + " face.", "",
             ACTION_CONTACT | ACTION_HACTIVITY);
         target(" comes running at you. " +
-            capitalize(this_player()->query_pronoun()) +
+            capitalize(({string}) this_player()->query_pronoun()) +
             " attempts to tackle you but misses and falls flat on " +
-            this_player()->query_possessive() + " face.", oblist, "",
+            ({string}) this_player()->query_possessive() + " face.", oblist, "",
             ACTION_CONTACT | ACTION_HACTIVITY);
     }
 
@@ -5325,7 +5324,7 @@ tap(string str)
         }
 
         write("You tap your foot" + how[1] + ".\n");
-        all(" taps " + this_player()->query_possessive() + " foot" + how[1] +
+        all(" taps " + ({string}) this_player()->query_possessive() + " foot" + how[1] +
             ".", how[1]);
         return 1;
     }
@@ -5350,7 +5349,7 @@ tap(string str)
     }
 
     this_player()->reveal_me(1);
-    str = ((sizeof(oblist) == 1) ? oblist[0]->query_possessive() : "their");
+    str = ((sizeof(oblist) == 1) ? ({string}) oblist[0]->query_possessive() : "their");
     actor("You tap", oblist, how[1] + " on the shoulder to attract " + str +
         " attention.");
     all2act(" taps", oblist, how[1] + " on the shoulder to attract " + str +
@@ -5419,17 +5418,17 @@ think(string str)
     }
 
     if ((sizeof(str) > 60) &&
-        (!(this_player()->query_wiz_level())))
+        (!(({int}) this_player()->query_wiz_level())))
     {
         write("Geez.. That is a lot to think about at the same time.\n");
-        allbb(" looks like " + this_player()->query_pronoun() +
+        allbb(" looks like " + ({string}) this_player()->query_pronoun() +
             " is trying to think hard about a lot of things.");
         SOULDESC("thinking about a lot of things");
         return 1;
     }
 
     write("You think hard about " + str + "\n");
-    allbb(" looks like " + this_player()->query_pronoun() +
+    allbb(" looks like " + ({string}) this_player()->query_pronoun() +
         " is thinking hard about " + str);
     SOULDESC("thinking hard about something");
     return 1;
@@ -5451,7 +5450,7 @@ threaten(string str)
         how[1] = " with " + how[1];
 
         if ((sizeof(how[1]) > 60) &&
-            (!(this_player()->query_wiz_level())))
+            (!(({int}) this_player()->query_wiz_level())))
         {
             SOULDESC("threatening everyone and everything");
             write("You threaten beyond the end of the line and become incoherent.\n");
@@ -5517,7 +5516,7 @@ thumb(string str)
     if (!sizeof(str))
     {
         write("You hold your thumb " + direction + ".\n");
-        allbb(" holds " + this_player()->query_possessive() + " thumb " +
+        allbb(" holds " + ({string}) this_player()->query_possessive() + " thumb " +
             direction + ".");
         return 1;
     }
@@ -5531,9 +5530,9 @@ thumb(string str)
     }
 
     actor("You hold your thumb " + direction + " at", oblist);
-    all2actbb(" holds " + this_player()->query_possessive() + " thumb " +
+    all2actbb(" holds " + ({string}) this_player()->query_possessive() + " thumb " +
         direction + " at", oblist);
-    targetbb(" holds " + this_player()->query_possessive() + " thumb " +
+    targetbb(" holds " + ({string}) this_player()->query_possessive() + " thumb " +
         direction + " at you.", oblist);
     return 1;
 }
@@ -5733,7 +5732,7 @@ twiddle(string str)
     }
 
     write("You twiddle your thumbs.\n");
-    allbb(" twiddles " + this_player()->query_possessive() + " thumbs.");
+    allbb(" twiddles " + ({string}) this_player()->query_possessive() + " thumbs.");
     return 1;
 }
 
@@ -5749,7 +5748,7 @@ twinkle(string str)
     }
 
     write("You twinkle your eyes" + str + ".\n");
-    allbb(" twinkles " + this_player()->query_possessive() + " eyes" +
+    allbb(" twinkles " + ({string}) this_player()->query_possessive() + " eyes" +
           str + ".", str);
     return 1;
 }
@@ -5956,7 +5955,7 @@ wiggle(string str)
     }
 
     write("You wiggle your bottom" + str + ".\n");
-    allbb(" wiggles " + this_player()->query_possessive() +
+    allbb(" wiggles " + ({string}) this_player()->query_possessive() +
           " bottom" + str + ".", str, ACTION_MACTIVITY);
     return 1;
 }
@@ -6018,7 +6017,7 @@ wonder(string str)
     }
 
     if ((sizeof(str) > 60) &&
-        (!(this_player()->query_wiz_level())))
+        (!(({int}) this_player()->query_wiz_level())))
     {
         write("You wonder beyond the end of the line and wake up from " +
             "your reveries.\n");
@@ -6043,7 +6042,7 @@ worry(string str)
         SOULDESC("worried about something");
         write("A worried look spreads across your face.\n");
         allbb(" has a worried look spreading across " +
-            this_player()->query_possessive() + " face.");
+            ({string}) this_player()->query_possessive() + " face.");
         return 1;
     }
 
@@ -6082,11 +6081,11 @@ worship(string str)
     }
 
     actor("You worship", oblist, ((sizeof(oblist) == 1) ? "." : " in order."));
-    all2act(" falls on " + this_player()->query_possessive() +
+    all2act(" falls on " + ({string}) this_player()->query_possessive() +
         " knees in front of", oblist,
         ((sizeof(oblist) == 1) ? "." : " in order."), "", ACTION_PROXIMATE);
-    target(" falls on " + this_player()->query_possessive() +
-        " knees and shows how much " + this_player()->query_pronoun() +
+    target(" falls on " + ({string}) this_player()->query_possessive() +
+        " knees and shows how much " + ({string}) this_player()->query_pronoun() +
         " worships you.", oblist, "", ACTION_PROXIMATE);
     return 1;
 }
@@ -6102,9 +6101,9 @@ wring(string str)
         return 0;
     }
 
-    SOULDESC("wringing " + this_player()->query_possessive() + " hands" + str);
+    SOULDESC("wringing " + ({string}) this_player()->query_possessive() + " hands" + str);
     write("You wring your hands" + str + ".\n");
-    all(" wrings " + this_player()->query_possessive() + " hands" + str + ".",
+    all(" wrings " + ({string}) this_player()->query_possessive() + " hands" + str + ".",
         str);
     return 1;
 }
@@ -6130,17 +6129,17 @@ yawn(string str)
         return 0;
     }
 
-    str = ((sizeof(oblist) == 1) ? oblist[0]->query_objective() : "them");
+    str = ((sizeof(oblist) == 1) ? ({string}) oblist[0]->query_objective() : "them");
 
     SOULDESC("yawning");
     actor("You yawn at", oblist, " to show " + str + " how much " +
-        (sizeof(oblist) == 1 ? oblist[0]->query_pronoun() + " bores" :
+        (sizeof(oblist) == 1 ? ({string}) oblist[0]->query_pronoun() + " bores" :
         "they bore") + " you.");
     all2act(" yawns at", oblist, " to show " + str + " how boring " +
-        (sizeof(oblist) == 1 ? oblist[0]->query_pronoun() + " is" :
+        (sizeof(oblist) == 1 ? ({string}) oblist[0]->query_pronoun() + " is" :
         "they are") + ".");
     targetbb(" yawns at you. You must be boring to " +
-        this_player()->query_objective() + ".", oblist);
+        ({string}) this_player()->query_objective() + ".", oblist);
     return 1;
 }
 

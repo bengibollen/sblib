@@ -596,7 +596,7 @@ public varargs object *parse_this(string str, string form, int cmd_attr = 0, int
     str = lower_case(str);
 
     /* Replace the word "but" by the word "except". */
-    if (wildmatch("* but *", str))
+    if (strstr(str, " but " ) != -1)
     {
 	str = implode(explode(str, " but "), " except ");
     }
@@ -624,7 +624,7 @@ public varargs object *parse_this(string str, string form, int cmd_attr = 0, int
  */
 public varargs object *parse_live(string str, string form, int attr, int self)
 {
-    return filter(parse_this(str, form, attr, self), living);
+    return filter(parse_this(str, form, attr, self), #'living);
 }
 
 /*
@@ -685,7 +685,7 @@ public string *parse_adverb(string str, string def_adv, int trail)
 	 * player probably only wants to use the adverb on a general emotion.
 	 */
 	if (sizeof(adverb = FULL_ADVERB(str)) ||
-	  sizeof(adverb = this_player()->full_adverb(str)))
+	  sizeof(adverb = ({string}) this_player()->full_adverb(str)))
 	{
 	    return ({ 0, adverb });
 	}
@@ -702,10 +702,10 @@ public string *parse_adverb(string str, string def_adv, int trail)
      */
     index = (trail ? sizeof(words) - 1 : 0);
 
-    if (sizeof(adverb = FULL_ADVERB(words[index])) ||
-	sizeof(adverb = this_player()->full_adverb(words[index])))
-    {
-	return ({ implode((words[index] = ""), " "), adverb });
+    if (sizeof(adverb = FULL_ADVERB(words[index])) || sizeof(adverb = ({string}) this_player()->full_adverb(words[index])))
+    {   
+        words[index..index] = ({ });
+        return ({ implode(words, " "), adverb });
     }
 
     return ({ str, def_adv });
@@ -744,7 +744,7 @@ public string check_adverb(string str, string def_adv)
     }
 
     if (sizeof(adverb = FULL_ADVERB(str)) ||
-	sizeof(adverb = this_player()->full_adverb(str)))
+	sizeof(adverb = ({string}) this_player()->full_adverb(str)))
     {
 	return adverb;
     }
