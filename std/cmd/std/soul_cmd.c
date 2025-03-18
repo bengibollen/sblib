@@ -6108,8 +6108,7 @@ wring(string str)
     return 1;
 }
 
-int
-yawn(string str)
+int yawn(string str)
 {
     object *oblist;
 

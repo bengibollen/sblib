@@ -350,7 +350,7 @@ int commune(string str)
         }
 
         wiz = explode(object_name(environment(this_player())), "/")[2];
-        if (!sizeof(arg = (string *)SECURITY->query_domain_members(wiz)))
+        if (!sizeof(arg = ({string *})SECURITY->query_domain_members(wiz)))
         {
             notify_fail("Sorry. You cannot commune 'here' from this room.\n");
             return 0;
@@ -364,10 +364,10 @@ int commune(string str)
             spec = find_player(arg[il]);
 
             if (objectp(spec) &&
-                !(spec->query_prop(WIZARD_I_BUSY_LEVEL) & BUSY_C))
+                !(({int}) spec->query_prop(WIZARD_I_BUSY_LEVEL) & BUSY_C))
             {
                 tell_object(spec,
-                    (spec->query_option(OPT_TIMESTAMP) ? timestamp : "") +
+                    (({int}) spec->query_option(OPT_TIMESTAMP) ? timestamp : "") +
                     "COMMUNE " + wiz + " from " + str + ": " + mess);
                 flag = 1;
             }
@@ -376,8 +376,8 @@ int commune(string str)
 
     default:
         /* Wizard team or domain. */
-        if (sizeof(alias = SECURITY->query_team_list(wiz)) ||
-            sizeof(alias = SECURITY->query_domain_members(capitalize(wiz))))
+        if (sizeof(alias = ({string *}) SECURITY->query_team_list(wiz)) ||
+            sizeof(alias = ({string *}) SECURITY->query_domain_members(capitalize(wiz))))
         {
             wiz = capitalize(wiz);
 
@@ -388,17 +388,17 @@ int commune(string str)
                     continue;
                 }
 
-                if (!spec->query_wiz_level() ||
-                    (spec->query_prop(WIZARD_I_BUSY_LEVEL) & BUSY_C))
+                if (!({int}) spec->query_wiz_level() ||
+                    (({int}) spec->query_prop(WIZARD_I_BUSY_LEVEL) & BUSY_C))
                 {
                     continue;
                 }
 
                 tell_object(spec,
-                    (spec->query_option(OPT_TIMESTAMP) ? timestamp : "") +
+                    (({int}) spec->query_option(OPT_TIMESTAMP) ? timestamp : "") +
                     "COMMUNE to " + wiz + " from " + str +  ": " + mess);
 
-                if (!spec->query_invis())
+                if (!({string}) spec->query_invis())
                 {
                     flag = 1;
                 }
@@ -411,17 +411,17 @@ int commune(string str)
         wiz = capitalize(wiz);
 
         if (!objectp(spec) ||
-            !spec->query_wiz_level() ||
-            (spec->query_prop(WIZARD_I_BUSY_LEVEL) & BUSY_C) ||
-            spec->query_prop(OBJ_I_INVIS) > 0)
+            !({int}) spec->query_wiz_level() ||
+            (({int}) spec->query_prop(WIZARD_I_BUSY_LEVEL) & BUSY_C) ||
+            ({int}) spec->query_prop(OBJ_I_INVIS) > 0)
         {
             break;
         }
 
-        if (this_player()->query_mana() >=
-            this_player()->query_max_mana() / 10)
+        if (({int}) this_player()->query_mana() >=
+            ({int}) this_player()->query_max_mana() / 10)
         {
-            this_player()->add_mana(-(this_player()->query_max_mana() / 10));
+            this_player()->add_mana(-(({int}) this_player()->query_max_mana() / 10));
         }
         else
         {
@@ -430,7 +430,7 @@ int commune(string str)
         }
 
         tell_object(spec,
-            (spec->query_option(OPT_TIMESTAMP) ? timestamp : "") +
+            (({int}) spec->query_option(OPT_TIMESTAMP) ? timestamp : "") +
             "COMMUNE to you from " + str + ": " + mess);
         flag = 1;
         break;
@@ -468,7 +468,7 @@ nomask void converse_more(string str)
     }
 
     /* We can not allow any handwritten VBFC */
-    while(wildmatch("*@@*", str))
+    while(strstr("@@", str) != -1)
     {
         str = implode(explode(str, "@@"), "#");
     }
@@ -478,7 +478,7 @@ nomask void converse_more(string str)
         "@@: " + str + "\n");
 
     write("]");
-    input_to(converse_more);
+    input_to(#'converse_more);
 }
 
 
@@ -486,7 +486,7 @@ int converse()
 {
     write("Entering conversation mode.\nGive '**' or '~q' to stop.\n");
     write("]");
-    input_to(converse_more);
+    input_to(#'converse_more);
     return 1;
 }
 
@@ -508,8 +508,7 @@ int reply(string str)
     }
 
     /* Wizard may block mortals from replying again. */
-    if (this_player()->query_wiz_level() &&
-        wildmatch("stop *", str))
+    if (({int}) this_player()->query_wiz_level() && (str[..4] == "stop "))
     {
         sscanf(lower_case(str), "stop %s", str);
 
@@ -519,8 +518,8 @@ int reply(string str)
             return 0;
         }
 
-        names = target->query_prop(PLAYER_AS_REPLY_WIZARD);
-        who = this_player()->query_real_name();
+        names = ({string *}) target->query_prop(PLAYER_AS_REPLY_WIZARD);
+        who = ({string}) this_player()->query_real_name();
         if (!pointerp(names) ||
             (member(who, names) == -1))
         {
@@ -545,7 +544,7 @@ int reply(string str)
     }
 
     /* See if any wizard has told anything to this player. */
-    names = this_player()->query_prop(PLAYER_AS_REPLY_WIZARD);
+    names = ({string *}) this_player()->query_prop(PLAYER_AS_REPLY_WIZARD);
     if (!pointerp(names) ||
         !sizeof(names))
     {
@@ -557,7 +556,7 @@ int reply(string str)
      * name and see whether that is possible, else we take the first wizard
      * from the list.
      */
-    if (wildmatch("to *", str) &&
+    if ((str[..2] == "to ") &&
         (sscanf(str, "to %s %s", who, str) == 2))
     {
         who = lower_case(who);
@@ -592,32 +591,32 @@ int reply(string str)
     /* No point in replying to someone who is linkdead. */
     if (!interactive(target))
     {
-        write(target->query_The_name(this_player()) +
+        write(({string}) target->query_The_name(this_player()) +
             " is link dead at the moment, so you cannot reply to " +
-            target->query_objective() + ".\n");
+            ({string}) target->query_objective() + ".\n");
         return 1;
     }
 
-    if (!this_player()->query_wiz_level() &&
-        (target->query_prop(WIZARD_I_BUSY_LEVEL) & BUSY_M))
+    if (!({int}) this_player()->query_wiz_level() &&
+        (({int}) target->query_prop(WIZARD_I_BUSY_LEVEL) & BUSY_M))
     {
-        write(target->query_The_name() +
+        write(({string}) target->query_The_name() +
             " is not receptive for replies right now.\n");
         return 1;
     }
 
-    tell_object(target, (target->query_wiz_level() ?
-        capitalize(this_player()->query_real_name()) :
-        this_player()->query_The_name(target)) +
+    tell_object(target, (({int}) target->query_wiz_level() ?
+        capitalize(({string}) this_player()->query_real_name()) :
+        ({string}) this_player()->query_The_name(target)) +
         " replies: " + str + "\n");
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
-        write("You replied to " + target->query_the_name(this_player()) +
+        write("You replied to " + ({string}) target->query_the_name(this_player()) +
             ": " + str + "\n");
     }
     else
     {
-        write("You replied to " + target->query_the_name(this_player()) +
+        write("You replied to " + ({string}) target->query_the_name(this_player()) +
             ".\n");
     }
     return 1;
@@ -630,7 +629,7 @@ int reply(string str)
 string race_text(string race, string text)
 {
     object player = previous_object(-1);
-    int skill = player->query_skill(SS_LANGUAGE);
+    int skill = ({int}) player->query_skill(SS_LANGUAGE);
     string *words, to_print;
     int sentence_index, sentence_size;
 
@@ -638,8 +637,8 @@ string race_text(string race, string text)
      * high education in languages will understand the racial speech.
      */
     if (
-        player->query_wiz_level() ||
-        race == player->query_race_name() ||
+        ({int}) player->query_wiz_level() ||
+        race == ({string}) player->query_race_name() ||
         skill >= LANGUAGE_ALL_RSAY)
     {
         return text;
@@ -681,7 +680,7 @@ void print_rsay(object *oblist, string say_string)
 
     qcomp = COMPOSITE_ALL_LIVE(oblist);
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
         write("You race speak to " + qcomp + ": " + say_string + "\n");
     }
@@ -692,7 +691,7 @@ void print_rsay(object *oblist, string say_string)
 
     /* How much of this text is seen depends on the language skill */
     output = "@@race_text:" + object_name(this_object()) + "|" +
-        this_player()->query_race_name() + "|" + say_string + "@@";
+        ({string}) this_player()->query_race_name() + "|" + say_string + "@@";
 
     say(QCTNAME(this_player()) + " race speaks to " + QCOMPLIVE + ": " +
         output + "\n", (oblist + ({ this_player() }) ));
@@ -707,8 +706,8 @@ int rsay(string str)
     int     size;
     mixed   tmp;
     object *oblist;
-    string  race = this_player()->query_race_name();
-    string  pos = this_player()->query_possessive();
+    string  race = ({string}) this_player()->query_race_name();
+    string  pos = ({string}) this_player()->query_possessive();
     int     skill;
     string  *words;
     int     sentence_size;
@@ -726,7 +725,7 @@ int rsay(string str)
         return 0;
     }
 
-    if (tmp = this_player()->query_prop(LIVE_M_MOUTH_BLOCKED))
+    if (tmp = ({mixed}) this_player()->query_prop(LIVE_M_MOUTH_BLOCKED))
     {
         write(stringp(tmp) ? tmp : "You are gagged and cannot speak.\n");
         return 1;
@@ -734,20 +733,20 @@ int rsay(string str)
 
     if (wildmatch("to *", str))
     {
-        if (say_to(extract(str, 3), &print_rsay()))
+        if (say_to(str[3..], #'print_rsay))
         {
             return 1;
         }
     }
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
         write("You race speak: " + str + "\n");
     else
         write("Ok.\n");
 
     say(QCTNAME(this_player()) + " race speaks: " +
         "@@race_text:" + object_name(this_object()) + "|" +
-        this_player()->query_race_name() + "|" + str + "@@\n");
+        ({string}) this_player()->query_race_name() + "|" + str + "@@\n");
 
     return 1;
 }
@@ -759,9 +758,9 @@ void print_say(string adverb, object *oblist, string say_string)
 
     qcomp = COMPOSITE_ALL_LIVE(oblist);
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
-        write("You" + adverb + " " + this_player()->actor_race_sound() +
+        write("You" + adverb + " " + ({string}) this_player()->actor_race_sound() +
             " to " + qcomp + ": " + say_string + "\n");
     }
     else
@@ -787,7 +786,7 @@ void print_say(string adverb, object *oblist, string say_string)
  *                string adverb - the adverb to use.
  * Returns      : int 1/0 - success/failure.
  */
-public int say_to(string str, function format)
+public varargs int say_to(string str, closure format, string adverb = "")
 {
     object *oblist;
     string r_sound;
@@ -812,7 +811,7 @@ public int say_to(string str, function format)
     else if (wildmatch("team *", str))
     {
         str = extract(str, 5);
-        oblist = this_player()->query_team_others() &
+        oblist = ({object *}) this_player()->query_team_others() &
             all_inventory(environment(this_player()));
     }
     /* Find out who we talk to. */
@@ -836,7 +835,14 @@ public int say_to(string str, function format)
     say_string = extract(say_string, -(sizeof(str)));
     this_player()->set_say_string(say_string);
 
-    format(oblist, say_string);
+    mixed *args = ({ });
+    if (adverb)
+    {
+        args += ({ adverb });
+    }
+    args += ({ oblist, say_string });
+
+    funcall(format, args...);
 
     return 1;
 }
@@ -857,7 +863,7 @@ varargs int say_text(string str, string adverb = "")
         return 0;
     }
 
-    if (tmp = this_player()->query_prop(LIVE_M_MOUTH_BLOCKED))
+    if (tmp = ({mixed}) this_player()->query_prop(LIVE_M_MOUTH_BLOCKED))
     {
         write(stringp(tmp) ? tmp : "You are gagged and cannot speak.\n");
         return 1;
@@ -871,7 +877,7 @@ varargs int say_text(string str, string adverb = "")
      * as people don't use 8 spaces more than 40% of the time, this check
      * pays itself back.
      */
-    if (!this_player()->query_wiz_level() &&
+    if (!({int}) this_player()->query_wiz_level() &&
         wildmatch("*       *", str))
     {
         str = implode((explode(str, " ") - ({ "" }) ), " ");
@@ -880,18 +886,18 @@ varargs int say_text(string str, string adverb = "")
     /* This is a test for the command 'say to'. If it fails, we just default
      * to the normal say.
      */
-    if (wildmatch("to *", str))
+    if (str[..2] == "to ")
     {
-        if (say_to(extract(str, 3), &print_say(adverb)))
+        if (say_to(str[3..], #'print_say, adverb))
         {
             return 1;
         }
     }
 
     this_player()->set_say_string(str);
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
-        write("You" + adverb + " " + this_player()->actor_race_sound() +
+        write("You" + adverb + " " + ({string}) this_player()->actor_race_sound() +
             ": " + str + "\n");
     }
     else
@@ -924,10 +930,10 @@ string shout_name()
     }
     if (pobj->query_met(this_player()))
     {
-        return this_player()->query_name();
+        return ({string}) this_player()->query_name();
     }
-    return capitalize(LANG_ADDART(this_player()->query_gender_string())) +
-        " " + this_player()->query_race_name() + " voice";
+    return capitalize(LANG_ADDART(({int}) this_player()->query_gender_string())) +
+        " " + ({string}) this_player()->query_race_name() + " voice";
 }
 
 
@@ -950,15 +956,15 @@ int shout(string str)
         return 0;
     }
 
-    if (tmp = this_player()->query_prop(LIVE_M_MOUTH_BLOCKED))
+    if (tmp = ({mixed}) this_player()->query_prop(LIVE_M_MOUTH_BLOCKED))
     {
         write(stringp(tmp) ? tmp : "You are gagged and cannot shout.\n");
         return 1;
     }
 
     if ((sizeof(str) > 60) &&
-        (!this_player()->query_wiz_level()) &&
-        (!this_player()->query_npc()))
+        (!({int}) this_player()->query_wiz_level()) &&
+        (!({int}) this_player()->query_npc()))
     {
         notify_fail("Even your mouth is not big enough to shout all that.\n");
         return 0;
@@ -966,29 +972,29 @@ int shout(string str)
 
     /* Note that [at][to] in a beautiful way tests both 'at' and 'to', while
      * wildmatch normally tests per letter, and not per word! */
-    if (wildmatch("[at][to] *", str))
+    if (str[..2] in ({"at ", "to "}) )
     {
         preposition = extract(str, 0, 1);
         /* Shout at all people. */
         /* We already tested for at/to, so no repeat check necessary. */
-        if (wildmatch("?? all *", str))
+        if (str[2..6] == " all ")
         {
             str = extract(str, 7);
             oblist =
                 FILTER_OTHER_LIVE(all_inventory(environment(this_player())));
         }
         /* Shout to my team. */
-        else if (wildmatch("?? team *", str))
+        else if (str[2..7] == " team ")
         {
             str = extract(str, 8);
-            oblist = this_player()->query_team_others() &
+            oblist = ({object *}) this_player()->query_team_others() &
                 all_inventory(environment(this_player()));
         }
         /* Find out who we shout to. */
         else if (parse_command(lower_case(cap_str = str),
             environment(this_player()), "[at] [to] [the] %i %s", oblist, str))
         {
-            str = extract(cap_str, -(sizeof(str)));
+            str = cap_str[<sizeof(str)..];
             oblist = NORMAL_ACCESS(oblist, 0, 0) - ({ this_player() });
         }
     }
@@ -1017,7 +1023,7 @@ int shout(string str)
     }
 
     /* For shouting, we don't want to find our own room. */
-    rooms = (object *)SOUL_CMD->find_neighbour( ({ }), ({ troom }), DEPTH) - ({ troom });
+    rooms = ({object *})SOUL_CMD->find_neighbour( ({ }), ({ troom }), DEPTH) - ({ troom });
 
     index = -1;
     size = sizeof(rooms);
@@ -1029,7 +1035,7 @@ int shout(string str)
 
     if (sizeof(oblist))
     {
-        if (this_player()->query_option(OPT_ECHO))
+        if (({int}) this_player()->query_option(OPT_ECHO))
             actor("You" + how[1] + " shout " + preposition, oblist, ": " + str);
         else
             write("Ok.\n");
@@ -1039,7 +1045,7 @@ int shout(string str)
     else
     {
         all(how[1] + " shouts: " + str);
-        if (this_player()->query_option(OPT_ECHO))
+        if (({int}) this_player()->query_option(OPT_ECHO))
             write("You" + how[1] + " shout: " + str + "\n");
         else
             write("Ok.\n");
@@ -1065,7 +1071,7 @@ int tell(string str)
         return 0;
     }
 
-    if (!(ARMAGEDDON->shutdown_active()))
+    if (!(({int}) ARMAGEDDON->shutdown_active()))
     {
         notify_fail("This command is only valid when Armageddon is active in " +
             "the realms.\n");
@@ -1096,17 +1102,17 @@ int tell(string str)
 	return 0;
     }
 
-    if (!this_player()->query_met(ob))
+    if (!({int}) this_player()->query_met(ob))
     {
 	notify_fail("There is no player called " + capitalize(who) +
 	    " that you recall to have met.\n");
 	return 0;
     }
 
-    if (ob->query_wiz_level())
+    if (({int}) ob->query_wiz_level())
     {
 	write("If you desparately need to speak with " +
-	    capitalize(SECURITY->query_wiz_pretitle(ob)) + " " +
+	    capitalize(({string}) SECURITY->query_wiz_pretitle(ob)) + " " +
 	    capitalize(who) + ", seek an audience with the 'commune' " +
 	    "command. Make sure you read the help page first.\n");
 	return 1;
@@ -1125,7 +1131,7 @@ int tell(string str)
         return 1;
     }
 
-    busy = ob->query_prop(WIZARD_I_BUSY_LEVEL);
+    busy = ({int}) ob->query_prop(WIZARD_I_BUSY_LEVEL);
 
     if (busy & (BUSY_P|BUSY_S|BUSY_F))
     {
@@ -1133,10 +1139,10 @@ int tell(string str)
 	return 1;
     }
 
-    tell_object(ob, this_player()->query_Art_name(ob) + " tells you: " +
+    tell_object(ob, ({string}) this_player()->query_Art_name(ob) + " tells you: " +
 	msg + "\n");
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
 	tell_object(this_player(), "You tell " + capitalize(who) + ": " +
 	    msg + "\n");
@@ -1167,7 +1173,7 @@ void print_whisper(string adverb, object *oblist, string str)
     wizards = FILTER_IS_WIZARD(all_inventory(environment(this_player()))) -
         oblist - ({ this_player() });
     wizards->catch_tell("As wizard, you hear " +
-        this_player()->query_objective() + " whisper: " + str + "\n");
+        ({string}) this_player()->query_objective() + " whisper: " + str + "\n");
 
     target(" whispers" + adverb + " in your ear: " + str, oblist);
     oblist->catch_whisper(str);
@@ -1186,7 +1192,7 @@ int whisper(string str)
     }
 
 
-    if (tmp = this_player()->query_prop(LIVE_M_MOUTH_BLOCKED))
+    if (tmp = ({mixed}) this_player()->query_prop(LIVE_M_MOUTH_BLOCKED))
     {
         write(stringp(tmp) ? tmp : "You are gagged and cannot whisper.\n");
         return 1;
@@ -1209,7 +1215,7 @@ int whisper(string str)
         if (wildmatch("to *", str))
             str = extract(str, 3);
 
-        if (say_to(str, &print_whisper(how[1])))
+        if (say_to(str, #'print_whisper, how[1]))
         {
             return 1;
         }

@@ -356,6 +356,10 @@
 // UIDs
 #define ROOT_UID "ROOT"
 
+// Settings
+#define false 			        0
+#define true 			        1
+#define null 			        0
 
 // Log file
 #define LOG_FILE "/lib/log"

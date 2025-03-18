@@ -129,7 +129,6 @@ mapping query_cmdlist()
 
               "options":"options",
 
-              "second":"second",
               "skills":"show_skills",
               "stats":"show_stats",
 
@@ -434,7 +433,7 @@ int adverbs(string str)
         {
             parts[index] += "*";
         }
-        words |= filter(adverb_list, &wildmatch(parts[index], ));
+        words |= filter(adverb_list, #'regmatch, "^" + parts[index]);
     }
 
     if (!sizeof(words))
@@ -443,7 +442,7 @@ int adverbs(string str)
         return 1;
     }
 
-    write_adverbs(sort_array(words), sizeof(adverb_list));
+    write_adverbs(sort_array(words, #'>), sizeof(adverb_list));
     return 1;
 }
 
@@ -524,7 +523,7 @@ void compare_living(object living1, object living2)
 void compare_weapon(object weapon1, object weapon2)
 {
     int skill = (2000 / (1 + ({int}) this_player()->query_skill(SS_APPR_OBJ) +
-        ({int}) this_player()->query_skill(SS_WEP_FIRST + weapon1->query_wt())));
+        ({int}) this_player()->query_skill(SS_WEP_FIRST + ({int}) weapon1->query_wt())));
     int seed = to_int(OB_NUM(weapon1)) + to_int(OB_NUM(weapon2));
     int swap;
     int stat1;
@@ -565,8 +564,8 @@ void compare_weapon(object weapon1, object weapon2)
     }
 
     /* Gather the to-hit values. */
-    stat1 = ({int}) weapon1->query_hit() + random(skill, seed);
-    stat2 = ({int}) weapon2->query_hit() + random(skill, seed + 27);
+    stat1 = ({int}) weapon1->query_hit() + random(skill);
+    stat2 = ({int}) weapon2->query_hit() + random(skill);
 
     if (stat1 > stat2)
     {
@@ -587,8 +586,8 @@ void compare_weapon(object weapon1, object weapon2)
         print2 + " and ");
 
     /* Compare the penetration values. */
-    stat1 = ({int}) weapon1->query_pen() + random(skill, seed);
-    stat2 = ({int}) weapon2->query_pen() + random(skill, seed + 27);
+    stat1 = ({int}) weapon1->query_pen() + random(skill);
+    stat2 = ({int}) weapon2->query_pen() + random(skill);
 
     if (stat1 > stat2)
     {
@@ -640,8 +639,8 @@ void compare_armour(object armour1, object armour2)
 	swap = 1;
     }
 
-    str1 = armour1->short(this_player());
-    str2 = armour2->short(this_player());
+    str1 = ({string}) armour1->short(this_player());
+    str2 = ({string}) armour2->short(this_player());
 
     /* Some people will want to compare items with the same description. */
     if (str1 == str2)
@@ -724,8 +723,11 @@ int compare(string str)
             return 0;
         }
 
-        if (!CAN_SEE_IN_ROOM(this_player()) ||
-            !CAN_SEE(this_player(), ({object}) obj1->query_attack()))
+        int floup = CAN_SEE_IN_ROOM(this_player());
+        object attackor = ({object}) obj1->query_attack();
+        int flarp = CAN_SEE(this_player(), attackor);
+
+        if (!floup || !flarp)
         {
             notify_fail("You cannot see " + ((obj1 == this_player()) ? "your" :
                 (({string}) obj1->query_the_name(this_player()) + "'s")) + " enemy.\n");
@@ -1284,72 +1286,6 @@ nomask int options(string arg)
 }
 
 
-/* **************************************************************************
- * second - note someone as second.
- */
-
-/*
- * Function name: second_password
- * Description  : For security reasons, player has to enter the password of
- *                the second to verify that it is really his.
- * Arguments    : string password - the command-line input of the player.
- *                string name - the name of the second to add.
- * Returns      : int 1/0 - success/failure.
- */
-static void second_password(string password, string name)
-{
-    if (SECURITY->register_second(name, password))
-    {
-        second("list");
-    }
-}
-
-
-public int second(string str)
-{
-    string *args;
-
-    if (!stringp(str))
-    {
-        str = "list";
-    }
-
-    args = explode(lower_case(str), " ");
-    switch (args[0])
-    {
-    case "add":
-        if (sizeof(args) != 2)
-        {
-            notify_fail("Syntax: second add <player>\n");
-            return 0;
-        }
-        write("Please enter the password of " + capitalize(args[1]) + ": ");
-        input_to(&second_password(, args[1]), 1);
-        return 1;
-        /* Not reached. */
-
-    case "list":
-        args = SECURITY->query_player_seconds();
-        if (!sizeof(args))
-        {
-            write("No seconds listed.\n");
-            return 1;
-        }
-        write("Currently listed seconds: " +
-            COMPOSITE_WORDS(map(args, capitalize)) + ".\n");
-        return 1;
-        /* Not reached. */
-
-    default:
-        notify_fail("Invalid subcommand \"" + args[0] + "\".\n");
-        return 0;
-    }
-
-    write("This should never happen. Please report.\n");
-    return 1;
-}
-
-
 /*
  * vitals - Give vital state information about the living.
  */
@@ -1565,7 +1501,7 @@ varargs int show_stats(string str)
  */
 varargs int show_skills(string str)
 {
-    int index, skill, wrap, iLow, iHigh, num;
+    int index, wrap, iLow, iHigh, num;
     object player = this_player();
     int *skills;
     string *words;

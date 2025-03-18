@@ -4,14 +4,18 @@
 #pragma warn_dead_code
 #pragma warn_applied_functions
 
+inherit "/secure/simul/security";
+
 #include "/inc/config.h"
 #include "/sys/configuration.h"  // For DC_* constants
 #include "/sys/driver_hooks.h"    // For H_* constants
 #include "/sys/interactive_info.h"
+#include "/sys/erq.h"          // For ERQ_* constants
 #include "/inc/macros.h"         // For ROOT_UID, BACKBONE_UID, etc.
 #include "/inc/libfiles.h"          // For file_size, etc.
 #include "/sys/files.h"          // For II_* constants
 #include "/inc/std.h"          // For II_* constants
+#include "/inc/libfiles.h"          // For file_size, etc.
 
 // Forward declarations for functions used in config
 string load_uid(string file);
@@ -251,8 +255,118 @@ void notify_shutdown() {
 // }
 
 // ---------- Optional: Security ----------
-int privilege_violation(string op, mixed who, mixed arg, mixed arg2, mixed arg3) {
-    return 0;  // Deny by default
+int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3)
+
+// Validate the execution of a privileged operation.
+//
+// Arguments:
+//   op   : the requestion operation (see below)
+//   who  : the object requesting the operation (filename or object pointer)
+//   arg  : additional argument, depending on <op>.
+//   arg2 : additional argument, depending on <op>.
+//
+// Result:
+//     >0: The caller is allowed for this operation.
+//      0: The caller was probably misleaded; try to fix the error
+//   else: A real privilege violation; handle it as error.
+//
+// Privileged operations are:
+//   attach_erq_demon  : Attach the erq demon to object <arg> with flag <arg2>.
+//   bind_lambda       : Bind a lambda-closure to object <arg>.
+//   call_out_info     : Return an array with all call_out informations.
+//   erq               : A the request <arg4> is to be send to the
+//                       erq-demon by the object <who>.
+//   execute_command   : Execute command string <arg2> for the object <arg>.
+//   input_to          : Object <who> issues an 'ignore-bang'-input_to() for
+//                       commandgiver <arg3>; the exakt flags are <arg4>.
+//   nomask simul_efun : Attempt to get an efun <arg> via efun:: when it
+//                       is shadowed by a 'nomask'-type simul_efun.
+//   rename_object     : The current object <who> renames object <arg>
+//                       to name <arg2>.
+//   send_imp          : Send UDP-data to host arg3 (deprecated).
+//   send_udp          : Send UDP-data to host <arg>.
+//   set_auto_include_string : Set the string automatically included by
+//                       the compiler (deprecated).
+//   get_extra_wizinfo : Get the additional wiz-list info for wizard <arg>.
+//   set_extra_wizinfo : Set the additional wiz-list info for wizard <arg>.
+//   set_extra_wizinfo_size : Set the size of the additional wizard info
+//                       in the wiz-list to <arg>.
+//   set_driver_hook   : Set hook <arg> to <arg2>.
+//   limited:          : Execute <arg> with reduced/changed limits.
+//   set_limits        : Set limits to <arg>.
+//   set_this_object   : Set this_object() to <arg>.
+//   shadow_add_action : Add an action to function <arg4> of object <arg3>
+//                       from the shadow <who> which is shadowing <arg3>.
+//   symbol_variable   : Attempt to create symbol of a hidden variable
+//                       of object <arg> with with index <arg2> in the
+//                       objects variable table.
+//   wizlist_info      : Return an array with all wiz-list information.
+//
+// call_out_info can return the arguments to functions and lambda closures
+// to be called by call_out(); you should consider that read access to
+// closures, mappings and pointers means write access and/or other privileges.
+// wizlist_info() will return an array which holds, among others, the extra
+// wizlist field. While a toplevel array, if found, will be copied, this does
+// not apply to nested arrays or to any mappings. You might also have some
+// sensitive closures there.
+// send_udp() should be watched as it could be abused to mess up the IMP.
+// The xxx_extra_wizinfo operations are necessary for a proper wizlist and
+// should therefore be restricted to admins.
+// All other operations are potential sources for direct security breaches -
+// any use of them should be scrutinized closely.
+{
+    /* This object and the simul_efun objects may do everything */
+    if (who == this_object()
+     || who == find_object(SIMUL_EFUN))
+        return 1;
+
+    switch(op) {
+    case "bind_lambda":
+        who = object_name(who);
+    case "nomask simul_efun":
+        if (objectp(who)) {
+            who = object_name(who);
+        }
+      
+        if (who[0..6] == "/secure") {
+            return 1;
+        }
+        else {
+            return -1;
+        }
+    case "call_out_info":
+        return 1;
+    case "rename_object":
+    case "input_to":
+        if (check_privilege(1)) {
+            return 1;
+        }
+        else {
+            return -1;
+        }
+      case "erq":
+        if (objectp(who)) {
+            who = object_name(who);
+        }
+      
+        if (who[0..6] == "/secure") {
+            return 1;
+        }        
+	switch(arg) {
+	  case ERQ_RLOOKUP:
+	    return 1;
+	  case ERQ_EXECUTE:
+	  case ERQ_FORK:
+	  case ERQ_AUTH:
+	  case ERQ_SPAWN:
+	  case ERQ_SEND:
+	  case ERQ_KILL:
+	  default:
+	    return -1;
+	}
+      default:
+	return -1; /* Make this violation an error */
+    }
 }
 
 int query_allow_shadow(object victim) {
@@ -329,8 +443,7 @@ string parse_command_all_word() {
  * Returns      : mixed - the relevant return value for the particular
  *                        debug command.
  */
-varargs mixed
-do_debug(string icmd, mixed a1, mixed a2, mixed a3)
+varargs mixed do_debug(string icmd, mixed a1, mixed a2, mixed a3)
 {
     string euid = geteuid(previous_object());
 

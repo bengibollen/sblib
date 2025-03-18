@@ -16,7 +16,7 @@
 #ifndef SYS_ADVERBS_DEFINITIONS
 #define SYS_ADVERBS_DEFINITIONS
 
-#define ADVERBS_FILE "/sys/global/adverbs.c"
+#define ADVERBS_FILE "/lib/language/adverbs.c"
 
 /*
  * FULL_ADVERB(string pattern)

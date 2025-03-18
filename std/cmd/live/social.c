@@ -381,7 +381,7 @@ int forget(string name)
         return 0;
     }
 
-    if (!this_player()->remove_remembered(name))
+    if (!({int}) this_player()->remove_remembered(name))
     {
         notify_fail("You do not know any " + capitalize(name) + ".\n");
         return 0;
@@ -459,7 +459,7 @@ int intro_live(string str)
         return 0;
     }
 
-    if (introducee->query_prop(OBJ_I_INVIS) > 0)
+    if (({int}) introducee->query_prop(OBJ_I_INVIS) > 0)
     {
         notify_fail((intro_self ? "You are " :
             (({string}) introducee->query_The_name(this_player()) + " is ")) +
@@ -490,7 +490,7 @@ int intro_live(string str)
     {
         notify_fail("There is no one to introduce " +
             (intro_self ? "yourself" :
-            introducee->query_the_name(this_player())) + " to.\n");
+            ({string}) introducee->query_the_name(this_player())) + " to.\n");
         return 0;
     }
 
@@ -500,14 +500,14 @@ int intro_live(string str)
         introducee->reveal_me(1);
     }
 
-    str = introducee->query_presentation();
+    str = ({string}) introducee->query_presentation();
     size = sizeof(all_targets);
     index = -1;
     while(++index < size)
     {
         tell_object(all_targets[index],
             ({string}) this_player()->query_The_name(all_targets[index]) + " introduces " +
-            (intro_self ? ({string}) (this_player()->query_objective() + "self") :
+            (intro_self ? (({string}) this_player()->query_objective() + "self") :
                 ({string}) introducee->query_the_name(all_targets[index])) + " as:\n" +
             str + ".\n");
     }
@@ -531,10 +531,10 @@ int intro_live(string str)
 
     if (!intro_self)
     {
-        introducee->catch_msg(break_string(
+        introducee->catch_msg(
             ({string}) this_player()->query_The_name(introducee) +
             " introduces you to " +
-            FO_COMPOSITE_ALL_LIVE(vis_targets, introducee) + ".", 75) + "\n");
+            FO_COMPOSITE_ALL_LIVE(vis_targets, introducee) + ".\n");
     }
 
     if (({int}) this_player()->query_option(OPT_ECHO))
@@ -570,8 +570,7 @@ int introduced_list(string str)
     if (mappingp(tmp))
     {
         write("You remember having been introduced to:\n");
-        write(implode(map(sort_array(m_indices(tmp)),
-            #'capitalize), ", ") + "\n");
+        write(implode(map(sort_array(m_indices(tmp), #'>), #'capitalize), ", ") + "\n");
 
         return 1;
     }
@@ -656,7 +655,7 @@ varargs int kill(string str)
         return 1;
     }
 
-    if (({int}) ob == this_player())
+    if (ob == this_player())
     {
         write("What? Attack yourself?\n");
         return 1;

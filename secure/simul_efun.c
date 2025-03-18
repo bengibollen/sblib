@@ -10,16 +10,21 @@
 
 /* We must use the absolute path here because SECURITY is not loaded yet
  * when we load this module.
- */
+*/
 #include <std.h>
 #include <commands.h>
 #include <configuration.h>
 #include <libfiles.h>
 
+#include <object_info.h>
+
 #pragma no_clone
 #pragma no_inherit
 #pragma strict_types
 
+#define BACKBONE_WIZINFO_SIZE 5
+#define LIVING_NAME 3
+#define NAME_LIVING 4
 
 /* Prototypes */
 varargs string getuid(object ob);
@@ -676,3 +681,143 @@ int file_time(string path)
      this_object()->seteuid(oldeuid);
  
  }
+
+
+
+
+ 
+ 
+ private mapping living_name_m;
+ private mapping name_living_m;
+ 
+ mapping get_livings() { return living_name_m; }
+ mapping get_names() { return name_living_m; }
+ 
+ void start_simul_efun() {
+     mixed *info;
+ 
+     if ( !(info = get_extra_wizinfo(0)) )
+     set_extra_wizinfo(0, info = allocate(BACKBONE_WIZINFO_SIZE));
+     if (!(living_name_m = info[LIVING_NAME]))
+     living_name_m = info[LIVING_NAME] = m_allocate(0, 1);
+     if (!(name_living_m = info[NAME_LIVING]))
+     name_living_m = info[NAME_LIVING] = m_allocate(0, 1);
+     if (find_call_out("clean_simul_efun") < 0) {
+         efun::call_out("clean_simul_efun", 1800);
+     }
+ }
+ 
+ //---------------------------------------------------------------------------
+ static void clean_simul_efun()
+ {
+     /* There might be destructed objects as keys. */
+     m_indices(living_name_m);
+     remove_call_out("clean_simul_efun");
+     if (find_call_out("clean_name_living_m") < 0)
+     {
+     call_out(
+       "clean_name_living_m",
+       1,
+       m_indices(name_living_m),
+       sizeof(name_living_m)
+     );
+     }
+     call_out("clean_simul_efun", 3600);
+ }
+ 
+ //---------------------------------------------------------------------------
+ static void clean_name_living_m(string *keys, int left)
+ {
+     int i, j;
+     mixed a;
+ 
+     if (left) {
+     if (pointerp(a = name_living_m[keys[--left]]) && member(a, 0)>= 0) {
+         i = sizeof(a);
+         do {
+         if (a[--i])
+             a[<++j] = a[i];
+         } while (i);
+         name_living_m[keys[left]] = a = j > 1 ? a[<j..] : a[<1];
+     }
+     if (!a)
+         efun::m_delete(name_living_m, keys[left]);
+     call_out("clean_name_living_m", 1, keys, left);
+     }
+ }
+ 
+ //---------------------------------------------------------------------------
+ public void set_living_name(string name)
+ {
+     string old;
+     mixed a;
+     int i;
+ 
+     if (old = living_name_m[previous_object()]) {
+     if (pointerp(a = name_living_m[old])) {
+         a[member(a, previous_object())] = 0;
+     } else {
+         efun::m_delete(name_living_m, old);
+     }
+     }
+     living_name_m[previous_object()] = name;
+     if (a = name_living_m[name]) {
+     if (!pointerp(a)) {
+         name_living_m[name] = ({a, previous_object()});
+         return;
+     }
+     /* Try to reallocate entry from destructed object */
+     if ((i = member(a, 0)) >= 0) {
+         a[i] = previous_object();
+         return;
+     }
+     name_living_m[name] = a + ({previous_object()});
+     return;
+     }
+     name_living_m[name] = previous_object();
+ }
+ 
+ //---------------------------------------------------------------------------
+ object find_living(string name)
+ {
+     mixed *a, r;
+     int i;
+     
+     if (pointerp(r = name_living_m[name])) {
+     if ( !living(r = (a = r)[0])) {
+         for (i = sizeof(a); --i;) {
+         if (living(a[<i])) {
+             r = a[<i];
+             a[<i] = a[0];
+             return a[0] = r;
+         }
+         }
+     }
+     return r;
+     }
+     return living(r) && r;
+ }
+ 
+ //---------------------------------------------------------------------------
+ 
+ object find_player(string name)
+ {
+     mixed *a, r;
+     int i;
+ 
+     if (pointerp(r=name_living_m[name])) {
+     if ( !(r=(a=r)[0]) || !object_info(r, OI_ONCE_INTERACTIVE)) {
+         for (i=sizeof(a); --i;) {
+         if (a[<i] && object_info(a[<i], OI_ONCE_INTERACTIVE)) {
+             r=a[<i];
+             a[<i]=a[0];
+             return a[0]=r;
+         }
+         }
+         return 0;
+     }
+     return r;
+     }
+     return r && object_info(r, OI_ONCE_INTERACTIVE) && r;
+ }
+
