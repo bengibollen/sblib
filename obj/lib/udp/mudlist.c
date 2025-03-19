@@ -88,7 +88,7 @@ int mudlist_a(mapping p)
     string *ix, *inf, a, b;
     mapping q, r;
 
-    if (!m_sizeof(p))
+    if (!sizeof(p))
 	return 0;
 
     ix = m_indexes(p);

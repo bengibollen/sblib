@@ -802,7 +802,7 @@ lineconfig(string str)
     case "list":
         if (!sizeof(str))
         {
-            size = m_sizeof(channels);
+            size = sizeof(channels);
             if (!size)
             {
                 notify_fail("There are no channels.\n");

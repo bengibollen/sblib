@@ -28,6 +28,7 @@ nomask public void update_hooks();
 public varargs int communicate(string str = "");
 public varargs int acommunicate(string str = "");
 static int my_commands(string str);
+private object logger;
 
 // #define REOPEN_SOUL_ALLOWED ([ "exec_done_editing" : WIZ_CMD_NORMAL, \
 //                                "pad_done_editing"  : WIZ_CMD_NORMAL, \
@@ -42,7 +43,15 @@ static int my_commands(string str);
  */
 static void cmdhooks_reset()
 {
+    logger = load_object("lib/log");
     update_hooks();
+
+    
+
+    logger->info("Command hooks have been reset.");
+    logger->debug("this_object: " + to_string(this_object()));
+    logger->debug("this_interactive: " + to_string(this_interactive()));
+    logger->debug("this_player: " + to_string(this_player()));
 
     add_action(#'my_commands, "", 1);
     add_action(#'communicate, "'", 2);

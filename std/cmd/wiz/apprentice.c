@@ -1011,7 +1011,7 @@ finger(string str)
         (str == "globals"))
     {
         gread = SECURITY->query_global_read();
-        if (!m_sizeof(gread))
+        if (!sizeof(gread))
         {
             write("There are no wizards with global read rights.\n");
             return 1;

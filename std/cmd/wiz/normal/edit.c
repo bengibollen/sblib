@@ -312,7 +312,7 @@ read_pad_file()
     pad_notes = pad_notes[PAD_PAD];
 
     /* No such file, set to defaults. */
-    if (!m_sizeof(pad_notes))
+    if (!sizeof(pad_notes))
     {
 	pad_notes = ([ ]);
     }
@@ -327,7 +327,7 @@ private void
 save_pad_file()
 {
     /* No notes left, remove the file completely. */
-    if (!m_sizeof(pad_notes))
+    if (!sizeof(pad_notes))
     {
 	/* We do not need to appent the .o as that is done in rm_cache(). */
 	rm_cache(SECURITY->query_wiz_path(geteuid()) + PAD_FILE);
@@ -470,7 +470,7 @@ pad(string str)
         }
 
         read_pad_file();
-        if (!m_sizeof(pad_notes))
+        if (!sizeof(pad_notes))
         {
             write("No notes on your notepad.\n");
             return 1;

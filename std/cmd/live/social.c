@@ -34,7 +34,7 @@ inherit "/std/command_driver";
 #include <cmdparse.h>
 #include <composite.h>
 #include <const.h>
-#include <files.h>
+#include <libfiles.h>
 #include <filter_funs.h>
 #include <flags.h>
 #include <formulas.h>
@@ -44,8 +44,9 @@ inherit "/std/command_driver";
 #include <options.h>
 #include <std.h>
 #include <stdproperties.h>
-#include <time.h>
+#include <libtime.h>
 #include <configuration.h>
+#include <interactive_info.h>
 
 nomask int sort_name(object a, object b);
 varargs int team(string str);
@@ -691,7 +692,7 @@ varargs int kill(string str)
         return 1;
     }
 
-    if (member(ob, this_player()->query_team_others()) != -1)
+    if (ob in ({object *}) this_player()->query_team_others())
     {
         write("You cannot attack " + ({string}) ob->query_the_name(this_player()) +
             " as " + ({string}) ob->query_pronoun() + " is in your team.\n");
@@ -704,9 +705,9 @@ varargs int kill(string str)
     {
         this_player()->add_prop(LIVE_O_LAST_KILL, ob);
         /* Only ask if the person did not use the real name of the target. */
-        if (str != ob->query_real_name())
+        if (str != ({string}) ob->query_real_name())
         {
-            write("Attack " + ob->query_the_name(this_player()) +
+            write("Attack " + ({string}) ob->query_the_name(this_player()) +
                 "?!? Please confirm by trying again.\n");
             return 1;
         }
@@ -769,7 +770,7 @@ int last(string str)
         }
     }
 
-    if (SECURITY->query_wiz_rank(str))
+    if (({int}) SECURITY->query_wiz_rank(str))
     {
         notify_fail("The command 'last' does not function on wizards.\n");
         return 0;
@@ -800,9 +801,9 @@ int last(string str)
         }
         else if (interactive(player))
         {
-            if (query_idle(player) > 60)
+            if (interactive_info(player, II_IDLE) > 60)
             {
-                write("Activity   : " + TIME2STR(query_idle(player), 2) +
+                write("Activity   : " + TIME2STR(interactive_info(player, II_IDLE), 2) +
                     " idle\n");
             }
             else
@@ -873,16 +874,16 @@ int remember_live(string str)
         tmp = ({mapping}) this_player()->query_remembered();
         if (mappingp(tmp))
         {
-            if (num = m_sizeof(tmp))
+            if (num = sizeof(tmp))
             {
                 num = F_MAX_REMEMBERED(({int}) this_player()->query_stat(SS_INT),
-                    this_player()->query_stat(SS_WIS)) - num;
+                    ({int}) this_player()->query_stat(SS_WIS)) - num;
                 if (num < 0)
                     num = 0;
 
                 write("These are the people you remember:\n");
-                write(implode(map(sort_array(m_indices(tmp)),
-                    capitalize), ", ") + "\n");
+                write(implode(map(sort_array(m_indices(tmp), #'>),
+                    #'capitalize), ", ") + "\n");
                 write("Your brain can handle " + LANG_WNUM(num) +
                         " more name" + (num == 1 ? ".\n" : "s.\n") );
                 return 1;
@@ -1005,7 +1006,7 @@ int spar(string str)
  */
 static void remove_stop_fighting_offer(object live, string str)
 {
-    mapping offers = live->query_prop(LIVE_M_STOP_FIGHTING);
+    mapping offers = ({mixed}) live->query_prop(LIVE_M_STOP_FIGHTING);
 
     /* There is no mapping. */
     if (!mappingp(offers))
@@ -1021,7 +1022,7 @@ static void remove_stop_fighting_offer(object live, string str)
 
     /* Revoke the offer. */
     offers = m_delete(offers, str);
-    if (m_sizeof(offers))
+    if (sizeof(offers))
     {
         live->add_prop(LIVE_M_STOP_FIGHTING, offers);
     }
@@ -1080,7 +1081,7 @@ int stop(string str)
         (offers[str] >= (time() - 10)))
     {
         offers = m_delete(offers, str);
-        if (m_sizeof(offers))
+        if (sizeof(offers))
         {
             oblist[0]->add_prop(LIVE_M_STOP_FIGHTING, offers);
         }
@@ -1105,7 +1106,7 @@ int stop(string str)
     }
 
     /* Before we offer, are we fighting him? */
-    if (oblist[0] in this_player()->query_enemy(-1))
+    if (oblist[0] in ({object *}) this_player()->query_enemy(-1))
     {
         write("You are not fighting " +
             ({string}) oblist[0]->query_the_name(this_player()) + ".\n");
@@ -1173,7 +1174,7 @@ int stop(string str)
  * team - Handles all the team related commands.
  */
 
-#define FAIL_IF_LEADER(text) if (leader) { notify_fail("You cannot " + (text) + " as you are lead by " + leader->query_the_name(this_player()) + ".\n"); return 0; }
+#define FAIL_IF_LEADER(text) if (leader) { notify_fail("You cannot " + (text) + " as you are lead by " + ({string}) leader->query_the_name(this_player()) + ".\n"); return 0; }
 #define FAIL_IF_NOT_LEADER(text) if (!sizeof(members)) { notify_fail("You cannot " + (text) + " as you are not leading a team.\n"); return 0; }
 
 
@@ -1183,7 +1184,7 @@ static int team_invite(object *oblist)
     string fail = "";
 
     this_player()->reveal_me(1);
-    npcs = filter(oblist, (: $1->query_npc() :));
+    npcs = filter(oblist, (: ({int}) $1->query_npc() :));
     if (sizeof(npcs))
     {
         fail = capitalize(COMPOSITE_ALL_LIVE(npcs)) + " decline" +
@@ -1192,7 +1193,7 @@ static int team_invite(object *oblist)
         oblist -= npcs;
     }
 
-    npcs = filter(oblist, (: $1->query_leader() == this_player() :));
+    npcs = filter(oblist, (: ({object}) $1->query_leader() == this_player() :));
     if (sizeof(npcs))
     {
         fail += capitalize(COMPOSITE_ALL_LIVE(npcs)) +
@@ -1206,7 +1207,7 @@ static int team_invite(object *oblist)
         return 0;
     }
 
-    map(oblist, (: $1->reveal_me(1) :));
+    map(oblist, (: ({int}) $1->reveal_me(1) :));
     foreach(object ob: oblist)
     {
         this_player()->team_invite(ob);
@@ -1229,7 +1230,7 @@ static int team_join(object leader)
         write("You cannot join a team while you are leading a team.\n");
         return 1;
     }
-    if (!IN_ARRAY(this_player(), leader->query_invited()))
+    if (!(this_player() in ({object *}) leader->query_invited()))
     {
         write(({string}) leader->query_The_name(this_player()) +
             " has not invited you as a team member.\n");
@@ -1255,7 +1256,7 @@ static int team_join(object leader)
         this_player()->set_option(OPT_BRIEF, 1);
     }
 
-    write("Your leader is now " + leader->short() + ".\n");
+    write("Your leader is now " + ({string}) leader->short() + ".\n");
     say(QCTNAME(this_player()) + " joins the team of " +
         QTNAME(leader) + ".\n", ({ leader, this_player() }));
     tell_object(leader, ({string}) this_player()->query_The_name(leader) +
@@ -1274,7 +1275,7 @@ static void team_leave(object member, object leader, int force)
         leader->remove_invited(member);
     }
 
-    if (member->query_prop(TEMP_BACKUP_BRIEF_OPTION))
+    if (({int}) member->query_prop(TEMP_BACKUP_BRIEF_OPTION))
     {
         tell_object(member, "As you leave the team, you switch back to " +
             "verbose mode.\n");
@@ -1457,7 +1458,7 @@ varargs int team(string str)
                 return 0;
             }
             member = find_player(arg);
-            if (!objectp(member) || !(this_player()->query_met(member)))
+            if (!objectp(member) || !({string}) (this_player()->query_met(member)))
             {
                 notify_fail("Remove whom from your team?\n");
                 return 0;
@@ -1539,7 +1540,7 @@ varargs int team(string str)
             ({string}) rear->query_the_name(this_player()) + " at the rearguard.\n");
         all2actbb(" alters the formation of " + ({string}) this_player()->query_possessive() +
             " team, placing", ({ rear }), " at the rearguard.");
-        rear->catch_tell(this_player()->query_The_name(rear) +
+        rear->catch_tell(({string}) this_player()->query_The_name(rear) +
             " places you at the rearguard of " + ({string}) this_player()->query_possessive() +
             " team.\n");
         return 1;
@@ -1613,7 +1614,7 @@ nomask int print_who(string opts, object *list, int size)
     int mwho = (query_verb() == "mwho");
 
     scrw = (scrw ? scrw : 80);
-    list = sort_array(list, sort_name);
+    list = sort_array(list, #'sort_name);
 
     if (!sizeof(list))
     {
@@ -1641,7 +1642,7 @@ nomask int print_who(string opts, object *list, int size)
     {
         scrw = ((scrw >= 40) ? (scrw - 3) : 77);
         to_write += (sprintf("%-*#s\n", scrw,
-            implode(map(list, get_name), "\n")));
+            implode(map(list, #'get_name), "\n")));
         /* No need to check for mwho here. */
         write(to_write);
         return 1;
@@ -1766,11 +1767,11 @@ int who(string opts)
     /* Player may indicate to see only wizards or mortals. */
     if (index_arg(opts, "w"))
     {
-        list = filter(list, (: $1->query_wiz_level() :));
+        list = filter(list, (: ({int}) $1->query_wiz_level() :));
     }
     else if (index_arg(opts, "m"))
     {
-        list = filter(list, (: !$1->query_wiz_level() :));
+        list = filter(list, (: !({int}) $1->query_wiz_level() :));
     }
 
     /* Wizards won't see the NPC's and wizards are not subject to the
@@ -1781,11 +1782,11 @@ int who(string opts)
         return print_who(opts, list, size);
     }
 
-    if (mappingp(rem = this_player()->query_remembered()))
+    if (mappingp(rem = ({mapping}) this_player()->query_remembered()))
     {
         memory += rem;
     }
-    if (mappingp(rem = this_player()->query_introduced()))
+    if (mappingp(rem = ({mapping}) this_player()->query_introduced()))
     {
         memory += rem;
     }
@@ -1793,7 +1794,7 @@ int who(string opts)
     /* Player wants to see who is in the queue. */
     if (index_arg(opts, "q"))
     {
-        names = QUEUE->queue_list(1);
+        names = ({string *}) QUEUE->queue_list(1);
         if (!(size = sizeof(names)))
         {
             write("There are no players in the queue right now.\n");
@@ -1837,7 +1838,7 @@ int who(string opts)
         list += ({ this_player() });
         size++;
 #endif
-        names = m_indices(memory) - list->query_real_name();
+        names = m_indices(memory) - ({mixed}) list->query_real_name();
 
 #ifdef NPC_IN_WHO_LIST
         index = -1;
@@ -1849,7 +1850,7 @@ int who(string opts)
              * are already in the list.
              */
             if (objectp(npc = find_living(names[index])) &&
-                npc->query_npc())
+            ({int}) npc->query_npc())
             {
                 list += ({ npc });
                 size++;
@@ -1859,7 +1860,7 @@ int who(string opts)
     }
 
     /* To mortals 'who' will not show invisible wizards. */
-    list = filter(list, filter_who_no_invis_wizard);
+    list = filter(list, #'filter_who_no_invis_wizard);
 
     return print_who(opts, list, size);
 }

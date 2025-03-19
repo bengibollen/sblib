@@ -258,7 +258,7 @@ print_value(mixed ret)
     }
     else if (mappingp(ret))
     {
-	write("Mapping of size " + m_sizeof(ret) + "\n");
+	write("Mapping of size " + sizeof(ret) + "\n");
 	dump_mapping(ret);
     }
     else if (stringp(ret))

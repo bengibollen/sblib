@@ -181,7 +181,7 @@ send_signal(string channel, mixed message)
 			     previous_object(), channel, 1))
 	    return 0;
 
-    n = m_sizeof(channels[channel]);
+    n = sizeof(channels[channel]);
     obs = m_indexes(channels[channel]);
     for(i = 0; i < n; ++i) // send the message to all the listeners
 	if (obs[i])
@@ -250,7 +250,7 @@ secure_channel(string channel, object ob, string func)
 	    return 0;
     secured += ([channel:({ob, func})]);
 
-    n = m_sizeof(channels[channel]);
+    n = sizeof(channels[channel]);
     obs = m_indexes(channels[channel]);
     for(i = 0; i < n; ++i)
 	if (!obs[i]) // the object has been destructed (should never happen)

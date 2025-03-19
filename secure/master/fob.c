@@ -1269,7 +1269,7 @@ list_applications_by_wizard(string wname, int list_self)
 
     wname = (list_self ? "You have" : (capitalize(wname) + " has"));
 
-    if (!m_sizeof(domains))
+    if (!sizeof(domains))
     {
         write(wname + " no pending applications to any domain.\n");
         return 1;
@@ -1314,7 +1314,7 @@ list_applications(string str)
         /* Basic operation: list all applications. */
         if (!sizeof(str))
         {
-            if (!m_sizeof(m_applications))
+            if (!sizeof(m_applications))
             {
                 write("No applications have been filed.\n");
                 return 1;

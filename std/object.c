@@ -1772,7 +1772,7 @@ remove_item(string name)
     {
         if (IN_ARRAY(name, obj_items[index][0]))
         {
-            obj_items = exclude_array(obj_items, index, index);
+            obj_items[index..index] = ({});
             removed = 1;
         }
     }
@@ -1933,7 +1933,7 @@ remove_cmd_item(string name)
     for ( i = 0; i<sizeof(obj_cmd_items); i++)
         if ( member(name, obj_cmd_items[i][0])>=0 )
         {
-            obj_cmd_items = exclude_array(obj_cmd_items,i,i);
+            obj_cmd_items[i..i] = ({});
             obj_commands = ({});
             for (il = 0; il < sizeof(obj_cmd_items); il++)
             {

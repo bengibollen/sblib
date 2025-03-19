@@ -119,16 +119,16 @@ init_docdir(string mdir)
     if (!valid_docdir(mdir))
 	return;
 
-    if (m_sizeof(docdirs) >= MAXLOCAL_DIRS)
+    if (sizeof(docdirs) >= MAXLOCAL_DIRS)
     {
-	stmp = m_indexes(docdirs)[random(m_sizeof(docdirs) - 1) + 1];
+	stmp = m_indexes(docdirs)[random(sizeof(docdirs) - 1) + 1];
 	m_delete(docdirs, stmp);
     }
 
     sdirs = read_index(mdir);
     sdnames = sort_array(m_indexes(sdirs));
 
-    if (m_sizeof(sdirs))
+    if (sizeof(sdirs))
 	docdirs[mdir] = ({ sdnames, sdirs });
 }
 

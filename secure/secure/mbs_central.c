@@ -613,7 +613,7 @@ list_new_boards(string dom = "")
 	filter(boards, &operator(<)(DTS(SCRAP_DELAY)) @ &tmfunc()
 	       @ &operator([])(, BBP_LNOTE));
 
-    if (m_sizeof(disc_map))
+    if (sizeof(disc_map))
     {
 	discard = sort_array(m_indexes(disc_map));
 	write("Removing bogus boards, old or non-loading (" + sizeof(discard) + ")\n");
@@ -649,11 +649,11 @@ list_new_boards(string dom = "")
 			@ &operator([])(, BBP_DOMAIN));
     }
 
-    if (!m_sizeof(boards))
+    if (!sizeof(boards))
 	write("No new boards registered.\n");
     else
     {
-	write("Unattached boards (" + m_sizeof(boards) + ")\n");
+	write("Unattached boards (" + sizeof(boards) + ")\n");
 	write("-----------------\n");
 	map(sort_array(m_indices(boards)), &write() @ &sprintf("%s\n",));
     }

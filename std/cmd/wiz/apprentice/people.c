@@ -442,7 +442,7 @@ people(string opts)
         {
             list -= ({ 0 });
 
-            if (m_sizeof(snoop_map))
+            if (sizeof(snoop_map))
             {
                 list2 = ({ }) + m_indices(snoop_map);
                 list += (list2 - list);

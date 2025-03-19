@@ -79,7 +79,7 @@ query_mail(mixed player = this_player())
      * the player.
      */
     mail = restore_map(FILE_NAME_MAIL(player));
-    if ((m_sizeof(mail) != M_SIZEOF_MAIL) ||
+    if ((sizeof(mail) != M_SIZEOF_MAIL) ||
 	(member(MAIL_NEW_MAIL, m_indices(mail)) == -1))
     {
 	return 0;

@@ -299,8 +299,8 @@ long_description()
 "                         without argument you enter mail reading mode.\n"+
 "mread <number>           read message with number <number> using more.\n" +
 "malias                   list your mailreader aliases. You have " +
-        ((m_sizeof(pAliases) == 0) ? "none" :
-            (m_sizeof(pAliases) + " alias(es)")) + ".\n" +
+        ((sizeof(pAliases) == 0) ? "none" :
+            (sizeof(pAliases) + " alias(es)")) + ".\n" +
 "malias <alias> <names>   add mail alias <alias> with <names>.\n" +
 "malias remove <alias>    remove mail alias <alias>.\n" +
 "autocc [on / off]        set/unset automatic cc to yourself.\n" +
@@ -322,7 +322,7 @@ restore_mail(string name)
 
     /* If there is no mail for the player, return an empty mail-mapping. */
     if ((!mappingp(mail)) ||
-        (m_sizeof(mail) != M_SIZEOF_MAIL))
+        (sizeof(mail) != M_SIZEOF_MAIL))
         return EMPTY_MAIL;
 
     return mail;
@@ -369,7 +369,7 @@ restore_message(int date)
      * An empty (error containing) message is returned.
      */
     if ((!mappingp(message)) ||
-        (m_sizeof(message) != M_SIZEOF_MSG))
+        (sizeof(message) != M_SIZEOF_MSG))
         return EMPTY_MESSAGE(date);
 
     return message;
@@ -592,7 +592,7 @@ alias(string str)
     /* Player wants to see his current aliases.  */
     if (!sizeof(str))
     {
-        if (!m_sizeof(pAliases))
+        if (!sizeof(pAliases))
         {
             notify_fail("You do not have any mailreader aliases set.\n");
             return 0;
@@ -648,7 +648,7 @@ alias(string str)
         return 1;
     }
 
-    if (m_sizeof(pAliases) >= MAX_ALIASES)
+    if (sizeof(pAliases) >= MAX_ALIASES)
     {
         WRITE("You have already used the maximum number (" + MAX_ALIASES +
             ") of aliases. In order to add a new alias, you have to remove " +
@@ -2478,7 +2478,7 @@ erase()
     /* If the player has messages left, of if he has personal aliases
      * set, save the mail-file.
      */
-    if (sizeof(pMessages) || m_sizeof(pAliases))
+    if (sizeof(pMessages) || sizeof(pAliases))
     {
         /* If the player has no mail, but only aliases, we set the
          * new-mail-flag to FLAG_NO.
@@ -2518,7 +2518,7 @@ quit()
     /* If there are messages marked for deletion, we automatically
      * delete them.
      */
-    if (m_sizeof(gTo_delete))
+    if (sizeof(gTo_delete))
     {
         WRITE("Deleting marked messages before quitting...\n");
         erase();

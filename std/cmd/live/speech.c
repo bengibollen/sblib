@@ -44,8 +44,8 @@ inherit "/std/command_driver";
 /*
  * Prototype.
  */
-varargs int say_text(string str, string adverb = "");
-public int say_to(string str, closure format);
+varargs int say_text(string str, string adverb);
+public varargs int say_to(string str, closure format, string adverb);
 
 
 /*
@@ -664,8 +664,7 @@ string race_text(string race, string text)
         }
         else
         {
-            to_print += extract("....................", 1,
-                sizeof(words[sentence_index]));
+            to_print += "...................."[..sizeof(words[sentence_index])];
         }
     }
 
@@ -731,7 +730,7 @@ int rsay(string str)
         return 1;
     }
 
-    if (wildmatch("to *", str))
+    if (str[..2] == "to ")
     {
         if (say_to(str[3..], #'print_rsay))
         {
@@ -802,15 +801,15 @@ public varargs int say_to(string str, closure format, string adverb = "")
     say_string = str;
 
     /* Whisper to all people. */
-    if (wildmatch("all *", str))
+    if (str[..3] == "all ")
     {
-        str = extract(str, 4);
+        str = str[4..];
         oblist = FILTER_OTHER_LIVE(all_inventory(environment(this_player())));
     }
     /* Whisper to my team. */
-    else if (wildmatch("team *", str))
+    else if (str[..4] == "team ")
     {
-        str = extract(str, 5);
+        str = str[5..];
         oblist = ({object *}) this_player()->query_team_others() &
             all_inventory(environment(this_player()));
     }
@@ -832,7 +831,7 @@ public varargs int say_to(string str, closure format, string adverb = "")
         return 0;
     }
 
-    say_string = extract(say_string, -(sizeof(str)));
+    say_string = say_string[<sizeof(str)..];
     this_player()->set_say_string(say_string);
 
     mixed *args = ({ });
@@ -877,8 +876,7 @@ varargs int say_text(string str, string adverb = "")
      * as people don't use 8 spaces more than 40% of the time, this check
      * pays itself back.
      */
-    if (!({int}) this_player()->query_wiz_level() &&
-        wildmatch("*       *", str))
+    if (!({int}) this_player()->query_wiz_level() && strstr(str, "       "))
     {
         str = implode((explode(str, " ") - ({ "" }) ), " ");
     }
@@ -928,7 +926,7 @@ string shout_name()
     {
         pobj = previous_object(-1);
     }
-    if (pobj->query_met(this_player()))
+    if (({int}) pobj->query_met(this_player()))
     {
         return ({string}) this_player()->query_name();
     }
@@ -952,7 +950,7 @@ int shout(string str)
 
     if (!sizeof(str))
     {
-        notify_fail("Shout what?\n", 0);
+        notify_fail("Shout what?\n");
         return 0;
     }
 
@@ -974,19 +972,19 @@ int shout(string str)
      * wildmatch normally tests per letter, and not per word! */
     if (str[..2] in ({"at ", "to "}) )
     {
-        preposition = extract(str, 0, 1);
+        preposition = str[..1];
         /* Shout at all people. */
         /* We already tested for at/to, so no repeat check necessary. */
         if (str[2..6] == " all ")
         {
-            str = extract(str, 7);
+            str = str[7..];
             oblist =
                 FILTER_OTHER_LIVE(all_inventory(environment(this_player())));
         }
         /* Shout to my team. */
         else if (str[2..7] == " team ")
         {
-            str = extract(str, 8);
+            str = str[8..];
             oblist = ({object *}) this_player()->query_team_others() &
                 all_inventory(environment(this_player()));
         }
@@ -1030,7 +1028,7 @@ int shout(string str)
     while(++index < size)
     {
         tell_room(rooms[index], "@@shout_name:" + object_name(this_object()) +
-            "@@" + how[1] + " shouts: " + str + "\n", this_player());
+            "@@" + how[1] + " shouts: " + str + "\n", ({this_player()}));
     }
 
     if (sizeof(oblist))
@@ -1066,7 +1064,7 @@ int tell(string str)
     int busy;
 
     /* For wizards, use the wizard "tell", and not this one. */
-    if (this_player()->query_wiz_level())
+    if (({int}) this_player()->query_wiz_level())
     {
         return 0;
     }
@@ -1163,7 +1161,7 @@ void print_whisper(string adverb, object *oblist, string str)
 {
     object *wizards;
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
         actor("You whisper" + adverb + " to", oblist, ": " + str);
     else
         write("Ok.\n");
@@ -1212,8 +1210,8 @@ int whisper(string str)
 
     if (sizeof(str))
     {
-        if (wildmatch("to *", str))
-            str = extract(str, 3);
+        if (str[..2] == "to ")
+            str = str[3..];
 
         if (say_to(str, #'print_whisper, how[1]))
         {

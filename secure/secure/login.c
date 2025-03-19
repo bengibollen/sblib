@@ -1405,7 +1405,7 @@ who()
     int     size;
 
     if (!mappingp(m_remember_name) ||
-        !m_sizeof(m_remember_name))
+        !sizeof(m_remember_name))
     {
         write_socket("You have not remembered anyone yet.\n");
         return;

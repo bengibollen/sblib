@@ -41,7 +41,7 @@
  *
  * Example: CONVTIME(175417) returns "2 days 43 minutes 37 seconds"
  */
-#define CONVTIME(t)    ((string)TIME_FILE->convtime(t))
+#define CONVTIME(t)    (({string}) TIME_FILE->convtime(t))
 
 /*
  * Name   : TIME2NUM(t)
@@ -52,7 +52,7 @@
  *
  * Example: TIME2NUM(175417) returns ({ 2, 0, 43, 37 })
  */
-#define TIME2NUM(t)    ((int *)TIME_FILE->time2num(t))
+#define TIME2NUM(t)    (({int *}) IME_FILE->time2num(t))
 
 /*
  * Name   : TIME2STR(t, s)
@@ -72,7 +72,7 @@
  * fixed. You may want to use sprintf() to get correct alignment if you
  * use only one significant time-element in a table.
  */
-#define TIME2STR(t, s) ((string)TIME_FILE->time2str((t), (s)))
+#define TIME2STR(t, s) (({string}) TIME_FILE->time2str((t), (s)))
 
 /*
  * Name   : TIME2FORMAT(t, f)
@@ -96,7 +96,7 @@
  * Examples: "d mmm yyyy" yields "3 Sep 2001"
  *           "yyyymmdd" yields "20010903"
  */
-#define TIME2FORMAT(t, f) ((string)TIME_FILE->time2format((t), (f)))
+#define TIME2FORMAT(t, f) (({string}) TIME_FILE->time2format((t), (f)))
 
 
 #endif

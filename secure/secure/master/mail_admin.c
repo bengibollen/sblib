@@ -60,7 +60,7 @@ restore_mail(string name)
     mail = restore_map(FILE_NAME_MAIL(name));
 
     if ((!mappingp(mail)) ||
-	(m_sizeof(mail) != M_SIZEOF_MAIL))
+	(sizeof(mail) != M_SIZEOF_MAIL))
     {
 	return 0;
     }
@@ -94,7 +94,7 @@ restore_message(int number)
     message = restore_map(FILE_NAME_MESSAGE(number, HASH_SIZE));
 
     if ((!mappingp(message)) ||
-	(m_sizeof(message) != M_SIZEOF_MSG))
+	(sizeof(message) != M_SIZEOF_MSG))
     {
 	return 0;
     }

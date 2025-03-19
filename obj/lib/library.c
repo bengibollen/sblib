@@ -954,7 +954,7 @@ update_books()
 
     if (sizeof(book_dir))
     {
-        if (m_sizeof(book_shelves))
+        if (sizeof(book_shelves))
         {
             shelves = m_indices(book_shelves);
 
@@ -1309,7 +1309,7 @@ library_list(string str)
     /* short listing of all books */
     if (str == "titles")
     {
-        if (!m_sizeof(book_map))
+        if (!sizeof(book_map))
         {
             return library_no_books_hook();
         }
@@ -1321,7 +1321,7 @@ library_list(string str)
     /* listing of shelf names */
     if (member(str, plural_shelf_types) >= 0)
     {
-        if (!m_sizeof(book_shelves))
+        if (!sizeof(book_shelves))
         {
             return library_no_shelves_hook();
         }
@@ -1351,7 +1351,7 @@ library_list(string str)
             return 1;
         }
 
-        if (!m_sizeof(appr_map))
+        if (!sizeof(appr_map))
         {
             return library_no_approval_books_hook();
         }
@@ -1368,7 +1368,7 @@ library_list(string str)
             return 1;
         }
 
-        if (!m_sizeof(appr_map))
+        if (!sizeof(appr_map))
         {
             return library_no_approval_books_hook();
         }
@@ -1385,7 +1385,7 @@ library_list(string str)
 
     /* long listing of all books */
 
-    if (!m_sizeof(book_map))
+    if (!sizeof(book_map))
     {
         return library_no_books_hook();
     }
@@ -1943,10 +1943,10 @@ library_help()
     string str =
         "Library commands available:\n" +
         help_cmd("List " +
-            (m_sizeof(book_shelves) ? "[<" + SHELF_TYPE + ">] " : "") +
+            (sizeof(book_shelves) ? "[<" + SHELF_TYPE + ">] " : "") +
             "[titles]", "List books in the library.");
 
-    if (m_sizeof(book_shelves))
+    if (sizeof(book_shelves))
     {
         str += help_cmd("List " + PLURAL_SHELF_TYPE,
                         "List " + PLURAL_SHELF_TYPE + " in the library.");
@@ -1999,7 +1999,7 @@ library_help()
 
     str += help_cmd("Discard <title>", "Remove a book from the library.");
 
-    if (m_sizeof(book_shelves))
+    if (sizeof(book_shelves))
     {
         str += help_cmd("Classify <title>",
                         "Assign a book to a " + SHELF_TYPE + ".");

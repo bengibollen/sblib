@@ -174,7 +174,7 @@
 #define IS_WORKROOM_OBJECT(ob)   IS_CREATE_SOME((ob), "create_room", WORKROOM_OBJECT)
 
 /* Filter objects to be based on a certain constructor. */
-#define FILTER_CREATE_SOME(obs, func, file) filter((obs), &operator(==)((file), ) @ &function_exists((func), ))
+#define FILTER_CREATE_SOME(obs, func, file) filter((obs), (: file == function_exists(func, $1) :) )
 #define FILTER_CREATE_CONTAINER(obs, file) FILTER_CREATE_SOME((obs), "create_container", (file))
 #define FILTER_CREATE_OBJECT(obs, file)    FILTER_CREATE_SOME((obs), "create_object", (file))
 #define FILTER_CREATE_HEAP(obs, file)      FILTER_CREATE_SOME((obs), "create_heap", (file))
@@ -214,7 +214,7 @@
 #define FILTER_SPELLS_OBJECTS(obs)     FILTER_CREATE_OBJECT((obs), SPELLS_OBJECT)
 #define FILTER_TORCH_OBJECTS(obs)      FILTER_CREATE_OBJECT((obs), TORCH_OBJECT)
 #define FILTER_WEAPON_OBJECTS(obs)     FILTER_CREATE_OBJECT((obs), WEAPON_OBJECT)
-#define FILTER_WEARABLE_OBJECTS(obs)   filter((obs), &->query_wearable_item())
+#define FILTER_WEARABLE_OBJECTS(obs)   filter((obs), (: ({int}) $1->query_wearable_item() :))
 #define FILTER_WORKROOM_OBJECTS(obs)   FILTER_CREATE_SOME((obs), "create_room", WORKROOM_OBJECT)
 
 /* No definitions beyond this line. */

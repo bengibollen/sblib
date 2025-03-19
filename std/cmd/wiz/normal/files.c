@@ -307,7 +307,7 @@ read_aft_file()
     aft_tracked = read_cache(SECURITY->query_wiz_path(name) + AFT_FILE);
 
     /* No such file, set to defaults. */
-    if (!m_sizeof(aft_tracked))
+    if (!sizeof(aft_tracked))
     {
 	aft_tracked = ([ ]);
 	aft_sorted = ({ });
@@ -328,7 +328,7 @@ private void
 save_aft_file()
 {
     /* No file being tracked, remove the file completely. */
-    if (!m_sizeof(aft_tracked))
+    if (!sizeof(aft_tracked))
     {
 	/* We do not need to appent the .o as that is done in rm_cache(). */
 	rm_cache(SECURITY->query_wiz_path(
@@ -373,7 +373,7 @@ aft_find_file(string file)
      */
     tmp = filter(aft_tracked,
 	&operator(==)(file, ) @ &operator([])(, AFT_PRIVATE_NAME));
-    if (m_sizeof(tmp))
+    if (sizeof(tmp))
     {
 	return m_indices(tmp)[0];
     }
@@ -436,7 +436,7 @@ aft(string str)
     /* Wizard is not tracking any files and does not want to select a file
      * to track either.
      */
-    if (!m_sizeof(aft_tracked) &&
+    if (!sizeof(aft_tracked) &&
 	args[0] != "s")
     {
 	write("You are not tracking any files.\n");
@@ -602,7 +602,7 @@ aft(string str)
 	    /* Specified a private name. See whether it is not a duplicate. */
 	    tmp = filter(aft_tracked,
 		&operator(==)(args[2], ) @ &operator([])(, AFT_PRIVATE_NAME));
-	    if (m_sizeof(tmp))
+	    if (sizeof(tmp))
 	    {
 		notify_fail("Name \"" + args[2] + "\" already used for " +
 		    m_indices(tmp)[0] + ".\n");

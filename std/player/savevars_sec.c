@@ -1270,7 +1270,7 @@ add_remembered(string str)
 	return 0;
 
     max = F_MAX_REMEMBERED(query_stat(SS_INT), query_stat(SS_WIS));
-    if (m_sizeof(query_remember_name()) >= max)
+    if (sizeof(query_remember_name()) >= max)
 	return -1;
 
     if (!mappingp(m_remember_name))

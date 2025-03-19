@@ -265,7 +265,7 @@ remove_second(string first, string second)
 
     /* The actual removal. If there is no second left, remove the first too. */
     m_delete(m_seconds[first], second);
-    if (!m_sizeof(m_seconds[first]))
+    if (!sizeof(m_seconds[first]))
     {
         m_delete(m_seconds, first);
     }
@@ -415,7 +415,7 @@ init_player_info()
             }
         }
         /* No seconds (left), remove the first. */
-        if (!m_sizeof(m_seconds[first]))
+        if (!sizeof(m_seconds[first]))
         {
             m_delete(m_seconds, first);
         }

@@ -16,7 +16,7 @@ private object logger;      // Logger instance
 private void show_entrance();
 
 public void create_living() {
-    logger = load_object("/sys/log");
+    logger = load_object("/lib/log");
     logger->info("Player object created");
     logger->debug("Object name: %s", object_name(this_object()));
     configure_object(this_object(), OC_COMMANDS_ENABLED, 1);

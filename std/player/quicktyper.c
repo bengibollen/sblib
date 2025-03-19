@@ -87,7 +87,7 @@ modify_command(string str)
     }
 
     /* Resolve nicknames. */
-    if (m_sizeof(m_nick_list) &&
+    if (sizeof(m_nick_list) &&
         (words[0] != "unnick") && (words[0] != "nick"))
     {
 	int size = sizeof(words);
@@ -208,7 +208,7 @@ alias(string str)
 	      "to \"" + m_alias_list[a] + "\".\n");
     }
     /* See whether there is room for yet another alias. */
-    else if (m_sizeof(m_alias_list) >= ALIAS_LENGTH)
+    else if (sizeof(m_alias_list) >= ALIAS_LENGTH)
     {
 	write("Sorry, the alias list is full! The maximum is " +
 	      ALIAS_LENGTH + " Use \"unalias <cmd>\" to make some space.\n");
@@ -491,7 +491,7 @@ nick(string str)
 	    "to \"" + m_nick_list[a] + "\".\n");
     }
     /* See whether there is room for yet another nickname. */
-    else if (m_sizeof(m_nick_list) >= NICK_LENGTH)
+    else if (sizeof(m_nick_list) >= NICK_LENGTH)
     {
 	write("Sorry, the nickname list is full! The maximum is " +
 	    NICK_LENGTH + " Use \"unnick <cmd>\" to make some space.\n");

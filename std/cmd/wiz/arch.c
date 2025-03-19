@@ -721,7 +721,7 @@ resetpassword(string str)
     }
     /* Test whether the name is the same as the saved name. A simple check. */
     playerfile = restore_map(PLAYER_FILE(name));
-    if (!m_sizeof(playerfile) || (playerfile["name"] != name))
+    if (!sizeof(playerfile) || (playerfile["name"] != name))
     {
         notify_fail("No valid player file found for " + capitalize(name) +
             ".\n");

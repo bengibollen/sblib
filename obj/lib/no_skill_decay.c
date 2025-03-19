@@ -119,7 +119,7 @@ set_nsd_retrain(string player, int skill, int level)
 
     catch(file = restore_map(RETRAIN_FILE(player)));
     if (!mappingp(file) ||
-    	!m_sizeof(file))
+    	!sizeof(file))
     {
     	file = ([ ]);
     }

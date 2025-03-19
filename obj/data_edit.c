@@ -394,7 +394,7 @@ element_type(mixed element)
 	return sprintf("array   (%2d)", sizeof(element));
 
     if (mappingp(element))
-	return sprintf("mapping (%2d)", m_sizeof(element));
+	return sprintf("mapping (%2d)", sizeof(element));
 
     return "unknown";
 }
@@ -416,7 +416,7 @@ data_list(string str)
     int    index;
     int    size;
 
-    if (!(size = m_sizeof(data)))
+    if (!(size = sizeof(data)))
     {
 	write("Currently no variables in the datafile.\n");
 	return;

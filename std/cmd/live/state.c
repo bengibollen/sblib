@@ -40,7 +40,7 @@ inherit "/std/command_driver";
 #include <state_desc.h>
 #include <std.h>
 #include <stdproperties.h>
-#include <time.h>
+#include <libtime.h>
 #include <configuration.h>
 
 #define SUBLOC_MISCEXTRADESC "_subloc_misc_extra"
@@ -715,7 +715,9 @@ int compare(string str)
 
     if (str2 == "enemy")
     {
-        if (!objectp(({object}) obj1->query_attack()))
+        object attacker = ({object}) obj1->query_attack();
+
+        if (!objectp(attacker))
         {
             notify_fail(((obj1 == this_player()) ? "You are" :
                 (({string}) obj1->query_The_name(this_player()) + " is")) +
@@ -723,18 +725,14 @@ int compare(string str)
             return 0;
         }
 
-        int floup = CAN_SEE_IN_ROOM(this_player());
-        object attackor = ({object}) obj1->query_attack();
-        int flarp = CAN_SEE(this_player(), attackor);
-
-        if (!floup || !flarp)
+        if (!CAN_SEE_IN_ROOM(this_player()) || !CAN_SEE(this_player(), attacker))
         {
             notify_fail("You cannot see " + ((obj1 == this_player()) ? "your" :
                 (({string}) obj1->query_the_name(this_player()) + "'s")) + " enemy.\n");
             return 0;
         }
 
-        oblist = ({ ({object}) obj1->query_attack() });
+        oblist = ({ attacker });
     }
     else
     /* Get the right hand side of what we want to compare. */
@@ -784,7 +782,7 @@ int compare(string str)
     {
         if (str2 != WEAPON_OBJECT)
         {
-            notify_fail("The " + obj1->short(this_player()) +
+            notify_fail("The " + ({string}) obj1->short(this_player()) +
                 " can only be compared to another weapon.\n");
             return 0;
         }
@@ -866,24 +864,27 @@ int health(string str)
         break;
 
     case "enemy":
-        if (!({mixed}) objectp(this_player()->query_attack()))
+        object attacker = ({object}) this_player()->query_attack();
+
+        if (!objectp(attacker))
         {
             notify_fail("You are not fighting anyone.\n");
             return 0;
         }
 
+
         if (!CAN_SEE_IN_ROOM(this_player()) ||
-            !CAN_SEE(this_player(), ({object}) this_player()->query_attack()))
+            !CAN_SEE(this_player(), attacker))
         {
             notify_fail("You cannot see your enemy.\n");
             return 0;
         }
 
-        oblist = ({ ({object}) this_player()->query_attack() });
+        oblist = ({ attacker });
         break;
 
     case "team":
-        oblist = ({object}) this_player()->query_team_others();
+        oblist = ({object *}) this_player()->query_team_others();
         if (!sizeof(oblist))
         {
             str = "noteam";
@@ -955,7 +956,7 @@ public int levels(string str)
 {
     string *ix, *levs;
 
-    ix = sort_array(m_indices(lev_map));
+    ix = sort_array(m_indices(lev_map), #'>);
 
     if (!str)
     {
@@ -1190,8 +1191,7 @@ nomask int options(string arg)
             {
                 notify_fail("No such health descriptions (" + rest +
                     ") Available:\n" +
-                    break_string(COMPOSITE_WORDS(health_state) + ".", 70, 3) +
-                    "\n");
+                    COMPOSITE_WORDS(health_state) + ".\n");
                 return 0;
             }
 
@@ -1249,7 +1249,7 @@ nomask int options(string arg)
 
     case "autopwd":
     case "pwd":
-        if (this_player()->query_wiz_level())
+        if (({int}) this_player()->query_wiz_level())
 	{
             this_player()->set_option(OPT_AUTO_PWD, (args[1] == "on"));
             options("autopwd");
@@ -1259,7 +1259,7 @@ nomask int options(string arg)
 
     case "autolinecmd":
     case "cmd":
-        if (this_player()->query_wiz_level())
+        if (({int}) this_player()->query_wiz_level())
 	{
             this_player()->set_option(OPT_AUTOLINECMD,(args[1] == "on"));
 	    // Make sure the line command set gets updated.
@@ -1270,7 +1270,7 @@ nomask int options(string arg)
         /* Intentional fallthrough to default if not a wizard. */
 
     case "timestamp":
-        if (this_player()->query_wiz_level())
+        if (({int}) this_player()->query_wiz_level())
 	{
             this_player()->set_option(OPT_TIMESTAMP, (args[1] == "on"));
             options("timestamp");
@@ -1302,18 +1302,18 @@ varargs int vitals(string str, object target = this_player())
     }
 
     self = (target == this_player());
-    name = capitalize(target->query_real_name());
+    name = capitalize(({string}) target->query_real_name());
     switch(str)
     {
     case "age":
         write((self ? "You are" : (name + " is")) + " " +
-            CONVTIME(target->query_age() * 2) + " of age.\n");
+            CONVTIME(({int}) target->query_age() * 2) + " of age.\n");
         return 1;
 
     case "align":
     case "alignment":
         write((self ? "You are" : (name + " is")) + " " +
-            target->query_align_text() + ".\n");
+            ({string}) target->query_align_text() + ".\n");
         return 1;
 
     case "all":
@@ -1342,11 +1342,11 @@ varargs int vitals(string str, object target = this_player())
 
     case "intox":
     case "intoxication":
-        if (target->query_intoxicated())
+        if (({int}) target->query_intoxicated())
         {
             write((self ? "You are" : (name + " is")) + " " +
-                GET_NUM_DESC_SUB(target->query_intoxicated(),
-                    target->query_prop(LIVE_I_MAX_INTOX), intox_state,
+                GET_NUM_DESC_SUB(({int}) target->query_intoxicated(),
+                    ({int}) target->query_prop(LIVE_I_MAX_INTOX), intox_state,
                     SD_STAT_DENOM, 0) + ".\n");
         }
         else
@@ -1356,30 +1356,30 @@ varargs int vitals(string str, object target = this_player())
         return 1;
 
     case "mail":
-        value1 = MAIL_CHECKER->query_mail(target);
+        value1 = ({int}) MAIL_CHECKER->query_mail(target);
         write((self ? "You have " : (name + " has ")) + MAIL_FLAGS[value1] + ".\n");
         return 1;
 
     case "panic":
     case "fatigue":
         /* Current fatigue really is an "energy left" value that counts down. */
-        value1 = target->query_max_fatigue() - target->query_fatigue();
+        value1 = ({int}) target->query_max_fatigue() - ({int}) target->query_fatigue();
         write((self ? "You feel" : (name + " feels")) + " " +
-            GET_NUM_DESC_SUB(target->query_panic(), F_PANIC_WIMP_LEVEL(target->query_stat(SS_DIS)), panic_state, SD_STAT_DENOM, 2) +
+            GET_NUM_DESC_SUB(({int}) target->query_panic(), F_PANIC_WIMP_LEVEL(({int}) target->query_stat(SS_DIS)), panic_state, SD_STAT_DENOM, 2) +
             " and " +
-            GET_NUM_DESC_SUB(value1, target->query_max_fatigue(), fatigue_state, SD_STAT_DENOM, 1) + ".\n");
+            GET_NUM_DESC_SUB(value1, ({int}) target->query_max_fatigue(), fatigue_state, SD_STAT_DENOM, 1) + ".\n");
         return 1;
 
     case "stuffed":
     case "soaked":
         write((self ? "You can" : (name + " can")) + " " +
-            GET_NUM_DESC(target->query_stuffed(), target->query_prop(LIVE_I_MAX_EAT), stuff_state) +
+            GET_NUM_DESC(target->query_stuffed(), ({int}) target->query_prop(LIVE_I_MAX_EAT), stuff_state) +
             " and " +
-            GET_NUM_DESC(target->query_soaked(), target->query_prop(LIVE_I_MAX_DRINK), soak_state) + ".\n");
+            GET_NUM_DESC(target->query_soaked(), ({int}) target->query_prop(LIVE_I_MAX_DRINK), soak_state) + ".\n");
         return 1;
 
     default:
-        if (!this_player()->query_wiz_level())
+        if (!({int}) this_player()->query_wiz_level())
         {
             notify_fail("The argument " + str + " is not valid for vitals.\n");
             return 0;
@@ -1418,7 +1418,7 @@ varargs int show_stats(string str)
 
     if (str == "reset")
     {
-        this_player()->add_prop(PLAYER_I_LASTXP, this_player()->query_exp());
+        this_player()->add_prop(PLAYER_I_LASTXP, ({int}) this_player()->query_exp());
         write("Resetting your progress counter.\n");
         return show_stats(0);
     }
@@ -1431,7 +1431,7 @@ varargs int show_stats(string str)
     }
     else
     {
-        if(!((ob = find_player(str)) && this_player()->query_wiz_level()))
+        if(!((ob = find_player(str)) && ({int}) this_player()->query_wiz_level()))
         {
             notify_fail("Curious aren't we?\n");
             return 0;
@@ -1440,13 +1440,13 @@ varargs int show_stats(string str)
         start_have = capitalize(str) + " has ";
     }
 
-    a = ob->query_prop(PLAYER_I_LASTXP);
-    j = ob->query_exp() - a;
+    a = ({int}) ob->query_prop(PLAYER_I_LASTXP);
+    j = ({int}) ob->query_exp() - a;
     if (a <= 0)
     {
         write("Your progress indicator was not working properly " +
             "and is now reset.\n");
-        ob->add_prop(PLAYER_I_LASTXP, ob->query_exp());
+        ob->add_prop(PLAYER_I_LASTXP, ({int}) ob->query_exp());
     }
     else if (j > 0)
     {
@@ -1475,11 +1475,11 @@ varargs int show_stats(string str)
     {
         stats += ({ GET_STAT_LEVEL_DESC(i, ob->query_stat(i)) });
     }
-    write(start_be + LANG_ADDART(COMPOSITE_WORDS(stats)) +  " " + ob->query_nonmet_name() + ".\n");
+    write(start_be + LANG_ADDART(COMPOSITE_WORDS(stats)) +  " " + ({string}) ob->query_nonmet_name() + ".\n");
 
     /* brutalfactor */
-    actual_brute = GET_NUM_DESC_SUB(to_int(ob->query_brute_factor(0) * 1000.0), 1000, brute_fact, SD_STAT_DENOM, 2);
-    orig_brute = GET_NUM_DESC_SUB(to_int(ob->query_brute_factor(1) * 1000.0), 1000, brute_fact, SD_STAT_DENOM, 2);
+    actual_brute = GET_NUM_DESC_SUB(to_int(({int}) ob->query_brute_factor(0) * 1000.0), 1000, brute_fact, SD_STAT_DENOM, 2);
+    orig_brute = GET_NUM_DESC_SUB(to_int(({int}) ob->query_brute_factor(1) * 1000.0), 1000, brute_fact, SD_STAT_DENOM, 2);
 
     write(start_be + actual_brute + ".\n");
     if (actual_brute != orig_brute)
@@ -1519,7 +1519,7 @@ varargs int show_skills(string str)
         break;
     case 1:
         /* Person wants to see a group of himself, or see someone elses stats. */
-        if (!this_player()->query_wiz_level() || !(player = find_player(words[0])))
+        if (!({int}) this_player()->query_wiz_level() || !(player = find_player(words[0])))
         {
             player = this_player();
             group = words[0];
@@ -1527,7 +1527,7 @@ varargs int show_skills(string str)
         break;
     case 2:
         /* Player specifies both the person to see and the group to see. */
-        if (this_player()->query_wiz_level())
+        if (!({int}) this_player()->query_wiz_level())
             player = find_player(words[0]);
         group = words[1];
         break;
@@ -1542,7 +1542,6 @@ varargs int show_skills(string str)
         return 0;
     }
 
-    skills = player->query_all_skill_types();
     SKILL_LIBRARY->sk_init();
 
     switch (group)
@@ -1578,29 +1577,31 @@ varargs int show_skills(string str)
             return 0;
     }
 
+    skills = ({int *}) player->query_all_skill_types();
+
     foreach(int skill: skills)
     {
         if (skill < iLow || skill > iHigh)
             continue;
 
-        if (!(num = player->query_skill(skill)))
+        if (!(num = ({int}) player->query_skill(skill)))
         {
             player->remove_skill(skill);
             continue;
         }
         if (pointerp(skdesc[skill]))
             str = skdesc[skill][0];
-        else if (!sizeof(str = player->query_skill_name(skill)))
+        else if (!sizeof(str = ({string}) player->query_skill_name(skill)))
             continue;
 
         /* Print the text in two columns. */
         if (++wrap % 2)
         {
-            write(sprintf("%-18s %s\n", str + ":", SKILL_LIBRARY->sk_rank(num)));
+            write(sprintf("%-18s %s\n", str + ":", ({string}) SKILL_LIBRARY->sk_rank(num)));
         }
         else
         {
-            write(sprintf("%-18s %-20s ", str + ":", SKILL_LIBRARY->sk_rank(num)));
+            write(sprintf("%-18s %-20s ", str + ":", ({string}) SKILL_LIBRARY->sk_rank(num)));
         }
     }
     if (wrap > 1)
@@ -1608,7 +1609,7 @@ varargs int show_skills(string str)
     else
     {
         write(((player == this_player()) ? "You have " :
-            (player->query_name() + " has ")) + "no skills" +
+            (({string}) player->query_name() + " has ")) + "no skills" +
             (sizeof(group) ? " in the " + group + " group" : "") + ".\n");
     }
 

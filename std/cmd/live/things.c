@@ -36,7 +36,7 @@ inherit "/std/command_driver";
 
 #include <composite.h>
 #include <cmdparse.h>
-#include <files.h>
+#include <libfiles.h>
 #include <filter_funs.h>
 #include <formulas.h>
 #include <language.h>
@@ -68,8 +68,8 @@ static object *gFrom;        /* array of objects where player did get things */
 static object gHolder;
 static string gItem;         /* string to hold pseudoitem from look command */
 
-void
-create()
+
+void create()
 {
     configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
@@ -77,8 +77,7 @@ create()
 /* **************************************************************************
  * Return a proper name of the soul in order to get a nice printout.
  */
-string
-get_soul_id()
+string get_soul_id()
 {
     return "things";
 }
@@ -86,8 +85,7 @@ get_soul_id()
 /* **************************************************************************
  * This is a command soul.
  */
-int
-query_cmd_soul()
+int query_cmd_soul()
 {
     return 1;
 }
@@ -95,8 +93,7 @@ query_cmd_soul()
 /* **************************************************************************
  * The list of verbs and functions. Please add new in alfabetical order.
  */
-mapping
-query_cmdlist()
+mapping query_cmdlist()
 {
     return ([
              "appraise":"appraise",
@@ -144,8 +141,7 @@ query_cmdlist()
  *                sublocations responsible for extra descriptions of the
  *                living object.
  */
-public void
-using_soul(object live)
+public void using_soul(object live)
 {
 }
 
@@ -156,14 +152,13 @@ using_soul(object live)
 /*
  * We fail to do something because it is dark
  */
-varargs int
-light_fail(string str)
+varargs int light_fail(string str)
 {
     string s;
 
     if (!sizeof(str))
         str = query_verb() + " things";
-    if (!stringp(s = environment(({string}) this_player())->query_prop(ROOM_S_DARK_MSG)))
+    if (!stringp(s = ({string}) environment(this_player())->query_prop(ROOM_S_DARK_MSG)))
         notify_fail("It is too dark to " + str + ".\n");
     else
         notify_fail(s + " " + str + ".\n");
@@ -187,8 +182,7 @@ light_fail(string str)
  *
  * Ref:           see /std/object.c for the move function
  */
-varargs void
-move_err_short(int ierr, object ob, object dest)
+varargs void move_err_short(int ierr, object ob, object dest)
 {
     mixed str, str2;
     string shortdesc;
@@ -224,14 +218,14 @@ move_err_short(int ierr, object ob, object dest)
             break;
         }
         if (dest)
-            str2 = environment(ob)->query_prop(CONT_M_NO_REM);
+            str2 = ({mixed}) environment(ob)->query_prop(CONT_M_NO_REM);
         if (!stringp(str2))
             str += " cannot be removed.\n";
         else
             str = str2;
         break;
     case 4:
-        str2 = ob->query_prop(OBJ_M_NO_INS);
+        str2 = ({mixed}) ob->query_prop(OBJ_M_NO_INS);
         if (!stringp(str2))
             str += " resists.\n";
         else
@@ -240,8 +234,8 @@ move_err_short(int ierr, object ob, object dest)
     case 5:
         if (dest)
         {
-            str2 = dest->query_prop(CONT_M_NO_INS);
-            if (!dest->query_prop(CONT_I_IN) || !stringp(str2))
+            str2 = ({mixed}) dest->query_prop(CONT_M_NO_INS);
+            if (!({int}) dest->query_prop(CONT_I_IN) || !stringp(str2))
                 str += " cannot be put there.\n";
             else
                 str = str2;
@@ -250,7 +244,7 @@ move_err_short(int ierr, object ob, object dest)
             str += " cannot be put there.\n";
         break;
     case 6:
-        str2 = ob->query_prop(OBJ_M_NO_GET);
+        str2 = ({mixed}) ob->query_prop(OBJ_M_NO_GET);
         if (!stringp(str2))
             str += " can not be taken.\n";
         else
@@ -278,13 +272,12 @@ move_err_short(int ierr, object ob, object dest)
                   0: otherwise
  *
  */
-int
-manip_drop_access(object ob)
+int manip_drop_access(object ob)
 {
     if (!objectp(ob))
         return 0;
 
-    if (ob->query_no_show())
+    if (({int}) ob->query_no_show())
         return 0;
 
     if (environment(ob) == this_player())
@@ -301,8 +294,7 @@ manip_drop_access(object ob)
  * Returns      : int 1/0 - true if the player has the object in his
  *                          inventory.
  */
-int
-manip_give_access(object ob)
+int manip_give_access(object ob)
 {
     if (!objectp(ob))
     {
@@ -323,8 +315,7 @@ manip_give_access(object ob)
  * Notify_fail:   ""  (no notify fail because of output of error messages)
  *
 */
-varargs int
-manip_relocate_to(object item_o, object to)
+varargs int manip_relocate_to(object item_o, object to)
 {
     object dest;        /* receiver */
     int ierr;
@@ -341,7 +332,7 @@ manip_relocate_to(object item_o, object to)
     {
         dest = to;
         destmsg = (query_verb() == "give" ? " to " :
-            (dest->query_prop(CONT_I_ATTACH) ? " on " : " in ")) +
+            (({int}) dest->query_prop(CONT_I_ATTACH) ? " on " : " in ")) +
             QSHORT(dest);
     }
 
@@ -350,27 +341,27 @@ manip_relocate_to(object item_o, object to)
     if (item_o == this_player())
         return 0;               /* not him self */
 
-    if (!(ierr = item_o->move(dest)))
+    if (!(ierr = ({int}) item_o->move(dest)))
         return 1;
 
     if (!silent)
         say(QCTNAME(this_player()) + " tries to " + query_verb() +
-                " " + (stringp(item_o->short()) ? QSHORT(item_o) :
-        item_o->query_name()) + destmsg + " but fails.\n");
+                " " + (stringp(({string}) item_o->short()) ? QSHORT(item_o) :
+                ({string}) item_o->query_name()) + destmsg + " but fails.\n");
 
     move_err_short(ierr, item_o, dest);
     notify_fail("");
     return 0;
 }
 
-int
-manip_put_dest(object item)
+
+int manip_put_dest(object item)
 {
     return manip_relocate_to(item, gDest);
 }
 
-int
-manip_set_dest(string prep, object *carr)
+
+int manip_set_dest(string prep, object *carr)
 {
     string vb;
 
@@ -393,17 +384,17 @@ manip_set_dest(string prep, object *carr)
 
     if (living(gDest))
     {
-        notify_fail(gDest->query_the_name(this_player()) +
+        notify_fail(({string}) gDest->query_the_name(this_player()) +
                 " will not stand for that.\n");
         return 0;
     }
 
     if ((member(prep, ({ "in", "into", "inside" })) >= 0) ||
-        (gDest->query_prop(CONT_I_ATTACH) &&
+        (({int}) gDest->query_prop(CONT_I_ATTACH) &&
         (member(prep, ({ "on", "onto" })) >= 0)))
     {
         notify_fail(capitalize(query_verb()) + " what " + prep +
-            " the " + gDest->short() + "?\n");
+            " the " + ({string}) gDest->short() + "?\n");
         return 1;
     }
     else
@@ -413,11 +404,12 @@ manip_set_dest(string prep, object *carr)
     }
 }
 
-int
-manip_ch_prep(string ptext)
+
+int manip_ch_prep(string ptext)
 {
     return parse_command(ptext, ({0}), "'in' / 'inside' / 'from'");
 }
+
 
 /*
  * Function name: manip_relocate_from
@@ -430,8 +422,7 @@ manip_ch_prep(string ptext)
  * Ex:               get item(s), get item(s) from container(s)
  *
  */
-int
-manip_relocate_from(object item_o)
+int manip_relocate_from(object item_o)
 {
     int ierr;
     object env;
@@ -453,19 +444,19 @@ manip_relocate_from(object item_o)
         return 0;
     }
 
-    if (env->query_prop(CONT_I_HIDDEN) || env->query_prop(CONT_I_CLOSED))
+    if (({int}) env->query_prop(CONT_I_HIDDEN) || ({int}) env->query_prop(CONT_I_CLOSED))
     {
         tmp = " to " + query_verb() + " " + LANG_THESHORT(item_o) + " from ";
         if (living(env))
         {
-            tell_object(env, this_player()->query_The_name(env) +
+            tell_object(env, ({string}) this_player()->query_The_name(env) +
                 " tries" + tmp + " you.\n");
         }
         say(QCNAME(this_player()) + " tries" + tmp + "the " + QSHORT(env) +
             ".\n", ({ env, this_player() }) );
         write("You fail" + tmp + LANG_THESHORT(env) + ".\n");
 
-        if (env->query_prop(CONT_I_CLOSED))
+        if (({int}) env->query_prop(CONT_I_CLOSED))
 	{
             write(capitalize(LANG_THESHORT(env)) + " is closed.\n");
 	}
@@ -474,7 +465,7 @@ manip_relocate_from(object item_o)
         return 0;
     }
 
-    if ((ierr = item_o->move(this_player())) == 0)
+    if ((ierr = ({int}) item_o->move(this_player())) == 0)
     {
         gFrom = gFrom + ({env});
         return 1;
@@ -483,14 +474,15 @@ manip_relocate_from(object item_o)
     if (!silent)
     {
         say(QCNAME(this_player()) + " tries to " + query_verb() +
-            " the " + (stringp(item_o->short()) ? QSHORT(item_o) :
-            item_o->query_name()) + " but fails.\n");
+            " the " + (stringp(({string}) item_o->short()) ? QSHORT(item_o) :
+            ({string}) item_o->query_name()) + " but fails.\n");
     }
 
     move_err_short(ierr, item_o, this_player());
     notify_fail("");    /* to hide the failed access one  */
     return 0;
 }
+
 
 /*
  * Function name: manip_put_whom
@@ -502,8 +494,7 @@ manip_relocate_from(object item_o)
  * Returns      : int 1/0 - it will fail if 'item' is not in this_player(),
  *                          else see manip_relocate_to().
  */
-int
-manip_put_whom(object item)
+int manip_put_whom(object item)
 {
     if (environment(item) != this_player())
     {
@@ -513,8 +504,8 @@ manip_put_whom(object item)
     return manip_relocate_to(item, gDest);
 }
 
-int
-manip_set_whom(string prep, object *carr)
+
+int manip_set_whom(string prep, object *carr)
 {
     mixed tmp;
     int i;
@@ -531,15 +522,15 @@ manip_set_whom(string prep, object *carr)
     gDest = carr[0];
     if (parse_command(prep, ({ 0 }), "'to'"))
     {
-        if (tmp = gDest->query_prop(LIVE_M_NO_ACCEPT_GIVE))
+        if (tmp = ({mixed}) gDest->query_prop(LIVE_M_NO_ACCEPT_GIVE))
         {
             if (stringp(tmp))
-                notify_fail(gDest->query_The_name(this_player()) + tmp);
+                notify_fail(({string}) gDest->query_The_name(this_player()) + tmp);
             return 0;
         }
 
         notify_fail(capitalize(query_verb()) + " what " + prep + " " +
-            gDest->query_the_name(this_player()) + "?\n");
+            ({string}) gDest->query_the_name(this_player()) + "?\n");
         return 1;
     }
     else
@@ -550,6 +541,7 @@ manip_set_whom(string prep, object *carr)
     }
 }
 
+
 /*
  * Function name: in_gContainers
  * Description:   test if object is in one of a set of containers
@@ -559,34 +551,34 @@ manip_set_whom(string prep, object *carr)
  * globals        gContainers: the array of containers
  *
  */
-int
-in_gContainers(object ob)
+int in_gContainers(object ob)
 {
     mixed res;
 
     if (!objectp(ob))
         return 0;
     if (environment(ob) != gContainers[0] &&
-                environment(ob) != gContainers[0]->query_room())
+                environment(ob) != ({object}) gContainers[0]->query_room())
         return 0;
 
-    if ((gContainers[0]->query_prop(CONT_I_CLOSED) &&
-            !gContainers[0]->query_prop(CONT_I_TRANSP)) ||
-            gContainers[0]->query_prop(CONT_I_HIDDEN))
+    if ((({int}) gContainers[0]->query_prop(CONT_I_CLOSED) &&
+            !({int}) gContainers[0]->query_prop(CONT_I_TRANSP)) ||
+            ({int}) gContainers[0]->query_prop(CONT_I_HIDDEN))
         return 0;
 
     return 1;
 }
 
+
 /*
  * Here are some functions with the looks command.
  */
 
-void
-look_living_exec(mixed plr)
+void look_living_exec(mixed plr)
 {
-    write(plr->long());
+    write(({string}) plr->long());
 }
+
 
 /*
  * Function name: show_exec
@@ -596,8 +588,7 @@ look_living_exec(mixed plr)
  * Arguments:     object ob
  *
 */
-void
-show_exec(object ob)
+void show_exec(object ob)
 {
     object env = environment(ob);
     string str;
@@ -611,12 +602,12 @@ show_exec(object ob)
         }
         if (living(env))
         {
-            str += " carried by " + env->short(this_player());
+            str += " carried by " + ({string}) env->short(this_player());
         }
         else
         {
-            str += (env->query_prop(CONT_I_ATTACH) ? " on" : " inside") +
-                " the " + env->short();
+            str += (({int}) env->query_prop(CONT_I_ATTACH) ? " on" : " inside") +
+                " the " + ({string}) env->short();
         }
 
         env = environment(env);
@@ -627,9 +618,10 @@ show_exec(object ob)
         write(str + ".\n");
     }
 
-    write(ob->long());
+    write(({string}) ob->long());
 
 }
+
 
 /*
  * Function name: item_access
@@ -640,28 +632,27 @@ show_exec(object ob)
  * Globals:       string gItem
  *
 */
-int
-item_access(object ob)
+int item_access(object ob)
 {
     if (!objectp(ob))
         return 0;
     return ({int}) ob->item_id(gItem);
 }
 
-int
-inside_visible(object cobj)
+
+int inside_visible(object cobj)
 {
     object env;
 
-    if (!objectp(cobj) || cobj->query_no_show())
+    if (!objectp(cobj) || ({int}) cobj->query_no_show())
         return 0;
 
     /* Properties stop us from seing the inside
      */
-    if (!cobj->query_prop(CONT_I_IN) || cobj->query_prop(CONT_I_HIDDEN) ||
-                (cobj->query_prop(CONT_I_CLOSED) &&
-                !cobj->query_prop(CONT_I_TRANSP) &&
-                !cobj->query_prop(CONT_I_ATTACH)))
+    if (!({int}) cobj->query_prop(CONT_I_IN) || ({int}) cobj->query_prop(CONT_I_HIDDEN) ||
+                ({int}) cobj->query_prop(CONT_I_CLOSED) &&
+                !({int}) cobj->query_prop(CONT_I_TRANSP) &&
+                !({int}) cobj->query_prop(CONT_I_ATTACH))
         return 0;
 
     env = environment(cobj);
@@ -669,8 +660,8 @@ inside_visible(object cobj)
                 visibly_hold(cobj))
         return 1;
 
-    while (env && (!env->query_prop(CONT_I_CLOSED) ||
-            env->query_prop(CONT_I_TRANSP)) && !env->query_no_show())
+    while (env && (!({int}) env->query_prop(CONT_I_CLOSED) ||
+            ({int}) env->query_prop(CONT_I_TRANSP)) && !({int}) env->query_no_show())
     {
         if (visibly_hold(env))
             return 1;
@@ -681,6 +672,7 @@ inside_visible(object cobj)
     return 0;
 }
 
+
 varargs int is_visible(object ob, object cobj)
 {
     object env;
@@ -689,11 +681,11 @@ varargs int is_visible(object ob, object cobj)
         return 0;
 
     if (cobj && (env = ({object}) cobj->query_room()) &&
-                (cobj->query_prop(CONT_I_TRANSP) ||
-                !cobj->query_prop(CONT_I_CLOSED)))
+                (({int}) cobj->query_prop(CONT_I_TRANSP) ||
+                !({int}) cobj->query_prop(CONT_I_CLOSED)))
     {
-        return ((env->query_prop(OBJ_I_LIGHT) >
-                -(this_player()->query_prop(LIVE_I_SEE_DARK))) &&
+        return ((({int}) env->query_prop(OBJ_I_LIGHT) >
+                -(({int}) this_player()->query_prop(LIVE_I_SEE_DARK))) &&
                 CAN_SEE(this_player(), ob));
     }
 
@@ -701,8 +693,8 @@ varargs int is_visible(object ob, object cobj)
     if (env == this_player() || env == environment(this_player()))
         return CAN_SEE(this_player(), ob);
 
-    while (objectp(env) && !living(env) && (env->query_prop(CONT_I_TRANSP) ||
-                !env->query_prop(CONT_I_CLOSED)))
+    while (objectp(env) && !living(env) && (({int}) env->query_prop(CONT_I_TRANSP) ||
+                !({int}) env->query_prop(CONT_I_CLOSED)))
     {
         env = environment(env);
         if (env == this_player() || env == environment(this_player()))
@@ -710,6 +702,7 @@ varargs int is_visible(object ob, object cobj)
     }
     return 0;
 }
+
 
 varargs int accessible(object ob)
 {
@@ -726,7 +719,7 @@ varargs int accessible(object ob)
         return CAN_SEE(this_player(), ob);
     }
 
-    while (env && !living(env) && !env->query_prop(CONT_I_CLOSED))
+    while (env && !living(env) && !({int}) env->query_prop(CONT_I_CLOSED))
     {
         env = environment(env);
         if ((env == this_player()) || (env == environment(this_player())))
@@ -738,11 +731,11 @@ varargs int accessible(object ob)
     return 0;
 }
 
+
 /*
  * Is
  */
-int
-visibly_hold(object ob)
+int visibly_hold(object ob)
 {
     object env;
     if (!objectp(ob))
@@ -754,16 +747,17 @@ visibly_hold(object ob)
         if (env == gHolder)
             return 1;
 
-        if (env->query_prop(CONT_I_HIDDEN) ||
-            (!env->query_prop(CONT_I_TRANSP) &&
-             !env->query_prop(CONT_I_ATTACH) &&
-             env->query_prop(CONT_I_CLOSED)))
+        if (({int}) env->query_prop(CONT_I_HIDDEN) ||
+            (!({int}) env->query_prop(CONT_I_TRANSP) &&
+             !({int}) env->query_prop(CONT_I_ATTACH) &&
+             ({int}) env->query_prop(CONT_I_CLOSED)))
             return 0;
         else
             env = environment(env);
     }
     return 0;
 }
+
 
 /*
  * Look ended here.
@@ -784,14 +778,13 @@ visibly_hold(object ob)
  *                room by a player.
  * Returns      : int 1/0 - success/failure (always 1)
  */
-int
-appraise_light()
+int appraise_light()
 {
     object *objs;
     object *livings;
     object room = environment(this_player());
-    int r_light = room->query_prop(ROOM_I_LIGHT);
-    int o_light = room->query_prop(OBJ_I_LIGHT);
+    int r_light = ({int}) room->query_prop(ROOM_I_LIGHT);
+    int o_light = ({int}) room->query_prop(OBJ_I_LIGHT);
     int size;
     int index;
 
@@ -804,16 +797,16 @@ appraise_light()
     }
 
     /* Tell whether the room is in- or outside, and if it is normally light. */
-    if (room->query_prop(ROOM_I_INSIDE))
+    if (!({int}) room->query_prop(ROOM_I_INSIDE))
     {
-        write(capitalize(room->short()) + " is indoors and " +
+        write(capitalize(({string}) room->short()) + " is indoors and " +
             ((r_light > 0) ?
             "lit, either by a torch, or by natural sources" :
             "naturally dark") + ".\n");
     }
     else
     {
-        write(capitalize(room->short()) +
+        write(capitalize(({string}) room->short()) +
             " is in the open air and naturally " +
             ((r_light > 0) ? "light" : "dark") + ".\n");
     }
@@ -827,7 +820,7 @@ appraise_light()
 
     /* Which items/livings emit light. */
     objs = filter((all_inventory(room) - ({ this_player() }) ),
-        &operator( > )(, 0) @ &->query_prop(OBJ_I_LIGHT));
+        (: ({int}) $1->query_prop(OBJ_I_LIGHT) > 0 :));
     objs = FILTER_CAN_SEE(objs, this_player());
     livings = FILTER_LIVE(objs);
     objs -= livings;
@@ -845,7 +838,7 @@ appraise_light()
 
     /* Which items/livings emit darkness. */
     objs = filter((all_inventory(room) - ({ this_player() }) ),
-        &operator( < )(, 0) @ &->query_prop(OBJ_I_LIGHT));
+        (: ({int}) $1->query_prop(OBJ_I_LIGHT) < 0 :));
     objs = FILTER_CAN_SEE(objs, this_player());
     livings = FILTER_LIVE(objs);
     objs -= livings;
@@ -864,8 +857,8 @@ appraise_light()
     return 1;
 }
 
-int
-appraise(string str)
+
+int appraise(string str)
 {
     object *obs;
 
@@ -877,7 +870,7 @@ appraise(string str)
     if (PREV_LIGHT <= 0)
         return light_fail("appraise");
 
-    notify_fail("Appraise what?\n", 0);
+    notify_fail("Appraise what?\n");
     if (!stringp(str))
         return 0;
 
@@ -890,7 +883,7 @@ appraise(string str)
 
     foreach(object ob: obs)
     {
-        write("You study " + (living(ob) ? ob->query_the_name(this_player()) :
+        write("You study " + (living(ob) ? ({string}) ob->query_the_name(this_player()) :
             LANG_THESHORT(ob)) + " carefully.\n");
         ob->appraise_object();
     }
@@ -898,19 +891,19 @@ appraise(string str)
     return 1;
 }
 
+
 /*
  * Function name: count
  * Description:   Let the players count stuff other than coins (heaps)
  * Arguments:     str - the string describing what players want to count
  */
-int
-count(string str)
+int count(string str)
 {
     object *ob;
 
     if (!stringp(str))
     {
-        notify_fail("Count what?\n", 0);
+        notify_fail("Count what?\n");
         return 0;
     }
 
@@ -926,12 +919,12 @@ count(string str)
     if (sizeof(ob))
     {
         /* Heaps (coins) have their own routines for countind */
-        if (ob[0]->query_prop(HEAP_I_IS))
+        if (({int}) ob[0]->query_prop(HEAP_I_IS))
             return 0;
 
         if (sizeof(ob) == 1)
         {
-            write("You find only a single " + ob[0]->short(this_player()) +
+            write("You find only a single " + ({string}) ob[0]->short(this_player()) +
                 ".\n");
             return 1;
         }
@@ -944,6 +937,7 @@ count(string str)
     notify_fail("You don't find any " + str + " here.\n");
     return 0;
 }
+
 
 /*
  * get - get something
@@ -962,8 +956,7 @@ count(string str)
  * Ex:               get item(s), get item(s) from container(s)
  *
  */
-int
-get(string str)
+int get(string str)
 {
     object *itema, *cont, linked, *obarr;
     string vb, prep, items;
@@ -973,7 +966,7 @@ get(string str)
 
     vb = query_verb();
 
-    notify_fail(capitalize(vb) + " what?\n", 0);
+    notify_fail(capitalize(vb) + " what?\n");
 
     if (!stringp(str))
         return 0;
@@ -989,7 +982,7 @@ get(string str)
         itema))
     {
         itema = NORMAL_ACCESS(itema, 0, 0);
-        itema = filter(itema, manip_relocate_from);
+        itema = filter(itema, #'manip_relocate_from);
         if (sizeof(itema) == 0)
         {
             if (silent)
@@ -1027,7 +1020,7 @@ get(string str)
             return 0;
         }
 
-        if (linked = gContainers[0]->query_room())
+        if (linked = ({object}) gContainers[0]->query_room())
             obarr = all_inventory(linked);
         else
             obarr = deep_inventory(gContainers[0]);
@@ -1039,19 +1032,18 @@ get(string str)
         if (sizeof(itema) == 0)
             return 0;
 
-        itema = filter(itema, manip_relocate_from);
+        itema = filter(itema, #'manip_relocate_from);
         if (sizeof(itema) == 0)
             return 0;
 
         itema->remove_prop(OBJ_I_HIDE);
 
-        from_self =
-            (member(this_player(), all_environment(gContainers[0])) >= 0);
+        from_self = (this_player() in all_environment(gContainers[0]));
 
         write("You " + vb + " " + COMPOSITE_DEAD(itema) + " from " +
-            (from_self ? "your " : "the ") + gContainers[0]->short() + ".\n");
+            (from_self ? "your " : "the ") + ({string}) gContainers[0]->short() + ".\n");
         say(QCTNAME(this_player()) + " " + vb + "s " + QCOMPDEAD +
-            " from " + (from_self ? this_player()->query_possessive() : "the") +
+            " from " + (from_self ? ({string}) this_player()->query_possessive() : "the") +
             " " + QSHORT(gContainers[0]) + ".\n");
 
         itema->force_heap_merge();
@@ -1059,7 +1051,7 @@ get(string str)
         return 1;
     }
 
-    if (environment(this_player())->item_id(str))
+    if (({int}) environment(this_player())->item_id(str))
     {
         notify_fail("The " + str + " cannot be taken.\n");
         return 0;
@@ -1067,6 +1059,7 @@ get(string str)
 
     return 0;
 }
+
 
 /*
  * give - Give something to someone
@@ -1079,8 +1072,7 @@ get(string str)
  *                0: failed
  * Ex:            give item(s) to player
  */
-int
-give(string str)
+int give(string str)
 {
     object *a;
 
@@ -1096,13 +1088,13 @@ give(string str)
 
     silent = 0;
 
-    a = (object *)CMDPARSE_STD->do_verb_with(str, "manip_set_whom",
+    a = ({object *})CMDPARSE_STD->do_verb_with(str, "manip_set_whom",
         "manip_put_whom", "manip_give_access", 0, this_object());
 
     if (sizeof(a) > 0)
     {
 	/* Reveal only when giving something to someone who is hidden. */
-	if (!gDest->query_prop(OBJ_I_HIDE) && !gDest->query_prop(OBJ_I_INVIS))
+	if (!({int}) gDest->query_prop(OBJ_I_HIDE) && !({int}) gDest->query_prop(OBJ_I_INVIS))
 	{
 	    this_player()->reveal_me(1);
         }
@@ -1110,7 +1102,7 @@ give(string str)
 	if (living(gDest))
         {
             write("You give " + COMPOSITE_DEAD(a) + " to " +
-                gDest->query_the_name(this_player()) + ".\n");
+                ({string}) gDest->query_the_name(this_player()) + ".\n");
             gDest->catch_msg(QCTNAME(this_player()) +
                 " gives you " + QCOMPDEAD + ".\n");
             say(QCTNAME(this_player()) + " gives " + QCOMPDEAD + " to " +
@@ -1130,18 +1122,18 @@ give(string str)
     return 0;
 }
 
+
 /*
  * hide - Hide something.
  */
-int
-hide(string str)
+int hide(string str)
 {
     object *itema, *cont;
     string prep, vb, *args;
     int hiding, i, val, bval;
 
     vb = query_verb();
-    notify_fail(capitalize(vb) + " what?\n", 0);
+    notify_fail(capitalize(vb) + " what?\n");
 
     if (stringp(str))
     {
@@ -1154,16 +1146,16 @@ hide(string str)
         }
     }
 
-    if ((this_player()->query_prop(OBJ_I_LIGHT) > 0) &&
-        (this_player()->query_prop(OBJ_I_LIGHT) >
-        environment(this_player())->query_prop(OBJ_I_LIGHT)))
+    if ((({int}) this_player()->query_prop(OBJ_I_LIGHT) > 0) &&
+        (({int}) this_player()->query_prop(OBJ_I_LIGHT) >
+        ({int}) environment(this_player())->query_prop(OBJ_I_LIGHT)))
     {
         notify_fail("You cannot hide here, shining like that!\n");
         return 0;
     }
 
-    hiding = environment(this_player())->query_prop(ROOM_I_HIDE);
-    bval = this_player()->query_skill(SS_HIDE);
+    hiding = ({int}) environment(this_player())->query_prop(ROOM_I_HIDE);
+    bval = ({int}) this_player()->query_skill(SS_HIDE);
     if (hiding < 0 || hiding > bval)
     {
         notify_fail("It's far too hard to hide anything here.\n");
@@ -1185,13 +1177,13 @@ hide(string str)
             return 0;
         }
 
-        if (this_player()->query_attack())
+        if (({object}) this_player()->query_attack())
         {
             notify_fail("You can't hide yourself while in combat!\n");
             return 0;
         }
 
-        if (this_player()->query_prop(OBJ_I_HIDE))
+        if (({int}) this_player()->query_prop(OBJ_I_HIDE))
         {
             notify_fail("You can't hide any better than this!\n");
             return 0;
@@ -1201,7 +1193,7 @@ hide(string str)
             say(QCTNAME(this_player()) +
                 " suddenly disappears out of sight.\n");
             write("You hide yourself as best you can.\n");
-            if (this_player()->query_prop(OBJ_I_INVIS))
+            if (({int}) this_player()->query_prop(OBJ_I_INVIS))
                 this_player()->add_prop(OBJ_I_HIDE, val / 2);
             else
                 this_player()->add_prop(OBJ_I_HIDE, val);
@@ -1217,7 +1209,7 @@ hide(string str)
 
     if (parse_command(str, environment(this_player()), "%i", itema))
     {
-        itema = CMDPARSE_STD->normal_access(itema, "manip_drop_access",
+        itema = ({object *}) CMDPARSE_STD->normal_access(itema, "manip_drop_access",
             this_object(), 1);
         if (sizeof(itema) == 0)
         {
@@ -1227,10 +1219,10 @@ hide(string str)
             }
             return 0;
         }
-        itema = filter(itema, manip_relocate_to);
+        itema = filter(itema, #'manip_relocate_to);
         if (args[sizeof(args) - 1] == "poorly")
         {
-            bval = this_player()->query_skill(SS_AWARENESS) / 2;
+            bval = ({int}) this_player()->query_skill(SS_AWARENESS) / 2;
             val = val > bval * 2 ? bval + random(bval) : val;
         }
 
@@ -1267,27 +1259,28 @@ hide(string str)
     itema = NORMAL_ACCESS(itema, "manip_drop_access", this_object());
     if (sizeof(itema) == 0)
     {
-        notify_fail(capitalize(vb) + " what?\n", 0);
+        notify_fail(capitalize(vb) + " what?\n");
         return 0;
     }
 
-    itema = filter(itema, manip_put_dest);
+    itema = filter(itema, #'manip_put_dest);
     if (sizeof(itema) > 0)
     {
-        prep = (gDest->query_prop(CONT_I_ATTACH) ? " on" : " in");
+        prep = (({int}) gDest->query_prop(CONT_I_ATTACH) ? " on" : " in");
 
         write("You " + vb + " " + COMPOSITE_DEAD(itema) + prep + " the " +
-            gDest->short() + ".\n");
+            ({string}) gDest->short() + ".\n");
         say(QCTNAME(this_player()) + " " + vb + "s something" + prep +
             " the " + QSHORT(gDest) + ".\n");
-        itema->add_prop(OBJ_I_HIDE, (this_player()->query_skill(SS_HIDE) / 2) +
-            random(this_player()->query_skill(SS_HIDE)));
+        itema->add_prop(OBJ_I_HIDE, (({int}) this_player()->query_skill(SS_HIDE) / 2) +
+            random(({int}) this_player()->query_skill(SS_HIDE)));
         itema->force_heap_merge();
         return 1;
     }
 
     return 0;
 }
+
 
 /*
  * inventory - List things in my inventory
@@ -1300,20 +1293,19 @@ hide(string str)
  *                string category - the title of the category (max 8 letters).
  * Returns      : object * - the oblist passed through the header.
  */
-static object *
-display_category(object *oblist, string category)
+static object *display_category(object *oblist, string category)
 {
     if (sizeof(oblist))
     {
-        write(HANGING_INDENT(sprintf("%-8s: %s.", extract(category, 0, 7),
+        write(HANGING_INDENT(sprintf("%-8s: %s.", category[..7],
             COMPOSITE_DEAD(oblist)), 10, 0));
     }
 
     return oblist;
 }
 
-int
-inventory(string str)
+
+int inventory(string str)
 {
     object player;
     object *objs;
@@ -1324,7 +1316,7 @@ inventory(string str)
 
     if (stringp(str))
     {
-        if (!(this_player()->query_wiz_level()))
+        if (!(({string}) this_player()->query_wiz_level()))
         {
             notify_fail("What inventory?\n");
             return 0;
@@ -1349,16 +1341,16 @@ inventory(string str)
     }
 
     str = ((player == this_player()) ? "You are " :
-        player->query_The_name(this_player()) + " is ");
+        ({string}) player->query_The_name(this_player()) + " is ");
 
-    objs = (object*)player->subinventory(0);
+    objs = ({object*})player->subinventory(0);
     objs = FILTER_SHOWN(objs);
 
-    table = this_player()->query_option(OPT_TABLE_INVENTORY);
+    table = ({int}) this_player()->query_option(OPT_TABLE_INVENTORY);
 
     /* Filter all coins and gems. */
     size = sizeof(objs);
-    selection = filter(objs, &->id("coin")) | filter(objs, &->id("gem"));
+    selection = filter(objs, (: ({int}) $1->id("coin") :)) | filter(objs, (: ({int}) $1->id("gem") :));
 
     if (!table && sizeof(selection))
     {
@@ -1369,11 +1361,10 @@ inventory(string str)
 
     /* Show all sublocs that describe things. */
     player->add_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS, 1);
-    alarm_id = set_alarm(0.5, 0.0,
-        &player->remove_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS));
-    write(player->show_sublocs(this_player()));
+    call_out((: ({int}) player->remove_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS) :), 1);
+    write(({string}) player->show_sublocs(this_player()));
     player->remove_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS);
-    remove_alarm(alarm_id);
+    remove_call_out((: ({int}) player->remove_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS) :));
 
     if (table)
     {
@@ -1410,12 +1401,12 @@ inventory(string str)
     return 1;
 }
 
+
 /*
  * keep - set the OBJ_M_NO_SELL property in an object.
  * unkeep - remove the OBJ_M_NO_SELL property from an object.
  */
-int
-keep(string str)
+int keep(string str)
 {
     object *objs;
     object *keep_objs;
@@ -1424,20 +1415,19 @@ keep(string str)
 
     if (!stringp(str))
     {
-        notify_fail(capitalize(query_verb()) + " what?\n", 0);
+        notify_fail(capitalize(query_verb()) + " what?\n");
         return 0;
     }
 
     /* Player wants to list; remove the flag. */
-    if (list = wildmatch("-l *", str))
+    if (list = str[..2] == "-l ")
     {
-        str = extract(str, 3);
+        str = str[3..];
     }
 
-    /* Playes wants to list, but didn't give any argument. Get all items
-     * in his/her inventory. */
-    if (list &&
-        !sizeof(str))
+    /* Player wants to list, but didn't give any argument. Get all items
+     * in their inventory. */
+    if (list && !sizeof(str))
     {
         if (!sizeof(objs = FILTER_CAN_SEE(all_inventory(this_player()),
             this_player())))
@@ -1456,7 +1446,7 @@ keep(string str)
     }
 
     /* Filter all non-keepable objects. */
-    keep_objs = filter(objs, &not() @ &->query_keepable());
+    keep_objs = filter(objs, (: !({int}) $1->query_keepable() :));
     objs->restore_heap();
 
     /* List the 'keep' status of the selected items. */
@@ -1465,25 +1455,25 @@ keep(string str)
         if (sizeof(keep_objs))
         {
             write("Not keepable --------------\n" +
-                break_string(COMPOSITE_DEAD(keep_objs), 70, 5) + "\n");
+                COMPOSITE_DEAD(keep_objs) + "\n");
             objs -= keep_objs;
         }
 
         /* Filter all unsellables. */
-        keep_objs = filter(objs, &->query_unsellable());
+        keep_objs = filter(objs, (: !({int}) $1->query_unsellable() :));
         if (sizeof(keep_objs))
         {
             write("Unsellable ----------------\n" +
-                break_string(COMPOSITE_DEAD(keep_objs), 70, 5) + "\n");
+                COMPOSITE_DEAD(keep_objs) + "\n");
             objs -= keep_objs;
         }
 
         /* Filter all kept objects. */
-        keep_objs = filter(objs, &->query_keep());
+        keep_objs = filter(objs, (: ({int}) $1->query_keep() :));
         if (sizeof(keep_objs))
         {
             write("Keep protected ------------\n" +
-                break_string(COMPOSITE_DEAD(keep_objs), 70, 5) + "\n");
+                COMPOSITE_DEAD(keep_objs) + "\n");
             objs -= keep_objs;
         }
 
@@ -1491,7 +1481,7 @@ keep(string str)
         if (sizeof(objs))
         {
             write("Not keep protected --------\n" +
-                break_string(COMPOSITE_DEAD(objs), 70, 5) + "\n");
+                COMPOSITE_DEAD(objs) + "\n");
         }
 
         return 1;
@@ -1506,7 +1496,7 @@ keep(string str)
 
     objs -= keep_objs;
     /* Remove any unsellable items from the list. */
-    keep_objs = filter(objs, &->query_unsellable());
+    keep_objs = filter(objs, (: ({int}) $1->query_unsellable() :));
     if (sizeof(keep_objs))
     {
         write("Unsellable: " + COMPOSITE_DEAD(keep_objs) + ".\n");
@@ -1520,11 +1510,11 @@ keep(string str)
     /* Now select the objects to (un)keep. */
     if (keep)
     {
-        keep_objs = filter(objs, &not() @ &->query_keep());
+        keep_objs = filter(objs, (: !({int}) $1->query_keep() :));
     }
     else
     {
-        keep_objs = filter(objs, &->query_keep());
+        keep_objs = filter(objs, (: ({int}) $1->query_keep() :));
     }
 
     /* No objects to process. */
@@ -1540,11 +1530,11 @@ keep(string str)
     /* See if we failed to (un)keep any items. */
     if (keep)
     {
-        objs = filter(keep_objs, &not() @ &->query_keep());
+        objs = filter(keep_objs, (: !({int}) $1->query_keep() :));
     }
     else
     {
-        objs = filter(keep_objs, &->query_keep());
+        objs = filter(keep_objs, (: ({int}) $1->query_keep() :));
     }
     if (sizeof(objs))
     {
@@ -1562,30 +1552,31 @@ keep(string str)
     return 1;
 }
 
+
 /*
  * Function name: glance_desc
  * Description:   Return string giving a brief description of an object
  * Arguments:     object ob - the object to describe
  * Returns:       a brief description
  */
-string
-glance_desc(object ob)
+string glance_desc(object ob)
 {
     string desc;
 
     if (living(ob))
     {
         ob->add_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS, 1);
-        desc = ob->long(this_player());
+        desc = ({string}) ob->long(this_player());
         ob->remove_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS);
         desc += ((ob == this_player()) ? "You are " :
-            (capitalize(ob->query_pronoun()) + " is ")) +
-            CMD_LIVE_STATE->show_subloc_health(ob, this_player()) + ".\n";
+            (capitalize(({string}) ob->query_pronoun()) + " is ")) +
+            ({string}) CMD_LIVE_STATE->show_subloc_health(ob, this_player()) + ".\n";
         return desc;
     }
 
     return capitalize(LANG_ASHORT(ob)) + ".\n";
 }
+
 
 /*
  * look - Look at something
@@ -1637,8 +1628,7 @@ glance_desc(object ob)
         it contents.
 
  */
-varargs int
-look(string str, int brief)
+varargs int look(string str, int brief)
 {
     string          prp,
                     prplc,
@@ -1652,7 +1642,7 @@ look(string str, int brief)
 
     if (!sizeof(str))
     {
-        return this_player()->do_glance(brief);
+        return ({int}) this_player()->do_glance(brief);
     }
 
     if (PREV_LIGHT <= 0)
@@ -1721,7 +1711,7 @@ look(string str, int brief)
         /* No objects found */
         /* Test for pseudo item in the environment */
         if (CAN_SEE(this_player(), ENV) &&
-            stringp(long_desc = environment(this_player())->long(gItem)))
+            stringp(long_desc = ({string}) environment(this_player())->long(gItem)))
         {
             write(long_desc);
             return 1;
@@ -1730,10 +1720,10 @@ look(string str, int brief)
         {
             obarr = deep_inventory(environment(this_player()));
             obarr = filter(obarr, #'is_visible);
-            obarr = filter(obarr, item_access);
+            obarr = filter(obarr, #'item_access);
             if (sizeof(obarr) > 0)
             {
-                map(obarr, (: write(($1)->long(gItem)) :));
+                map(obarr, (: write(({string}) ($1)->long(gItem)) :));
                 return 1;
             }
             else
@@ -1741,14 +1731,14 @@ look(string str, int brief)
                 if ((name == "me") || (name == "myself"))
                 {
 		    write(brief ? glance_desc(this_player()) :
-                        this_player()->long(this_player()));
+                        ({string}) this_player()->long(this_player()));
                     return 1;
                 }
 
-                if (name == "enemy" && (enemy = this_player()->query_attack()))
+                if (name == "enemy" && (enemy = ({object}) this_player()->query_attack()))
                 {
                     write(brief ? glance_desc(enemy) :
-                        enemy->long(this_player()));
+                        ({string}) enemy->long(this_player()));
                     return 1;
                 }
 
@@ -1768,7 +1758,7 @@ look(string str, int brief)
     if (prplc == "in" || prplc == "inside")
     {
         /* test for not locked */
-        obarr = filter(obarr, inside_visible);
+        obarr = filter(obarr, #'inside_visible);
         if (sizeof(obarr) > 0)
         {
             foreach(object ob: obarr)
@@ -1801,7 +1791,7 @@ look(string str, int brief)
 
         if (brief)
 	{
-            write(implode(map(obarr, glance_desc), ""));
+            write(implode(map(obarr, #'glance_desc), ""));
 	}
         else
 	{
@@ -1813,7 +1803,7 @@ look(string str, int brief)
             }
             else
 	    {
-        	map(obd, show_exec);
+        	map(obd, #'show_exec);
 	    }
 
             if (sizeof(obl) == 1)
@@ -1823,7 +1813,7 @@ look(string str, int brief)
 	    }
             else
 	    {
-        	map(obl, show_exec);
+        	map(obl, #'show_exec);
 	    }
 	}
 
@@ -1832,13 +1822,15 @@ look(string str, int brief)
          * we suspect player gave a plural word to look for. Should work
          * in most cases. */
         if (LANG_SWORD(gItem) != gItem &&
-            stringp(long_desc = environment(this_player())->long(gItem)))
+            stringp(long_desc = ({string}) environment(this_player())->long(gItem)))
         {
             write(long_desc);
         }
 
         return 1;
     }
+
+    return 0;
 }
 
 
@@ -1854,41 +1846,40 @@ look(string str, int brief)
  * Ex:            examine("knife")
  *
 */
-int
-examine(string str)
+int examine(string str)
 {
     if (!stringp(str))
     {
-        notify_fail("Examine what?\n", 0);
+        notify_fail("Examine what?\n");
         return 0;
     }
 
     return look("prp_examine " + str);
 }
 
+
 /*
  * glance - take a quick look at something
  */
-int
-glance(string str)
+int glance(string str)
 {
    return look(str, 1);
 }
 
-int
-peek_access(object ob)
+
+int peek_access(object ob)
 {
-    if (!living(ob) || ob->query_ghost() || ob == this_player())
+    if (!living(ob) || ({int}) ob->query_ghost() || ob == this_player())
         return 0;
     else
         return 1;
 }
 
+
 /*
  * peek - Peek into someone's inventory, part of someone's inventory.
  */
-int
-peek(string str)
+int peek(string str)
 {
     string vb;
     object *p, *inv;
@@ -1919,39 +1910,40 @@ peek(string str)
 
     MONEY_EXPAND(p[0]);
 
-    pp_skill = this_player()->query_skill(SS_PICK_POCKET) / 2;
-    if ((pp_skill + random(pp_skill) > p[0]->query_skill(SS_AWARENESS)) &&
-        (!p[0]->query_wiz_level()))
+    pp_skill = ({int}) this_player()->query_skill(SS_PICK_POCKET) / 2;
+    if ((pp_skill + random(pp_skill) > ({int})   p[0]->query_skill(SS_AWARENESS)) &&
+        (!({int}) p[0]->query_wiz_level()))
     {
         inv = all_inventory(p[0]);
 
         p[0]->add_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS, 1);
-        id = set_alarm(0.1, 0.0, &(p[0])->remove_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS));
-        write(p[0]->show_sublocs(this_player()));
+        call_out((: ({int}) (p[0])->remove_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS) :), 1);
+        write(({string}) p[0]->show_sublocs(this_player()));
         p[0]->remove_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS);
-        remove_alarm(id);
+        remove_call_out((: ({int}) (p[0])->remove_prop(TEMP_SUBLOC_SHOW_ONLY_THINGS) :));
 
-        inv = (object*)p[0]->subinventory(0);
+        inv = ({object *}) p[0]->subinventory(0);
         inv = FILTER_SHOWN(inv);
         if (sizeof(inv))
-            write(p[0]->query_The_name(this_player()) +
+            write(({string}) p[0]->query_The_name(this_player()) +
                 " is currently in possession of: " +
                 COMPOSITE_DEAD(inv) + ".\n");
         else
-            write(p[0]->query_The_name(this_player()) +
+            write(({string}) p[0]->query_The_name(this_player()) +
                 " does not own anything.\n");
     }
     else
     {
         tell_object(p[0], "You catch " +
-            this_player()->query_the_name(p[0]) +
+            ({string}) this_player()->query_the_name(p[0]) +
             " rifling through your private belongings!\n");
-        write("Oops! " + p[0]->query_The_name(this_player()) +
+        write("Oops! " + ({string}) p[0]->query_The_name(this_player()) +
             " seems to have caught on to you!\n");
     }
 
     return 1;
 }
+
 
 /*
  * put - Put something
@@ -1967,15 +1959,14 @@ peek(string str)
  * Ex:               drop item(s), put item(s) in container
  *
  */
-int
-put(string str)
+int put(string str)
 {
     object *itema, *cont;
     string prep, vb;
     int to_self;
 
     vb = query_verb();
-    notify_fail(capitalize(vb) + " what?\n", 0);
+    notify_fail(capitalize(vb) + " what?\n");
 
     if (!stringp(str))
     {
@@ -1994,14 +1985,14 @@ put(string str)
     if (parse_command(str, environment(this_player()), "%i", itema))
     {
 
-        itema = CMDPARSE_STD->normal_access(itema, "manip_drop_access",
+        itema = ({object *}) CMDPARSE_STD->normal_access(itema, "manip_drop_access",
                 this_object(), 1);
         if (sizeof(itema) == 0) {
             if (silent)
                 notify_fail("Nothing moved.\n");
             return 0;
         }
-        itema = filter(itema, manip_relocate_to);
+        itema = filter(itema, #'manip_relocate_to);
 
         if (sizeof(itema) > 0)
         {
@@ -2037,21 +2028,21 @@ put(string str)
     itema = NORMAL_ACCESS(itema, "manip_drop_access", this_object());
     if (sizeof(itema) == 0)
     {
-        notify_fail(capitalize(vb) + " what?\n", 0);
+        notify_fail(capitalize(vb) + " what?\n");
         return 0;
     }
 
-    itema = filter(itema, manip_put_dest);
+    itema = filter(itema, #'manip_put_dest);
     if (sizeof(itema) > 0)
     {
-        prep = (gDest->query_prop(CONT_I_ATTACH) ? " onto" : " into");
+        prep = (({int}) gDest->query_prop(CONT_I_ATTACH) ? " onto" : " into");
 
-	to_self = (member(this_player(), all_environment(gDest)) >= 0);
+	to_self = (this_player() in all_environment(gDest));
 
         write("You " + vb + " " + COMPOSITE_DEAD(itema) + prep +
-            (to_self ? " your " : " the ") + gDest->short() + ".\n");
+            (to_self ? " your " : " the ") + ({string}) gDest->short() + ".\n");
         say(QCTNAME(this_player()) + " " + vb + "s " + QCOMPDEAD + prep +
-            (to_self ? " " + this_player()->query_possessive() + " " : " the ")+
+            (to_self ? " " + ({string}) this_player()->query_possessive() + " " : " the ") +
             QSHORT(gDest) + ".\n");
         return 1;
     }
@@ -2059,11 +2050,11 @@ put(string str)
     return 0;
 }
 
+
 /*
  * reveal - Reveal something hidden
  */
-int
-reveal(string str)
+int reveal(string str)
 {
     object *itema, *cont, linked, *obarr;
     string vb, prep, items;
@@ -2075,13 +2066,13 @@ reveal(string str)
     vb = query_verb();
     if (!stringp(str))
     {
-        notify_fail(capitalize(vb) + " what?\n", 0);
+        notify_fail(capitalize(vb) + " what?\n");
         return 0;
     }
 
     if (str == "myself" || str == "me")
     {
-        if (!this_player()->reveal_me(1))
+        if (!({int}) this_player()->reveal_me(1))
         {
             notify_fail("You are already in plain sight.\n");
             return 0;
@@ -2093,7 +2084,7 @@ reveal(string str)
     if (parse_command(str, environment(this_player()), "%i", itema))
     {
         itema = NORMAL_ACCESS(itema, 0, 0);
-        itema = filter(itema, &->query_prop(OBJ_I_HIDE));
+        itema = filter(itema, (: ({int}) $1->query_prop(OBJ_I_HIDE) :));
         if (!sizeof(itema))
         {
             notify_fail("Nothing revealed.\n");
@@ -2107,8 +2098,8 @@ reveal(string str)
             if (living(itema[i]))
             {
                 write("You " + vb + " " +
-                    itema[i]->query_the_name(this_player()) +".\n");
-                tell_object(itema[i], this_player()->query_The_name(itema[i]) +
+                    ({string}) itema[i]->query_the_name(this_player()) +".\n");
+                tell_object(itema[i], ({string}) this_player()->query_The_name(itema[i]) +
                     " reveals you!\n");
                 say(QCNAME(this_player()) + " " + vb + "s " + QTNAME(itema[i]) +
                     ".\n", ({ itema[i], this_player() }) );
@@ -2135,7 +2126,7 @@ reveal(string str)
                       "%s 'in' / 'inside' %i", items, cont))
     {
         gContainers = NORMAL_ACCESS(cont, 0, 0);
-        gContainers = filter(gContainers, &->query_prop(OBJ_I_HIDE));
+        gContainers = filter(gContainers, (: ({int}) $1->query_prop(OBJ_I_HIDE) :));
         gContainers = FILTER_DEAD(gContainers);
         if (sizeof(gContainers) == 0)
         {
@@ -2143,7 +2134,7 @@ reveal(string str)
             return 0;
         }
 
-        if (linked = gContainers[0]->query_room())
+        if (linked = ({object}) gContainers[0]->query_room())
             obarr = all_inventory(linked);
         else
             obarr = deep_inventory(gContainers[0]);
@@ -2159,13 +2150,13 @@ reveal(string str)
 
         /* Here we assume you do not reveal livings in containers. */
         write("You " + vb + " " + COMPOSITE_DEAD(itema) + " from the " +
-            gContainers[0]->short() + ".\n");
+            ({string}) gContainers[0]->short() + ".\n");
         say(QCTNAME(this_player()) + " " + vb + "s " + QCOMPDEAD +
             " in the " + QSHORT(gContainers[0]) + ".\n");
         return 1;
     }
 
-    if (environment(this_player())->item_id(str))
+    if (({int}) environment(this_player())->item_id(str))
     {
         notify_fail("The " + str + " cannot be revealed.\n");
         return 0;
@@ -2174,11 +2165,11 @@ reveal(string str)
     return 0;
 }
 
+
 /*
  * search - Search something
  */
-int
-search(string str)
+int search(string str)
 {
     object *objs, obj;
     int time;
@@ -2187,7 +2178,7 @@ search(string str)
     if (!stringp(str))
         str = "here";
 
-    if (this_player()->query_attack())
+    if (({int}) this_player()->query_attack())
     {
         write("But you are in the middle of a fight!\n");
         return 1;
@@ -2221,13 +2212,13 @@ search(string str)
         /* Otherwise look for add-items in the environment or inventory. */
         if (!sizeof(objs))
         {
-            if (environment(this_player())->item_id(item))
+            if (({int}) environment(this_player())->item_id(item))
             {
                 objs = ({ environment(this_player()) });
             }
             else
             {
-                objs = filter(all_inventory(environment(this_player())), &->item_id(item));
+                objs = filter(all_inventory(environment(this_player())), (: ({int}) $1->item_id(item) :));
             }
         }
     }
@@ -2249,8 +2240,8 @@ search(string str)
     else if (living(obj))
     {
         write("You start to search " +
-            obj->query_the_name(this_player()) + ".\n");
-        tell_object(obj, this_player()->query_The_name(obj) +
+            ({string}) obj->query_the_name(this_player()) + ".\n");
+        tell_object(obj, ({string}) this_player()->query_The_name(obj) +
             " starts to search YOU!\n");
         say(QCTNAME(this_player()) + " starts to search " + QTNAME(obj) +
             ".\n", ({ obj, this_player() }));
@@ -2271,11 +2262,11 @@ search(string str)
     return 1;
 }
 
+
 /*
  * sneak - sneak somewhere.
  */
-int
-sneak(string str)
+int sneak(string str)
 {
     int hiding, *dirs, i, val, bval;
     string str2;
@@ -2286,33 +2277,33 @@ sneak(string str)
         return 0;
     }
 
-    str2 = SECURITY->modify_command(str, environment(this_player()));
+    str2 = ({string}) SECURITY->modify_command(str, environment(this_player()));
     if (sizeof(str2))
         str = str2;
 
-    dirs = environment(this_player())->query_exit_cmds();
+    dirs = ({int *}) environment(this_player())->query_exit_cmds();
     if (member(str, dirs) < 0)
     {
         notify_fail("Sneak where?\n");
         return 0;
     }
 
-    if (this_player()->query_prop(OBJ_I_LIGHT) &&
-        (this_player()->query_prop(OBJ_I_LIGHT) >
-        environment(this_player())->query_prop(OBJ_I_LIGHT)))
+    if (({int}) this_player()->query_prop(OBJ_I_LIGHT) &&
+        ({int}) this_player()->query_prop(OBJ_I_LIGHT) >
+        ({int}) environment(this_player())->query_prop(OBJ_I_LIGHT))
     {
         notify_fail("You cannot sneak shining like that!\n");
         return 0;
     }
 
-    if (objectp(this_player()->query_attack()))
+    if (objectp(({object}) this_player()->query_attack()))
     {
         notify_fail("You cannot sneak off somewhere while fighting!\n");
         return 0;
     }
 
-    hiding = environment(this_player())->query_prop(ROOM_I_HIDE);
-    bval = (this_player()->query_skill(SS_SNEAK) * 2 + this_player()->query_skill(SS_HIDE)) / 3;
+    hiding = ({int}) environment(this_player())->query_prop(ROOM_I_HIDE);
+    bval = (({int}) this_player()->query_skill(SS_SNEAK) * 2 + ({int}) this_player()->query_skill(SS_HIDE)) / 3;
     bval = (bval - hiding) / 2;
 
     if (hiding < 0 || bval <= 0)
@@ -2327,8 +2318,8 @@ sneak(string str)
     this_player()->add_prop(LIVE_I_SNEAK, 1);
     this_player()->command(str);
 
-    hiding = environment(this_player())->query_prop(ROOM_I_HIDE);
-    bval = this_player()->query_skill(SS_HIDE);
+    hiding = ({int}) environment(this_player())->query_prop(ROOM_I_HIDE);
+    bval = ({int}) this_player()->query_skill(SS_HIDE);
     bval = (bval - hiding) / 2;
 
     if (hiding < 0 || bval <= 0)
@@ -2338,9 +2329,9 @@ sneak(string str)
         return 1;
     }
 
-    if (this_player()->query_prop(OBJ_I_LIGHT) &&
-        (this_player()->query_prop(OBJ_I_LIGHT) >
-        environment(this_player())->query_prop(OBJ_I_LIGHT)))
+    if (({int}) this_player()->query_prop(OBJ_I_LIGHT) &&
+        (({int}) this_player()->query_prop(OBJ_I_LIGHT) >
+        ({int}) environment(this_player())->query_prop(OBJ_I_LIGHT)))
     {
         write("You cannot hide here, shining like that!\n");
         this_player()->reveal_me(1);
@@ -2352,18 +2343,18 @@ sneak(string str)
     return 1;
 }
 
+
 /*
  * Function name: track
  * Description:   look for tracks
  * Argument:      str - the string given to the command
  * Returns:       0 - failure
  */
-int
-track(string str)
+int track(string str)
 {
     object  room = ENV;
 
-    if (this_player()->query_attack())
+    if (({object}) this_player()->query_attack())
     {
         notify_fail("But you are in the middle of a fight!\n");
         return 0;
@@ -2376,19 +2367,19 @@ track(string str)
         return 0;
     }
 
-    if (!room->query_prop(ROOM_I_IS))
+    if (!({int}) room->query_prop(ROOM_I_IS))
     {
         notify_fail("You cannot look for tracks here!\n");
         return 0;
     }
 
-    if (room->query_prop(ROOM_I_INSIDE))
+    if (({int}) room->query_prop(ROOM_I_INSIDE))
     {
         notify_fail("You cannot look for tracks inside a room!\n");
         return 0;
     }
 
-    if (this_player()->query_mana() < 2*F_TRACK_MANA_COST)
+    if (({int}) this_player()->query_mana() < 2*F_TRACK_MANA_COST)
     {
         notify_fail("You are mentally too exhausted to look for tracks.\n");
         return 0;

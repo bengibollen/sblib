@@ -687,7 +687,7 @@ list_subscribed(int unread, int all)
     mixed  blist, olist, plist;
     int	   i, sz, first = 1, news = 0;
 
-    if (!m_sizeof(BdMap))
+    if (!sizeof(BdMap))
     {
 	write("No subscribed boards.\n");
 	return;
@@ -2303,13 +2303,13 @@ restore_mbs()
 
     data = MC->restore_mbs();
 
-    if (!m_sizeof(data))
+    if (!sizeof(data))
     {
 	write("You have no personal mbs save file, loading defaults ...\n");
         data = MC->default_mbs();
     }
 
-    if (!m_sizeof(data))
+    if (!sizeof(data))
     {
 	write("Default mbs save file not available, generating new settings ...\n");
 	Selection = ORDER_GROUP;
@@ -2345,7 +2345,7 @@ shuffle_boards()
     mixed	blist;
     string	*doms, *caths;
 
-    if (!m_sizeof(BdMap))
+    if (!sizeof(BdMap))
 	return;
 
     /* Start by concatting the list of boards */

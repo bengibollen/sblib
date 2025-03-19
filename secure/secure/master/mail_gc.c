@@ -168,7 +168,7 @@ step2(mapping map1, mapping map2)
      * If there are no elements in map1, then step 2 is complete.
      */
 
-    if (m_sizeof(map1) == 0)
+    if (sizeof(map1) == 0)
     {
 	set_alarm(2.0, 0.0, &step3(map2, ([])));
 	return;
@@ -504,7 +504,7 @@ step5(mapping msg_map)
      * If the message map is empty, then we are done.
      */
 
-    if (m_sizeof(msg_map) == 0)
+    if (sizeof(msg_map) == 0)
     {
 	/*
 	 * Log a benediction.

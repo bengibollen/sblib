@@ -399,7 +399,7 @@ patch_second(int what, string who, string name)
 
     plmap = restore_map(file);
 
-    if (!m_sizeof(plmap["m_seconds"]))
+    if (!sizeof(plmap["m_seconds"]))
     {
         plmap["m_seconds"] = ([]);
     }
