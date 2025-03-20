@@ -4,6 +4,7 @@
 #include <player.h>
 #include <input_to.h>
 #include <configuration.h>
+#include <macros.h>
 
 inherit "/std/living";
 
@@ -35,7 +36,7 @@ public void initialize(string player_name) {
 
 private void show_entrance() {
     write("\nWelcome to the game, " + capitalize(name) + "!\n");
-    command("look");  // Show initial room description
+//    command("look");  // Show initial room description
 }
 
 // Command processing
@@ -116,4 +117,12 @@ public int save_player() {
 public int restore_player() {
     // TODO: Implement restore functionality
     return 1;
+}
+
+public void player_startup() {
+    cmdhooks_reset();
+    /* Get the soul commands */
+    this_object()->load_command_souls();
+    command("$look");
+    say(QCNAME(this_object()) + " enters the game.\n");
 }

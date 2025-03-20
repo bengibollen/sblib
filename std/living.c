@@ -110,7 +110,7 @@ nomask void create_container()
     hold_reset();
 
     configure_object(this_object(), OC_COMMANDS_ENABLED, 1);
-    cmdhooks_reset();
+    //cmdhooks_reset();
 
     create_living();
 

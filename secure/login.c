@@ -168,8 +168,10 @@ private void login_success() {
         destruct(this_object());
         return;
     }
-
     logger->info("Player object exec'd successfully");
+    player->player_startup();
+    logger->debug("Player object startup completed");
+
 
     destruct(this_object());
 }
