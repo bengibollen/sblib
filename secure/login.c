@@ -170,6 +170,7 @@ private void login_success() {
     }
     logger->info("Player object exec'd successfully");
     player->player_startup();
+    player->move("w/debug/workroom");
     logger->debug("Player object startup completed");
 
 

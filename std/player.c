@@ -121,6 +121,7 @@ public int restore_player() {
 
 public void player_startup() {
     cmdhooks_reset();
+    add_prop(LIVE_I_SEE_DARK, 1);
     /* Get the soul commands */
     this_object()->load_command_souls();
     command("$look");

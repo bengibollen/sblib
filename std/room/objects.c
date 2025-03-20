@@ -26,13 +26,13 @@ reset_auto_objects()
     {
         /* This code is relying heavily on the copy-by-reference of arrays */
         int count = data[0];
-        function condition = data[1];
-        function init_call = data[2];
+        closure condition = data[1];
+        closure init_call = data[2];
         object *clones = data[3];
 
-        clones = filter(clones, objectp);
+        clones = filter(clones, #'objectp);
 
-        if (functionp(condition))
+        if (closurep(condition))
             clones = filter(clones, condition);
 
         while (sizeof(clones) < count)
@@ -43,8 +43,8 @@ reset_auto_objects()
             if (!objectp(ob))
                 return;
 
-            if (functionp(init_call))
-                init_call(ob);
+            if (closurep(init_call))
+                funcall(init_call, ob);
 
             if (living(ob))
                 ob->move_living("xx", this_object(), 1, 1);
@@ -56,7 +56,7 @@ reset_auto_objects()
             clone_count++;
             if (clone_count > 15)
             {
-                set_alarm(5.0 * rnd(), 0.0, &reset_auto_objects());
+                call_out(#'reset_auto_objects, 5 + random(5));
                 return;
             }
         }
@@ -82,9 +82,11 @@ reset_auto_objects()
  *                function init - Can be a set to a function to be called in
  *                                the newly cloned object.
  */
-varargs void
-add_auto_object(string file, int count = 1, function condition = 0,
-    function init_call = 0)
+varargs void add_auto_object(
+    string file,
+    int count = 1,
+    closure condition = 0,
+    closure init_call = 0)
 {
     if (!stringp(file))
         return 0;
@@ -112,10 +114,9 @@ add_auto_object(string file, int count = 1, function condition = 0,
  *                                called in the npc add it here. example
  *                                &->arm_me() to have arm_me called.
  */
-varargs void
-add_npc(string file, int count = 1, function init_call = 0)
+varargs void add_npc(string file, int count = 1, closure init_call = 0)
 {
-    add_auto_object(file, count, &objectp(), init_call);
+    add_auto_object(file, count, #'objectp, init_call);
 }
 
 /*
@@ -130,10 +131,9 @@ add_npc(string file, int count = 1, function init_call = 0)
  *                                to have add_name called.
  */
 varargs void
-add_object(string file, int count = 1, function init_call = 0)
+add_object(string file, int count = 1, closure init_call = 0)
 {
-    add_auto_object(file, count,
-        &operator(==)(, this_object()) @ &environment(), init_call);
+    add_auto_object(file, count, (: this_object() == environment() :), init_call);
 }
 
 /*
@@ -152,7 +152,7 @@ room_add_object(string file, int num, string mess)
     if (num < 1)
 	num = 1;
 
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
     for (i = 0; i < num; i++)
     {
 	ob = clone_object(file);

@@ -12,6 +12,7 @@
 #include <language.h>
 #include <ss_types.h>
 #include <login.h>
+#include <configuration.h>
 
 static  mixed   room_descs;        /* Extra longs added to the rooms own */
 static  int     searched;          /* Times this room has been searched */
@@ -66,7 +67,7 @@ change_my_desc(string str, object cobj)
     if (!str || !cobj)
         return;
 
-    i = member(cobj, room_descs);
+    i = member(room_descs, cobj);
 
     if (i < 0)
         add_my_desc(str, cobj);
@@ -94,14 +95,14 @@ remove_my_desc(object cobj)
 
     sf = objectp(cobj);
 
-    i = member(cobj, room_descs);
+    i = member(room_descs, cobj);
     while (i >= 0)
     {
         if (sf)
             room_descs = exclude_array(room_descs, i, i + 1);
         else
             room_descs = exclude_array(room_descs, i - 1, i);
-        i = member(cobj, room_descs);
+        i = member(room_descs, cobj);
     }
 }
 
@@ -114,7 +115,7 @@ remove_my_desc(object cobj)
 public mixed
 query_desc()
 {
-    return slice_array(room_descs, 0, sizeof(room_descs));
+    return room_descs[0..sizeof(room_descs)];
 }
 
 /*
@@ -153,7 +154,7 @@ exits_description()
             " obvious exits: " + COMPOSITE_WORDS(exits) + ".\n";
     }
 
-    if (this_player()->query_wiz_level())
+    if (({int}) this_player()->query_wiz_level())
     {
         exits = query_exit_cmds() - exits;
         switch(size  = sizeof(exits))
@@ -196,10 +197,10 @@ long(string str)
     /* This check is to remove extra descriptions that have been added by
      * an object that is now destructed.
      */
-    while ((index = member(0, room_descs)) >= 0)
-    {
-        room_descs = exclude_array(room_descs, index, index + 1);
-    }
+    // while ((index = member(room_descs, 0)) >= 0)
+    // {
+    //     room_descs = exclude_array(room_descs, index, index + 1);
+    // }
 
     if (pointerp(room_descs))
     {
@@ -233,13 +234,13 @@ describe_contents(object for_obj, object *obarr)
     lv = FILTER_LIVE(obarr);
     dd = obarr - lv;
 
-    item = COMPOSITE_FILE->desc_dead(dd, 1);
+    item = ({string}) COMPOSITE_FILE->desc_dead(dd, 1);
     if (stringp(item))
     {
         for_obj->catch_tell(capitalize(item) + ".\n");
     }
 
-    item = COMPOSITE_FILE->desc_live(lv, 1);
+    item = ({string}) COMPOSITE_FILE->desc_live(lv, 1);
     if (stringp(item))
     {
         for_obj->catch_tell(capitalize(item) + ".\n");
@@ -260,16 +261,16 @@ calc_pros(object player)
     /*
      * Players that are members of certain types of guilds get better chances.
      */
-    if (player->query_guild_style_occ() == "cleric") p = p + 15;
-    if (player->query_guild_style_lay() == "cleric") p = p + 10;
-    if (player->query_guild_style_occ() == "ranger") p = p + 10;
-    if (player->query_guild_style_lay() == "ranger") p = p + 5;
-    p = p + player->query_skill(SS_HERBALISM);
+    if (({string}) player->query_guild_style_occ() == "cleric") p = p + 15;
+    if (({string}) player->query_guild_style_lay() == "cleric") p = p + 10;
+    if (({string}) player->query_guild_style_occ() == "ranger") p = p + 10;
+    if (({string}) player->query_guild_style_lay() == "ranger") p = p + 5;
+    p = p + ({int}) player->query_skill(SS_HERBALISM);
 
     /* Penalty will be given if no skill. */
     /* To add a certain element of luck  - wise players might get lucky. */
 
-    p = p + random(player->query_stat(SS_WIS) / 3);
+    p = p + random(({int}) player->query_stat(SS_WIS) / 3);
 
     return p;
 }
@@ -286,7 +287,7 @@ calc_cons(object player)
     int p;
 
     /* If no herbalism skill, players will really have problems. */
-    if (!player->query_skill(SS_HERBALISM))
+    if (!({int}) player->query_skill(SS_HERBALISM))
         p = p + 15;
 
     /* Extra penalty if the player cannot see in the room or is blind */
@@ -303,7 +304,7 @@ calc_cons(object player)
     /* If we have good luck, we can also have bad luck....
      * ....and stupid players with low intelligence have more bad luck ;-)
      */
-    p = p + random((100 - player->query_stat(SS_INT)) / 3);
+    p = p + random((100 - ({int}) player->query_stat(SS_INT)) / 3);
 
     return p;
 }
@@ -349,10 +350,10 @@ search_for_herbs(object herbalist, string herb_file = 0)
         return no_find();
 
     /* If we look for a specific herb, we must be able to identify it. */
-    if (specific && !herb_file->do_id_check(herbalist))
+    if (specific && !({int}) herb_file->do_id_check(herbalist))
         return no_find();
 
-    difficulty = herb_file->query_find_diff();
+    difficulty = ({int}) herb_file->query_find_diff();
     if ((calc_pros(herbalist) - calc_cons(herbalist) -
             (difficulty * 10 - 50)) <= 0)
     {
@@ -362,13 +363,13 @@ search_for_herbs(object herbalist, string herb_file = 0)
 
     herb = clone_object(herb_file);
     tell_room(environment(herbalist), QCTNAME(herbalist) +
-        " finds some herbs.\n", herbalist);
+        " finds some herbs.\n", ({herbalist}));
     searched += 2;
 
     /* Reward the player for finding the herb. */
     herbalist->add_exp_general(F_EXP_HERBSEARCH(difficulty));
 
-    if (herb->move(herbalist))
+    if (({int}) herb->move(herbalist))
     {
         herb->move(this_object(), 1);
         herb->start_decay();
@@ -503,7 +504,7 @@ track_now(object player, int track_skill)
     player->catch_msg(result);
     player->remove_prop(LIVE_S_EXTRA_SHORT);
     tell_room(environment(player), QCTNAME(player) + " rises again.\n",
-        player, player);
+        ({player}));
     return;
 }
 
@@ -524,16 +525,16 @@ track_room()
     else
         time += 5;
 
-    track_skill = this_player()->query_skill(SS_TRACKING);
-    time -= track_skill/10;
+    track_skill = ({int}) this_player()->query_skill(SS_TRACKING);
+    time -= track_skill / 10;
 
     if (time < 1)
         track_now(this_player(), track_skill);
     else
     {
-        set_alarm(to_float(time), 0.0, &track_now(this_player(), track_skill));
+        call_out(#'track_now, time, this_player(), track_skill);
 
-        seteuid(getuid());
+        configure_object(this_object(), OC_EUID, getuid());
         paralyze = clone_object("/std/paralyze");
         paralyze->set_standard_paralyze("tracking");
         paralyze->set_stop_fun("stop_track");
@@ -557,7 +558,7 @@ stop_track(mixed arg)
 {
     if (!objectp(arg))
     {
-        mixed *calls = get_all_alarms();
+        mixed *calls = call_out_info();
         mixed *args;
         int i;
 
@@ -565,14 +566,13 @@ stop_track(mixed arg)
         {
             if (calls[i][1] == "track_now")
             {
-                args = calls[i][4];
-                if (args[0] == this_player())
-                    remove_alarm(calls[i][0]);
+                if (calls[i][0] == this_player())
+                    remove_call_out(calls[i][1]);
             }
         }
     }
     tell_room(environment(this_player()), QCTNAME(this_player())
-      + " stops looking for tracks.\n",this_player());
+      + " stops looking for tracks.\n", ({this_player()}));
     this_player()->remove_prop(LIVE_S_EXTRA_SHORT);
 
     return 0;

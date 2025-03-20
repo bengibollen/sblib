@@ -20,8 +20,8 @@ static int   room_no_obvious;
 /*
  * Prototype
  */
-int unq_move(string str);
-int unq_no_move(string str);
+public int unq_move(string str);
+public int unq_no_move(string str);
 
 /*
  * Fix to get rid of the obnoxius 'What ?' when we try to walk in a nonexistant
@@ -53,9 +53,9 @@ ugly_update_action(string cmd, int add)
     {
 	set_this_player(livings[index]);
 	if (add == 1)
-	    add_action(unq_move, cmd);
+	    add_action(#'unq_move, cmd);
 	else
-	    add_action(unq_no_move, cmd);
+	    add_action(#'unq_no_move, cmd);
     }
 
     if (objectp(old_tp))
@@ -82,7 +82,7 @@ init()
     size = sizeof(room_exits);
     while((index += 3) < size)
     {
-	add_action(unq_move, room_exits[index]);
+	add_action(#'unq_move, room_exits[index]);
 	dd -= ({ room_exits[index] });
     }
 
@@ -90,7 +90,7 @@ init()
     size = sizeof(dd);
     while(++index < size)
     {
-	add_action(unq_no_move, dd[index]);
+	add_action(#'unq_no_move, dd[index]);
     }
 }
 

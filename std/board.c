@@ -62,11 +62,12 @@
 
 inherit "/std/object";
 
-#include <files.h>
+#include <libfiles.h>
 #include <macros.h>
 #include <std.h>
 #include <stdproperties.h>
-#include <time.h>
+#include <libtime.h>
+#include <configuration.h>
 
 /* It is not allowed to read notes larger than 100 lines without more. This
  * is done to prevent errors when trying to write too much text to the screen
@@ -109,7 +110,7 @@ static int     fuse = 0;
  */
 public nomask  int list_notes(string str);
 public nomask  int new_msg(string msg_head);
-public varargs int read_msg(string what_msg, int mr);
+public nomask varargs int read_msg(string what_msg, int mr);
 public nomask  int remove_msg(string what_msg);
 public nomask  int rename_msg(string str);
 public nomask  int store_msg(string str);
@@ -274,11 +275,11 @@ query_stats()
 nomask public int
 no_special_fellow()
 {
-    string name = this_interactive()->query_real_name();
+    string name = ({string}) this_interactive()->query_real_name();
     string euid = geteuid();
 
     /* I'm an arch or keeper, so I can do anything. */
-    if (SECURITY->query_wiz_rank(name) >= WIZ_ARCH)
+    if (({int}) SECURITY->query_wiz_rank(name) >= WIZ_ARCH)
 	return 0;
 
     /* The board is mine */
@@ -286,12 +287,12 @@ no_special_fellow()
 	return 0;
 
     /* The board is my domains */
-    if (euid == SECURITY->query_wiz_dom(name))
+    if (euid == ({string}) SECURITY->query_wiz_dom(name))
 	return 0;
 
     /* I am Lord and the board is of one of my wizards. */
-    if ((SECURITY->query_wiz_rank(name) == WIZ_LORD) &&
-	(SECURITY->query_wiz_dom(name) == SECURITY->query_wiz_dom(euid)))
+    if (({int}) SECURITY->query_wiz_rank(name) == WIZ_LORD &&
+	({string}) SECURITY->query_wiz_dom(name) == ({string}) SECURITY->query_wiz_dom(euid))
 	return 0;
 
     return 1;
@@ -336,11 +337,11 @@ check_reader(int note = 0)
 
     /* People can always read their own notes. */
     if (note &&
-	(this_player()->query_real_name() == query_author(note)))
+	(({string}) this_player()->query_real_name() == query_author(note)))
 	return 0;
 
     /* People with read access to the files can read the board, too. */
-    if (SECURITY->valid_read(board_name + "/note", this_player()->query_real_name()))
+    if (({int}) SECURITY->valid_read(board_name + "/note", ({string}) this_player()->query_real_name()))
         return 0;
 
     return no_special_fellow();
@@ -376,7 +377,7 @@ check_writer()
         return 0;
 
     /* People with write access to the files can write notes, too. */
-    if (SECURITY->valid_write(board_name + "/note", this_player()->query_real_name()))
+    if (({int}) SECURITY->valid_write(board_name + "/note", ({string}) this_player()->query_real_name()))
         return 0;
 
     return no_special_fellow();
@@ -412,11 +413,11 @@ public nomask varargs int
 check_remove(int note = 0)
 {
     if (note &&
-	(this_player()->query_real_name() == query_author(note)))
+	(({string}) this_player()->query_real_name() == query_author(note)))
 	return 0;
 
     return (no_special_fellow() &&
-	    (SECURITY->query_wiz_rank(this_player()->query_real_name()) <
+	    (({int}) SECURITY->query_wiz_rank(({string}) this_player()->query_real_name()) <
 	     remove_rank) &&
             !allow_remove(note));
 }
@@ -439,14 +440,14 @@ load_headers()
      */
     fuse = 1;
 
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     notes = get_dir(board_name + "/b*");
     msg_num = sizeof(notes);
     if (msg_num)
     {
         headers = map(sort_array(
-            map(notes, &to_int() @ &extract(, 1))), extract_headers);
+            map(notes, (: to_int($1[1..]) :)), #'>), #'extract_headers);
     }
     else
         headers = ({ });
@@ -483,7 +484,7 @@ create_object()
     /* We must do this with an alarm because it is also possible to clone
      * the /std/board.c and confugure it with the set_functions.
      */
-    set_alarm(0.5, 0.0, load_headers);
+    call_out(#'load_headers, 1);
 
     enable_reset();
 }
@@ -538,7 +539,7 @@ long(int start = 1, int end = msg_num)
 	"       read/mread [note] <number>, " +
 	"read/mread previous/current/next [note]\n";
 
-    if (this_player()->query_wiz_level())
+    if (({int}) this_player()->query_wiz_level())
 	str += "       store [note] <number> <file name>\n";
 
     if (!msg_num)
@@ -548,7 +549,7 @@ long(int start = 1, int end = msg_num)
 	(msg_num == 1 ? " note" : " notes") + " :\n\n";
 
     if (!silent && present(this_player(), environment()) &&
-        !this_player()->query_prop(OBJ_I_INVIS))
+        !({int}) this_player()->query_prop(OBJ_I_INVIS))
         say(QCTNAME(this_player()) + " studies the " + short() + ".\n");
 
     /* Check whether the range is valid. */
@@ -567,7 +568,7 @@ long(int start = 1, int end = msg_num)
      * notes the player wrote him/herself.
      */
     allowed = !check_reader();
-    name = this_player()->query_real_name();
+    name = ({string}) this_player()->query_real_name();
     while (++start < end)
     {
 	if (allowed || (name == query_author(start + 1)))
@@ -594,13 +595,13 @@ init()
     if (!interactive(this_player()))
 	return;
 
-    add_action(list_notes, "list");
-    add_action(new_msg,    "note");
-    add_action(read_msg,   "read");
-    add_action(read_msg,   "mread");
-    add_action(remove_msg, "remove");
-    add_action(rename_msg, "rename");
-    add_action(store_msg,  "store");
+    add_action(#'list_notes, "list");
+    add_action(#'new_msg,    "note");
+    add_action(#'read_msg,   "read");
+    add_action(#'read_msg,   "mread");
+    add_action(#'remove_msg, "remove");
+    add_action(#'rename_msg, "rename");
+    add_action(#'store_msg,  "store");
 }
 
 /*
@@ -642,7 +643,7 @@ extract_headers(int number)
     if (!number)
         return 0;
 
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     file = "b" + number;
     if (!stringp(title = read_file(board_name + "/" + file, 1, 1)))
@@ -704,10 +705,10 @@ list_notes(string str)
 	return 1;
     }
 
-    if (wildmatch("notes *", str))
-	str = extract(str, 6);
+    if (str[..5] == "notes ")
+	str = str[6..];
 
-    if (!wildmatch("*-*", str))
+    if (strstr(str, "-") < 0)
     {
 	notify_fail("Error in range. Valid are \"start-end\", \"start-\" " +
 	    "and \"-end\".\n");
@@ -752,19 +753,19 @@ new_msg(string msg_head)
     int    rank;
     object editor;
 
-    if (this_player()->query_real_name() == GUEST_NAME)
+    if (({string}) this_player()->query_real_name() == GUEST_NAME)
     {
-	write(break_string("You are a guest of " +
-	    SECURITY->query_mud_name() + " and as such you cannot write on " +
+	write("You are a guest of " +
+	    ({string}) SECURITY->query_mud_name() + " and as such you cannot write on " +
 	    "bulletin boards. If you want to participate in the discussion " +
 	    "you should create yourself a real character. We are always " +
-	    "pleased to welcome a new player to the game.", 75) + "\n");
+	    "pleased to welcome a new player to the game.\n");
 	return 1;
     }
 
-    if (this_player()->query_prop(PLAYER_I_NO_NOTES))
+    if (({int}) this_player()->query_prop(PLAYER_I_NO_NOTES))
     {
-        write("You have lost the privilige of posting notes on boards in " +
+        write("You have lost the privilege of posting notes on boards in " +
             "these realms.\n");
         return 1;
     }
@@ -789,7 +790,7 @@ new_msg(string msg_head)
     }
 
     if (present(this_player(), environment()) &&
-        !this_player()->query_prop(OBJ_I_INVIS))
+        !({int}) this_player()->query_prop(OBJ_I_INVIS))
 	say(QCTNAME(this_player()) + " starts writing a note.\n");
 
     this_player()->add_prop(LIVE_S_EXTRA_SHORT, " is writing a note");
@@ -799,14 +800,14 @@ new_msg(string msg_head)
      * will be used again to save the message. Don't you just love these
      * kinds of statments.
      */
-    rank = SECURITY->query_wiz_rank(this_player()->query_real_name());
+    rank = ({int}) SECURITY->query_wiz_rank(({string}) this_player()->query_real_name());
     date = (show_lvl ? sprintf("%-10s ",
 	capitalize(WIZ_RANK_NAME(rank))) : " ") +
 	TIME2FORMAT(time(), "-d mmm");
     writing[this_player()] = sprintf("%-*s     %-11s %s", MAX_HEADER_LENGTH,
-	msg_head, capitalize(this_player()->query_real_name()), date);
+	msg_head, capitalize(({string}) this_player()->query_real_name()), date);
 
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     editor = clone_object(EDITOR_OBJECT);
     editor->set_activity("a note" +
@@ -837,7 +838,7 @@ block_discard(string file)
 private nomask void
 discard_message(string file)
 {
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     if (block_discard(file))
 	return;
@@ -887,7 +888,7 @@ post_note(string head, string message)
 	msg_num--;
     }
 
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     /* If the directory doesn't exist, create it. */
     if (file_size(board_name) == -1)
@@ -931,7 +932,7 @@ done_editing(string message)
     {
 	write("No message entered.\n");
 	if (present(this_player(), environment()) &&
-          !this_player()->query_prop(OBJ_I_INVIS))
+          !({int}) this_player()->query_prop(OBJ_I_INVIS))
 	    say(QCTNAME(this_player()) + " quits writing a note.\n");
 
 	m_delete(writing, this_player());
@@ -991,14 +992,14 @@ create_note(string header, string author, string body)
     author = lower_case(author);
     if ((sizeof(author) > MAX_NAME_LENGTH) ||
 	(sizeof(author) < MIN_NAME_LENGTH) ||
-	(SECURITY->exist_player(author)))
+	(({int}) SECURITY->exist_player(author)))
 	return 0;
 
     if (!find_player(author) ||
 	find_player(author) != this_interactive())
     {
 	SECURITY->log_syslog("BOARD", ctime(time()) + ": " +
-            capitalize(this_interactive()->query_real_name()) +
+            capitalize(({string}) this_interactive()->query_real_name()) +
             " posted on the board '" +
             query_board_name() +
             "' as '" + author + "'.\n");
@@ -1039,8 +1040,7 @@ create_note(string header, string author, string body)
  *                int    mr       - read with more if true.
  * Returns      : int 1/0 - success/failure.
  */
-public nomask varargs int
-read_msg(string what_msg, int mr)
+public nomask varargs int read_msg(string what_msg, int mr)
 {
     int note;
     string text;
@@ -1054,15 +1054,15 @@ read_msg(string what_msg, int mr)
 
     if ((what_msg == "next") ||
 	(what_msg == "next note"))
-	note = this_player()->query_prop(PLAYER_I_LAST_NOTE) + 1;
+	note = ({int}) this_player()->query_prop(PLAYER_I_LAST_NOTE) + 1;
 
     else if ((what_msg == "current") ||
              (what_msg == "current note"))
-        note = this_player()->query_prop(PLAYER_I_LAST_NOTE);
+        note = ({int}) this_player()->query_prop(PLAYER_I_LAST_NOTE);
 
     else if ((what_msg == "previous") ||
              (what_msg == "previous note"))
-        note = this_player()->query_prop(PLAYER_I_LAST_NOTE) - 1;
+        note = ({int}) this_player()->query_prop(PLAYER_I_LAST_NOTE) - 1;
 
     else if (!sscanf(what_msg, "note %d", note) &&
 	!sscanf(what_msg, "%d", note))
@@ -1093,11 +1093,11 @@ read_msg(string what_msg, int mr)
     note--;
     if (!silent &&
         present(this_player(), environment()) &&
-        !this_player()->query_prop(OBJ_I_INVIS))
+        !({int}) this_player()->query_prop(OBJ_I_INVIS))
         say(QCTNAME(this_player()) + " reads a note titled:\n" +
             headers[note][0] + "\n");
 
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     if (!mr)
 	mr = (query_verb() == "mread");
@@ -1171,7 +1171,7 @@ remove_msg(string what_msg)
             headers[note][0] + "\n");
 
     SECURITY->log_syslog("BOARD", ctime(time()) + ": " +
-        capitalize(this_interactive()->query_real_name()) +
+        capitalize(({string}) this_interactive()->query_real_name()) +
         " removed a note on: " + query_board_name() +
         "\n                          " + headers[note][0] + "\n");
 
@@ -1235,7 +1235,7 @@ rename_msg(string str)
 	return 0;
     }
 
-    if (this_player()->query_real_name() != query_author(num))
+    if (({string}) this_player()->query_real_name() != query_author(num))
     {
 	write("You are not the author of that note.\n");
 	return 1;
@@ -1244,7 +1244,7 @@ rename_msg(string str)
     len = sizeof(name = lower_case(name));
     if ((len < MIN_NAME_LENGTH) ||
 	(len > MAX_NAME_LENGTH) ||
-	(SECURITY->exist_player(name)))
+	(({int}) SECURITY->exist_player(name)))
     {
 	write("The name of the alleged new author is not valid.\n");
 	return 1;
@@ -1263,7 +1263,7 @@ rename_msg(string str)
 	}
     }
 
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     num--;
     headers[num][0] = headers[num][0][..45] +
@@ -1274,7 +1274,7 @@ rename_msg(string str)
     write_file(board_name + "/" + headers[num][1], note);
 
     write("Author on note " + (++num) + " changed from " +
-	capitalize(this_player()->query_real_name()) + " to " +
+	capitalize(({string}) this_player()->query_real_name()) + " to " +
 	capitalize(name) + ".\n");
     return 1;
 }
@@ -1291,7 +1291,7 @@ store_msg(string str)
     int    note;
     string file;
 
-    if (SECURITY->query_wiz_rank(this_player()->query_real_name()) <
+    if (({int}) SECURITY->query_wiz_rank(({string}) this_player()->query_real_name()) <
 	WIZ_NORMAL)
     {
 	notify_fail("Sorry, you can't save messages.\n");

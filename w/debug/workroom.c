@@ -17,10 +17,6 @@ inherit "/std/room";
 
 #define NAME_WIZ capitalize(getuid(this_object()))
 
-/*
- * Prototypes
- */
-object load_board();
 
 /*
  * Function name: create_workroom
@@ -31,10 +27,13 @@ void create_workroom()
 {
     set_short(NAME_WIZ + "'s workroom");
     set_long("This is " + NAME_WIZ + "'s workroom.\n");
+
     add_exit("@@goto_start", "startloc", 0);
-    if (({int}) SECURITY->query_domain_number(getuid(this_object())) >= 0)
-	load_board();
     add_prop(ROOM_I_INSIDE, 1);
+    add_prop(ROOM_I_LIGHT, 1);
+    
+    add_prop(OBJ_I_LIGHT, 1);
+
 }
 
 
@@ -67,39 +66,6 @@ nomask void reset_room()
 {
     reset_workroom();
 }
-
-
-/*
- * Function name: load_board
- * Description  : Load a bulletin board into the room.
- * Returns      : object - the bulletin board.
- */
-object load_board()
-{
-    object bb;
-    string *file;
-    string name;
-
-    file = explode(MASTER + "/", "/");
-    file[..<2] = ({});
-
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
-    bb = clone_object("/std/board");
-
-    name = implode(file, "/") + "/log";
-    if (file_size(name) != -2)
-	mkdir(name);
-
-    bb->set_board_name(name + "/board_data");
-    bb->set_num_notes(30);
-    bb->set_silent(0);
-    bb->set_show_lvl(0);
-    bb->set_no_report(1);
-    bb->move(this_object());
-
-    return bb;
-}
-
 
 /*
  * Function name: goto_start

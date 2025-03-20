@@ -16,6 +16,7 @@ inherit "/secure/simul/security";
 #include "/sys/files.h"          // For II_* constants
 #include "/inc/std.h"          // For II_* constants
 #include "/inc/libfiles.h"          // For file_size, etc.
+#include "/sys/object_info.h"
 
 // Forward declarations for functions used in config
 string load_uid(string file);

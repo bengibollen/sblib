@@ -1495,7 +1495,7 @@ static void restart_heart()
     if (!find_call_out(#'heart_beat))
     {
         cb_update_speed();
-        call_out(#'heart_beat, speed);
+        call_out(#'heart_beat, (int) speed);
     }
 }
 
@@ -1526,7 +1526,7 @@ static nomask void heart_beat()
     mixed           *hitresult, *dbits, pen, fail;
     object          *new, ob;
 
-    if (!objectp(me) || me->query_ghost())
+    if (!objectp(me) || ({int}) me->query_ghost())
     {
         attack_ob = 0;
         stop_heart();
@@ -1550,7 +1550,7 @@ static nomask void heart_beat()
     }
 
     /* First do some check if we actually attack. */
-    if (pointerp(fail = me->query_prop(LIVE_AS_ATTACK_FUMBLE)) &&
+    if (pointerp(fail = ({string *}) me->query_prop(LIVE_AS_ATTACK_FUMBLE)) &&
         sizeof(fail))
     {
         if (i_am_real)
@@ -1560,7 +1560,7 @@ static nomask void heart_beat()
         return;
     }
 
-    if ((tmp = me->query_prop(LIVE_I_ATTACK_DELAY)))
+    if ((tmp = ({int}) me->query_prop(LIVE_I_ATTACK_DELAY)))
     {
         if ((tmp -= to_int(speed)) > 0)
         {
@@ -1571,7 +1571,7 @@ static nomask void heart_beat()
             me->remove_prop(LIVE_I_ATTACK_DELAY);
     }
 
-    if (me->query_prop(LIVE_I_STUNNED))
+    if (({int}) me->query_prop(LIVE_I_STUNNED))
     {
         return;
     }
@@ -1579,7 +1579,7 @@ static nomask void heart_beat()
     /* This is a hook for NPC's so that they can do spells or any
      * special actions when in combat. See /std/mobile.c
      */
-    if (me->query_npc() && me->special_attack(attack_ob))
+    if (({int}) me->query_npc() && ({int}) me->special_attack(attack_ob))
     {
         return;
     }
@@ -1587,14 +1587,14 @@ static nomask void heart_beat()
     /* This is the hook for single special attacks, normally spells,
      * that is done instead of the normal attacks, one turn.
      */
-    if (objectp(ob = me->query_prop(LIVE_O_SPELL_ATTACK)))
+    if (objectp(ob = ({object}) me->query_prop(LIVE_O_SPELL_ATTACK)))
     {
         ob->spell_attack(me, attack_ob);
         me->remove_prop(LIVE_O_SPELL_ATTACK);
         return;
     }
 
-    if (me->query_prop(LIVE_I_CONCENTRATE))
+    if (({int}) me->query_prop(LIVE_I_CONCENTRATE))
     {
         return;
     }
@@ -1629,7 +1629,7 @@ static nomask void heart_beat()
              * The intended victim can also force a fail. like in the weapon
              * case, if fail, the cause must produce explanatory text himself.
              */
-            hitsuc = attack_ob->query_not_attack_me(me, att_id[il]);
+            hitsuc = ({int}) attack_ob->query_not_attack_me(me, att_id[il]);
             if (hitsuc > 0)
             {
                 continue;
@@ -1657,7 +1657,7 @@ static nomask void heart_beat()
 
                     if (sizeof(pen))
                     {
-                        tmp = MATH_FILE->quick_find_exp(dt);
+                        tmp = ({int}) MATH_FILE->quick_find_exp(dt);
                         if((tmp < sizeof(pen)))
                             pen = pen[tmp];
                         else
@@ -1669,20 +1669,20 @@ static nomask void heart_beat()
                 dbits = ({dt & W_IMPALE, dt & W_SLASH, dt & W_BLUDGEON }) - ({0});
                 dt = sizeof(dbits) ? one_of_list(dbits) : W_NO_DT;
 
-                hitresult = attack_ob->hit_me(pen, dt, me, att_id[il]);
+                hitresult = ({mixed}) attack_ob->hit_me(pen, dt, me, att_id[il]);
 
                 if (crit)
                 {
                    log_file("CRITICAL", sprintf("%s: %-11s on %-11s " +
                                 "(dam = %4d(%4d))\n\t%s on %s\n",
-                       ctime(time()), me->query_real_name(),
-                       attack_ob->query_real_name(), hitresult[3], pen,
+                       ctime(time()), ({string}) me->query_real_name(),
+                       ({string}) attack_ob->query_real_name(), hitresult[3], pen,
                        object_name(me), object_name(attack_ob)), -1);
                 }
             }
             else
             {
-                hitresult = attack_ob->hit_me(hitsuc, 0, me, att_id[il]);
+                hitresult = ({mixed}) attack_ob->hit_me(hitsuc, 0, me, att_id[il]);
             }
 
             /*
@@ -1712,7 +1712,7 @@ static nomask void heart_beat()
             }
 
             /* Oops, Lifeform turned into a deadform. Reward the killer. */
-            if (attack_ob->query_hp() <= 0)
+            if (({int}) attack_ob->query_hp() <= 0)
             {
                 enemies = enemies - ({ attack_ob });
                 attack_ob->do_die(me);
@@ -1725,7 +1725,7 @@ static nomask void heart_beat()
      * We might actually turn into a deadform here also,
      * some armours do damage when they're hit.
      */
-    if (!objectp(me) || me->query_ghost())
+    if (!objectp(me) || ({int}) me->query_ghost())
     {
         attack_ob = 0;
         stop_heart();
@@ -1736,7 +1736,7 @@ static nomask void heart_beat()
      * Fighting is quite tiresome you know
      */
     ftg = random(3) + 1;
-    if (me->query_fatigue() >= ftg)
+    if (({int}) me->query_fatigue() >= ftg)
     {
         me->add_fatigue(-ftg);
     }
@@ -1792,14 +1792,14 @@ varargs public nomask mixed cb_hit_me(
     }
 
     /* You can not hurt the dead. */
-    if (me->query_ghost())
+    if (({int}) me->query_ghost())
     {
-        tell_object(attacker, me->query_The_name(attacker) +
+        tell_object(attacker, ({string}) me->query_The_name(attacker) +
             " is already dead, quite dead.\n");
         tell_room(environment(me),
             QCTNAME(attacker) + " is trying to kill the already dead.\n",
             ({ me, attacker }) );
-        tell_object(me, attacker->query_The_name(me) +
+        tell_object(me, ({string}) attacker->query_The_name(me) +
             " tries futily to attack you.\n");
         me->stop_fight(attacker);
         attacker->stop_fight(me);
@@ -1818,7 +1818,7 @@ varargs public nomask mixed cb_hit_me(
     cb_update_combat_time();
 
     /* Choose a hit location, and compute damage if wcpen > 0 */
-    if ((target_hitloc == -1) || ((hloc = member(target_hitloc, hit_id)) < 0))
+    if ((target_hitloc == -1) || ((hloc = member(hit_id, target_hitloc)) < 0))
     {
         tmp = random(100);
         j = 0;
@@ -1836,7 +1836,7 @@ varargs public nomask mixed cb_hit_me(
         if (hloc >= sizeof(hitloc_ac))
         {
             hloc = sizeof(hitloc_ac) - 1;
-            log_file("BAD_HITLOC", me->query_real_name() + " (" + object_name(me) +
+            log_file("BAD_HITLOC", ({string}) me->query_real_name() + " (" + object_name(me) +
                 "): " + object_name(this_object()) + "\n");
         }
     }
@@ -1855,7 +1855,7 @@ varargs public nomask mixed cb_hit_me(
         }
         else
         {
-            tmp = (int)MATH_FILE->quick_find_exp(dt);
+            tmp = ({int}) MATH_FILE->quick_find_exp(dt);
 
             if (sizeof(ac) && (tmp < sizeof(ac)))
             {
@@ -1884,16 +1884,16 @@ varargs public nomask mixed cb_hit_me(
         phit = (wcpen < 0 ? wcpen : -1);
     }
 
-    hp = me->query_hp();
+    hp = ({int}) me->query_hp();
 
     /*
      * Wizards are immortal. (immorale ??)
      */
-    if ((int)me->query_wiz_level() && dam >= hp)
+    if (({int}) me->query_wiz_level() && dam >= hp)
     {
         tell_object(me, "Your wizardhood protects you from death.\n");
         tell_room(environment(me),
-            QCTNAME(me) + " is immortal and fails to die!\n", me);
+            QCTNAME(me) + " is immortal and fails to die!\n",({me}));
         return ({ 0, 0, 0, 0, 0 });
     }
 
@@ -1912,8 +1912,8 @@ varargs public nomask mixed cb_hit_me(
         proc_hurt = 0;
     else
     {
-        attack = attacker->query_combat_object()->query_attack(attack_id);
-        my_weapons = me->query_weapon(-1);
+        attack = ({mixed *}) (({object}) attacker->query_combat_object())->query_attack(attack_id);
+        my_weapons = ({object *}) me->query_weapon(-1);
 
         if (!sizeof(my_weapons))
         {
@@ -1921,16 +1921,16 @@ varargs public nomask mixed cb_hit_me(
         }
         else
         {
-            tmp = random(me->query_skill(SS_PARRY) +
-                         me->query_skill(SS_DEFENSE));
+            tmp = random(({int}) me->query_skill(SS_PARRY) +
+                         ({int}) me->query_skill(SS_DEFENSE));
 
             if (sizeof(attack) && objectp(attack[6]))
             {
                 attacker_weapon = attack[6];
             }
 
-            if (tmp < me->query_skill(SS_PARRY) &&
-                attacker_weapon->query_wt() != W_MISSILE)
+            if (tmp < ({int}) me->query_skill(SS_PARRY) &&
+                ({int}) attacker_weapon->query_wt() != W_MISSILE)
             {
                 proc_hurt = -2;   /* we parried */
                 my_weapon = my_weapons[random(sizeof(my_weapons))];
@@ -1984,7 +1984,7 @@ public nomask void cb_attack(object victim)
 
     restart_heart();
 
-    if (victim == me || victim == attack_ob || victim->query_ghost())
+    if (victim == me || victim == attack_ob || ({int}) victim->query_ghost())
     {
         return;
     }
@@ -2049,18 +2049,18 @@ public nomask void cb_stop_fight(mixed elist)
         elist = ({});
     }
 
-    if (member(attack_ob, elist) >= 0)
+    if (attack_ob in elist)
     {
         attack_ob = 0;
     }
 
     cb_update_enemies();
-    enemies = enemies - (object *)elist;
+    enemies -= elist;
 
     if (sizeof(enemies))
     {
         local = enemies & all_inventory(environment(me));
-        if (sizeof (local))
+        if (sizeof(local))
         {
             attack_ob = local[0];
         }
@@ -2074,7 +2074,7 @@ public nomask void cb_stop_fight(mixed elist)
  */
 public nomask void cb_update_enemies()
 {
-    enemies = filter(enemies, objectp);
+    enemies = filter(enemies, #'objectp);
 }
 
 
@@ -2142,8 +2142,8 @@ public nomask mixed cb_update_attack()
 
     me->notify_enemy_gone(attack_ob);
     /* To cling to an enemy we must fight it. */
-    if (me->query_prop(LIVE_O_ENEMY_CLING) == attack_ob)
-        me->remove_prop(LIVE_O_ENEMY_CLING);
+    if (({object}) me->query_prop(LIVE_O_ENEMY_CLING) == attack_ob)
+        ({object}) me->remove_prop(LIVE_O_ENEMY_CLING);
 
     old_enemy = attack_ob;
     attack_ob = 0;
@@ -2159,7 +2159,7 @@ public nomask mixed cb_update_attack()
     if (attack_ob)
     {
         tell_object(me, "You turn to attack " +
-            attack_ob->query_the_name(me) + ".\n");
+        ({string}) attack_ob->query_the_name(me) + ".\n");
     }
     else
     {
@@ -2241,7 +2241,7 @@ varargs int add_attack(
         }
     }
 
-    if ((pos = member(id, att_id)) < 0)
+    if ((pos = member(att_id, id)) < 0)
     {
         att_id += ({ id });
         attacks += ({ ({ wchit, pen, damtype, prcuse, skill, m_pen, wep }) });
@@ -2266,7 +2266,7 @@ static int remove_attack(int id)
 {
     int pos;
 
-    if ((pos = member(id, att_id)) >= 0)
+    if ((pos = member(att_id, id)) >= 0)
     {
         attacks = exclude_array(attacks, pos, pos);
         att_id = exclude_array(att_id, pos, pos);
@@ -2298,7 +2298,7 @@ public mixed * query_attack(int id)
 {
     int pos;
 
-    if ((pos = member(id, att_id)) >= 0)
+    if ((pos = member(att_id, id)) >= 0)
     {
         return attacks[pos];
     }
@@ -2349,7 +2349,7 @@ static varargs int add_hitloc(mixed ac, int prchit, string desc, int id, object 
             act[pos] = ac[pos];
         }
     }
-    if ((pos = member(id, hit_id)) < 0)
+    if ((pos = member(hit_id, id)) < 0)
     {
         hit_id += ({ id });
         hitloc_ac += ({ ({ act, prchit, desc, m_act, armours }) });
@@ -2373,10 +2373,10 @@ static int remove_hitloc(int id)
 {
     int pos;
 
-    if ((pos = member(id, hit_id)) >= 0)
+    if ((pos = member(hit_id, id)) >= 0)
     {
-        hitloc_ac = exclude_array(hitloc_ac, pos, pos);
-        hit_id = exclude_array(hit_id, pos, pos);
+        hitloc_ac[pos..pos]= ({});
+        hit_id[pos..pos] = ({});
         return 1;
     }
 
@@ -2415,7 +2415,7 @@ public nomask mixed *query_hitloc(int id)
 {
     int pos;
 
-    if ((pos = member(id, hit_id)) >= 0)
+    if ((pos = member(hit_id, id)) >= 0)
     {
         return hitloc_ac[pos];
     }

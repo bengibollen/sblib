@@ -796,11 +796,19 @@ public int do_glance(int brief)
 
     	write(object_name(env) + "\n");
     }
+int see_in_room = 0;
+    if (objectp(env)){
+        if (({int}) env->query_prop(OBJ_I_LIGHT) > -(({int}) this_object()->query_prop(LIVE_I_SEE_DARK)))
+            see_in_room = 1;
+    }
 
     /* It is dark. */
-    if (!CAN_SEE_IN_ROOM(this_object()))
+    if (!see_in_room)
     {
-        if (!stringp(item = ({string}) env->query_prop(ROOM_S_DARK_LONG)))
+        write(ROOM_S_DARK_LONG + "\n");
+        write(to_string(env) + "\n");
+        item = ({string}) env->query_prop(ROOM_S_DARK_LONG);
+        if (!stringp(item))
             write(LD_DARK_LONG);
         else
             write(item);

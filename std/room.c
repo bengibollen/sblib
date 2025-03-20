@@ -9,7 +9,7 @@
 
 inherit "/std/container";
 
-#include <files.h>
+#include <libfiles.h>
 #include <filter_funs.h>
 #include <macros.h>
 #include <ss_types.h>
@@ -47,8 +47,7 @@ create_room()
  *                you must define the function create_room() to create your
  *                room.
  */
-nomask void
-create_container()
+nomask void create_container()
 {
     add_prop(ROOM_I_IS,    1);
     add_prop(ROOM_I_LIGHT, 1);
@@ -56,7 +55,7 @@ create_container()
 
     room_link_cont = 0;
 
-    seteuid(creator(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     /* As service to the folks, we automatically call the function
      * enable_reset() to start resetting if the function reset_room() has
@@ -106,8 +105,7 @@ cleanup_loot()
     }
 
     /* Find all items that were dropped here by dead livings. */
-    inv = filter(inv, &operator(==)(this_object()) @
-        &->query_prop(OBJ_O_LOOTED_IN_ROOM));
+    inv = filter(inv, (: this_object() == ({object}) $1->query_prop(OBJ_O_LOOTED_IN_ROOM) :) );
 
     /* Destruct those items. */
     inv->remove_object();
@@ -130,7 +128,7 @@ reset_container()
     if (!sizeof(accept_here))
 	accept_here = ({ });
     else
-	accept_here = filter(accept_here, objectp);
+	accept_here = filter(accept_here, #'objectp);
 }
 
 /*
@@ -196,11 +194,11 @@ light()
     if (objectp(room_link_cont))
     {
 	if ((environment(room_link_cont)) &&
-	    (room_link_cont->query_prop(CONT_I_TRANSP) ||
-	     room_link_cont->query_prop(CONT_I_ATTACH) ||
-	    !room_link_cont->query_prop(CONT_I_CLOSED)))
+	    (({int}) room_link_cont->query_prop(CONT_I_TRANSP) ||
+	     ({int}) room_link_cont->query_prop(CONT_I_ATTACH) ||
+	    !({int}) room_link_cont->query_prop(CONT_I_CLOSED)))
 	{
-	    li += (environment(room_link_cont))->query_prop(OBJ_I_LIGHT);
+	    li += ({int}) (environment(room_link_cont))->query_prop(OBJ_I_LIGHT);
 	}
     }
     return query_internal_light() + li;
@@ -318,14 +316,13 @@ nomask string
 query_domain()
 {
     /* Normal room. */
-    if (wildmatch("/d/*", object_name(this_object())))
+    if (object_name(this_object())[..2] == "/d/")
     {
 	return explode(object_name(this_object()), "/")[2];
     }
 
     /* Link-room. */
-    if (query_link_master() &&
-	wildmatch("/d/*", query_link_master()))
+    if (query_link_master() && (query_link_master()[..2] == "/d/"))
     {
 	return explode(query_link_master(), "/")[2];
     }
@@ -358,7 +355,7 @@ block_action(string cmd, object actor, object target, int cmd_type)
     /* Check for subloc restrictions */
 
     /* No problem if both actor and target are in the same subloc */
-    if ((subl = actor->query_subloc()) == target->query_subloc())
+    if ((subl = ({string}) actor->query_subloc()) == ({string}) target->query_subloc())
     {
         return 0;
     }

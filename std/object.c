@@ -134,7 +134,7 @@ random_reset()
 
     /* Default interval factor 100 leads to 90 minutes. */
     mean = 540000.0 / (float) reset_interval;
-    reset_time = -log(random(10001)/10000) * mean;
+    reset_time = -log((float) random(10000)/10000.0) * mean;
 
     if (reset_time < (mean * 0.5))
         reset_time = mean * 0.5;
@@ -182,7 +182,7 @@ disable_reset()
 
     while(--index >= 0)
         if (calls[index][1] == "reset")
-            remove_call_out(calls[index][0]);
+            remove_call_out(calls[index][1]);
 
     reset_interval = 0;
 }
@@ -498,14 +498,16 @@ adjectiv_id(string str)
  *                val: The value of the property
  * Returns:       None.
  */
-public void
-add_prop(string prop, mixed val)
+public void add_prop(string prop, mixed val)
 {
     mixed oval;
+
+    write("Adding property: " + prop + " for object:" + to_string(this_object()) + " with value: " + to_string(val) + "\n");
 
     /* If there isn't a value, remove the current value. */
     if (!val)
     {
+        write("Removing property: " + prop + " for object:" + to_string(this_object()) + "\n");
         remove_prop(prop);
         return;
     }
@@ -513,11 +515,14 @@ add_prop(string prop, mixed val)
     /* All changes might have been locked out. */
     if (obj_no_change)
     {
+        
+        write("Property changes are currently locked out.\n");
         return;
     }
 
     if (({void}) this_object()->("add_prop" + prop)(val))
     {
+        write("Property addition aborted by custom function for: " + prop + "\n");
         return;
     }
 
@@ -528,6 +533,11 @@ add_prop(string prop, mixed val)
 
     oval = query_prop(prop);
     obj_props[prop] = val;
+
+
+    string *keys = m_indices(obj_props);
+    
+    map(keys, (: write(to_string(this_object()) + " key: " + $1 + " value: " + obj_props[$1] + "\n") :));
 
     if (environment())
     {
@@ -592,7 +602,10 @@ query_prop(string prop)
 {
     if (!mappingp(obj_props))
         return 0;
-    return check_call(obj_props[prop]);
+
+    mixed result = check_call(obj_props[prop]);
+    write("This object: " + to_string(this_object()) + ", Query prop: " + prop + ", Prop value: " + to_string(result) + "\n");
+    return result;
 }
 
 /*
@@ -798,10 +811,12 @@ varargs public int move(mixed dest, mixed subloc)
         if (dest && ({int}) dest->prevent_enter(this_object()))
             return 7;
 
+        write("this_object: " + to_string(this_object()) + " destination: " + to_string(dest) + "\n");
         move_object(this_object(), dest);
     }
 
-    obj_subloc = subloc != 1 ? subloc : 0;
+    write("debug_end\n");
+    obj_subloc = (subloc != 1) ? subloc : 0;
 
     if (old != dest)
     {

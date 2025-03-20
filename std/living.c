@@ -122,7 +122,7 @@ nomask void create_container()
     if (query_npc())
     {
         refresh_living();
-        cmdhooks_reset();
+//        cmdhooks_reset();
     }
 }
 

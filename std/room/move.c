@@ -15,8 +15,7 @@ static string room_dircmd;   /* Command given after the triggering verb */
  * Returns      : object - pointer to the room corresponding to the argument
  *                         or 0 if not found.
  */
-object
-load_room(int index)
+object load_room(int index)
 {
     mixed droom;
     string err;
@@ -53,17 +52,18 @@ load_room(int index)
     return find_object(droom);
 }
 
+
 /*
  * Function name: query_dircmd
  * Description:   Gives the rest of the command given after move verb.
  *                This can be used in blocking functions (third arg add_exit)
  * Returns:       The movecommand as given.
  */
-public string
-query_dircmd()
+public string query_dircmd()
 {
     return room_dircmd;
 }
+
 
 /*
  * Function name: set_dircmd
@@ -72,11 +72,11 @@ query_dircmd()
  *		  where you want a team to be able to follow their leader.
  * Arguments:     rest - The rest of the move command
  */
-public void
-set_dircmd(string rest)
+public void set_dircmd(string rest)
 {
     room_dircmd = rest;
 }
+
 
 /*
  * Function name: exit_move
@@ -87,11 +87,11 @@ set_dircmd(string rest)
  *                object dest_room - the destination room
  * Returns:       int - the result of the move_living() call.
  */
-public int
-exit_move(string exit_cmd, object dest_room)
+public int exit_move(string exit_cmd, object dest_room)
 {
-    return this_player()->move_living(exit_cmd, dest_room);
+    return ({int}) this_player()->move_living(exit_cmd, dest_room);
 }
+
 
 /*
  * Function name: unq_move
@@ -105,8 +105,7 @@ exit_move(string exit_cmd, object dest_room)
  * Arguments    : string str - the command line argument.
  * Returns      : int 1/0.
  */
-public int
-unq_move(string str)
+public int unq_move(string str)
 {
     int index;
     int size;
@@ -129,22 +128,22 @@ unq_move(string str)
 	/* Players younger than 4 hours don't get tired from walking around in
          * the world.
 	 */
-	if (this_player()->query_age() > 14400)
+	if (({int}) this_player()->query_age() > 14400)
 	{
             tired = query_tired_exit(index / 3);
-	    tmp = this_player()->query_encumberance_weight();
+	    tmp = ({int}) this_player()->query_encumberance_weight();
 
 	    /* Compute the fatigue bonus. Sneaking gives double fatigue and
 	     * so does talking with 80% encumberance, while 20% or less gives
              * only half the fatigue.
 	     */
-	    tired = (this_player()->query_prop(LIVE_I_SNEAK) ?
+	    tired = (({int}) this_player()->query_prop(LIVE_I_SNEAK) ?
 		(tired * 2) : tired);
 	    tired = ((tmp > 80) ? (tired * 2) :
                 ((tmp < 20) ? (tired / 2) : tired));
 
 	    /* Player is too tired to move. */
-	    if (this_player()->query_fatigue() < tired)
+	    if (({int}) this_player()->query_fatigue() < tired)
 	    {
 		notify_fail("You are too tired to move in that direction.\n");
 		return 0;
@@ -187,6 +186,7 @@ unq_move(string str)
     return 0;
 }
 
+
 /*
  * Function name: unq_no_move
  * Description  : This function here so that people who try to walk into a
@@ -196,8 +196,7 @@ unq_move(string str)
  * Arguments    : string str - the command line argument.
  * Returns      : int 0 - always.
  */
-public int
-unq_no_move(string str)
+public int unq_no_move(string str)
 {
     notify_fail("There is no obvious exit " + query_verb() + ".\n");
     return 0;

@@ -10,7 +10,7 @@
    ----------------------------------------------------------------------
 */
 
-#include "/sys/macros.h"
+#include <macros.h>
 
 static  object    *link_ends,     /* Links to endpoints, filenames of rooms */
                   *link_starts;   /* Link to cloned rooms, obj pointers */
@@ -21,8 +21,8 @@ static	string	  room_mlink;     /* For clones: master room */
 /*
  * Prototypes
  */
-int transport_to(string ex, mixed room, int delay);
-object link_room(string lfile, mixed dest, int pos);
+public int transport_to(string ex, mixed room, int delay);
+public varargs object link_room(string lfile, mixed dest, int pos);
 
 /*
  * Function name: transport_to
@@ -35,8 +35,7 @@ object link_room(string lfile, mixed dest, int pos);
  * Returns:       True if player moved to first pos in corridor.
  *                False if corridor could not be created.
  */
-public int
-transport_to(string ex, mixed room, int delay)
+public int transport_to(string ex, mixed room, int delay)
 {
     int ne, c;
     string backstr;
@@ -82,7 +81,7 @@ transport_to(string ex, mixed room, int delay)
     if (!lastr)
     {
 	/* Next to dest */
-	if (!(lastr = this_object()->link_room(LINK_ROOM, or, delay)))
+	if (!(lastr = ({object}) this_object()->link_room(LINK_ROOM, or, delay)))
 	    return 0;
 	backstr = ({string}) or->make_link(this_object(), lastr);
 	lastr->add_exit(or, ex, 0);
@@ -101,7 +100,7 @@ transport_to(string ex, mixed room, int delay)
 		       ? link_starts + ({ lastr }) : ({ lastr }));
     }
 
-    if (this_player()->move_living(ex, lastr))
+    if (({int}) this_player()->move_living(ex, lastr))
 	return 0;
     return 1;
 }
@@ -166,8 +165,7 @@ make_link(mixed to_room, object via_link)
  *		  pos:   The position away from this startpoint
  * Returns:       Objectpointer of the cloned room.
  */
-varargs public object
-link_room(string lfile, mixed dest, int pos)
+public varargs object link_room(string lfile, mixed dest, int pos)
 {
     object ob;
 
