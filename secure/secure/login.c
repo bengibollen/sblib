@@ -98,8 +98,7 @@ static void get_name(string str);
  * Description  : This function is called every two minutes and if the
  *                player lost or broke connection, we destruct the object.
  */
-static void
-clean_up()
+static void clean_up()
 {
     if (!interactive(this_object()))
     {
@@ -111,12 +110,12 @@ clean_up()
     }
 }
 
+
 /*
  * Function name: create_object
  * Description  : Called to construct this object.
  */
-static void
-create()
+static void create()
 {
     set_alarm(CLEANUP_TIME, 0.0, clean_up);
 
@@ -124,13 +123,13 @@ create()
     seteuid(getuid());
 }
 
+
 /*
  * Function name: short
  * Description  : This function returns the short description of this object.
  * Returns      : string - the short description.
  */
-string
-short()
+string short()
 {
     return "login"  + (name ? " (" + name + ")" : "");
 }
@@ -141,35 +140,35 @@ short()
  * Description  : Return the real name of the player who is trying to log in.
  * Returns      : string - the name.
  */
-string
-query_pl_name()
+string query_pl_name()
 {
     return name;
 }
+
 
 /*
  * Function name: query_real_name
  * Description  : Return the real name of this object: "logon"
  * Returns      : string - "logon".
  */
-string
-query_real_name()
+string query_real_name()
 {
     return "logon";
 }
+
 
 /*
  * Function name: time_out
  * Description  : Called when the player takes too much time to type a line.
  *                It destructs the object.
  */
-static void
-time_out()
+static void time_out()
 {
     write_socket("Time out! Join us another time.\n");
 
     destruct();
 }
+
 
 /*
  * Function name: login
@@ -177,10 +176,9 @@ time_out()
  *                A lot of checks are made.
  * Returns      : int 1/0 - true if login is allowed.
  */
-public int
-logon()
+public int logon()
 {
-    set_screen_width(80);
+//    set_screen_width(80);
 
     if (!interactive(this_object()))
     {
@@ -213,6 +211,7 @@ logon()
     return 1;
 }
 
+
 #ifdef LOCKOUT_START_TIME
 /*
  * Function name: is_lockout
@@ -224,8 +223,7 @@ logon()
  * Returns      : int - True if the mud is closed to this player, false
  *                      otherwise.
  */
-int
-is_lockout(string pl_name)
+int is_lockout(string pl_name)
 {
     int d, h, ob_type;
     string day, mon, wiz_name;
@@ -256,14 +254,14 @@ is_lockout(string pl_name)
 }
 #endif
 
+
 /*
  * Function name: start_player2
  * Description  : Swapsocket to player object and if we are not already
  *                in the game enter it.
  * Arguments    : object ob - the playerobject to swap to.
  */
-static void
-start_player2(object ob)
+static void start_player2(object ob)
 {
     object dump;
 
@@ -340,12 +338,12 @@ start_player2(object ob)
     destruct();
 }
 
+
 /*
  * Function name: start_player1
  * Description  : The next step in the startup process.
  */
-static void
-start_player1()
+static void start_player1()
 {
     object ob;
 
@@ -414,6 +412,7 @@ start_player1()
     start_player2(ob);
 }
 
+
 /*
  * Function name: date
  * Description  : Before people are asked to queue, we give them some
@@ -421,8 +420,7 @@ start_player1()
  *                have to wait a long time to get into a game that is
  *                about to reboot.
  */
-public void
-date()
+public void date()
 {
     write_socket("Local time  : " + ctime(time()) +
         "\nStart time  : " + ctime(SECURITY->query_start_time()) +
@@ -435,14 +433,14 @@ date()
 #endif
 }
 
+
 /*
  * Function name: start_player
  * Description  : This function checks for linkdeath and sees whether the
  *                player has to queue. If there are no restrictions, log in
  *                immediately.
  */
-static void
-start_player()
+static void start_player()
 {
     object other_copy;
     int    pos;
@@ -530,6 +528,7 @@ start_player()
     input_to(queue);
 }
 
+
 /*
  * Function name: valid_name
  * Description  : Check that a player name is valid. The name must be at
@@ -539,8 +538,7 @@ start_player()
  * Arguments    : string str - the name to check.
  * Returns      : int 1/0 - true if the name is allowed.
  */
-int
-valid_name(string str)
+int valid_name(string str)
 {
     int index = -1;
     int length = sizeof(str);
@@ -579,6 +577,7 @@ valid_name(string str)
     return 1;
 }
 
+
 /*
  * Function name: offensive_name
  * Description  : Check whether the name is offensive or not. Note that
@@ -588,8 +587,7 @@ valid_name(string str)
  * Arguments    : string str - the name to check.
  * Returns      : int 1/0 - true if the name is offensive.
  */
-public int
-offensive_name(string str)
+public int offensive_name(string str)
 {
     int index = -1;
     int size  = sizeof(OFFENSIVE);
@@ -605,6 +603,7 @@ offensive_name(string str)
     return 0;
 }
 
+
 /*
  * Function name: confirm_use_name
  * Description  : When a player first connects, we give him a little message
@@ -612,8 +611,7 @@ offensive_name(string str)
  *                the use of the name.
  * Arguments    : string str - the entered text.
  */
-static void
-confirm_use_name(string str)
+static void confirm_use_name(string str)
 {
     /* Only allow valid answers. */
     str = lower_case(str);
@@ -648,6 +646,7 @@ confirm_use_name(string str)
     tell_password();
 }
 
+
 /*
  * Function name: get_name
  * Description  : At login time, this function is called with the name the
@@ -655,8 +654,7 @@ confirm_use_name(string str)
  *                is all correct, the player may login.
  * Arguments    : string str - the name the player wants to use.
  */
-static void
-get_name(string str)
+static void get_name(string str)
 {
     object g_info;
     object a_player;
@@ -788,7 +786,7 @@ get_name(string str)
     /* Restore the player. If that fails, we make some additional checks
      * for we must be dealing with a new player.
      */
-    if (!restore_object("/players/" + extract(str, 0, 0) + "/" + str))
+    if (!restore_object("/players/" + str))
     {
 #ifdef ALWAYS_APPLY
         if (!wildmatch("*jr", str))
@@ -929,14 +927,14 @@ get_name(string str)
     }
 }
 
+
 /*
  * Function name: new_password
  * Description  : This function is used to let a new character set his
  *                password.
  * Arguments    : string p - the intended password.
  */
-static void
-new_password(string p)
+static void new_password(string p)
 {
     write_socket("\n");
     remove_alarm(time_out_alarm);
@@ -1018,13 +1016,13 @@ new_password(string p)
     }
 }
 
+
 /*
  * Function name: tell_password
  * Description  : This function tells the player what we expect from his
  *                new password and then prompt him for it.
  */
-static void
-tell_password()
+static void tell_password()
 {
     write_socket("To prevent people from breaking your password, we feel " +
         "the need to\nrequire your password to match certain criteria:\n" +
@@ -1037,6 +1035,7 @@ tell_password()
     input_to(new_password, 1);
 }
 
+
 /*
  * Function name: check_restriction
  * Description  : Check whether a playing restriction is imposed on the
@@ -1044,8 +1043,7 @@ tell_password()
  *                disallow entry.
  * Returns      : int 1/0 - true/not true.
  */
-static int
-check_restriction()
+static int check_restriction()
 {
     /* Negative restriction value means the administration suspended you.
      * A positive restriction value means you restricted yourself.
@@ -1076,14 +1074,14 @@ check_restriction()
     return 0;
 }
 
+
 /*
  * Function name: check_double_login
  * Description  : Check if this player already has one of his seconds logged in.
 
  * Returns      : int 1/0 - true/not true.
  */
-static int
-check_double_login()
+static int check_double_login()
 {
     if (SECURITY->query_wiz_rank(query_pl_name()) > WIZ_NORMAL)
         return 0;
@@ -1102,6 +1100,7 @@ check_double_login()
     return 0;
 }
 
+
 /*
  * Function name: check_password
  * Description  : If an existing player tries to login, this function checks
@@ -1109,8 +1108,7 @@ check_double_login()
  *                try.
  * Arguments    : string p - the intended password.
  */
-static void
-check_password(string p)
+static void check_password(string p)
 {
     object *players;
     int     size;
@@ -1268,6 +1266,7 @@ check_password(string p)
     return;
 }
 
+
 /*
  * Function name: try_throw_out
  * Description  : If the player tries to login while another interactive
@@ -1275,8 +1274,7 @@ check_password(string p)
  *                kick out the other copy.
  * Arguments    : string str - the answer, should start with 'y' or 'n'.
  */
-static void
-try_throw_out(string str)
+static void try_throw_out(string str)
 {
     object ob;
 
@@ -1316,16 +1314,17 @@ try_throw_out(string str)
     start_player2(ob);
 }
 
+
 /*
  * Function name: query_race_name
  * Description  : Return the race name of this object.
  * Returns      : string - "logon".
  */
-public string
-query_race_name()
+public string query_race_name()
 {
     return "logon";
 }
+
 
 /*
  * Function name: catch_tell
@@ -1333,11 +1332,11 @@ query_race_name()
  *                the logon-player.
  * Arugments    : string msg - the text to print.
  */
-public void
-catch_tell(string msg)
+public void catch_tell(string msg)
 {
     write_socket(msg);
 }
+
 
 /*
  * Function name: queue
@@ -1345,8 +1344,7 @@ catch_tell(string msg)
  *                queue. This function is called with the answer.
  * Arguments    : string str - the answer, either 'y' or 'n'.
  */
-static void
-queue(string str)
+static void queue(string str)
 {
     int pos;
 
@@ -1392,13 +1390,13 @@ queue(string str)
     }
 }
 
+
 /*
  * Function name: who
  * Description  : Called when the player wants to see which other players
  *                are logged on.
  */
-static void
-who()
+static void who()
 {
     object  *players;
     int     index;
@@ -1445,8 +1443,7 @@ who()
  * Function name: position
  * Description  : Print the position of the player in the queue.
  */
-static void
-position()
+static void position()
 {
     int pos = QUEUE->query_position(name);
 
@@ -1463,14 +1460,14 @@ position()
     }
 }
 
+
 /*
  * Function name: waitfun
  * Description  : While the player is in the queue, the input from the
  *                player is put in this function.
  * Arguments    : string str - the input from the player.
  */
-static void
-waitfun(string str)
+static void waitfun(string str)
 {
     /* If login_flag is 2, this means that the player already queued and
      * that he/she only needs to enter a command to unidle. We don't need
@@ -1522,6 +1519,7 @@ waitfun(string str)
     }
 }
 
+
 /*
  * Function name: advance
  * Description  : When someone leaves the game or the queue, a new player
@@ -1529,8 +1527,7 @@ waitfun(string str)
  *                new queue-position or make him enter the game.
  * Arguments    : int num - if 0 the player may enter, else the new number.
  */
-public void
-advance(int num)
+public void advance(int num)
 {
     if (!CALL_BY(QUEUE))
     {
@@ -1565,24 +1562,24 @@ advance(int num)
     }
 }
 
+
 /*
  * Function name: query_login_flag
  * Description  : Returns the current login flag.
  * Returns      : int - the login flag.
  */
-public int
-query_login_flag()
+public int query_login_flag()
 {
     return login_flag;
 }
+
 
 /*
  * Function name: query_prevent_shadow
  * Description  : This function prevents shadowing of this object.
  * Returns      : int 1 - always.
  */
-nomask public int
-query_prevent_shadow()
+nomask public int query_prevent_shadow()
 {
     return 1;
 }

@@ -13,7 +13,6 @@ static void _move_hook_fun (object item, object dest)
 
 {
     object *others;
-    int i;
     string name;
 
     /* PLAIN:

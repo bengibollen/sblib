@@ -57,7 +57,7 @@ static private string   destination = DOMAIN;
 nomask static string
 player_filename(string name)
 {
-    return ("/players/" + name[0..0] + "/" + name);
+    return ("/players/" + name);
 }
 
 /*
@@ -451,7 +451,7 @@ change_directory()
     }
 
     seteuid(getuid());
-    files = get_dir("/players/" + ALPHABET[alphabet..alphabet] + "/*.o");
+    files = get_dir("/players/*.o");
     set_alarm(2.0, 0.0, change_directory);
 }
 

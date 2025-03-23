@@ -117,7 +117,7 @@ enter_game()
     string data;
     int bl;
 
-    set_screen_width(80);
+//    set_screen_width(80);
 
     bl = SECURITY->check_newplayer(query_ip_number(this_object()));
     if (bl == 0)

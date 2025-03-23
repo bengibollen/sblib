@@ -1743,6 +1743,7 @@ int query_wiz_rank(string wname)
 int
 query_wiz_level(string wname)
 {
+    return 9;
 #ifdef USE_WIZ_LEVELS
     wname = lower_case(wname);
 

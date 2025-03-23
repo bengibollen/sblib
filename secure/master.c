@@ -20,7 +20,7 @@ inherit "/secure/simul/security";
 
 // Forward declarations for functions used in config
 string load_uid(string file);
-string clone_uid(string file);
+string clone_uid(object obj, string name);
 string create_super(string file);
 string create_object(string file);
 static void save_master();
@@ -47,6 +47,8 @@ void inaugurate_master(int arg)
     // Use debug_message until logger is ready
     debug_message("\n=== Master Initialization Starting ===\n");
     debug_message(sprintf("Master object loaded (arg: %d)\n", arg));
+
+    debug_message("A password: " + crypt("kleggboll") + "\n");
     
     setup_all();
     
@@ -148,18 +150,24 @@ string get_bb_uid() {
 
 // ---------- MANDATORY: UID Management ----------
 string load_uid(string file) {
+    debug_message("Loading UID for file: " + file + "\n");
     return ROOT_UID;  // For now, everything gets ROOT uid
 }
 
-string clone_uid(string file) {
-    return ROOT_UID;  // For now, everything gets ROOT uid
+string clone_uid(object blueprint, string name) {
+    debug_message("Cloning UID for file: " + name + "\n");
+    write("UID = " + getuid(blueprint) + "\n");
+    write("Cloning UID for file: " + name + "\n");
+    return getuid(blueprint);  // For now, everything gets ROOT uid
 }
 
 string create_super(string file) {
+    debug_message("Creating super for file: " + file + "\n");
     return ROOT_UID;  // For now, everything gets ROOT uid
 }
 
 string create_object(string file) {
+    debug_message("Creating object for file: " + file + "\n");
     return ROOT_UID;  // For now, everything gets ROOT uid
 }
 

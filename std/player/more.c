@@ -41,9 +41,9 @@
 #define MORE_PROMPT   write("-- More -- " + lineno +             \
 		      ((numlines > 1) ? ("/" + numlines) : "") + \
                       " -- (<cr> t b r n a <num> q x !<cmd> h ?) -- ")
-#define MORE_DONE     if (functionp(ret_func)) { ret_func(); }
-#define MORE_INPUT    input_to(&input_to_more(, lines, filename, \
-					ret_func, first, lineno))
+#define MORE_DONE     if (closurep(ret_func)) { funcall(ret_func); }
+#define MORE_INPUT    input_to((: input_to_more($1, lines, filename, \
+					ret_func, first, lineno) :) )
 
 /*
  * Observe that the variable lineno will contain the number to the last
@@ -52,6 +52,7 @@
  * line 0 and in the file the first line is line 1, though internally the
  * file line number starts at 0 too. Confusing neh?
  */
+
 
 /*
  * Function name: input_to_more
@@ -65,9 +66,13 @@
  *                int first         - the first line to print.
  *                int lineno        - the last line printed.
  */
-static nomask void
-input_to_more(string answer, string *lines, string filename,
-	      function ret_func, int first, int lineno)
+static nomask void input_to_more(
+	string answer,
+	string *lines,
+	string filename,
+	closure ret_func,
+	int first,
+	int lineno)
 {
     int    index;
     int    pagesize;
@@ -213,6 +218,7 @@ input_to_more(string answer, string *lines, string filename,
     return;
 }
 
+
 /*
  * Function name: more
  * Description  : Call this function in a player like explained in the
@@ -229,8 +235,7 @@ input_to_more(string answer, string *lines, string filename,
  * Returns      : int 1         - always, not really necessary, but nice for
  *                                confirmation of the function call.
  */
-public nomask varargs int
-more(string arg, int start, function func)
+public nomask varargs int more(string arg, int start, closure func)
 {
     string *lines;
     string filename;

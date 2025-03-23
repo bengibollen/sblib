@@ -18,7 +18,6 @@
 static private string last_command = "";
 static private int    paused       = 0;
 static private string do_sequence  = "";
-static private int    do_alarm     = 0;
 
 /*
  * Prototypes.
@@ -37,13 +36,14 @@ static nomask int unnick(string str);
 static nomask void
 init_cmdmodify()
 {
-    add_action(alias,   "alias");
-    add_action(nick,    "nick");
-    add_action(doit,    "do");
-    add_action(resume,  "resume");
-    add_action(unalias, "unalias");
-    add_action(unnick,  "unnick");
+    add_action(#'alias,   "alias");
+    add_action(#'nick,    "nick");
+    add_action(#'doit,    "do");
+    add_action(#'resume,  "resume");
+    add_action(#'unalias, "unalias");
+    add_action(#'unnick,  "unnick");
 }
+
 
 /*
  * Function name: modify_command
@@ -53,8 +53,7 @@ init_cmdmodify()
  * Arguments    : string str - The command to modify.
  * Returns      : string     - The modified command.
  */
-nomask public string
-modify_command(string str)
+nomask public string modify_command(string str)
 {
     string *words;
     string *subst_words;
@@ -65,7 +64,7 @@ modify_command(string str)
     /* Player wants to repeat the last command. */
     if (str == "%%")
     {
- 	if (this_player()->query_option(OPT_ECHO))
+ 	if (({int}) this_player()->query_option(OPT_ECHO))
 	    write("Doing: " + last_command + "\n");
 
 	return last_command;
@@ -82,7 +81,7 @@ modify_command(string str)
 	/* If the aliased string containts the text '%%', this means to
 	 * replace that '%%' with the remaining words of the command line.
 	 */
-	if (wildmatch("*%%?*", words[0]))
+	if (strstr(words[0][..<1], "%%") != -1)
 	    subst_words = explode(words[0], "%%");
     }
 
@@ -115,14 +114,14 @@ modify_command(string str)
     return str;
 }
 
+
 /*
  * Function name: alias
  * Description  : Make an alias, or display one or all current alias(es).
  * Arguments    : string str - the command line argument.
  * Returns      : int - 1/0 - success/failure.
  */
-static nomask int
-alias(string str)
+static nomask int alias(string str)
 {
     int    index;
     int    size;
@@ -141,7 +140,7 @@ alias(string str)
     /* List all aliases. */
     if (!stringp(str))
     {
-	list = sort_array(m_indices(m_alias_list));
+	list = sort_array(m_indices(m_alias_list), #'>);
 	size = sizeof(list);
 	index = -1;
 
@@ -177,7 +176,7 @@ alias(string str)
     /* Wizard may see other people's aliases. */
     if (a == "-l")
     {
-	if (SECURITY->query_wiz_rank(query_real_name()) < WIZ_NORMAL)
+	if (({int}) SECURITY->query_wiz_rank(query_real_name()) < WIZ_NORMAL)
 	{
 	    notify_fail("You can only see your own aliases.\n");
 	    return 0;
@@ -189,8 +188,8 @@ alias(string str)
 	    return 0;
 	}
 
-	a_list = player->query_aliases();
-	list = sort_array(m_indices(a_list));
+	a_list = ({mapping}) player->query_aliases();
+	list = sort_array(m_indices(a_list), #'>);
 	size = sizeof(list);
 	index = -1;
 
@@ -220,24 +219,12 @@ alias(string str)
     return 1;
 }
 
-/*
- * Function name: remove_do_alarm
- * Description  : This is a service function. Call it to remove the do-alarm
- *                from a player if necessary.
- */
-public nomask void
-remove_do_alarm()
-{
-    remove_alarm(do_alarm);
-    do_alarm = 0;
-}
 
 /*
  * Function name: do_chain
  * Description  : Do next command in the do chain.
  */
-static nomask void
-do_chain()
+static nomask void do_chain()
 {
     int index;
     string cmd;
@@ -246,7 +233,7 @@ do_chain()
     /* Player is in combat, no do sequences allowed. */
     if (objectp(query_attack()))
     {
-	remove_alarm(do_alarm);
+	remove_call_out(#'do_chain);
 	paused = 1;
 
 	tell_object(this_object(),
@@ -275,12 +262,13 @@ do_chain()
     while (do_sequence[++index] == ' ');
     do_sequence = do_sequence[index..];
 
-    remove_alarm(do_alarm);
+    remove_call_out(#'do_chain);
     tell_object(this_object(), "Doing: " + do_sequence + "\n");
     this_object()->command(do_sequence);
     tell_object(this_object(), "Done.\n");
     do_sequence = "";
 }
+
 
 /*
  * Function name: doit
@@ -288,8 +276,7 @@ do_chain()
  * Arguments    : string str - the command line argument.
  * Returns      : int - 1/0 - success/failure.
  */
-static nomask int
-doit(string str)
+static nomask int doit(string str)
 {
     /* Access failure. You cannot be forced to 'do' anything. */
     if (this_interactive() != this_object())
@@ -306,7 +293,7 @@ doit(string str)
 
 	write("Paused the execution of \"do\".\n" +
 	      "Use \"resume\" to continue.\n");
-	remove_alarm(do_alarm);
+	remove_call_out(#'do_chain);
 	paused = 1;
 	return 1;
     }
@@ -337,10 +324,11 @@ doit(string str)
      * that to be executed immediately.
      */
     do_sequence = str;
-    do_alarm = set_alarm(0.0, 2.0, do_chain);
+    call_out(#'do_chain, 2);
 
     return 1;
 }
+
 
 /*
  * Function name: resume
@@ -348,8 +336,7 @@ doit(string str)
  * Arguments    : string str - the command line argument.
  * Returns      : int - 1/0 - success/failure.
  */
-static nomask int
-resume(string str)
+static nomask int resume(string str)
 {
     /* Access failure. You cannot be forced to resume. */
     if (this_interactive() != this_object())
@@ -380,9 +367,10 @@ resume(string str)
 
     /* Resume the 'do'. */
     paused = 0;
-    do_alarm = set_alarm(0.0, 2.0, do_chain);
+    call_out(#'do_chain, 2);
     return 1;
 }
+
 
 /*
  * Function name: unalias
@@ -390,8 +378,7 @@ resume(string str)
  * Arguments    : string str - the command line argument.
  * Returns      : int - 1/0 - success/failure.
  */
-static nomask int
-unalias(string str)
+static nomask int unalias(string str)
 {
     if (!stringp(str))
     {
@@ -410,14 +397,14 @@ unalias(string str)
     return 1;
 }
 
+
 /*
  * Function name: nick
  * Description  : Make a nick, or display one or all current nickname(s).
  * Arguments    : string str - the command line argument.
  * Returns      : int - 1/0 - success/failure.
  */
-static nomask int
-nick(string str)
+static nomask int nick(string str)
 {
     int    index;
     int    size;
@@ -434,7 +421,7 @@ nick(string str)
     /* List all nicks. */
     if (!sizeof(str))
     {
-	list = sort_array(m_indices(m_nick_list));
+	list = sort_array(m_indices(m_nick_list), #'>);
 	size = sizeof(list);
 	index = -1;
 
@@ -466,14 +453,14 @@ nick(string str)
     /* Wizard may see other people's aliases. */
     if (a == "-l")
     {
-	if (SECURITY->query_wiz_rank(query_real_name()) < WIZ_NORMAL)
+	if (({int}) SECURITY->query_wiz_rank(query_real_name()) < WIZ_NORMAL)
 	    return notify_fail("You can only see your own nicknames.\n");
 
 	if (!objectp(player = find_player(lower_case(cmd))))
 	    return notify_fail("Player "+ capitalize(cmd) +" is not present.\n");
 
-	n_list = player->query_nicks();
-	list = sort_array(m_indices(n_list));
+	n_list = ({mapping}) player->query_nicks();
+	list = sort_array(m_indices(n_list), #'>);
 	size = sizeof(list);
 	index = -1;
 
@@ -503,14 +490,14 @@ nick(string str)
     return 1;
 }
 
+
 /*
  * Function name: unnick
  * Description  : Remove a nickname.
  * Arguments    : string str - the command line argument.
  * Returns      : int - 1/0 - success/failure.
  */
-static nomask int
-unnick(string str)
+static nomask int unnick(string str)
 {
     if (!sizeof(str))
 	return notify_fail("Syntax: unnick <nickname>\n");

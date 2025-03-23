@@ -7,7 +7,7 @@
  * are defined here.
  */
 
-#include <files.h>
+#include <libfiles.h>
 #include <language.h>
 #include <log.h>
 #include <macros.h>
@@ -15,6 +15,8 @@
 #include <std.h>
 #include <options.h>
 #include <formulas.h>
+#include <config.h>
+#include <interactive_info.h>
 
 /*
  * Non-static global variables. These variables are stored in the players
@@ -78,22 +80,22 @@ nomask public int query_skill_decay();
 public varargs mixed query_introduced(mixed name);
 public int remove_introduced(string str);
 
+
 /*
  * Function name: player_save_vars_reset
  * Description  : Reset the private time-related functions.
  */
-static nomask void
-player_save_vars_reset()
+static nomask void player_save_vars_reset()
 {
     age_time = time();
 }
+
 
 /*
  * Name of the player.
  * This can only be called from player_sec.
  */
-static /* private */ nomask void
-set_name(string n)
+varargs static /* private */ nomask void set_name(string n, int noplural)
 {
     name = n;
     cap_name = capitalize(n);
@@ -101,11 +103,12 @@ set_name(string n)
     ::set_name(name);
 }
 
-static void
-add_name(mixed name)
+
+varargs static void add_name(mixed name, int noplural)
 {
     ::add_name(name);
 }
+
 
 /*
  * Function name:   master_set_name
@@ -113,8 +116,7 @@ add_name(mixed name)
  *                  function can only be called from that object.
  * Arguments:       n: name to set
  */
-nomask void
-master_set_name(string n)
+nomask void master_set_name(string n)
 {
     if (previous_object() != find_object(SECURITY))
         return;
@@ -125,16 +127,17 @@ master_set_name(string n)
     ::set_name(name);
 }
 
+
 /*
  * Function name:   remove_name
  * Description:     Remove a certain name
  * Arguments:       n: A string or a pointer of strings of names
  */
-nomask void
-remove_name(mixed n)
+nomask void remove_name(mixed n)
 {
     ::remove_name(n);
 }
+
 
 /*
  * Function name:   set_adj
@@ -145,8 +148,7 @@ remove_name(mixed n)
  * Arguments:       str: Adjectives to pass to ::set_adj() or 0.
  * Returns:         1 if setting was succesfull, 0 otherwise
  */
-public int
-set_adj(string *arr)
+public void set_adj(string *arr)
 {
     string *adj;
     int i, len;
@@ -156,47 +158,47 @@ set_adj(string *arr)
         adj = query_adj(1);
 
         if (sizeof(adj) + sizeof(arr) > 2)
-            return 0;
+            return;
 
         for (i = 0; i < sizeof(adj); i++)
             len += sizeof(adj[i]);
         for (i = 0; i < sizeof(arr); i++)
             len += sizeof(arr[i]);
         if (len > 33)
-            return 0;
+            return;
 
         ::set_adj(arr);
         adj_desc = query_adj(1);
-        return 1;
+        return;
     }
     else
         ::set_adj(adj_desc);
 
-    return 1;
 }
+
 
 /*
  * Function name:   remove_adj
  * Description:     'go through function' for removing the adjectives.
  * Arguments:       str: The adjective string to remove.
  */
-public void
-remove_adj(string str)
+public void remove_adj(string str)
 {
     ::remove_adj(str);
     adj_desc = query_adj(1);
 }
+
 
 /*
  * Function name:   query_real_name
  * Description:     Gives back the real name of a player, e.g. "fatty"
  * Returns:         The lowercased name string
  */
-nomask public string
-query_real_name()
+nomask public string query_real_name()
 {
     return name;
 }
+
 
 /*
  * Function name: query_wiz_level
@@ -212,12 +214,12 @@ query_real_name()
  *
  * Returns      : int 1/0 - wizard/mortal player.
  */
-public int
-query_wiz_level()
+public int query_wiz_level()
 {
     return 1;
 //    return (SECURITY->query_wiz_rank(query_real_name()) > WIZ_MORTAL);
 }
+
 
 /*
  * Password
@@ -229,8 +231,7 @@ query_wiz_level()
  *                and cannot be called externally.
  * Arguments    : string p - the new password string.
  */
-nomask static void
-set_password(string p)
+nomask static void set_password(string p)
 {
     password = p;
 
@@ -238,6 +239,7 @@ set_password(string p)
     password_time = time();
 #endif
 }
+
 
 /*
  * Function name: query_password
@@ -247,8 +249,7 @@ set_password(string p)
  *                password matches.
  * Returns      : string - the password.
  */
-nomask public string
-query_password()
+nomask public string query_password()
 {
     if (previous_object() != find_object(SECURITY))
     {
@@ -257,6 +258,7 @@ query_password()
 
     return password;
 }
+
 
 /*
  * Function name: match_password
@@ -267,14 +269,14 @@ query_password()
  * Arguments    : string p - the password to check.
  * Returns      : int - true/false.
  */
-nomask public int
-match_password(string p)
+nomask public int match_password(string p)
 {
     if (!sizeof(password))
         return 1;
 
     return (password == crypt(p, password));
 }
+
 
 /*
  * Function name: query_password_time
@@ -283,12 +285,12 @@ match_password(string p)
  * Returns      : int - the time.
  */
 #ifdef FORCE_PASSWORD_CHANGE
-nomask int
-query_password_time()
+nomask int query_password_time()
 {
     return password_time;
 }
 #endif
+
 
 /*
  * Function name:   set_player_file
@@ -298,17 +300,17 @@ query_password_time()
  *                    <config.h>
  * Arguments:       f: The filename-string.
  */
-nomask public void
-set_player_file(string f)
+nomask public void set_player_file(string f)
 {
     object ob;
 
     catch(f->teleledningsanka());
 
     ob = find_object(f);
-    if (ob && LOGIN_NEW_PLAYER->legal_player(ob))
+    if (ob && ({int}) LOGIN_NEW_PLAYER->legal_player(ob))
         player_file = f;
 }
+
 
 /*
  * Function name:   query_player_file
@@ -316,11 +318,11 @@ set_player_file(string f)
  *                  enters the game.
  * Returns:         The string with the filename
  */
-nomask public string
-query_player_file()
+nomask public string query_player_file()
 {
     return player_file;
 }
+
 
 /*
  * Function name:   query_auto_load
@@ -328,11 +330,11 @@ query_player_file()
  *                  when the player enters the game.
  * Returns:         An array of strings describing what objects to load.
  */
-nomask string *
-query_auto_load()
+nomask string *query_auto_load()
 {
     return auto_load;
 }
+
 
 /*
  * Function name:   query_recover_list
@@ -341,19 +343,18 @@ query_auto_load()
  * Returns:         An array of strings describing what objects to recover,
  *                    along with the
  */
-nomask string *
-query_recover_list()
+nomask string *query_recover_list()
 {
     return recover_list;
 }
+
 
 /*
  * Function name:   query_path
  * Description:     Gives back the path of the current directory.
  * Returns:         The path string
  */
-public string
-query_path()
+public string query_path()
 {
     if (path)
         return path;
@@ -362,27 +363,28 @@ query_path()
     return path;
 }
 
+
 /*
  * Function name:   query_mailaddr
  * Description:     Gives back the Email address of a player.
  * Returns:         The Email address string
  */
-public nomask string
-query_mailaddr()
+public nomask string query_mailaddr()
 {
     return mailaddr;
 }
+
 
 /*
  * Function name:   query_cap_name
  * Description:     Gives back the capitalized name of a player.
  * Returns:         The capitalized name string
  */
-public nomask string
-query_cap_name()
+public nomask string query_cap_name()
 {
     return cap_name;
 }
+
 
 /*
  * Function name:   query_default_start_location
@@ -390,11 +392,11 @@ query_cap_name()
  *                  she enters the game.
  * Returns:         The string with the filename of the startup-room.
  */
-public string
-query_default_start_location()
+public string query_default_start_location()
 {
     return default_start_location;
 }
+
 
 /*
  * Function name:   query_temp_start_location
@@ -402,12 +404,10 @@ query_default_start_location()
  *                  she enters the game.
  * Returns:         The string with the filename of the startup-room.
  */
-public nomask string
-query_temp_start_location()
+public nomask string query_temp_start_location()
 {
     return temp_start_location;
 }
-
 
 
 /*
@@ -415,8 +415,7 @@ query_temp_start_location()
  * Description:     Gives the age of the living in heart_beats.
  * Returns:         The age.
  */
-public nomask int
-query_age()
+public nomask int query_age()
 {
     age_heart += ((time() - age_time) / 2);
     age_time = time();
@@ -424,14 +423,14 @@ query_age()
     return age_heart;
 }
 
+
 #ifndef NO_SKILL_DECAY
 /*
  * Function name:   query_decay_time
  * Description:     Gives the time since last decay of skills
  * Returns:         The time.
  */
-public nomask int
-query_decay_time()
+public nomask int query_decay_time()
 {
     /* Due to a bug decay_time_acc has become negative in some players.
        This will fix that. */
@@ -448,13 +447,13 @@ query_decay_time()
     return decay_time_acc;
 }
 
+
 /*
  * Function name:   reset_decay_time
  * Description:     Reset the decay time to the remainder of time
  *                  after a full interval.
  */
-static nomask void
-reset_decay_time()
+static nomask void reset_decay_time()
 {
     /*
      * Use a loop since it the clock might have ticked untended during
@@ -472,16 +471,17 @@ reset_decay_time()
 }
 #endif
 
+
 /*
  * Function name:   query_tot_value
  * Description:     Gives back the total value of all that is carried
  * Returns:         the total carried value
  */
-public nomask int
-query_tot_value()
+public nomask int query_tot_value()
 {
     return tot_value;
 }
+
 
 /*
  * Function name:   set_auto_load
@@ -489,11 +489,11 @@ query_tot_value()
  *                  look like "<file>:<arg>".
  * Arguments:       arr: An array with autoload strings.
  */
-nomask void
-set_auto_load(string *arr)
+nomask void set_auto_load(string *arr)
 {
     auto_load = arr;
 }
+
 
 /*
  * Function name:   set_recover_list
@@ -501,30 +501,29 @@ set_auto_load(string *arr)
  *                  look like "<file>:<arg>".
  * Arguments:       arr: An array with autoload strings.
  */
-nomask void
-set_recover_list(string *arr)
+nomask void set_recover_list(string *arr)
 {
     recover_list = arr;
 }
+
 
 /*
  * Function name:   set_path
  * Description:     Sets the current path of a player.
  * Arguments:       str: Pathstring
  */
-public nomask void
-set_path(string str)
+public nomask void set_path(string str)
 {
     path = str;
 }
+
 
 /*
  * Function name:   set_mailaddr
  * Description:     Sets the Email address of a player
  * Arguments:       addr: The Email address string
  */
-public nomask void
-set_mailaddr(string addr)
+public nomask void set_mailaddr(string addr)
 {
     string *parts = explode(addr, "\n");
 
@@ -538,23 +537,24 @@ set_mailaddr(string addr)
     if (sizeof(addr) > 65)
     {
         write("Too long address. Truncated.\n");
-        addr = extract(addr, 0, 64);
+        addr = addr[..64];
     }
 
     write("Set to: " + addr + "\n");
     mailaddr = addr;
 }
 
+
 /*
  * Function name:   set_cap_name
  * Description:     Sets the capitalized name of a player. This is derived
  *                  from query_real_name(), which returns a lowercase name.
  */
-public nomask void
-set_cap_name()
+public nomask void set_cap_name()
 {
     cap_name = capitalize(query_real_name());
 }
+
 
 /*
  * Function name:   set_default_start_location
@@ -566,16 +566,16 @@ set_cap_name()
  * Returns:         0 if the string was not an accepted location,
  *                  1 when set.
  */
-public nomask int
-set_default_start_location(string str)
+public nomask int set_default_start_location(string str)
 {
     if (!query_wiz_level() &&
-        SECURITY->check_def_start_loc(str) < 0)
+        ({int}) SECURITY->check_def_start_loc(str) < 0)
         return 0;
 
     default_start_location = str;
     return 1;
 }
+
 
 /*
  * Function name:   set_temp_start_location
@@ -589,88 +589,87 @@ set_default_start_location(string str)
  * Returns:         0 if the string was not an accepted location,
  *                  1 when set.
  */
-public nomask int
-set_temp_start_location(string str)
+public nomask int set_temp_start_location(string str)
 {
-    if (sizeof(str) && (SECURITY->check_temp_start_loc(str) < 0))
+    if (sizeof(str) && (({int}) SECURITY->check_temp_start_loc(str) < 0))
         return 0;
     temp_start_location = str;
     return 1;
 }
+
 
 /*
  * Function name:   set_notify
  * Description:     Set notify status
  * Arguments:            flag - The current status
  */
-public nomask void
-set_notify(int flag)
+public nomask void set_notify(int flag)
 {
     notify = flag;
 }
+
 
 /*
  * Function name:    query_notify
  * Description:             Query the notify status
  * Returns:             The setting
  */
-public nomask int
-query_notify()
+public nomask int query_notify()
 {
     return notify;
 }
+
 
 /*
  * Function name:   set_tot_value
  * Description:     Sets the total value carried by a player
  * Arguments:       val: The carried value
  */
-static nomask void
-set_tot_value(int val)
+static nomask void set_tot_value(int val)
 {
     tot_value = val;
 }
+
 
 /*
  * Function name:   set_login_time
  * Description:     sets the time of the login
  * Arguments:       (int) t: the login time
  */
-static nomask varargs void
-set_login_time(int t = time())
+static nomask varargs void set_login_time(int t = time())
 {
     login_time = t;
 }
+
 
 /*
  * Function name:   query_login_time
  * Description:     Gives back the login-time.
  * Returns:         The login-time.
  */
-public nomask int
-query_login_time()
+public nomask int query_login_time()
 {
     return login_time;
 }
+
 
 /*
  * Function name:   set_logout_time
  * Description:     sets the time of the logout / save.
  * Arguments:       (int) t: the logout time
  */
-static nomask varargs void
-set_logout_time(int t = time())
+static nomask varargs void set_logout_time(int t = time())
 {
     logout_time = t;
 }
+
 
 /*
  * Function name:   query_logout_time
  * Description:     Gives back the logout-time.
  * Returns:         The logout-time.
  */
-public nomask int
-query_logout_time()
+public nomask int query_logout_time()
 {
     /* For the purpose of backward compatibility, we use the file time
      * if no logout_time was remembered.
@@ -678,26 +677,27 @@ query_logout_time()
     return logout_time ? logout_time : file_time(PLAYER_FILE(name) + ".o");
 }
 
+
 /*
  * Function name:   set_login_from
  * Description:     Sets from which site the player is logged in.
  */
-public nomask void
-set_login_from()
+public nomask void set_login_from()
 {
-    login_from = query_ip_name(this_object());
+    login_from = interactive_info(this_object(), II_IP_NAME);
 }
+
 
 /*
  * Function name:   query_login_from
  * Description:     shows from which site the player is logged in
  * Returns:         A string with the site name.
  */
-public nomask string
-query_login_from()
+public nomask string query_login_from()
 {
     return login_from;
 }
+
 
 /*************************************************************************
  *
@@ -713,8 +713,7 @@ query_login_from()
  * Returns:         1 if the adding was successfull,
  *                  0 otherwise.
  */
-nomask public int
-add_autoshadow(mixed shadowfile)
+nomask public int add_autoshadow(mixed shadowfile)
 {
     string *sh;
 
@@ -742,6 +741,7 @@ add_autoshadow(mixed shadowfile)
     return 1;
 }
 
+
 /*
  * Function name:   remove_autoshadow
  * Description:            Remove a shadow from the shadow list
@@ -750,8 +750,7 @@ add_autoshadow(mixed shadowfile)
  * Returns:         1 if the removing was successfull,
  *                  0 otherwise
  */
-nomask public int
-remove_autoshadow(mixed shadowfile)
+nomask public int remove_autoshadow(mixed shadowfile)
 {
     string *sh;
     int i;
@@ -772,13 +771,13 @@ remove_autoshadow(mixed shadowfile)
     return 0;
 }
 
+
 /*
  * Function name:   query_autoshadow_list
  * Description:            Gives back the list of autoshadow object filenames.
  * Returns:         The autoshadow list
  */
-nomask public string *
-query_autoshadow_list()
+nomask public string *query_autoshadow_list()
 {
     return secure_var(auto_shadow);
 }
@@ -799,8 +798,7 @@ query_autoshadow_list()
  *                  bit:   An integer 0-19
  * Returns:         1 if the bit was successfully set, 0 otherwise.
  */
-public int
-set_bit(int group, int bit)
+public int set_bit(int group, int bit)
 {
     int index, num;
     string euid;
@@ -810,14 +808,14 @@ set_bit(int group, int bit)
 
     euid = geteuid(previous_object());
 
-    num = (int)SECURITY->query_domain_number(euid); /* If euid == domain */
+    num = ({int})SECURITY->query_domain_number(euid); /* If euid == domain */
     if (num < 0)
-        num = SECURITY->query_domain_number(SECURITY->query_wiz_dom(euid));
+        num = ({int}) SECURITY->query_domain_number(({string}) SECURITY->query_wiz_dom(euid));
     if (num < 0)
         return 0;
 
     num = num * 5 + group;
-    index = member(num, bit_wizlist);
+    index = member(bit_wizlist, num);
     if (index < 0)
     {
         bit_wizlist += ({ num });
@@ -828,6 +826,7 @@ set_bit(int group, int bit)
     return 1;
 }
 
+
 /*
  * Function name:   clear_bit
  * Description:     Clear a given bit in a given group. The effective userid
@@ -837,8 +836,7 @@ set_bit(int group, int bit)
  *                  bit:   An integer 0-19
  * Returns:         1 if the bit was successfully cleared, 0 otherwise.
  */
-public int
-clear_bit(int group, int bit)
+public int clear_bit(int group, int bit)
 {
     int index, num;
     string euid;
@@ -847,20 +845,21 @@ clear_bit(int group, int bit)
         return 0;
     euid = geteuid(previous_object());
 
-    num = (int)SECURITY->query_domain_number(euid); /* If euid == domain */
+    num = ({int})SECURITY->query_domain_number(euid); /* If euid == domain */
     if (num < 0)
-        num = SECURITY->query_domain_number(SECURITY->query_wiz_dom(euid));
+        num = ({int})SECURITY->query_domain_number(({string})SECURITY->query_wiz_dom(euid));
     if (num < 0)
         return 0;
 
     num = num * 5 + group;
-    index = member(num, bit_wizlist);
+    index = member(bit_wizlist, num);
     if (index < 0)
         return 1;
 
     bit_bitlist[index] &= (0xFFFFFFFF - (1 << bit));
     return 1;
 }
+
 
 /*
  * Function name:   test_bit
@@ -870,18 +869,17 @@ clear_bit(int group, int bit)
  *                  bit:   An integer 0-19
  * Returns:         1 if the bit was set, 0 if unset or failed to test.
  */
-public int
-test_bit(string dom, int group, int bit)
+public int test_bit(string dom, int group, int bit)
 {
     int index, num;
 
     if (group < 0 || group > 4 || bit < 0 || bit > 19)
         return 0;
-    num = (int)SECURITY->query_domain_number(dom);
+    num = ({int})SECURITY->query_domain_number(dom);
     if (num < 0)
         return 0;
     num = num * 5 + group;
-    index = member(num, bit_wizlist);
+    index = member(bit_wizlist, num);
     if (index < 0)
         return 0;
 
@@ -891,13 +889,13 @@ test_bit(string dom, int group, int bit)
         return 0;
 }
 
+
 /*
  * Function name: pack_bits
  * Description  : This function packs the domain bits a player has set into
  *                a more efficient array to save memory.
  */
-public nomask void
-pack_bits()
+public nomask void pack_bits()
 {
     int index = -1;
     int size = sizeof(bit_wizlist);
@@ -909,13 +907,13 @@ pack_bits()
 		({ bit_wizlist[index] | (bit_bitlist[index] << 12) });
 }
 
+
 /*
  * Function name: unpack_bits
  * Description  : This function gets the stuffed bits out of their array
  *                and puts them in the correct arrays.
  */
-public nomask void
-unpack_bits()
+public nomask void unpack_bits()
 {
     if (!sizeof(bit_savelist))
     {
@@ -925,18 +923,18 @@ unpack_bits()
     }
     else
     {
-            bit_wizlist = map(bit_savelist, &operator(&)(, 0xFFF));
-            bit_bitlist = map(bit_savelist, &operator(>>)(, 12));
+            bit_wizlist = map(bit_savelist, (: $1 & 0xFFF :));
+            bit_bitlist = map(bit_savelist, (: $1 >> 12 :));
     }
 }
+
 
 /*
  * Function name:   set_bit_array
  * Description:     Try to set the bit array. Only the ghost_player-file is
  *                  allowed to call this function.
  */
-public void
-set_bit_array(int *arr)
+public void set_bit_array(int *arr)
 {
     if ((object_name(previous_object()) != LOGIN_NEW_PLAYER) ||
         (object_name(previous_object()) != LOGIN_TEST_PLAYER))
@@ -946,17 +944,18 @@ set_bit_array(int *arr)
     unpack_bits();
 }
 
+
 /*
  * Function name: query_bit_array
  * Description:   Gives back the global bit array of a player
  * Returns:       An array with packed bitstrings.
  */
-public int *
-query_bit_array()
+public int *query_bit_array()
 {
     pack_bits();
     return bit_savelist + ({ });
 }
+
 
 /*
  * Function name: query_aliases
@@ -964,8 +963,7 @@ query_bit_array()
  * Arguments    : mapping - the indices are the alias-names and the
  *                          values the replacements.
  */
-public mapping
-query_aliases()
+public mapping query_aliases()
 {
     if (mappingp(m_alias_list))
         return ([ ]) + m_alias_list;
@@ -973,13 +971,13 @@ query_aliases()
         return ([ ]);
 }
 
+
 /*
  * Function name: add_aliases
  * Description  : Service function to allow the mudlib to add default aliases.
  * Arguments    : mapping m - a mapping with the aliases to add.
  */
-static nomask void
-add_aliases(mapping m)
+static nomask void add_aliases(mapping m)
 {
     if (!mappingp(m))
         return;
@@ -990,20 +988,21 @@ add_aliases(mapping m)
         m_alias_list = m;
 }
 
+
 /*
  * Function name: query_nicks
  * Description  : This returns the list of nick(name)s of a player.
  * Arguments    : mapping - the indices are the namenames and the
  *                          values the replacements.
  */
-public mapping
-query_nicks()
+public mapping query_nicks()
 {
     if (mappingp(m_nick_list))
         return ([ ]) + m_nick_list;
     else
         return ([ ]);
 }
+
 
 /*
  * Function name: set_option
@@ -1012,8 +1011,7 @@ query_nicks()
  *                int val - the value to set the option to.
  * Returns      : int 1 - success, 0 - fail.
  */
-public nomask int
-set_option(int opt, int val)
+public nomask int set_option(int opt, int val)
 {
     if (!stringp(options))
         options = OPT_DEFAULT_STRING;
@@ -1047,7 +1045,7 @@ set_option(int opt, int val)
     case OPT_BRIEF:
     case OPT_ECHO:
     case OPT_NO_FIGHTS:
-    case OPT_BLOOD: /* Backward compatibility */
+//    case OPT_BLOOD: /* Backward compatibility */
     case OPT_UNARMED_OFF:
     case OPT_GAG_MISSES:
     case OPT_MERCIFUL_COMBAT:
@@ -1071,6 +1069,7 @@ set_option(int opt, int val)
     return 1;
 }
 
+
 /*
  * Function name: query_option
  * Description  : Return a player option.
@@ -1078,8 +1077,7 @@ set_option(int opt, int val)
  * Returns      : int - the value of the option, or -1 in case the option
  *                    does not exist.
  */
-public nomask int
-query_option(int opt)
+public nomask int query_option(int opt)
 {
     if (!stringp(options))
         options = OPT_DEFAULT_STRING;
@@ -1098,7 +1096,7 @@ query_option(int opt)
     case OPT_BRIEF:
     case OPT_ECHO:
     case OPT_NO_FIGHTS:
-    case OPT_BLOOD: /* Backward compatibility. */
+//    case OPT_BLOOD: /* Backward compatibility. */
     case OPT_UNARMED_OFF:
     case OPT_GAG_MISSES:
     case OPT_MERCIFUL_COMBAT:
@@ -1118,6 +1116,7 @@ query_option(int opt)
     return 0;
 }
 
+
 /*
  * Function name: set_restricted
  * Description  : Allow a player to self-impose a playing restriction. It also
@@ -1126,8 +1125,7 @@ query_option(int opt)
  *                int self - if true, then it is a self-imposed restriction.
  *                    Otherwise it is an administrative restriction.
  */
-public nomask void
-set_restricted(int seconds, int self)
+public nomask void set_restricted(int seconds, int self)
 {
     /* Self-imposed restriction. */
     if (self)
@@ -1153,14 +1151,14 @@ set_restricted(int seconds, int self)
     }
 }
 
+
 /*
  * Function name: reset_restricted
  * Description  : Reset a present restriction.
  * Arguments    : int self - if true, then it is a self-imposed restriction.
  *                    Otherwise it is an administrative restriction.
  */
-public nomask void
-reset_restricted(int self)
+public nomask void reset_restricted(int self)
 {
     /* Self-imposed restriction. */
     if (self)
@@ -1184,17 +1182,18 @@ reset_restricted(int self)
     }
 }
 
+
 /*
  * Function name: query_restricted
  * Description  : Get the time() value of the moment until which is restricted.
  * Returns      : int - the time() value of the moment, or 0. A negative value
  *                    indicates restriction by the administration.
  */
-public nomask int
-query_restricted()
+public nomask int query_restricted()
 {
     return restricted;
 }
+
 
 /*************************************************************************
  *
@@ -1208,8 +1207,7 @@ query_restricted()
  *                  remembered.
  * Returns:         The mapping with all names.
  */
-public nomask mapping
-query_remember_name()
+public nomask mapping query_remember_name()
 {
     if (mappingp(m_remember_name))
         return ([ ]) + m_remember_name;
@@ -1223,11 +1221,11 @@ query_remember_name()
  * Description:     Sets the people who are remembered by a player.
  * Arguments:       nlist: A mapping with names of remembered players
  */
-public nomask void
-set_remember_name(mapping nlist)
+public nomask void set_remember_name(mapping nlist)
 {
     m_remember_name = ([ ]) + nlist;
 }
+
 
 /*
  * Function name:   query_remembered
@@ -1237,8 +1235,7 @@ set_remember_name(mapping nlist)
  * Arguments    :   The name to check for.
  * Returns      :   True if name is remembered
  */
-public varargs mixed
-query_remembered(mixed name)
+public varargs mixed query_remembered(mixed name)
 {
     if (!mappingp(m_remember_name))
         m_remember_name = ([ ]);
@@ -1247,6 +1244,7 @@ query_remembered(mixed name)
         return m_remember_name[name];
     return ([ ]) + m_remember_name;
 }
+
 
 /*
  * Function name:   add_remembered
@@ -1257,8 +1255,7 @@ query_remembered(mixed name)
  * Returns:         -1 if at limit for remember, 0 if not introduced,
  *                  1 if remember ok, 2 if already known
  */
-public int
-add_remembered(string str)
+public int add_remembered(string str)
 {
     int max;
 
@@ -1283,6 +1280,7 @@ add_remembered(string str)
     return 1; /* Remember ok */
 }
 
+
 /*
  * Function name:   remove_remembered
  * Description:     Removes a remembered or introduced person from our list.
@@ -1290,8 +1288,7 @@ add_remembered(string str)
  * Returns:         false if the name was not introduced or remembered,
  *                  true otherwise.
  */
-public int
-remove_remembered(string name)
+public int remove_remembered(string name)
 {
     int result;
 
@@ -1323,11 +1320,11 @@ remove_remembered(string name)
  *                the whimpy status is an option.
  * Arguments    : int flag - the whimpy level. Must be in range 0-99.
  */
-public void
-set_whimpy(int flag)
+public void set_whimpy(int flag)
 {
     set_option(OPT_WHIMPY, flag);
 }
+
 
 /*
  * Function name:   set_wiz_unmet
@@ -1335,20 +1332,19 @@ set_whimpy(int flag)
  * Arguments:       flag: 1 if see as unmet, 0 if see as met, 2 see npcs as unmet.
  * Returns:         The new state
  */
-public int
-set_wiz_unmet(int flag)
+public int set_wiz_unmet(int flag)
 {
     wiz_unmet = flag;
     return wiz_unmet;
 }
+
 
 /*
  * Function name:   query_wiz_unmet
  * Description:     Returns if the wizard wants to see all as met or unmet
  * Returns:         The current state
  */
-public int
-query_wiz_unmet()
+public int query_wiz_unmet()
 {
     return wiz_unmet;
 }

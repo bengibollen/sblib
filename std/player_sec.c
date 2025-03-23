@@ -144,7 +144,7 @@ fixup_screen()
         width = 0;
     }
 
-    set_screen_width(width);
+//  set_screen_width(width);
 }
 
 #ifndef NO_SKILL_DECAY

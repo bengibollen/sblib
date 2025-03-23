@@ -14,27 +14,28 @@
 
 static string *queue_list; /* People who are queueing [for an audience] */
 
+
 /*
  * Function name:   query_npc
  * Description:     Tells if we are an npc or not
  * Returns:         0 (we aren't 8-)
  */
-nomask int
-query_npc()
+nomask int query_npc()
 {
     return 0;
 }
+
 
 /*
  * Function name:   query_average
  * Description:     Gives back the average value of all stats of a player
  * Returns:         The average
  */
-nomask int
-query_average()
+nomask int query_average()
 {
-    return this_object()->query_average_stat();
+    return ({int}) this_object()->query_average_stat();
 }
+
 
 /*
  * Function name:   query_presentation
@@ -43,8 +44,7 @@ query_average()
  *                  This should only be displayed to met players.
  * Returns:         The description string
  */
-public string
-query_presentation()
+public string query_presentation()
 {
     string str;
 
@@ -53,16 +53,17 @@ query_presentation()
 	return ::query_presentation();
     }
 
-    return SECURITY->query_wiz_pretitle(this_object()) + " " +
-	this_object()->query_name() +
+    return ({string}) SECURITY->query_wiz_pretitle(this_object()) + " " +
+	({string}) this_object()->query_name() +
 	(sizeof(str = query_title()) ? (" " + str) : "") +
-	", " + this_object()->query_gender_string() + " " +
-	this_object()->query_race_name()
+	", " + ({string}) this_object()->query_gender_string() + " " +
+	({string}) this_object()->query_race_name()
 #ifndef NO_ALIGN_TITLE
-	+ " (" + ({string})this_object()->query_al_title() + ")"
+	+ " (" + ({string}) this_object()->query_al_title() + ")"
 #endif
 	; /* Yeah, yeah, a semi-colon on a separate line isn't nice. */
 }
+
 
 /*
  * Function name:   add_queue
@@ -70,8 +71,7 @@ query_presentation()
  * Arguments:       who: A string with a player-name
  * Returns:         Number of people in the queue after addition.
  */
-public int
-add_queue(string who)
+public int add_queue(string who)
 {
     /* Kludge to fix non-initalized variables */
     if (!pointerp(queue_list))
@@ -84,6 +84,7 @@ add_queue(string who)
     return sizeof(queue_list);
 }
 
+
 /*
  * Function name:   pop_queue
  * Description:     Gives the first element of the queue with playernames and
@@ -94,8 +95,7 @@ add_queue(string who)
  * Returns:         The name that was the first element of the queue,
  *                  "" if there was no such name.
  */
-public string
-pop_queue(string who)
+public string pop_queue(string who)
 {
     string name;
     int index;
@@ -118,15 +118,15 @@ pop_queue(string who)
     return name;
 }
 
+
 /*
  * Function name:   query_queue_list
  * Description:     Return the queue list with player-names.
  * Returns:         The queue-list
  */
-public string *
-query_queue_list()
+public string *query_queue_list()
 {
-    /* Kludge to fix non-initalized variables */
+    /* Kludge to fix non-initialized variables */
     if (!pointerp(queue_list))
 	queue_list = ({});
 

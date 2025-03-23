@@ -16,9 +16,10 @@
 /*
  * Prototypes
  */
-void make_scar();
-void modify_on_death();
-int query_average();
+static void make_scar();
+static void modify_on_death();
+nomask int query_average();
+
 
 /*
  * Function name:   second_life
@@ -26,8 +27,7 @@ int query_average();
  * Arguments        object killer - the object that killed us.
  * Returns:         True if the living object should get a second life
  */
-public int
-second_life(object killer)
+public int second_life(object killer)
 {
     if (query_wiz_level())
     {
@@ -63,13 +63,13 @@ second_life(object killer)
     return 1;
 }
 
+
 /*
  * Function name:   modify_on_death
  * Description:     Modifies some values (e.g. exp, stats and hp) when a
  *                  player has died.
  */
-static void
-modify_on_death()
+static void modify_on_death()
 {
     int index = (SS_STR - 1);
     int reduce_combat, reduce_general;
@@ -106,16 +106,17 @@ modify_on_death()
     update_last_stats();
 }
 
+
 /*
  * Function name:   reincarnate
  * Description:     Manages the reincarnation of a player
  */
-public void
-reincarnate()
+public void reincarnate()
 {
     set_player_file(LOGIN_NEW_PLAYER);
     LOGIN_NEW_PLAYER->reincarnate_me();
 }
+
 
 /*
  * Function name:   remove_ghost
@@ -125,8 +126,7 @@ reincarnate()
  * Returns:         0 if the player is not a ghost
  *                  1 otherwise.
  */
-public int
-remove_ghost(int quiet)
+public int remove_ghost(int quiet)
 {
     if (!quiet && query_ghost())
     {
@@ -140,12 +140,12 @@ remove_ghost(int quiet)
     return 1;
 }
 
+
 /*
  * Function name:   make_scar
  * Description:     Add a random scar to a person.
  */
-static void
-make_scar()
+static void make_scar()
 {
     if (query_average() < 15)
         return;

@@ -8,7 +8,15 @@
 
 inherit "/std/living";
 
+/* This order is on purpose to limit the number of prototypes necessary. */
+#include "/std/player/savevars_sec.c"
+#include "/std/player/quicktyper.c"
 #include "/std/player/cmd_sec.c"
+#include "/std/player/getmsg_sec.c"
+#include "/std/player/death_sec.c"
+#include "/std/player/querys_sec.c"
+#include "/std/player/pcombat.c"
+#include "/std/player/more.c"
 
 private string name;          // Player's name
 private int state;           // Current player state
@@ -58,6 +66,7 @@ public int restore_player() {
 
 public void player_startup() {
     log_debug("Player startup initiated for: %s", query_name());
+    
     cmdhooks_reset();
     cmd_sec_reset();
 

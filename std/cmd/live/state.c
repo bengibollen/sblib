@@ -1473,7 +1473,7 @@ varargs int show_stats(string str)
     stats = ({ });
     for (i = 0; i < SS_NO_EXP_STATS; i++)
     {
-        stats += ({ GET_STAT_LEVEL_DESC(i, ob->query_stat(i)) });
+        stats += ({ GET_STAT_LEVEL_DESC(i, ({string}) ob->query_stat(i)) });
     }
     write(start_be + LANG_ADDART(COMPOSITE_WORDS(stats)) +  " " + ({string}) ob->query_nonmet_name() + ".\n");
 

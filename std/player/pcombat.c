@@ -19,6 +19,7 @@ private static object   *team_invited;	/* Array of players invited to team */
  */
 static nomask void linkdeath_remove_enemy(object enemy);
 
+
 /*
  * Function name:   team_invite
  * Description:     Invites a new member to my team. This does NOT join the
@@ -27,15 +28,14 @@ static nomask void linkdeath_remove_enemy(object enemy);
  * Arguments:	    member: The objectpointer to the invited member.
  *                          If member == 0, the invited list is cleared.
  */
-public void
-team_invite(object member)
+public void team_invite(object member)
 {
     if (!member)
     {
 	team_invited = 0;
 	return;
     }
-    if (member(member, team_invited) >= 0)
+    if (member in team_invited)
     {
 	return;
     }
@@ -50,37 +50,38 @@ team_invite(object member)
     }
 }
 
+
 /*
  * Function name:   query_invited
  * Description:     Give back an array with objects of players who are
  *                  invited.
  * Returns:         An array of objects
  */
-public object *
-query_invited()
+public object *query_invited()
 {
     if (!team_invited)
     {
         return ({ });
     }
 
-    team_invited = filter(team_invited, objectp);
+    team_invited = filter(team_invited, #'objectp);
     return ({ }) + team_invited;
 }
+
 
 /*
  * Function name:   remove_invited
  * Description:     Remove an object from the invited list.
- * Argumnents:      ob - The object to remove from the list.
+ * Arguments:      ob - The object to remove from the list.
  */
-public void
-remove_invited(object ob)
+public void remove_invited(object ob)
 {
     if (team_invited)
     {
 	team_invited -= ({ 0, ob });
     }
 }
+
 
 /*
  * Function name: attacked_by
@@ -89,25 +90,25 @@ remove_invited(object ob)
  *                linkdeath.
  * Arguments    : object attacker - who is attacking us.
  */
-public void
-attacked_by(object attacker)
+public void attacked_by(object attacker)
 {
     if (!interactive(this_object()))
     {
 	tell_object(this_object(), "You are linkdeath, so you cannot " +
 	    "be attacked by " +
-	    attacker->query_the_name(this_object()) + ".\n");
+	    ({string}) attacker->query_the_name(this_object()) + ".\n");
 	tell_object(attacker, "You are not allowed to attack " +
-	    this_object()->query_The_name(attacker) +
+	    ({string}) this_object()->query_The_name(attacker) +
 	    " since " + query_pronoun() +
 	    " is not in touch with reality.\n");
 
-	set_alarm(0.5, 0.0, &linkdeath_remove_enemy(attacker));
+	call_out((: linkdeath_remove_enemy(attacker) :), 5);
 	return;
     }
 
     ::attacked_by(attacker);
 }
+
 
 /*
  * Function name: attack_object
@@ -116,19 +117,18 @@ attacked_by(object attacker)
  *                linkdeath. Also, log when players attack each other.
  * Arguments    : object victim - the intended victim.
  */
-public void
-attack_object(object victim)
+public void attack_object(object victim)
 {
     if (!interactive(this_object()))
     {
         this_object()->catch_tell("You are linkdeath, so you cannot" +
-            " attack " + victim->query_the_name(this_object()) + ".\n");
+            " attack " + ({string}) victim->query_the_name(this_object()) + ".\n");
 
-        victim->catch_tell(this_object()->query_The_name(victim) +
+            victim->catch_tell(({string}) this_object()->query_The_name(victim) +
             " cannot attack you since " + query_pronoun() +
             " is not in touch with reality.\n");
 
-        set_alarm(0.5, 0.0, &linkdeath_remove_enemy(victim));
+        call_out((: linkdeath_remove_enemy(victim) :), 5);
         return;
     }
 
@@ -145,14 +145,15 @@ attack_object(object victim)
         log_file(LOG_PLAYERATTACKS,
             sprintf("%s %-11s (%3d) attacks %-11s (%3d)\n in %s\n",
             ctime(time()), capitalize(query_real_name()),
-            query_average_stat(), capitalize(victim->query_real_name()),
-            victim->query_average_stat(),
+            query_average_stat(), capitalize(({string}) victim->query_real_name()),
+            ({int}) victim->query_average_stat(),
             object_name(environment(this_object()))),  -1);
     }
 #endif
 
     ::attack_object(victim);
 }
+
 
 /*
  * Function name: linkdeath_remove_enemy
@@ -161,8 +162,7 @@ attack_object(object victim)
  *                enemy.
  * Arguments    : object enemy - the enemy we should not fight.
  */
-static nomask void
-linkdeath_remove_enemy(object enemy)
+static nomask void linkdeath_remove_enemy(object enemy)
 {
     this_object()->stop_fight(enemy);
     enemy->stop_fight(this_object());

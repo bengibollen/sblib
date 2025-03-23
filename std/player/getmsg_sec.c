@@ -15,6 +15,7 @@
 
 static mapping introduced_name;   /* People who introduced themselves */
 
+
 /************************************************************************
  *
  * Introduction and met routines
@@ -26,8 +27,7 @@ static mapping introduced_name;   /* People who introduced themselves */
  * Arguments:       name: Name of living or objectp of living
  * Returns:         True if we know this name otherwise false.
  */
-public int
-query_met(mixed name)
+public int query_met(mixed name)
 {
     string str;
     mapping rem;
@@ -45,17 +45,17 @@ query_met(mixed name)
     else
 	return 0;
 
-    if (name && name->query_prop(LIVE_I_NEVERKNOWN))
+    if (name && ({int}) name->query_prop(LIVE_I_NEVERKNOWN))
 	return 0;
 
-    if (name && name->query_prop(LIVE_I_ALWAYSKNOWN))
+    if (name && ({int}) name->query_prop(LIVE_I_ALWAYSKNOWN))
 	return 1;
 
     /* Wizards know everyone */
     if (query_wiz_level() > 0)
     {
 	if (query_wiz_unmet() == 0 ||
-            (query_wiz_unmet() == 2 && name && !(name->query_npc())))
+            (query_wiz_unmet() == 2 && name && !(({int}) name->query_npc())))
     	    return 1;
 	else
 	    return 0; /* Unless they have said they don't want to. */
@@ -71,13 +71,13 @@ query_met(mixed name)
 #endif
 }
 
+
 /*
  * Function name:   add_introduced
  * Description:     Add the name of a living who has introduced herself to us
  * Arguments:       str: Name of the introduced living
  */
-public void
-add_introduced(string str)
+public void add_introduced(string str)
 {
     if (query_met(str))
         return;  /* Don't add if already present */
@@ -88,13 +88,13 @@ add_introduced(string str)
     introduced_name[str] = 1;
 }
 
+
 /*
  * Function Name:   remove_introduced
  * Description  :   Removes someone from our introduce list.
  * Arguments    :   str - the name
  */
-public int
-remove_introduced(string str)
+public int remove_introduced(string str)
 {
     if (!mappingp(introduced_name))
         introduced_name = ([ ]);
@@ -106,14 +106,14 @@ remove_introduced(string str)
     return 1;
 }
 
+
 /*
  * Function name:   query_introduced
  * Description:     Return a mapping with all people we have been introduced
  *                  to during this session.
  * Returns:         The mapping with introduced people.
  */
-public varargs mixed
-query_introduced(mixed name)
+public varargs mixed query_introduced(mixed name)
 {
     if (!mappingp(introduced_name))
         introduced_name = ([ ]);
@@ -124,6 +124,7 @@ query_introduced(mixed name)
     return ([ ]) + introduced_name;
 }
 
+
 /*
  * Function name: catch_tell
  * Description  : All text printed to this living via either write() or
@@ -132,8 +133,7 @@ query_introduced(mixed name)
  *                that will send the message to the host.
  * Arguments    : string msg - the message to print.
  */
-public void
-catch_tell(string msg)
+public void catch_tell(string msg)
 {
-    write_socket(process_string(msg));
+    write(process_string(msg));
 }
