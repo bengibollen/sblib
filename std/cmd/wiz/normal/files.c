@@ -27,6 +27,7 @@
 #include <filepath.h>
 #include <language.h>
 #include <options.h>
+#include <libfiles.h>
 
 /*
  * Global variable.
@@ -122,7 +123,7 @@ multi_file(string str, int operation)
 
     /* Explode the argument and solve the tilde-path notation. */
     files = explode(str, " ") - ({ "" });
-    str = this_player()->query_path();
+    str = ({string}) this_player()->query_path();
     index = -1;
     size = sizeof(files);
     while(++index < size)
@@ -152,7 +153,7 @@ multi_file(string str, int operation)
 	str = implode(parts[..(sizeof(parts) - 2)], "/") + "/";
 
 	if (pointerp((cont = get_dir(files[index]))))
-	    source += map(cont - ({ ".", ".." }), &operator(+)(str));
+	    source += map(cont - ({ ".", ".." }), (: $1 + str :));
 	else
 	    return notify_fail(query_verb() + ": " + files[index] +
 			       ": No such file or directory.\n");
@@ -302,20 +303,20 @@ multi_file(string str, int operation)
 private void
 read_aft_file()
 {
-    string name = this_interactive()->query_real_name();
+    string name = ({string}) this_interactive()->query_real_name();
 
-    aft_tracked = read_cache(SECURITY->query_wiz_path(name) + AFT_FILE);
+    aft_tracked = read_cache(({string}) SECURITY->query_wiz_path(name) + AFT_FILE);
 
     /* No such file, set to defaults. */
     if (!sizeof(aft_tracked))
     {
-	aft_tracked = ([ ]);
-	aft_sorted = ({ });
+		aft_tracked = ([ ]);
+		aft_sorted = ({ });
     }
     else
     /* Sort the names in the mapping. */
     {
-	aft_sorted = sort_array(m_indices(aft_tracked));
+		aft_sorted = sort_array(m_indices(aft_tracked), #'>);
     }
 }
 
@@ -331,13 +332,13 @@ save_aft_file()
     if (!sizeof(aft_tracked))
     {
 	/* We do not need to appent the .o as that is done in rm_cache(). */
-	rm_cache(SECURITY->query_wiz_path(
-	    this_interactive()->query_real_name()) + AFT_FILE);
+	rm_cache(({string}) SECURITY->query_wiz_path(
+	    ({string}) this_interactive()->query_real_name()) + AFT_FILE);
 	return;
     }
 
-    save_cache(aft_tracked, (SECURITY->query_wiz_path(
-	this_interactive()->query_real_name()) + AFT_FILE));
+    save_cache(aft_tracked, (({string}) SECURITY->query_wiz_path(
+		({string}) this_interactive()->query_real_name()) + AFT_FILE));
 }
 
 /*
@@ -371,15 +372,14 @@ aft_find_file(string file)
      * statement will return a mapping with only one element if the private
      * name was indeed found.
      */
-    tmp = filter(aft_tracked,
-	&operator(==)(file, ) @ &operator([])(, AFT_PRIVATE_NAME));
+    tmp = filter(aft_tracked, (: file == $1[AFT_PRIVATE_NAME] :));
     if (sizeof(tmp))
     {
 	return m_indices(tmp)[0];
     }
 
     /* Could be the path itself. */
-    file = FTPATH(this_interactive()->query_path(), file);
+    file = FTPATH(({string}) this_interactive()->query_path(), file);
     if (pointerp(aft_tracked[file]))
     {
 	return file;
@@ -415,7 +415,7 @@ aft(string str)
     int    index = -1;
     int    flag = 0;
     int    changed;
-    string name = this_interactive()->query_real_name();
+    string name = ({string}) this_interactive()->query_real_name();
     string *files;
     mapping tmp;
 
@@ -475,7 +475,7 @@ aft(string str)
 	}
 
 	/* Mark all files as being up to date. */
-	aft_tracked = map(aft_tracked, aft_catchup_file);
+	aft_tracked = map(aft_tracked, #'aft_catchup_file);
 	save_aft_file();
 
 	write("Caught up on all files.\n");
@@ -586,7 +586,7 @@ aft(string str)
 	/* Force the wizard to use the tail command. We can force since we
 	 * have his/her euid.
 	 */
-	return this_interactive()->command("tail " + (flag ? "" : "-r ") +
+	return ({int}) this_interactive()->command("tail " + (flag ? "" : "-r ") +
 	    args[1]);
 	/* not reached */
 
@@ -600,8 +600,7 @@ aft(string str)
 
 	case 3:
 	    /* Specified a private name. See whether it is not a duplicate. */
-	    tmp = filter(aft_tracked,
-		&operator(==)(args[2], ) @ &operator([])(, AFT_PRIVATE_NAME));
+	    tmp = filter(aft_tracked, (: args[2] == $1[AFT_PRIVATE_NAME] :));
 	    if (sizeof(tmp))
 	    {
 		notify_fail("Name \"" + args[2] + "\" already used for " +
@@ -631,7 +630,7 @@ aft(string str)
 
 	/* Add the file, and mark as unread. Then save. */
 	aft_tracked[args[1]] = ({ args[2], 0 });
-	aft_sorted = sort_array(m_indices(aft_tracked));
+	aft_sorted = sort_array(m_indices(aft_tracked), #'>);
 	save_aft_file();
 
 	write("Started tracking on " + args[1] + ".\n");
@@ -666,7 +665,7 @@ aft(string str)
     case "U":
 	aft_tracked = ([ ]);
         aft_current = m_delete(aft_current,
-	    this_interactive()->query_real_name());
+			({string}) this_interactive()->query_real_name());
 	aft_sorted = ({ });
 	save_aft_file();
 
@@ -700,7 +699,7 @@ clone_message(mixed cloned)
 {
     object proj = previous_object(-1);
 
-    if (!(proj->query_wiz_level()))
+    if (!(({int}) proj->query_wiz_level()))
         return "something";
 
     if ((!stringp(cloned)) || (!sizeof(cloned)))
@@ -711,7 +710,7 @@ clone_message(mixed cloned)
     if (living(cloned))
         return ({string})cloned->query_art_name(cloned);
 
-    return (sizeof(cloned->short(cloned)) ?
+    return (sizeof(({string}) cloned->short(cloned)) ?
         LANG_ASHORT(cloned) : object_name(cloned));
 }
 
@@ -779,9 +778,9 @@ clone(string str)
 	if (!ob)
 	    return 0;
 	ob->move(this_interactive(), 1);
-	if (this_interactive()->query_option(OPT_ECHO))
+	if (({int}) this_interactive()->query_option(OPT_ECHO))
 	{
-	    desc = (living(ob) ? ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
+	    desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
 	    write("You clone " + desc + " into your inventory.\n");
 	}
 	else
@@ -798,9 +797,9 @@ clone(string str)
         /* We need to do this instead of write() because cloning a living
          * will alter this_player().
          */
-	if (this_interactive()->query_option(OPT_ECHO))
+	if (({int}) this_interactive()->query_option(OPT_ECHO))
 	{
-	    desc = (living(ob) ? ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
+	    desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
 	    this_interactive()->catch_tell("You clone " + desc +
 	        " into your environment.\n");
 	}
@@ -815,13 +814,13 @@ clone(string str)
 	if (!ob)
 	    return 0;
 
-	num = (int)ob->move(this_interactive());
+	num = ({int}) ob->move(this_interactive());
 	switch (num)
 	{
 	case 0:
-	    if (this_interactive()->query_option(OPT_ECHO))
+	    if (({int}) this_interactive()->query_option(OPT_ECHO))
 	    {
-	        desc = (living(ob) ? ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
+	        desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
 	        write("You clone " + desc + " into your inventory.\n");
 	    }
 	    else
@@ -868,10 +867,10 @@ clone(string str)
 	}
 	if (num)
 	{
-	    num = (int)ob->move(environment(this_interactive()));
-	    if (this_interactive()->query_option(OPT_ECHO))
+	    num = ({int})ob->move(environment(this_interactive()));
+	    if (({int}) this_interactive()->query_option(OPT_ECHO))
 	    {
-	        desc = (living(ob) ? ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
+	        desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
 	        write("You clone " + desc + " into your environment.\n");
 	    }
 	    else
@@ -939,8 +938,8 @@ destruct_ob(string str)
     {
 	say(QCTNAME(oblist[0]) + " is disintegrated by " +
 	    QTNAME(this_interactive()) + ".\n");
-	if (this_player()->query_option(OPT_ECHO))
-	    write("Destructed " + oblist[0]->query_the_name(this_player()) +
+	if (({int}) this_player()->query_option(OPT_ECHO))
+	    write("Destructed " + ({string}) oblist[0]->query_the_name(this_player()) +
 		  " (" + RPATH(MASTER_OB(oblist[0])) + ").\n");
 	else
 	    write("Ok.\n");
@@ -949,7 +948,7 @@ destruct_ob(string str)
     {
 	say(QCTNAME(this_interactive()) + " disintegrates " +
 	    LANG_ASHORT(oblist[0]) + ".\n");
-	if (this_player()->query_option(OPT_ECHO))
+	if (({int}) this_player()->query_option(OPT_ECHO))
 	    write("Destructed " + LANG_THESHORT(oblist[0]) + " (" +
 		  RPATH(MASTER_OB(oblist[0])) + ").\n");
 	else
@@ -1050,7 +1049,7 @@ du(string str)
 		path = str;
 	}
     }
-    p = FTPATH(this_interactive()->query_path(), path);
+    p = FTPATH(({string}) this_interactive()->query_path(), path);
 
     if (p == "/")
 	p = "";
@@ -1366,7 +1365,7 @@ makedir(string str)
 	notify_fail("Make what dir?\n");
 	return 0;
     }
-    if (mkdir(FTPATH(({string})this_interactive()->query_path(), str)))
+    if (mkdir(FTPATH(({string}) this_interactive()->query_path(), str)))
 	write("Ok.\n");
     else
 	write("Fail.\n");
@@ -1375,7 +1374,7 @@ makedir(string str)
 
 
 /* **************************************************************************
- * mv - move multiple files or a sigle directory.
+ * mv - move multiple files or a single directory.
  */
 nomask int
 mv_cmd(string str)
@@ -1400,7 +1399,7 @@ remake_object(string str)
 	notify_fail("Remake what object ?\n");
 	return 0;
     }
-    str = FTPATH(({string})this_interactive()->query_path(), str);
+    str = FTPATH(({string}) this_interactive()->query_path(), str);
     if (!sizeof(str))
     {
 	notify_fail("Invalid file name.\n");
@@ -1412,7 +1411,7 @@ remake_object(string str)
 	notify_fail("No such object loaded.\n");
 	return 0;
     }
-    inherits = SECURITY->do_debug("inherit_list", ob);
+    inherits = ({string *}) SECURITY->do_debug("inherit_list", ob);
     for (updatem = ({}), il = sizeof(inherits) - 1; il >= 0; il--)
     {
 	ob = find_object(inherits[il]);
@@ -1420,7 +1419,7 @@ remake_object(string str)
 	if (ob && (file_time(inherits[il]) > object_time(ob)))
 	    updatem += ({ inherits[il] });
 	else if (ob &&
-		 (sizeof(updatem & SECURITY->do_debug("inherit_list", ob))))
+		 (sizeof(updatem & ({string *}) SECURITY->do_debug("inherit_list", ob))))
 	    updatem += ({ inherits[il] });
     }
     for (il = 0; il < sizeof(updatem); il++)
@@ -1455,7 +1454,7 @@ removedir(string str)
 	notify_fail("Remove what dir?\n");
 	return 0;
     }
-    if (rmdir(FTPATH(({string})this_interactive()->query_path(), str)))
+    if (rmdir(FTPATH(({string}) this_interactive()->query_path(), str)))
 	write("Ok.\n");
     else
 	write("Fail.\n");
@@ -1493,7 +1492,7 @@ trust_ob(string str)
     }
 
     /* Install the euid of this player as uid in the object */
-    export_uid(ob);
+//    export_uid(ob);
     /* Activate the object */
     ob->set_trusted(1);
 
@@ -1528,11 +1527,11 @@ update_ob(string str)
 	error = 0;
 	for (i = 0; i < sizeof(obs); i++)
 	{
-	    if (obs[i]->query_default_start_location() == str)
+	    if (({string}) obs[i]->query_default_start_location() == str)
 	    {
 		error = 1;
 		write("Cannot update the start location of "
-		    + capitalize(obs[i]->query_real_name()) + ".\n");
+		    + capitalize(({string}) obs[i]->query_real_name()) + ".\n");
 	    }
 	}
 
@@ -1562,7 +1561,7 @@ update_ob(string str)
     }
     else
     {
-	str = FTPATH(({string})this_interactive()->query_path(), str);
+	str = FTPATH(({string}) this_interactive()->query_path(), str);
 	if (!sizeof(str))
 	{
 	    notify_fail("Invalid file name.\n");
@@ -1600,7 +1599,7 @@ update_ob(string str)
 
 	else if (!ob)
 	{
-	    if (this_player()->query_option(OPT_ECHO))
+	    if (({int}) this_player()->query_option(OPT_ECHO))
 		write(str + " will be reloaded at next reference.\n");
 	    else
 		write("Ok.\n");
@@ -1619,7 +1618,7 @@ update_ob(string str)
         /* Remove the binary file too. */
         SECURITY->remove_binary(MASTER);
 
-	destruct();
+	destruct(this_object());
 	return 1;
     }
     return 1;
@@ -1649,7 +1648,7 @@ dupd(string s)
 
     /* fix path */
 
-    path = FTPATH(this_interactive()->query_path(), s);
+    path = FTPATH(({string}) this_interactive()->query_path(), s);
 
     /* read directory */
 
@@ -1685,5 +1684,5 @@ nomask int
 is_player(object ob)
 {
     return (living(ob) &&
-	    !(ob->query_npc()));
+	    !(({int}) ob->query_npc()));
 }

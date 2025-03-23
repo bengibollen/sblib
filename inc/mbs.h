@@ -21,7 +21,7 @@
 /* **************************************************************
  * Make changes to your local copy in the following file
  */
-#include "/config/sys/mbs2.h"
+#include "/conf/sys/mbs2.h"
 
 /* **************************************************************
  * Making changes below this level is a genuinly bad idea, as it

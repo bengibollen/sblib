@@ -148,6 +148,8 @@ add_exit(string place, string cmd, mixed efunc, mixed tired, mixed non_obvious)
 {
     string dir;
 
+    log_debug("Adding exit: %s, with command: %s", place, cmd);
+
     /* No extra exits allowed. */
     if (query_prop(ROOM_I_NO_EXTRA_EXIT))
     {

@@ -11,6 +11,7 @@
 inherit "/std/command_driver";
 
 #include <std.h>
+#include <libfiles.h>
 
 #define CHECK_SO_WIZ 	if (WIZ_CHECK < WIZ_PILGRIM) return 0; \
 			if (this_interactive() != this_player()) return 0

@@ -102,6 +102,7 @@ public void setup_move()
 
 public void setup_filesystem() {
     configure_driver(DC_FILESYSTEM_ENCODING, "UTF-8");
+    set_driver_hook(H_FILE_ENCODING, "UTF-8");
 }
 
 public void setup_include_dirs()

@@ -135,5 +135,5 @@ query_introduced(mixed name)
 public void
 catch_tell(string msg)
 {
-    write_socket(msg);
+    write_socket(process_string(msg));
 }

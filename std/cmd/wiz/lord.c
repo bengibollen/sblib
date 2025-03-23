@@ -28,18 +28,19 @@ inherit "/std/command_driver";
 #include <std.h>
 #include <stdproperties.h>
 #include <composite.h>
+#include <libfiles.h>
 
 #define CHECK_SO_LORD 	 if (WIZ_CHECK < WIZ_LORD) return 0; \
 			 if (this_interactive() != this_player()) return 0
 #define CHECK_SO_STEWARD if (WIZ_CHECK < WIZ_STEWARD) return 0; \
 			 if (this_interactive() != this_player()) return 0
 
+
 /* **************************************************************************
  * Return a list of which souls are to be loaded.
  * The souls are listed in order of command search.
  */
-nomask string *
-get_soul_list()
+nomask string *get_soul_list()
 {
     return ({ WIZ_CMD_LORD,
 	      WIZ_CMD_NORMAL,
@@ -48,20 +49,20 @@ get_soul_list()
 	      MBS_SOUL });
 }
 
+
 /* **************************************************************************
  * Return a proper name of the soul in order to get a nice printout.
  */
-nomask string
-get_soul_id()
+nomask string get_soul_id()
 {
     return WIZNAME_LORD;
 }
 
+
 /* **************************************************************************
  * The list of verbs and functions. Please add new in alfabetical order.
  */
-nomask mapping
-query_cmdlist()
+nomask mapping query_cmdlist()
 {
     return ([
 	     "accept":"accept",
@@ -85,6 +86,7 @@ query_cmdlist()
 	     ]);
 }
 
+
 /* **************************************************************************
  * Here follows the actual functions. Please add new functions in the
  * same order as in the function name list.
@@ -93,19 +95,18 @@ query_cmdlist()
 /* **************************************************************************
  * accept - accept someone into a domain.
  */
-nomask int
-accept(string name)
+nomask int accept(string name)
 {
     CHECK_SO_STEWARD;
 
-    return SECURITY->accept_application(name);
+    return ({int}) SECURITY->accept_application(name);
 }
+
 
 /* **************************************************************************
  * demote - demote a player to a lower level.
  */
-nomask int
-demote(string str)
+nomask int demote(string str)
 {
     string name;
     int    level;
@@ -127,7 +128,7 @@ demote(string str)
     {
 #ifdef USE_WIZ_LEVELS
 	name = lower_case(name);
-	if (level >= SECURITY->query_wiz_level(name))
+	if (level >= ({int}) SECURITY->query_wiz_level(name))
 	{
 	    notify_fail("Demotions should be used to lower the level.\n");
 	    return 0;
@@ -159,51 +160,51 @@ demote(string str)
     name = lower_case(name);
     level = WIZ_R[level];
 
-    if (level >= SECURITY->query_wiz_rank(name))
+    if (level >= ({int}) SECURITY->query_wiz_rank(name))
     {
 	notify_fail("Demotions should be used to lower the rank.\n");
 	return 0;
     }
 
-    return SECURITY->wizard_change_rank(name, level);
+    return ({int}) SECURITY->wizard_change_rank(name, level);
 }
+
 
 /* **************************************************************************
  * deny - deny the request from an apprentice.
  */
-nomask int
-deny(string name)
+nomask int deny(string name)
 {
     CHECK_SO_STEWARD;
 
-    return SECURITY->deny_application(name);
+    return ({int}) SECURITY->deny_application(name);
 }
+
 
 /* **************************************************************************
  * expel - expel a wizard from a domain.
  */
-nomask int
-expel(string wizname)
+nomask int expel(string wizname)
 {
     CHECK_SO_STEWARD;
 
     /* We have to make sure the steward does not expel his Lord. */
-    if ((SECURITY->query_wiz_rank(wizname) == WIZ_LORD) &&
+    if ((({int}) SECURITY->query_wiz_rank(wizname) == WIZ_LORD) &&
 	(WIZ_CHECK == WIZ_STEWARD))
     {
 	notify_fail("You cannot expel your Lord from the domain.\n");
 	return 0;
     }
 
-    return SECURITY->expel_wizard_from_domain(wizname);
+    return ({int}) SECURITY->expel_wizard_from_domain(wizname);
 }
+
 
 /* **************************************************************************
  * liege  - send a message on the liege-line.
  * liegee - emote a message on the liege-line.
  */
-nomask int
-liege(string str)
+nomask int liege(string str)
 {
     int busy;
 
@@ -215,7 +216,7 @@ liege(string str)
         return 0;
     }
 
-    busy = this_interactive()->query_prop(WIZARD_I_BUSY_LEVEL);
+    busy = ({int}) this_interactive()->query_prop(WIZARD_I_BUSY_LEVEL);
     if (busy & BUSY_F)
     {
 	write("WARNING: You are currently 'busy F'.\n");
@@ -226,15 +227,15 @@ liege(string str)
 	this_interactive()->add_prop(WIZARD_I_BUSY_LEVEL, (busy ^ BUSY_L));
     }
 
-    return WIZ_CMD_APPRENTICE->line((WIZNAME_LORD + " " + str),
+    return ({int}) WIZ_CMD_APPRENTICE->line((WIZNAME_LORD + " " + str),
 	(query_verb() == "liegee"), BUSY_L);
 }
+
 
 /* **************************************************************************
  * limit - limit the number of players in a domain.
  */
-nomask int
-limit(string str)
+nomask int limit(string str)
 {
     string dname;
     string name;
@@ -242,8 +243,8 @@ limit(string str)
 
     CHECK_SO_LORD;
 
-    name = this_interactive()->query_real_name();
-    dname = SECURITY->query_wiz_dom(name);
+    name = ({string}) this_interactive()->query_real_name();
+    dname = ({string}) SECURITY->query_wiz_dom(name);
 
     /* No argument, default to the wizards own domain. */
     if (!stringp(str))
@@ -258,7 +259,7 @@ limit(string str)
     }
 
     /* Argument only a domain name: print the current limit for that domain. */
-    if ((max = SECURITY->query_domain_max(str)) > 0)
+    if ((max = ({int}) SECURITY->query_domain_max(str)) > 0)
     {
 	write("Maximum number of members in " + capitalize(str) + " is " +
 	    max + ".\n");
@@ -266,7 +267,7 @@ limit(string str)
     }
 
     /* Lords may only set their own domain. */
-    if (SECURITY->query_wiz_rank(name) <= WIZ_LORD)
+    if (({int}) SECURITY->query_wiz_rank(name) <= WIZ_LORD)
     {
 	if (sscanf(str, "%d", max) != 1)
 	{
@@ -274,11 +275,11 @@ limit(string str)
 	    return 0;
 	}
 
-	if ((max > SECURITY->query_domain_max(dname)) &&
-	    (max > SECURITY->query_default_domain_max()))
+	if ((max > ({int}) SECURITY->query_domain_max(dname)) &&
+	    (max > ({int}) SECURITY->query_default_domain_max()))
 	{
 	    notify_fail("You may not raise the limit beyond the default " +
-		"maximum (" + SECURITY->query_default_domain_max() + ").\n");
+		"maximum (" + ({int}) SECURITY->query_default_domain_max() + ").\n");
 	    return 0;
 	}
     }
@@ -291,22 +292,22 @@ limit(string str)
 	}
 
 	dname = capitalize(dname);
-	if (SECURITY->query_dom_num(dname) == -1)
+	if (({int}) SECURITY->query_dom_num(dname) == -1)
 	{
 	    notify_fail("No domain " + dname + ".\n");
 	    return 0;
 	}
     }
 
-    if (sizeof(SECURITY->query_domain_members(dname)) > max)
+    if (sizeof(({string *}) SECURITY->query_domain_members(dname)) > max)
     {
 	notify_fail("Cannot set the maximum to " + max + " as there are " +
-	    "already " + sizeof(SECURITY->query_domain_members(dname)) +
+	    "already " + sizeof(({string *}) SECURITY->query_domain_members(dname)) +
 	    " wizards in " + str + ".\n");
 	return 0;
     }
 
-    if (SECURITY->set_domain_max(dname, max))
+    if (({int}) SECURITY->set_domain_max(dname, max))
     {
 	write("Maximum number of wizards for " + dname + " set to " + max +
 	    ".\n");
@@ -320,11 +321,11 @@ limit(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * mentor - handle the mentor settings in a wizard
  */
-nomask int
-mentor_fun(string arg)
+nomask int mentor_fun(string arg)
 {
     string *args, *wlist;
     string student, mentor;
@@ -344,78 +345,85 @@ mentor_fun(string arg)
 
     if (!sizeof(arg))
     {
-	wlist = sort_array(filter(SECURITY->query_wiz_list(-1),
-				  &operator(!=)(0) @ sizeof @ SECURITY->query_students));
-	for (i = 0, sz = sizeof(wlist) ; i < sz ; i++)
-	    write(sprintf("%-11s%-11s- ", capitalize(wlist[i]), SECURITY->query_wiz_dom(wlist[i])) + COMPOSITE_WORDS(map(sort_array(SECURITY->query_students(wlist[i])), capitalize)) + ".\n");
+		wlist = sort_array(filter(({string *}) SECURITY->query_wiz_list(-1),
+		(: sizeof(({string *}) SECURITY->query_students($1)) != 0 :)), #'>);
 
-	return 1;
+		for (i = 0, sz = sizeof(wlist) ; i < sz ; i++)
+		{
+			write(sprintf("%-11s%-11s- ", capitalize(wlist[i]),
+				({string}) SECURITY->query_wiz_dom(wlist[i])) +
+					COMPOSITE_WORDS(map(sort_array(({string *}) SECURITY->query_students(wlist[i]), #'>), #'capitalize)) + ".\n");
+		}			
+		return 1;
     }
     else
     {
 	if (sscanf(arg, "assign %s to %s", student, mentor) == 2)
 	{
-	    if (SECURITY->query_wiz_rank(student) < WIZ_NORMAL)
+	    if (({int}) SECURITY->query_wiz_rank(student) < WIZ_NORMAL)
 	    {
 		notify_fail("mentor: The student must at least be a full wizard.\n");
 		return 0;
 	    }
 
-	    if (SECURITY->query_wiz_rank(mentor) < WIZ_NORMAL)
+	    if (({int}) SECURITY->query_wiz_rank(mentor) < WIZ_NORMAL)
 	    {
 		notify_fail("mentor: The mentor must at least be a full wizard.\n");
 		return 0;
 	    }
 
 	    if ((WIZ_CHECK < WIZ_ARCH)
-		&& ((SECURITY->query_wiz_dom(student) !=
-		     SECURITY->query_wiz_dom(mentor)) &&
-		    SECURITY->query_wiz_rank(mentor) < WIZ_ARCH))
+		&& (({string}) SECURITY->query_wiz_dom(student) !=
+		     ({string}) SECURITY->query_wiz_dom(mentor)) &&
+		    (({int}) SECURITY->query_wiz_rank(mentor) < WIZ_ARCH))
 	    {
 		notify_fail("mentor: The mentor and student must be in the same domain.\n");
 		return 0;
 	    }
 
-	    if (sizeof(SECURITY->query_mentor(student)) > 0)
+	    if (sizeof(({string}) SECURITY->query_mentor(student)) > 0)
 	    {
 		notify_fail("mentor: The student already has an assigned mentor.\n");
 		return 0;
 	    }
 
-	    if (sizeof(SECURITY->query_mentor(mentor)) >  0)
+	    if (sizeof(({string}) SECURITY->query_mentor(mentor)) >  0)
 	    {
 		notify_fail("mentor: The intended mentor actually is a student.\n");
 		return 0;
 	    }
 
-	    if (member(student, SECURITY->query_students(mentor)) >= 0)
+	    if (student in ({string *}) SECURITY->query_students(mentor))
 	    {
-		notify_fail("mentor: The student already is assigned to the mentor.\n");
-		return 0;
+			notify_fail("mentor: The student already is assigned to the mentor.\n");
+			return 0;
 	    }
 
-	    if (SECURITY->add_student(mentor, student) == 0)
+	    if (({int}) SECURITY->add_student(mentor, student) == 0)
 	    {
-		notify_fail("mentor: Assigning the student to the mentor failed.\n");
-		return 0;
+			notify_fail("mentor: Assigning the student to the mentor failed.\n");
+			return 0;
 	    }
-	    if (objectp(pl = find_player(student)))
-            {
-		tell_object(pl, "You have been assigned as student to " + capitalize(mentor) + ".\n");
-            }
-	    if (SECURITY->set_mentor(mentor, student) == 0)
+
+		if (objectp(pl = find_player(student)))
+		{
+			tell_object(pl, "You have been assigned as student to " + capitalize(mentor) + ".\n");
+		}
+
+		if (({int}) SECURITY->set_mentor(mentor, student) == 0)
 	    {
-		notify_fail("mentor: Assigning the mentor to the student failed.\n");
-		return 0;
+			notify_fail("mentor: Assigning the mentor to the student failed.\n");
+			return 0;
 	    }
-	    if (objectp(pl = find_player(mentor)))
-            {
-		tell_object(pl, "You have been assigned as mentor to " + capitalize(student) + ".\n");
-            }
+
+		if (objectp(pl = find_player(mentor)))
+		{
+			tell_object(pl, "You have been assigned as mentor to " + capitalize(student) + ".\n");
+		}
 	}
 	else if (sscanf(arg, "graduate %s from %s", student, mentor) == 2)
 	{
-	    if (SECURITY->set_mentor("none", student) == 0)
+	    if (({int}) SECURITY->set_mentor("none", student) == 0)
 	    {
 		notify_fail("mentor: Removing the mentor from the student failed.\n");
 		err = 1;
@@ -424,7 +432,7 @@ mentor_fun(string arg)
             {
 		tell_object(pl, "You have been graduated from " + capitalize(mentor) + ".\n");
             }
-	    if (SECURITY->remove_student(mentor, student) == 0)
+	    if (({int}) SECURITY->remove_student(mentor, student) == 0)
 	    {
 		notify_fail("mentor: Removing the student from the mentor failed.\n");
 		err = 1;
@@ -439,7 +447,7 @@ mentor_fun(string arg)
 	}
 	else if (sscanf(arg, "clear %s from %s", student, mentor) == 2)
 	{
-	    if (SECURITY->set_mentor("none", student) == 0)
+	    if (({int}) SECURITY->set_mentor("none", student) == 0)
 	    {
 		notify_fail("mentor: Removing the mentor from the student failed.\n");
 		err = 1;
@@ -448,7 +456,7 @@ mentor_fun(string arg)
             {
 		tell_object(pl, "The mentor entry for \"" + capitalize(mentor) + "\" has been stricken.\n");
             }
-	    if (SECURITY->remove_student(mentor, student) == 0)
+	    if (({int}) SECURITY->remove_student(mentor, student) == 0)
 	    {
 		notify_fail("mentor: Removing the student from the mentor failed.\n");
 		err = 1;
@@ -473,11 +481,11 @@ mentor_fun(string arg)
     return 1;
 }
 
+
 /* **************************************************************************
  * promote - promote a wizard to a higher level.
  */
-nomask int
-promote(string str)
+nomask int promote(string str)
 {
     string name;
     int    level;
@@ -499,13 +507,13 @@ promote(string str)
     {
 #ifdef USE_WIZ_LEVELS
 	name = lower_case(name);
-	if (level <= SECURITY->query_wiz_level(name))
+	if (level <= ({int}) SECURITY->query_wiz_level(name))
 	{
 	    notify_fail("Promotions should be used to raise the level.\n");
 	    return 0;
 	}
 
-	return SECURITY->wizard_change_level(name, level);
+	return ({int}) SECURITY->wizard_change_level(name, level);
 #else
         notify_fail("Wizard levels are not supported right now.\n");
         return 0;
@@ -531,20 +539,20 @@ promote(string str)
     name = lower_case(name);
     level = WIZ_R[level];
 
-    if (level <= SECURITY->query_wiz_rank(name))
+    if (level <= ({int}) SECURITY->query_wiz_rank(name))
     {
 	notify_fail("Promotions should be used to raise the rank.\n");
 	return 0;
     }
 
-    return SECURITY->wizard_change_rank(name, level);
+    return ({int}) SECURITY->wizard_change_rank(name, level);
 }
+
 
 /* **************************************************************************
  * short - set the short name of a domain.
  */
-nomask int
-short(string str)
+nomask int short(string str)
 {
     string dname;
     string name;
@@ -553,8 +561,8 @@ short(string str)
 
     CHECK_SO_LORD;
 
-    name = this_interactive()->query_real_name();
-    dname = SECURITY->query_wiz_dom(name);
+    name = ({string}) this_interactive()->query_real_name();
+    dname = ({string}) SECURITY->query_wiz_dom(name);
 
     if (!stringp(str))
     {
@@ -567,14 +575,14 @@ short(string str)
 	str = dname;
     }
 
-    if (sizeof(sname = SECURITY->query_domain_short(str)))
+    if (sizeof(sname = ({string}) SECURITY->query_domain_short(str)))
     {
 	write("Short name of " + dname + " is " + sname + ".\n");
 	return 1;
     }
 
     /* Lords may only set their own domain. */
-    if (SECURITY->query_wiz_rank(name) == WIZ_LORD)
+    if (({int}) SECURITY->query_wiz_rank(name) == WIZ_LORD)
     {
 	sname = str;
     }
@@ -587,7 +595,7 @@ short(string str)
 	}
 
 	dname = capitalize(dname);
-	if (SECURITY->query_dom_num(dname) == -1)
+	if (({int}) SECURITY->query_dom_num(dname) == -1)
 	{
 	    notify_fail("No domain " + dname + ".\n");
 	    return 0;
@@ -602,14 +610,14 @@ short(string str)
     }
 
     /* Don't set the name if that name is already in use. */
-    if (sizeof(filter(SECURITY->query_domain_list(),
-	&operator(==)(sname) @ SECURITY->query_domain_short)))
+    if (sizeof(filter(({string *}) SECURITY->query_domain_list(),
+	(: sname == ({string}) SECURITY->query_domain_short($1) :))))
     {
 	notify_fail("The domain short name " + sname + " is already used.\n");
 	return 0;
     }
 
-    if (SECURITY->set_domain_short(dname, sname))
+    if (({string}) SECURITY->set_domain_short(dname, sname))
     {
 	write("Short name for " + dname + " set to " + sname + ".\n");
     }
@@ -622,11 +630,11 @@ short(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * startloc - handle starting locations
  */
-nomask int
-startloc(string str)
+nomask int startloc(string str)
 {
     string *sstr;
     int what;
@@ -677,7 +685,7 @@ startloc(string str)
 	{
 	    write("Default start locations:\n");
 	    write(sprintf("%-*#s\n", 76,
-                implode(sort_array(SECURITY->query_list_def_start(str)),
+                implode(sort_array(({string *}) SECURITY->query_list_def_start(str), #'>),
                 "\n")) + "\n");
 	}
 
@@ -686,7 +694,7 @@ startloc(string str)
 	{
 	    write("Temporary start locations:\n");
 	    write(sprintf("%-*#s\n", 76,
-                implode(sort_array(SECURITY->query_list_temp_start(str)),
+                implode(sort_array(({string *}) SECURITY->query_list_temp_start(str), #'>),
                 "\n")) + "\n");
 	}
 	break;
@@ -697,9 +705,9 @@ startloc(string str)
 	    return 0;
 	}
 
-        if (extract(sstr[2], -2) == ".c")
+        if (sstr[2][<2..] == ".c")
         {
-            sstr[2] = extract(sstr[2], 0, -3);
+            sstr[2] = sstr[2][..<3];
         }
 
 	switch(sstr[1])

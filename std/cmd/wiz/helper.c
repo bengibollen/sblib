@@ -19,6 +19,7 @@ inherit "/std/command_driver";
 #include <macros.h>
 #include <std.h>
 #include <composite.h>
+#include <libfiles.h>
 
 public nomask mixed compile_dates(int back);
 public nomask void find_log(mixed data);
@@ -26,7 +27,7 @@ public nomask void find_log(mixed data);
 #define ELOG_REPEAT_TIME	2.0
 #define ELOG_NUM_REPEATS	50
 
-#define ALLOWED_LIEGE_COMMANDS ({ "pinfo" })
+// #define ALLOWED_LIEGE_COMMANDS ({ "pinfo" })
 #define PINFO_EDIT_DONE     "pinfo_edit_done"
 #define PINFO_WRITE_DONE    "pinfo_write_done"
 
@@ -38,12 +39,12 @@ public nomask void find_log(mixed data);
 private static mapping pinfo_edit = ([ ]);
 private static mapping elog_mess = ([]);
 
+
 /*
  * Function name: create
  * Description  : Constructor. Called at creation.
  */
-nomask void
-create()
+nomask void create()
 {
     string *lines;
     int    index;
@@ -52,6 +53,7 @@ create()
     SECURITY->set_helper_soul_euid();
 }
 
+
 /*
  * Function name: get_soul_id
  * Description  : Return a proper name of the soul in order to get a nice
@@ -59,33 +61,33 @@ create()
  *                command.
  * Returns      : string - the name.
  */
-nomask string
-get_soul_id()
+nomask string get_soul_id()
 {
     return "helper";
 }
+
 
 /*
  * Function name: query_cmd_soul
  * Description  : Identify this as a command soul.
  * Returns      : int 1 - always.
  */
-nomask int
-query_cmd_soul()
+nomask int query_cmd_soul()
 {
     return 1;
 }
+
 
 /*
  * Function name: using_soul
  * Description  : Called when a wizard hooks onto the soul.
  * Arguments    : object wizard - the wizard hooking onto the soul.
  */
-public void
-using_soul(object wizard)
+public void using_soul(object wizard)
 {
     SECURITY->set_helper_soul_euid();
 }
+
 
 /*
  * Function name: query_cmdlist
@@ -93,8 +95,7 @@ using_soul(object wizard)
  *                alphabetical order.
  * Returns      : mapping - ([ "verb" : "function name" ])
  */
-nomask mapping
-query_cmdlist()
+nomask mapping query_cmdlist()
 {
     return ([
 	"elog":"elog",
@@ -103,6 +104,7 @@ query_cmdlist()
         ]);
 }
 
+
 /*
  * Function name: valid_user
  * Description  : Tests whether a particular wizard may use a the command.
@@ -110,11 +112,10 @@ query_cmdlist()
  *                this_interactive() and query_verb().
  * Returns      : int 1/0 - allowed/disallowed.
  */
-nomask int
-valid_user()
+nomask int valid_user()
 {
     string verb = query_verb();
-    string name = this_interactive()->query_real_name();
+    string name = ({string}) this_interactive()->query_real_name();
 
     /* No name, or no verb, no show. */
     if (!sizeof(verb) ||
@@ -123,7 +124,7 @@ valid_user()
 	return 0;
     }
 
-    switch(SECURITY->query_wiz_rank(name))
+    switch(({int}) SECURITY->query_wiz_rank(name))
     {
     case WIZ_ARCH:
     case WIZ_KEEPER:
@@ -142,8 +143,8 @@ valid_user()
 
     default:
 	/* Wizard may have been allowed on the commands. */
-	if (SECURITY->query_team_member("aod", name) ||
-	    SECURITY->query_team_member("aop", name))
+	if (({string}) SECURITY->query_team_member("aod", name) ||
+	    ({string}) SECURITY->query_team_member("aop", name))
 	{
 	    /* Set the euid of the object right. */
 	    return 1;
@@ -154,6 +155,7 @@ valid_user()
     return 0;
 }
 
+
 /* ***************************************************************************
  *  elog - Examine the login log
  */
@@ -163,10 +165,10 @@ valid_user()
  * Description  : Examine the login log
  * Arguments	: arg - arguments
  */
-public nomask int
-elog(string arg)
+public nomask int elog(string arg)
 {
-    string *args = ({ "" }), who = this_interactive()->query_real_name();
+    string *args = ({ "" });
+    string who = ({string}) this_interactive()->query_real_name();
     string *loggers;
     int i, sz;
     mixed data;
@@ -186,9 +188,9 @@ elog(string arg)
 	return 0;
     }
 
-    // Make sure the private dir exists
-    if (file_size(SECURITY->query_wiz_path(who) + "/private") == -1)
-	mkdir(SECURITY->query_wiz_path(who) + "/private");
+	// Make sure the private dir exists
+	if (file_size(({string}) SECURITY->query_wiz_path(who) + "/private") == -1)
+		mkdir(({string}) SECURITY->query_wiz_path(who) + "/private");
 
     switch (args[0])
     {
@@ -216,7 +218,7 @@ elog(string arg)
     case "":
 	loggers = m_indices(elog_mess);
 	if ((sz = sizeof(loggers)))
-		write("Active searches from " +  COMPOSITE_WORDS(map(loggers, capitalize)) + ".\n");
+		write("Active searches from " +  COMPOSITE_WORDS(map(loggers, #'capitalize)) + ".\n");
 	else
 	    write("No active searches.\n");
 	break;
@@ -234,8 +236,10 @@ elog(string arg)
 	    break;
 	}
 	data = compile_dates(to_int(args[2]));
-	elog_mess[who] = ({ set_alarm(ELOG_REPEAT_TIME, 0.0, &find_log(({ who, 0, args[1] }) + ({ data }) + ({ 0 }))) });
-	write_file(SECURITY->query_wiz_path(who) + "/private/ENTER_SEARCH", "Search started " + ctime(time()) + "\n");
+
+//	call_out((: find_log(({ who, 0, args[1] }) + ({ data }) + ({ 0 })) :), ELOG_REPEAT_TIME);
+
+	write_file(({string}) SECURITY->query_wiz_path(who) + "/private/ENTER_SEARCH", "Search started " + ctime(time()) + "\n");
 	break;
 
 	// Do a name search
@@ -246,7 +250,7 @@ elog(string arg)
 	    return 0;
 	}
 	args[0] = lower_case(args[0]);
-	if (!SECURITY->exist_player(args[0]))
+	if (!({int}) SECURITY->exist_player(args[0]))
 	{
 	    notify_fail("The player " + capitalize(args[0]) + " doesn't exist.\n");
 	    return 0;
@@ -257,8 +261,9 @@ elog(string arg)
 	    break;
 	}
 	data = compile_dates(to_int(args[1]));
-	elog_mess[who] = ({ set_alarm(ELOG_REPEAT_TIME, 0.0, &find_log(({ who, 1, capitalize(args[0]) }) + ({ data }) + ({ 0 }))) });
-	write_file(SECURITY->query_wiz_path(who) + "/private/ENTER_SEARCH", "Search started " + ctime(time()) + "\n");
+
+//	call_out((: find_log(({ who, 1, capitalize(args[0]) }) + ({ data }) + ({ 0 })) :), ELOG_REPEAT_TIME);
+	write_file(({string}) SECURITY->query_wiz_path(who) + "/private/ENTER_SEARCH", "Search started " + ctime(time()) + "\n");
 	break;
     }
 
@@ -266,14 +271,14 @@ elog(string arg)
     return 1;
 }
 
+
 /*
  * Function name: compile_dates
  * Description  : Compile a list of dates going backwards in time
  * Arguments	: back - where to start
  * Returns	: A list of decreasing dates.
  */
-public nomask mixed
-compile_dates(int back)
+public nomask mixed compile_dates(int back)
 {
     int date;
     mixed rval = ({});
@@ -290,13 +295,13 @@ compile_dates(int back)
     return rval;
 }
 
+
 /*
  * Function name: find_log
  * Description  : The actual routine grepping the logs
  * Arguments	: data - a list of search data.
  */
-public nomask void
-find_log(mixed data)
+public nomask void find_log(mixed data)
 {
     string ldata;
     mixed args = ({ data[0], data[1], data[2] });
@@ -309,60 +314,67 @@ find_log(mixed data)
     // Handle any messages
     if (sizeof(elog_mess[args[0]]) > 1)
     {
-	switch(elog_mess[args[0]][1])
-	{
-	case "break":
-	    write_file(SECURITY->query_wiz_path(args[0]) + "/private/ENTER_SEARCH", "Search broken " + ctime(time()) + "\n");
-	    if (objectp(pl))
-		pl->catch_msg("Search broken.\n");
-	    elog_mess = m_delete(elog_mess, args[0]);
-	    break;
+		switch(elog_mess[args[0]][1])
+		{
+			case "break":
+				write_file(({string}) SECURITY->query_wiz_path(args[0]) + "/private/ENTER_SEARCH", "Search broken " + ctime(time()) + "\n");
+				if (objectp(pl))
+				{
+					pl->catch_msg("Search broken.\n");
+				}
+				elog_mess = m_delete(elog_mess, args[0]);
+				break;
+				
+			case "status":
+				if (objectp(pl))
+				{
+					pl->catch_msg("Status: File date " + mdate[0] + ", Line " + mline + ".\n");
+				}
+				elog_mess[args[0]] = ({ elog_mess[args[0]][0] });
+				break;
 
-	case "status":
-	    if (objectp(pl))
-		pl->catch_msg("Status: File date " + mdate[0] + ", Line " + mline + ".\n");
-	    elog_mess[args[0]] = ({ elog_mess[args[0]][0] });
-	    break;
-
-	default:
-	    break;
-	}
+			default:
+				break;
+		}
     }
 
     for (i = mline ; i < mline + ELOG_NUM_REPEATS ; i++)
     {
-	ldata = read_file("/syslog/log/enter/ENTER." + mdate[0], i, 1);
-	if (!sizeof(ldata))
-	    break;
+		ldata = read_file("/syslog/log/enter/ENTER." + mdate[0], i, 1);
+		if (!sizeof(ldata))
+			break;
 
-	fdate = ldata[0..23];
-	fwho = explode(ldata[25..35], " ")[0];
-	frest = (explode(ldata[38..], " ") - ({""})) + ({" "});
-	fwhat = frest[0];
-	fsite = frest[1][0..(sizeof(frest[1]) - 2)];
+		fdate = ldata[0..23];
+		fwho = explode(ldata[25..35], " ")[0];
+		frest = (explode(ldata[38..], " ") - ({""})) + ({" "});
+		fwhat = frest[0];
+		fsite = frest[1][0..(sizeof(frest[1]) - 2)];
 
-	if (fwhat == "login")
-	{
-	    if ((args[1] == 0 && wildmatch(args[2], fsite)) ||
-		(args[1] == 1 && fwho == args[2]))
-		write_file(SECURITY->query_wiz_path(args[0]) + "/private/ENTER_SEARCH", sprintf("%-10s : ", fwho) + fdate + " : " + fsite + "\n");
-	}
+		if (fwhat == "login")
+		{
+			if ((args[1] == 0 && strstr(fsite, args[2])) ||
+				(args[1] == 1 && fwho == args[2]))
+			{
+				write_file(({string}) SECURITY->query_wiz_path(args[0]) + "/private/ENTER_SEARCH", sprintf("%-10s : ", fwho) + fdate + " : " + fsite + "\n");
+			}
+		}
     }
 
     if (!stringp(ldata))
     {
-	mdate = mdate[1..];
-	mline = 0;
+		mdate = mdate[1..];
+		mline = 0;
     }
     else
-	mline += ELOG_NUM_REPEATS;
+		mline += ELOG_NUM_REPEATS;
 
     if (sizeof(mdate))
-	elog_mess[args[0]] = ({ set_alarm(ELOG_REPEAT_TIME, 0.0, &find_log(args + ({ mdate, mline }))) });
+		return;
+//	elog_mess[args[0]] = ({ set_alarm(ELOG_REPEAT_TIME, 0.0, &find_log(args + ({ mdate, mline }))) });
     else
     {
-	elog_mess = m_delete(elog_mess, args[0]);
-	write_file(SECURITY->query_wiz_path(args[0]) + "/private/ENTER_SEARCH", "Search finished " + ctime(time()) + "\n");
+		elog_mess = m_delete(elog_mess, args[0]);
+		write_file(({string}) SECURITY->query_wiz_path(args[0]) + "/private/ENTER_SEARCH", "Search finished " + ctime(time()) + "\n");
     }
 }
 
@@ -378,26 +390,27 @@ find_log(mixed data)
  *		  who - whom to edit
  *		  name - the name to add/remove
  */
-public void
-patch_second(int what, string who, string name)
+public void patch_second(int what, string who, string name)
 {
     string file = PLAYER_FILE(who);
+	string data;
     mapping plmap;
-    string query = this_interactive()->query_real_name();
+    string query = ({string}) this_interactive()->query_real_name();
 
-    if (!SECURITY->exist_player(who))
+    if (!({int}) SECURITY->exist_player(who))
     {
         return;
     }
 
-    if (SECURITY->query_wiz_rank(query) < WIZ_ARCH)
+    if (({int}) SECURITY->query_wiz_rank(query) < WIZ_ARCH)
     {
         write("This command is not available for non-arches when the " +
             "player is not present in the realms.\n");
         return;
     }
 
-    plmap = restore_map(file);
+	data = read_file(file);
+    plmap = restore_value(data);
 
     if (!sizeof(plmap["m_seconds"]))
     {
@@ -418,15 +431,16 @@ patch_second(int what, string who, string name)
     SECURITY->log_syslog(LOG_SECONDS, (ctime(time()) + " " + capitalize(query) + (what == 1 ? " added " : " removed ") + capitalize(name) + (what == 1 ? " to " : " from ") + capitalize(who) + ".\n"));
 #endif
 
-    save_map(plmap, file);
+	data = save_value(plmap);
+    write_file(file, data);
 }
+
 
 /*
  * Function name: msecond
  * Description  : modify seconds entry in mortal
  */
-public int
-msecond(string str)
+public int msecond(string str)
 {
     string *slist, *args = ({});
     int i, sz;
@@ -457,12 +471,12 @@ msecond(string str)
 	    msecond("");
 	    return 0;
 	}
-	if (!SECURITY->exist_player(args[1]))
+	if (!({int}) SECURITY->exist_player(args[1]))
 	{
 	    notify_fail("The player " + capitalize(args[1]) + " does not exist.\n");
 	    return 0;
 	}
-	if (!SECURITY->exist_player(args[3]))
+	if (!({int}) SECURITY->exist_player(args[3]))
 	{
 	    notify_fail("The player " + capitalize(args[3]) + " does not exist.\n");
 	    return 0;
@@ -472,9 +486,9 @@ msecond(string str)
 
 	// Make a list of all seconds who need to be notified/added
 	if (!objectp(plob = find_player(args[3])))
-	    plob = SECURITY->finger_player(args[3]);
-	slist = ({ args[3] }) + plob->query_seconds();
-	if (plob->query_finger_player())
+	    plob = ({object}) SECURITY->finger_player(args[3]);
+	slist = ({ args[3] }) + ({string *}) plob->query_seconds();
+	if (({object}) plob->query_finger_player())
 	{
 	    plob->remove_object();
 	}
@@ -502,7 +516,7 @@ msecond(string str)
 		patch_second(1, args[1], slist[i]);
 	}
 
-	write("Added second " + capitalize(args[1]) + " to " + COMPOSITE_WORDS(map(slist, capitalize)) + ".\n");
+	write("Added second " + capitalize(args[1]) + " to " + COMPOSITE_WORDS(map(slist, #'capitalize)) + ".\n");
 	break;
 
     case "r":
@@ -512,7 +526,7 @@ msecond(string str)
 	    msecond("");
 	    return 0;
 	}
-	if (!SECURITY->exist_player(args[3]))
+	if (!({int}) SECURITY->exist_player(args[3]))
 	{
 	    notify_fail("The player " + capitalize(args[3]) + " does not exist.\n");
 	    return 0;
@@ -521,10 +535,10 @@ msecond(string str)
 	// Make a list of all seconds who need to be notified/removed
 	if (!objectp(plob = find_player(args[3])))
 	{
-	    plob = SECURITY->finger_player(args[3]);
+	    plob = ({object}) SECURITY->finger_player(args[3]);
 	}
-	slist = ({ args[3] }) + plob->query_seconds();
-	if (plob->query_finger_player())
+	slist = ({ args[3] }) + ({string *}) plob->query_seconds();
+	if (({object}) plob->query_finger_player())
 	{
 	    plob->remove_object();
 	}
@@ -533,9 +547,9 @@ msecond(string str)
 	for (i = 0, sz = sizeof(slist) ; i < sz ; i++)
 	{
 	    if (objectp(plob = find_player(slist[i])))
-		plob->remove_second(args[1]);
+			plob->remove_second(args[1]);
 	    else
-		patch_second(0, slist[i], args[1]);
+			patch_second(0, slist[i], args[1]);
 	}
 
 	// Then remove the reverse (all seconds from the first name)
@@ -543,12 +557,12 @@ msecond(string str)
 	for (i = 0, sz = sizeof(slist) ; i < sz ; i++)
 	{
 	    if (objectp(plob))
-		plob->remove_second(slist[i]);
+			plob->remove_second(slist[i]);
 	    else
-		patch_second(0, args[1], slist[i]);
+			patch_second(0, args[1], slist[i]);
 	}
 
-	write("Removed second " + capitalize(args[1]) + " from " + COMPOSITE_WORDS(map(slist, capitalize)) + ".\n");
+	write("Removed second " + capitalize(args[1]) + " from " + COMPOSITE_WORDS(map(slist, #'capitalize)) + ".\n");
 	break;
 
     default:
@@ -557,17 +571,17 @@ msecond(string str)
 	    msecond("");
 	    return 0;
 	}
-	if (!SECURITY->exist_player(args[0]))
+	if (!({int}) SECURITY->exist_player(args[0]))
 	{
 	    notify_fail("The player " + capitalize(args[0]) + " does not exist.\n");
 	    return 0;
 	}
 	if (!objectp(plob = find_player(args[0])))
 	{
-	    plob = SECURITY->finger_player(args[0]);
+	    plob = ({object}) SECURITY->finger_player(args[0]);
 	}
 	str = args[0];
-	args = sort_array(plob->query_seconds());
+	args = sort_array(({string *}) plob->query_seconds(), #'>);
 
 	if (!sizeof(args))
 	{
@@ -580,11 +594,11 @@ msecond(string str)
 	    {
 		if (i > 0)
 		    write("          : ");
-		info = plob->query_second_info(args[i]);
+		info = ({mixed}) plob->query_second_info(args[i]);
 		write(sprintf("%-10s added %s by %s\n", capitalize(args[i]), ctime(info[1]), capitalize(info[0])));
 	    }
 	}
-	if (plob->query_finger_player())
+	if (({object}) plob->query_finger_player())
 	{
 	    plob->remove_object();
 	}
@@ -592,6 +606,7 @@ msecond(string str)
     }
     return 1;
 }
+
 
 /* ***************************************************************************
  *  pinfo - Edit/view the information file on a player.
@@ -603,10 +618,9 @@ msecond(string str)
  *                the text for the file on the player.
  * Arguments    : string text - the text to add to the file.
  */
-public void
-pinfo_write_done(string text)
+public void pinfo_write_done(string text)
 {
-    string wname = this_player()->query_real_name();
+    string wname = ({string}) this_player()->query_real_name();
 
     if (MASTER_OB(previous_object()) != EDITOR_OBJECT)
     {
@@ -634,15 +648,16 @@ pinfo_write_done(string text)
     if(file_size(dir) == -1) { mkdir(dir); }
     dir += "/pinfo";
     if(file_size(dir) == -1) { mkdir(dir); }
-    dir += "/" + extract(pinfo_edit[wname], 0, 0);
+    dir += "/" + pinfo_edit[wname][0];
     if(file_size(dir) == -1) { mkdir(dir); }
 
     write_file(pinfo_edit[wname], ctime(time()) + " " + capitalize(wname) +
-	       " (" + capitalize(WIZ_RANK_NAME(SECURITY->query_wiz_rank(wname))) +
+	       " (" + capitalize(WIZ_RANK_NAME(({int}) SECURITY->query_wiz_rank(wname))) +
 	       "):\n" + text + "\n");
     pinfo_edit = m_delete(pinfo_edit, wname);
     write("Information saved.\n");
 }
+
 
 /*
  * Function name: pinfo_edit_done
@@ -650,10 +665,9 @@ pinfo_write_done(string text)
  *                the text for the file on the player.
  * Arguments    : string text - the text to add to the file.
  */
-public void
-pinfo_edit_done(string text)
+public void pinfo_edit_done(string text)
 {
-    string wname = this_player()->query_real_name();
+    string wname = ({string}) this_player()->query_real_name();
 
     if (MASTER_OB(previous_object()) != EDITOR_OBJECT)
     {
@@ -681,25 +695,25 @@ pinfo_edit_done(string text)
     if(file_size(dir) == -1) { mkdir(dir); }
     dir += "/pinfo";
     if(file_size(dir) == -1) { mkdir(dir); }
-    dir += "/" + extract(pinfo_edit[wname], 0, 0);
+    dir += "/" + pinfo_edit[wname][0];
     if(file_size(dir) == -1) { mkdir(dir); }
 
     rm(pinfo_edit[wname]);
     write_file(pinfo_edit[wname], text + "\n" + ctime(time()) + " " +
 	       capitalize(wname) + " (" +
-	       capitalize(WIZ_RANK_NAME(SECURITY->query_wiz_rank(wname))) +
+	       capitalize(WIZ_RANK_NAME(({int}) SECURITY->query_wiz_rank(wname))) +
 	       "):\nRe-edited the previous text.\n\n");
     pinfo_edit = m_delete(pinfo_edit, wname);
     write("Information saved.\n");
 }
 
-nomask int
-pinfo(string str)
+
+nomask int pinfo(string str)
 {
     string *args;
     string name;
-    string wname = this_player()->query_real_name();
-    int    rank = SECURITY->query_wiz_rank(wname);
+    string wname = ({string}) this_player()->query_real_name();
+    int    rank = ({int}) SECURITY->query_wiz_rank(wname);
     string cmd;
     string text;
     string file;
@@ -739,14 +753,14 @@ pinfo(string str)
 
     case WIZ_LORD:
         /* Can handle their subject wizards. */
-	if ((SECURITY->query_wiz_dom(wname) ==
-	     SECURITY->query_wiz_dom(name)) &&
-	    (SECURITY->query_wiz_rank(name) < rank))
+	if ((({string}) SECURITY->query_wiz_dom(wname) ==
+	     ({string}) SECURITY->query_wiz_dom(name)) &&
+	    (({int}) SECURITY->query_wiz_rank(name) < rank))
 	{
 	    break;
 	}
         /* Can handle apprentices and retired wizards. */
-        if (SECURITY->query_wiz_rank(name) < WIZ_NORMAL)
+        if (({int}) SECURITY->query_wiz_rank(name) < WIZ_NORMAL)
         {
             break;
         }
@@ -755,7 +769,7 @@ pinfo(string str)
 
     default:
         /* May not handle wizards here. */
-	if (SECURITY->query_wiz_rank(name))
+	if (({int}) SECURITY->query_wiz_rank(name))
 	{
 	    write("You may not handle the file on " + capitalize(name) +
 		  " as that player is a wizard.\n");
@@ -851,21 +865,17 @@ pinfo(string str)
 
 	if (sizeof(text))
 	{
-	    if (sizeof(text) > 75)
-	    {
-		text = break_string(text, 75);
-	    }
 
-            /* Make sure the directories leading to the file are there */
-            string dir = "/players";
-            if(file_size(dir) == -1) { mkdir(dir); }
-            dir += "/pinfo";
-            if(file_size(dir) == -1) { mkdir(dir); }
-            dir += "/" + extract(name, 0, 0);
-            if(file_size(dir) == -1) { mkdir(dir); }
+		/* Make sure the directories leading to the file are there */
+		string dir = "/players";
+		if(file_size(dir) == -1) { mkdir(dir); }
+		dir += "/pinfo";
+		if(file_size(dir) == -1) { mkdir(dir); }
+		dir += "/" + (string) name[0];
+		if(file_size(dir) == -1) { mkdir(dir); }
 
 	    write_file(file, ctime(time()) + " " + capitalize(wname) + " (" +
-		       capitalize(WIZ_RANK_NAME(SECURITY->query_wiz_rank(wname))) +
+		       capitalize(WIZ_RANK_NAME(({int}) SECURITY->query_wiz_rank(wname))) +
 		       "):\n" + text + "\n\n");
 	}
 	else

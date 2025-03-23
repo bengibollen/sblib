@@ -4,7 +4,7 @@
  * Holds all textual descriptions used in /std/living
  *
  * Note that local changes to these are done in
- * /config/sys/living_desc2.h
+ * /conf/sys/living_desc2.h
  */
 
 #ifndef LD_DEFINED

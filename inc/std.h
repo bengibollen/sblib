@@ -131,7 +131,7 @@
  * player, to be checked against WIZ_NORMAL, WIZ_ARCH etcetera.
  */
 #define WIZ_CHECK \
-    (SECURITY->query_wiz_rank(this_interactive()->query_real_name()))
+    (({int}) SECURITY->query_wiz_rank(({string}) this_interactive()->query_real_name()))
 
 /*
  * WIZ_RANK_POSSIBLE_CHANGE(rank)
@@ -220,7 +220,7 @@
  * special protocol using the udp messages.
  *
  * The default server is defined as Genesis below. You can change this in
- * your /config/sys/local.h by undefining and redefining this symbol.
+ * your /conf/sys/local.h by undefining and redefining this symbol.
  */
 #define MUDLIST_SERVER ({ "129.16.227.203", 2501 })
 

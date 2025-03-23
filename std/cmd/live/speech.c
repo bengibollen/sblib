@@ -856,6 +856,8 @@ varargs int say_text(string str, string adverb = "")
 {
     mixed tmp;
 
+    log_debug("Someone says: %s", str);
+
     if (!sizeof(str))
     {
         notify_fail("What do you wish to say?\n");

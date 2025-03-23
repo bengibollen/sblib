@@ -4,7 +4,7 @@
    Holds all textual descriptions of state descriptions of livings.
 
    Note that local changes to these arrays are done in
-   /config/sys/state_desc2.h
+   /conf/sys/state_desc2.h
 */
 
 #ifndef SD_DEFINED

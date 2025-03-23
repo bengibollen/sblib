@@ -111,7 +111,7 @@ find_item(object prev, string str)
 	return ob;
     }
 
-    tmp = FTPATH(this_interactive()->query_path() + "/", str);
+    tmp = FTPATH(({string}) this_interactive()->query_path() + "/", str);
     if (sizeof(tmp))
     {
 	catch(call_other(tmp, "??"));	/* Force load */
@@ -136,9 +136,9 @@ assign(string var, mixed val)
     mixed *stores, *snew;
 
     if (!pointerp((vars =
-		   (string *)this_interactive()->query_prop(TRACER_VARS))))
+		   ({string *})this_interactive()->query_prop(TRACER_VARS))))
 	vars = ({});
-    if (!pointerp((stores = (mixed *)this_interactive()->query_prop(TRACER_STORES))))
+    if (!pointerp((stores = ({mixed *})this_interactive()->query_prop(TRACER_STORES))))
 	stores = ({});
 
     set = 0;
@@ -184,8 +184,8 @@ get_assign(string var)
     mixed  *stores, *vars, rval = 0;
     int i, sz;
 
-    vars = this_interactive()->query_prop(TRACER_VARS);
-    stores = this_interactive()->query_prop(TRACER_STORES);
+    vars = ({mixed *}) this_interactive()->query_prop(TRACER_VARS);
+    stores = ({mixed *}) this_interactive()->query_prop(TRACER_STORES);
 
     if (var[0] == '$')
     {
@@ -273,7 +273,7 @@ print_value(mixed ret)
     {
 	write(to_string(ret) + "\n");
     }
-    else if (functionp(ret))
+    else if (closurep(ret))
     {
 	write(sprintf("%O\n", ret));
     }
@@ -299,7 +299,7 @@ fix_one_arg(string what)
 
     if (sscanf(what, "({%s})", apa) == 1)
     {
-	return map(explode(apa + ",", ","), fix_one_arg);
+	return map(explode(apa + ",", ","), #'fix_one_arg);
     }
     if (sscanf(what, "%d", narg) == 1)
     {
@@ -323,5 +323,5 @@ fix_one_arg(string what)
 mixed
 parse_arg(string what)
 {
-    return map(explode(what + "%%", "%%"), fix_one_arg);
+    return map(explode(what + "%%", "%%"), #'fix_one_arg);
 }

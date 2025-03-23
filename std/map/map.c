@@ -1,6 +1,6 @@
 inherit "/std/object.c";
 
-#include "/config/sys/map_defines.h"
+#include "/conf/sys/map_defines.h"
 #include "/secure/std.h"
 
 int out_of_bounds(int x, int y, int xw, int yw);

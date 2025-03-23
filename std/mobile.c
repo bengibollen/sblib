@@ -250,6 +250,10 @@ catch_vbfc(mixed str, object from_player = 0)
 public void
 catch_msg(mixed str, object from_player = 0)
 {
+    log_debug("Function: mobile:catch_msg");
+    log_debug("Raw string: %s", str);
+    log_debug("Processed string: %s", process_string(str));
+
     catch_vbfc(str, from_player);
 }
 

@@ -51,11 +51,11 @@
 #pragma no_inherit
 #pragma strict_types
 
-inherit "/cmd/std/tracer_tool_base.c";
+inherit "/std/cmd/std/tracer_tool_base.c";
 
 #include <cmdparse.h>
 #include <composite.h>
-#include <files.h>
+#include <libfiles.h>
 #include <filter_funs.h>
 #include <formulas.h>
 #include <language.h>
@@ -64,7 +64,7 @@ inherit "/cmd/std/tracer_tool_base.c";
 #include <ss_types.h>
 #include <std.h>
 #include <stdproperties.h>
-#include <time.h>
+#include <libtime.h>
 #include <options.h>
 #include <living_desc.h>
 
@@ -75,10 +75,10 @@ inherit "/cmd/std/tracer_tool_base.c";
 /* Prototype for finger() because it is used in line() in communication.c */
 nomask int finger(string str);
 
-#include "/cmd/wiz/apprentice/communication.c"
-#include "/cmd/wiz/apprentice/files.c"
-#include "/cmd/wiz/apprentice/manual.c"
-#include "/cmd/wiz/apprentice/people.c"
+#include "/std/cmd/wiz/apprentice/communication.c"
+#include "/std/cmd/wiz/apprentice/files.c"
+#include "/std/cmd/wiz/apprentice/manual.c"
+#include "/std/cmd/wiz/apprentice/people.c"
 
 /* **************************************************************************
  * At creation, the save-file of the soul is restored.
@@ -86,8 +86,7 @@ nomask int finger(string str);
 nomask void
 create()
 {
-    setuid();
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     restore_object(WIZ_CMD_APPRENTICE);
 
@@ -243,13 +242,13 @@ adjdesc(string str)
         parts = explode(str + " ", " ");
         if (pl = find_player(parts[0]))
         {
-            write(pl->query_name() + "'s 'nonmet name' is: " +
-                  pl->query_nonmet_name() + "\n");
+            write(({string}) pl->query_name() + "'s 'nonmet name' is: " +
+                  ({string}) pl->query_nonmet_name() + "\n");
             return 1;
         }
-        old = (string *)this_interactive()->query_adj(1);
+        old = ({string *}) this_interactive()->query_adj(1);
         this_interactive()->remove_adj(old);
-        if (!(this_interactive()->set_adj(parts)))
+        if (!(({int}) this_interactive()->set_adj(parts)))
         {
             notify_fail("Too many words (max 2) or too long string " +
                         "(< 35 chars total).\n");
@@ -259,7 +258,7 @@ adjdesc(string str)
     }
 
     write("Your 'nonmet name' is: " +
-          this_interactive()->query_nonmet_name() + "\n");
+          ({string}) this_interactive()->query_nonmet_name() + "\n");
 
     return 1;
 }
@@ -286,7 +285,7 @@ print_soul_list(string *soul_list, string soul)
 
     while(++index < size)
     {
-        soul_id = soul_list[index]->get_soul_id();
+        soul_id = ({string}) soul_list[index]->get_soul_id();
         if (sizeof(soul) &&
             (soul != soul_id))
         {
@@ -294,7 +293,7 @@ print_soul_list(string *soul_list, string soul)
         }
 
         write("----- " + capitalize(soul_id) + ":\n");
-        list = m_indices(soul_list[index]->query_cmdlist());
+        list = m_indices(({mapping}) soul_list[index]->query_cmdlist());
 
         /* To print the list of this soul, don't list the lines.
         if (soul == get_soul_id())
@@ -304,7 +303,7 @@ print_soul_list(string *soul_list, string soul)
 
         if (sizeof(list))
         {
-            write(break_string(implode(sort_array(list), ", "), 76) + "\n");
+            write(implode(sort_array(list, #'>), ", ") + "\n");
         }
     }
 }
@@ -360,14 +359,14 @@ allcmd(string soul)
          * in the inventory.
          */
         write("----- Base:\n");
-        write(break_string(implode(ob->local_cmd(), ", "), 76) + "\n");
+        write(implode(({string *}) ob->local_cmd(), ", ") + "\n");
     }
 
     soul = (specific ? soul : "");
 
-    print_soul_list(ob->query_wizsoul_list(), soul);
-    print_soul_list(ob->query_tool_list(),    soul);
-    print_soul_list(ob->query_cmdsoul_list(), soul);
+    print_soul_list(({string *}) ob->query_wizsoul_list(), soul);
+    print_soul_list(({string *}) ob->query_tool_list(),    soul);
+    print_soul_list(({string *}) ob->query_cmdsoul_list(), soul);
 
     return 1;
 }
@@ -384,7 +383,7 @@ altitle(string t)
     if (!stringp(t))
     {
         write("Your alignment title is '" +
-              this_interactive()->query_al_title() + "'.\n");
+            ({string}) this_interactive()->query_al_title() + "'.\n");
         return 1;
     }
     this_interactive()->set_al_title(t);
@@ -401,7 +400,7 @@ applications(string domain)
 {
     CHECK_SO_WIZ;
 
-    return SECURITY->list_applications(domain);
+    return ({int}) SECURITY->list_applications(domain);
 }
 
 /* **************************************************************************
@@ -412,7 +411,7 @@ apply(string domain)
 {
     CHECK_SO_WIZ;
 
-    return SECURITY->apply_to_domain(domain);
+    return ({int}) SECURITY->apply_to_domain(domain);
 }
 
 /* **************************************************************************
@@ -454,7 +453,7 @@ bit(string args)
 
     if (argc == 5)
     {
-        if (SECURITY->query_wiz_rank(this_player()->query_real_name()) <
+        if (({int}) SECURITY->query_wiz_rank(({string}) this_player()->query_real_name()) <
             WIZ_ARCH)
         {
             notify_fail("You are not allowed to give a domain name as " +
@@ -464,17 +463,13 @@ bit(string args)
         }
 
         argv[2] = capitalize(argv[2]);
-        if (SECURITY->query_domain_number(argv[2]) == -1)
+        if (({int}) SECURITY->query_domain_number(argv[2]) == -1)
         {
             notify_fail("There is no domain named '" + argv[2] + "'.\n");
             return 0;
         }
 
-        if (!seteuid(argv[2]))
-        {
-            write("Failed to set euid to " + argv[2] + ".\n");
-            return 1;
-        }
+        configure_object(this_object(), OC_EUID, argv[2]);
 
         write("Euid changed to " + argv[2] + " for bit operation!\n");
         argv = exclude_array(argv, 2, 2);
@@ -495,7 +490,7 @@ bit(string args)
             write("Syntax error. Check with the help text.\n");
             return 1;
         }
-        if (!(player->set_bit(group, bit)))
+        if (!(({int}) player->set_bit(group, bit)))
         {
             write("You were not allowed to set bit " + group + ":" + bit +
                   " in " + capitalize(argv[1]) + ".\n");
@@ -517,7 +512,7 @@ bit(string args)
             write("Syntax error. Check with the help text.\n");
             return 1;
         }
-        if (!(player->clear_bit(group, bit)))
+        if (!(({int}) player->clear_bit(group, bit)))
         {
             write("You were not allowed to clear bit " + group + ":" + bit +
                   " in " + capitalize(argv[1]) + ".\n");
@@ -542,7 +537,7 @@ bit(string args)
             index2 = -1;
             while(++index2 < 20)
             {
-                if (player->test_bit(argv[2], index, index2))
+                if (({int}) player->test_bit(argv[2], index, index2))
                 {
                     result += " " + index + ":" + index2;
                 }
@@ -575,7 +570,7 @@ club(string str)
 {
     CHECK_SO_WIZ;
 
-    return SECURITY->guild_command(str);
+    return ({int}) SECURITY->guild_command(str);
 }
 
 /* **************************************************************************
@@ -586,7 +581,7 @@ domainsanction(string str)
 {
     CHECK_SO_WIZ;
 
-    return SECURITY->domainsanction(str);
+    return ({int}) SECURITY->domainsanction(str);
 }
 
 /* **************************************************************************
@@ -607,8 +602,8 @@ finger_domain(string domain)
     string path;
     int    size;
 
-    names = (string *)SECURITY->query_domain_members(domain);
-    name = SECURITY->query_domain_lord(domain);
+    names = ({string *})SECURITY->query_domain_members(domain);
+    name = ({string}) SECURITY->query_domain_lord(domain);
     if (sizeof(name))
     {
         write("The Liege of " + domain + " is " + capitalize(name));
@@ -619,7 +614,7 @@ finger_domain(string domain)
         write("The domain " + domain + " has no Liege");
     }
 
-    name = SECURITY->query_domain_steward(domain);
+    name = ({string}) SECURITY->query_domain_steward(domain);
     if (sizeof(name))
     {
         write(", " + capitalize(name) + " is the steward.\n");
@@ -636,14 +631,14 @@ finger_domain(string domain)
     }
     else
     {
-        names = sort_array(map(names, capitalize));
+        names = sort_array(map(names, #'capitalize), #'>);
         write("The domain has " + LANG_WNUM(sizeof(names)) + " member" +
               ((sizeof(names) == 1) ? "" : "s") + ": " +
               COMPOSITE_WORDS(names) + ".\n");
     }
 
-    size = SECURITY->query_domain_max(domain) -
-        sizeof(SECURITY->query_domain_members(domain));
+    size = ({int}) SECURITY->query_domain_max(domain) -
+        sizeof(({string *}) SECURITY->query_domain_members(domain));
     if (!size)
     {
         write("There are no vacancies.\n");
@@ -654,7 +649,7 @@ finger_domain(string domain)
               ((size == 1) ? " vacancy" : " vacancies") + ".\n");
     }
 
-    path = SECURITY->query_wiz_path(domain) + "/open/finger_info";
+    path = ({string}) SECURITY->query_wiz_path(domain) + "/open/finger_info";
     if (file_size(path) > 0)
     {
         write("--------- Special domain supplied info:\n" +
@@ -717,7 +712,7 @@ finger_player(string name, int show_long)
     }
     else
     {
-        player = SECURITY->finger_player(name);
+        player = ({object}) SECURITY->finger_player(name);
         write(capitalize(name) + " is not in the game.\n");
         real = 0;
     }
@@ -725,29 +720,29 @@ finger_player(string name, int show_long)
     /* Display the long description of the player. */
     if (show_long)
     {
-        write(player->long());
+        write(({string}) player->long());
     }
     else
     {
         write(LD_PRESENT_TO(player));
     }
 
-    pronoun = ((this_player()->query_real_name() == name) ? "You are " :
-               capitalize(player->query_pronoun()) + " is ");
+    pronoun = ((({string}) this_player()->query_real_name() == name) ? "You are " :
+               capitalize(({string}) player->query_pronoun()) + " is ");
 
     /* Display the rank/level of the player. */
-    if (SECURITY->query_wiz_rank(name) >= WIZ_APPRENTICE)
+    if (({int}) SECURITY->query_wiz_rank(name) >= WIZ_APPRENTICE)
     {
         line = pronoun +
-            LANG_ADDART(WIZ_RANK_NAME(SECURITY->query_wiz_rank(name))) +
+            LANG_ADDART(WIZ_RANK_NAME(({int}) SECURITY->query_wiz_rank(name))) +
 #ifdef USE_WIZ_LEVELS
-            " (level " + SECURITY->query_wiz_level(name) + ")" +
+            " (level " + ({int}) SECURITY->query_wiz_level(name) + ")" +
 #endif
             ", set by " +
-            (sizeof(str = SECURITY->query_wiz_chl(name)) ?
+            (sizeof(str = ({string}) SECURITY->query_wiz_chl(name)) ?
              capitalize(str) : "root");
 #ifdef FOB_KEEP_CHANGE_TIME
-        line += ((chtime = SECURITY->query_wiz_chl_time(name)) ?
+        line += ((chtime = ({int}) SECURITY->query_wiz_chl_time(name)) ?
              (" on " + ctime(chtime)) : "");
 #endif
         line += ".";
@@ -757,55 +752,55 @@ finger_player(string name, int show_long)
         line = pronoun + "a mortal player.";
     }
     /* Display pinfo hint to those who have a need to know. */
-    pinfo = (WIZ_CMD_HELPER->valid_user() && (file_size(PINFO_FILE(name)) > 0));
+    pinfo = (({int}) WIZ_CMD_HELPER->valid_user() && (file_size(PINFO_FILE(name)) > 0));
     line += (pinfo ? " PInfo available." : "") + "\n";
     write(line);
 
     /* Display the domain the player is in. */
-    if (sizeof(domain = SECURITY->query_wiz_dom(name)))
+    if (sizeof(domain = ({string}) SECURITY->query_wiz_dom(name)))
     {
         write(pronoun +
-              ((SECURITY->query_wiz_rank(name) == WIZ_LORD) ? "Liege" :
+              ((({int}) SECURITY->query_wiz_rank(name) == WIZ_LORD) ? "Liege" :
                "a member") + " of the domain " + domain + ", added by " +
-              (sizeof(str = SECURITY->query_wiz_chd(name)) ?
+              (sizeof(str = ({string}) SECURITY->query_wiz_chd(name)) ?
                capitalize(str) : "root") +
 #ifdef FOB_KEEP_CHANGE_TIME
-              ((chtime = SECURITY->query_wiz_chd_time(name)) ?
+              ((chtime = ({int}) SECURITY->query_wiz_chd_time(name)) ?
                (" on " + ctime(chtime)) : "") +
 #endif
               ".\n");
     }
 
     /* Arch team memberships. */
-    if (sizeof(names = SECURITY->query_team_membership(name)))
+    if (sizeof(names = ({string *}) SECURITY->query_team_membership(name)))
     {
-        names = sort_array(names);
+        names = sort_array(names, #'>);
         write("Arch team membership" +
             ((sizeof(names) == 1) ? "" : "s") + ": " +
-            COMPOSITE_WORDS(map(names, capitalize)) + ".\n");
+            COMPOSITE_WORDS(map(names, #'capitalize)) + ".\n");
     }
 
     /* Display the seconds the player has listed. */
-    if (sizeof(names = SECURITY->query_seconds(name)))
+    if (sizeof(names = ({string *}) SECURITY->query_seconds(name)))
     {
-        names = map(names, map_interactive_seconds);
+        names = map(names, #'map_interactive_seconds);
         write("Listed second" + ((sizeof(names) == 1) ? "" : "s") + ": " +
-            COMPOSITE_WORDS(map(names, capitalize)) + ".\n");
+            COMPOSITE_WORDS(map(names, #'capitalize)) + ".\n");
     }
 
     /* Display mentor information */
-    if (sizeof(str = SECURITY->query_mentor(player->query_real_name())))
+    if (sizeof(str = ({string}) SECURITY->query_mentor(player->query_real_name())))
     {
         write("Registered mentor: " + capitalize(str) + "\n");
     }
-    if (sizeof(names = SECURITY->query_students(player->query_real_name())))
+    if (sizeof(names = ({string *}) SECURITY->query_students(player->query_real_name())))
     {
         write("Registered student" + ((sizeof(names) == 1) ? "" : "s") + ": " +
-            COMPOSITE_WORDS(map(sort_array(names), capitalize)) + ".\n");
+            COMPOSITE_WORDS(map(sort_array(names, #'>), #'capitalize) ) + ".\n");
     }
 
     /* Display suspension / self-restriction information. */
-    if (restricted = player->query_restricted())
+    if (restricted = ({int}) player->query_restricted())
     {
         /* Negative means administrative restriction. */
         if (restricted < 0)
@@ -815,8 +810,8 @@ finger_player(string name, int show_long)
         }
         else
         {
-            write(capitalize(player->query_pronoun()) + " has restricted " +
-                player->query_objective() + "self from playing until " +
+            write(capitalize(({string}) player->query_pronoun()) + " has restricted " +
+                ({string}) player->query_objective() + "self from playing until " +
                 ctime(restricted) + ".\n");
         }
     }
@@ -825,32 +820,32 @@ finger_player(string name, int show_long)
     if (real)
     {
         write(pronoun + "logged on for " +
-            CONVTIME(time() - player->query_login_time()) +
-            (SECURITY->valid_query_ip(geteuid(), player) ?
-            (" from " + player->query_login_from() +
-            SITEBAN_SUFFIXES[SECURITY->check_newplayer(player->query_login_from())]) :
+            CONVTIME(time() - ({int}) player->query_login_time()) +
+            (({int}) SECURITY->valid_query_ip(geteuid(), player) ?
+            (" from " + ({string}) player->query_login_from() +
+            SITEBAN_SUFFIXES[({int}) SECURITY->check_newplayer(({string}) player->query_login_from())]) :
             ".") + "\n");
         if (interactive(player))
         {
-            if (query_idle(player) > 0)
+            if (interactive_info(player, II_IDLE) > 0)
             {
-                write("Idle time: " + CONVTIME(query_idle(player)) + ".\n");
+                write("Idle time: " + CONVTIME(interactive_info(player, II_IDLE)) + ".\n");
             }
         }
         else
         {
             write(pronoun + "link dead for " +
-                CONVTIME(time() - player->query_linkdead()) + ".\n");
+                CONVTIME(time() - ({int}) player->query_linkdead()) + ".\n");
         }
     }
     else
     {
-        write("Last login " + CONVTIME(time() - player->query_login_time()) +
-            " ago" + (SECURITY->valid_query_ip(geteuid(), player) ?
-            (" from " + player->query_login_from() +
-            SITEBAN_SUFFIXES[SECURITY->check_newplayer(player->query_login_from())]) :
+        write("Last login " + CONVTIME(time() - ({int}) player->query_login_time()) +
+            " ago" + (({int}) SECURITY->valid_query_ip(geteuid(), player) ?
+            (" from " + ({string}) player->query_login_from() +
+            SITEBAN_SUFFIXES[({int}) SECURITY->check_newplayer(({string}) player->query_login_from())]) :
             ".") + "\n");
-        chtime = player->query_logout_time() - player->query_login_time();
+        chtime = ({int}) player->query_logout_time() - ({int}) player->query_login_time();
         if (chtime < 86400) /* 24 hours, guard against patched files */
         {
             write("Duration of stay was " + CONVTIME(chtime) + ".\n");
@@ -858,8 +853,8 @@ finger_player(string name, int show_long)
     }
 
     /* Display the age and email address of the player. */
-    write("Age  : " + CONVTIME(player->query_age() * 2) + ".\n");
-    if (sizeof(str = player->query_mailaddr()) && (str != "none"))
+    write("Age  : " + CONVTIME(({int}) player->query_age() * 2) + ".\n");
+    if (sizeof(str =({string})  player->query_mailaddr()) && (str != "none"))
     {
         write("Email: " + str + "\n");
     }
@@ -891,35 +886,35 @@ finger_wizards(string *names, int details)
         return;
     }
 
-    names = sort_array(names);
+    names = sort_array(names, #'>);
 
     /* No details, just a quick table. */
     if (!details)
     {
-        write(sprintf("%-75#s\n", implode(map(names, capitalize), "\n")));
+        write(sprintf("%-75#s\n", implode(map(names, #'capitalize), "\n")));
         return;
     }
 
     /* Find out the longest name, so we can synchronise the two tables. */
-    length = max(map(names, sizeof));
+    length = max(map(names, #'sizeof));
 
     /* Must do this in two steps because map() returns (mixed *). */
-    present = map(users(), geteuid);
+    present = map(users(), #'geteuid);
     present &= names;
     names -= present;
 
     if (sizeof(present))
     {
         /* Synchronise the two tables by padding the first name. */
-        present[0] = extract((present[0] + SPACES), 0, length-1);
-        write(sprintf("%-75#s\n", implode(map(present, capitalize), "\n")));
+        present[0] = (present[0] + SPACES)[..<(length - 1)];
+        write(sprintf("%-75#s\n", implode(map(present, #'capitalize), "\n")));
     }
     if (sizeof(names))
     {
         /* Synchronise the two tables by padding the first name. */
-        names[0] = extract((names[0] + SPACES), 0, length-1);
+        names[0] = (names[0] + SPACES)[..<(length-1)];
         write(" - nonpresent - \n");
-        write(sprintf("%-75#s\n", implode(map(names, capitalize), "\n")));
+        write(sprintf("%-75#s\n", implode(map(names, #'capitalize), "\n")));
     }
 }
 
@@ -950,13 +945,13 @@ finger(string str)
     }
 
     /* Argument -l is used. */
-    if (arg_l = !!wildmatch("-l *", str))
+    if (arg_l = str[..2] == "-l ")
     {
-        str = extract(str, 3);
+        str = str[..3];
     }
 
     /* Wizard wants to finger a player. */
-    if (SECURITY->exist_player(str))
+    if (({int}) SECURITY->exist_player(str))
     {
         finger_player(str, arg_l);
         return 1;
@@ -966,16 +961,16 @@ finger(string str)
     if (str == "domains")
     {
         write(sprintf("The domains of this mud are:\n%-60#s\n",
-            implode(sort_array(SECURITY->query_domain_list()), "\n")));
+            implode(sort_array(({string *}) SECURITY->query_domain_list(), #'>), "\n")));
         return 1;
     }
 
     /* Wizard wants to list a particular domain. */
-    if (SECURITY->query_domain_number(str) > -1)
+    if (({int}) SECURITY->query_domain_number(str) > -1)
     {
         if (arg_l)
         {
-            finger_wizards(SECURITY->query_domain_members(str), arg_l);
+            finger_wizards(({string *}) SECURITY->query_domain_members(str), arg_l);
         }
         else
         {
@@ -988,7 +983,7 @@ finger(string str)
     if ((str == "queue") ||
         (str == "q"))
     {
-        names = QUEUE->queue_list(1);
+        names = ({string *}) QUEUE->queue_list(1);
         if (!(size = sizeof(names)))
         {
             write("There are no players in the queue right now.\n");
@@ -1010,7 +1005,7 @@ finger(string str)
         (str == "global") ||
         (str == "globals"))
     {
-        gread = SECURITY->query_global_read();
+        gread = ({mapping}) SECURITY->query_global_read();
         if (!sizeof(gread))
         {
             write("There are no wizards with global read rights.\n");
@@ -1019,7 +1014,7 @@ finger(string str)
 
         write("Wizard      Added by    Reason\n");
         write("----------- ----------- ------\n");
-        names = sort_array(m_indices(gread));
+        names = sort_array(m_indices(gread), #'>);
         index = -1;
         size = sizeof(names);
         while(++index < size)
@@ -1031,10 +1026,10 @@ finger(string str)
     }
 
     /* Wizard wants to see a particular class of wizards. */
-    if ((index = member(LANG_SWORD(str), WIZ_N)) > -1)
+    if ((index = member(WIZ_N, LANG_SWORD(str))) > -1)
     {
         write("The following " + LANG_PWORD(WIZ_N[index]) + " are registered:\n");
-        finger_wizards(SECURITY->query_wiz_list(WIZ_R[index]), arg_l);
+        finger_wizards(({string *}) SECURITY->query_wiz_list(WIZ_R[index]), arg_l);
         return 1;
     }
 
@@ -1047,15 +1042,15 @@ finger(string str)
     }
 
     /* Wizard wants to list an admin team */
-    if (member(str, SECURITY->query_teams()) > -1)
+    if (str in ({string}) SECURITY->query_teams())
     {
         write("The following wizards are registered:\n");
-        finger_wizards(SECURITY->query_team_list(str), arg_l);
+        finger_wizards(({string *}) SECURITY->query_team_list(str), arg_l);
         return 1;
     }
 
-    banished = SECURITY->banish(str, 0);
-    pinfo = (WIZ_CMD_HELPER->valid_user() && (file_size(PINFO_FILE(str)) > 0));
+    banished = ({mixed *}) SECURITY->banish(str, 0);
+    pinfo = (({int}) WIZ_CMD_HELPER->valid_user() && (file_size(PINFO_FILE(str)) > 0));
     if (sizeof(banished) == 2)
     {
         write("The name " + capitalize(str) + " was banished by " +
@@ -1085,7 +1080,7 @@ gd_info(string icmd)
         return 0;
     }
 
-    inf = SECURITY->do_debug(icmd);
+    inf = ({mixed}) SECURITY->do_debug(icmd);
     if (!inf)
     {
         if (sizeof(p = explode(icmd, " ")) > 1)
@@ -1096,12 +1091,12 @@ gd_info(string icmd)
                 if (sscanf(p[1],"%d", f) != 1)
                     f = 0;
                 ob = parse_list(p[2]);
-                inf = SECURITY->do_debug(p[0], f, ob);
+                inf = ({mixed}) SECURITY->do_debug(p[0], f, ob);
             }
             else
             {
                 ob = parse_list(p[1]);
-                inf = SECURITY->do_debug(p[0], ob);
+                inf = ({mixed}) SECURITY->do_debug(p[0], ob);
             }
         }
     }
@@ -1122,7 +1117,7 @@ gfinger(string str)
 {
     CHECK_SO_WIZ;
 #ifdef UDP_MANAGER
-    return UDP_MANAGER->cmd_gfinger(str);
+    return ({int}) UDP_MANAGER->cmd_gfinger(str);
 #else
     notify_fail("No udp manager active.\n");
     return 0;
@@ -1135,7 +1130,7 @@ gfinger(string str)
 nomask int
 graph(string str)
 {
-    return SECURITY->graph(str);
+    return ({int}) SECURITY->graph(str);
 }
 
 /* **************************************************************************
@@ -1150,7 +1145,7 @@ goto(string dest)
 
     if (!stringp(dest))
     {
-        if (objectp(loc = this_interactive()->query_prop(LIVE_O_LAST_ROOM)))
+        if (objectp(loc = ({object}) this_interactive()->query_prop(LIVE_O_LAST_ROOM)))
         {
             this_interactive()->move_living("X", loc);
             return 1;
@@ -1189,7 +1184,7 @@ goto(string dest)
 
     if (dest == "set")
     {
-        if (!stringp(dest = this_interactive()->query_prop(WIZARD_S_GOTO_SET)))
+        if (!stringp(dest = ({string}) this_interactive()->query_prop(WIZARD_S_GOTO_SET)))
         {
             notify_fail("You have no previous location set.\n");
             return 0;
@@ -1197,7 +1192,7 @@ goto(string dest)
     }
     else
     {
-        dest = FTPATH(this_interactive()->query_path(), dest);
+        dest = FTPATH(({string}) this_interactive()->query_path(), dest);
     }
 
     if (!objectp(loc = find_object(dest)))
@@ -1228,7 +1223,7 @@ gtell(string str)
 {
     CHECK_SO_WIZ;
 #ifdef UDP_MANAGER
-    return UDP_MANAGER->cmd_gtell(str);
+    return ({int}) UDP_MANAGER->cmd_gtell(str);
 #endif
     notify_fail("No udp manager active.\n");
     return 0;
@@ -1243,7 +1238,7 @@ guild(string str)
 {
     CHECK_SO_WIZ;
 
-    return SECURITY->guild_command(str);
+    return ({int}) SECURITY->guild_command(str);
 }
 
 /* **************************************************************************
@@ -1255,7 +1250,7 @@ gwiz(string str)
 {
     CHECK_SO_WIZ;
 #ifdef UDP_MANAGER
-    return UDP_MANAGER->cmd_gwiz(str, query_verb() == "gwize");
+    return ({int}) UDP_MANAGER->cmd_gwiz(str, query_verb() == "gwize");
 #endif
     notify_fail("No udp manager active.\n");
     return 0;
@@ -1263,7 +1258,7 @@ gwiz(string str)
 #endif
 
 /* **************************************************************************
- * home - go home, to a domain workroom, or to an other wizards home
+ * home - go home, to a domain workroom, or to another wizard's home
  */
 nomask int
 home(string str)
@@ -1278,13 +1273,13 @@ home(string str)
     {
         if (!stringp(str))
         {
-            str = this_interactive()->query_real_name();
+            str = ({string}) this_interactive()->query_real_name();
         }
 
-        str = SECURITY->wiz_home(str);
+        str = ({string}) SECURITY->wiz_home(str);
     }
 
-    if (this_interactive()->move_living("X", str))
+    if (!({int}) this_interactive()->move_living("X", str))
     {
         write("There is no such workroom.\n");
     }
@@ -1317,20 +1312,20 @@ last_check(string who, int login)
     {
         if (interactive(pl))
         {
-            tmp = time() - pl->query_login_time();
+            tmp = time() - ({int}) pl->query_login_time();
             result = "Logged on    " + TIME2STR(tmp, 2);
 
             /* Only list idle time if more than one minute. */
-            if ((tmp = query_idle(pl)) >= 60)
+            if ((tmp = interactive_info(pl, II_IDLE)) >= 60)
             {
                 result += "   " + TIME2STR(tmp, 2);
             }
         }
         else
         {
-            tmp = time() - pl->query_login_time();
+            tmp = time() - ({int}) pl->query_login_time();
             result = "Linkdead     " + TIME2STR(tmp, 2);
-            tmp = time() - pl->query_linkdead();
+            tmp = time() - ({int}) pl->query_linkdead();
             result += "   " + TIME2STR(tmp, 2);
         }
     }
@@ -1339,7 +1334,7 @@ last_check(string who, int login)
         /* Get a finger-player to get the login time, then clean out the
          * finger-player again. We do not want to waste the memory.
          */
-        pl = SECURITY->finger_player(who[1..]);
+        pl = ({object}) SECURITY->finger_player(who[1..]);
         if (!pl)
         {
             if (who[0..0] == "<")
@@ -1347,8 +1342,8 @@ last_check(string who, int login)
             else
                 return sprintf("  %-12s No such player", capitalize(who[1..]));
         }
-        t_in = pl->query_login_time();
-        t_out = pl->query_logout_time();
+        t_in = ({int}) pl->query_login_time();
+        t_out = ({int}) pl->query_logout_time();
         pl->remove_object();
 
         /* This test checks whether the alleged duration of the last
@@ -1421,7 +1416,7 @@ last(string str)
      */
     args = ({});
     if (!sizeof(plist)) // No arguments
-        args = filter(users(), &->query_wiz_level())->query_real_name();
+        args = ({string *}) filter(users(), (: ({int}) $1->query_wiz_level() :))->query_real_name();
     else
     {
         for (i = 0, sz = sizeof(plist) ; i < sz ; i++)
@@ -1429,16 +1424,16 @@ last(string str)
             /* The name may be a class of wizards. */
             if ((index = member(plist[i], WIZ_N)) >= 0)
             {
-                args += SECURITY->query_wiz_list(WIZ_R[index]);
+                args += ({string *}) SECURITY->query_wiz_list(WIZ_R[index]);
 
                 /* Ask for arches and get the keepers too. */
                 if (WIZ_R[index] == WIZ_ARCH)
-                    args += SECURITY->query_wiz_list(WIZ_KEEPER);
+                    args += ({string *}) SECURITY->query_wiz_list(WIZ_KEEPER);
             }
             /* The name may be the name of a domain. */
-            else if (SECURITY->query_domain_number(plist[i]) > -1)
+            else if (({int}) SECURITY->query_domain_number(plist[i]) > -1)
             {
-                args += SECURITY->query_domain_members(plist[i]);
+                args += ({string *}) SECURITY->query_domain_members(plist[i]);
             }
             /* The name may be a mail alias. */
             else if (IS_MAIL_ALIAS(plist[i]))
@@ -1446,9 +1441,9 @@ last(string str)
                 args += EXPAND_MAIL_ALIAS(plist[i]);
             }
             /* The name may be an admin team */
-            else if (member(plist[i], SECURITY->query_teams()) > -1)
+            else if (plist[i] in ({string *}) SECURITY->query_teams())
             {
-                args += SECURITY->query_team_list(plist[i]);
+                args += ({string *}) SECURITY->query_team_list(plist[i]);
             }
             /* The list of one or more players. */
             else
@@ -1459,15 +1454,15 @@ last(string str)
     plist = ({});
     if (all)
     {
-        args = sort_array(args);
+        args = sort_array(args, #'>);
         for (i = 0, sz = sizeof(args) ; i < sz ; i++)
         {
             plist += ({ "<" + args[i] });
-            plist += map(sort_array(SECURITY->query_seconds(args[i])), &operator(+)(">"));
+            plist += map(sort_array(({string *}) SECURITY->query_seconds(args[i]), #'>), (: $1 + ">" :));
         }
     }
     else
-        plist = map(sort_array(args), &operator(+)("<"));
+        plist = map(sort_array(args, #'>), (: $1 + "<" :));
 
     if (login)
     {
@@ -1480,7 +1475,7 @@ last(string str)
         write("---            -----------   ---------    ---------\n");
     }
 
-    write(implode(map(plist, &last_check(, login)), "\n") + "\n");
+    write(implode(map(plist, #'last_check, login), "\n") + "\n");
     return 1;
 }
 
@@ -1521,7 +1516,7 @@ mudlist(string arg)
 {
     CHECK_SO_WIZ;
 #ifdef UDP_MANAGER
-    return UDP_MANAGER->cmd_mudlist(arg);
+    return ({int}) UDP_MANAGER->cmd_mudlist(arg);
 #endif
     notify_fail("No udp manager active.\n");
     return 0;
@@ -1609,13 +1604,13 @@ notify(string str)
     int limit;
     string *words;
     string name;
-    string wname = this_player()->query_real_name();
+    string wname = ({string}) this_player()->query_real_name();
     string file;
 
     CHECK_SO_WIZ;
 
-    nf = this_player()->query_notify();
-    file = SECURITY->query_wiz_path(wname) + "/.notify";
+    nf = ({int}) this_player()->query_notify();
+    file = ({string}) SECURITY->query_wiz_path(wname) + "/.notify";
 
     if (!stringp(str))
     {
@@ -1632,7 +1627,7 @@ notify(string str)
         {
             words = explode(read_file(file), "\n");
             write("You have individual notification on " +
-                  COMPOSITE_WORDS(map(words, capitalize)) + ".\n");
+                  COMPOSITE_WORDS(map(words, #'capitalize)) + ".\n");
         }
         else
         {
@@ -1658,7 +1653,7 @@ notify(string str)
 
     case "a":
     case "add":
-        if (SECURITY->query_wiz_rank(wname) < WIZ_NORMAL)
+        if (({int}) SECURITY->query_wiz_rank(wname) < WIZ_NORMAL)
         {
             notify_fail("Only domain wizards can have a personal notify " +
                 "list.\n");
@@ -1670,7 +1665,7 @@ notify(string str)
             return 0;
         }
         name = lower_case(words[1]);
-        if (!SECURITY->exist_player(name))
+        if (!({int}) SECURITY->exist_player(name))
         {
             notify_fail("There is no player named " + name + "?\n");
             return 0;
@@ -1678,27 +1673,27 @@ notify(string str)
         words = ((file_size(file) > 0) ? explode(read_file(file), "\n") :
             ({ }) ) - ({ name });
         limit = 20;
-        if ((SECURITY->query_wiz_rank(wname) >= WIZ_ARCH) ||
-            SECURITY->query_team_member("aop", wname))
+        if (({int}) SECURITY->query_wiz_rank(wname) >= WIZ_ARCH ||
+            ({int}) SECURITY->query_team_member("aop", wname))
         {
             limit = 50;
         }
         if (sizeof(words) >= limit)
         {
-            notify_fail("You can track only a maximum of 50 players " +
+            notify_fail("You can track only a maximum of " + limit + " players " +
                 "individually.\n");
             return 0;
         }
-        words = sort_array(words + ({ name }) );
+        words = sort_array(words + ({ name }), #'>);
         rm(file);
         write_file(file, implode(words, "\n"));
         SECURITY->update_wiz_notify(wname);
-        write("Added individual notification for " + capitalize(name) + ".\n");
+        write("Added individual notification for " + capitalize(name) + " with notify level: " + notify_string(nf) + ".\n");
         return 1;
 
     case "r":
     case "remove":
-        if (SECURITY->query_wiz_rank(wname) < WIZ_NORMAL)
+        if (({int}) SECURITY->query_wiz_rank(wname) < WIZ_NORMAL)
         {
             notify_fail("Only domain wizards can have a personal notify " +
                 "list.\n");
@@ -1748,13 +1743,13 @@ notify(string str)
             nf ^= 64;
             break;
         default:
-            write("Strange notify state: " + extract(str, i, i) + ".\n");
+            write("Strange notify state: " + (string) str[i] + ".\n");
             break;
         }
     }
 
     this_interactive()->set_notify(nf);
-    write("Ok.\n");
+    write("Notification level set to: " + notify_string(nf) + ".\n");
     return 1;
 }
 
@@ -1785,18 +1780,18 @@ ranking(string dom)
 
     if (!sizeof(old_rank) || (time() - old_time) > MIN_DIFF_TIME)
     {
-        doms = SECURITY->query_domain_list();
+        doms = ({string *}) SECURITY->query_domain_list();
         for (mems = ({}), il = 0; il < sizeof(doms); il++)
         {
             mems += ({ ({ doms[il] }) +
-                       SECURITY->query_domain_members(doms[il]) });
+             ({string *}) SECURITY->query_domain_members(doms[il]) });
         }
 
         for (mems = ({}), il = 0; il < sizeof(doms); il++)
         {
-            q = SECURITY->query_domain_qexp(doms[il]);
-            c = SECURITY->query_domain_cexp(doms[il]);
-            cmd = SECURITY->query_domain_commands(doms[il]);
+            q = ({int}) SECURITY->query_domain_qexp(doms[il]);
+            c = ({int}) SECURITY->query_domain_cexp(doms[il]);
+            cmd = ({int}) SECURITY->query_domain_commands(doms[il]);
 #ifdef DOMAIN_RANKWEIGHT_FORMULA
             s = DOMAIN_RANKWEIGHT_FORMULA(q, c);
 #else
@@ -1806,7 +1801,7 @@ ranking(string dom)
                           s, cmd, q, c }) });
         }
 
-        mems = sort_array(mems, rank_sort);
+        mems = sort_array(mems, #'rank_sort);
     }
     else
         mems = old_rank;
@@ -1854,7 +1849,7 @@ regret(string dom)
 {
     CHECK_SO_WIZ;
 
-    return SECURITY->regret_application(dom);
+    return ({int}) SECURITY->regret_application(dom);
 }
 
 /* **************************************************************************
@@ -1878,10 +1873,10 @@ review(string str)
         return 0;
     }
 
-    write("mout:\t" + tp->query_m_out() +
-          "\nmin:\t" + tp->query_m_in() +
-          "\nmmout:\t" + tp->query_mm_out() +
-          "\nmmin:\t" + tp->query_mm_in() + "\n");
+    write("mout:\t" + ({string}) tp->query_m_out() +
+          "\nmin:\t" + ({string}) tp->query_m_in() +
+          "\nmmout:\t" + ({string}) tp->query_mm_out() +
+          "\nmmin:\t" + ({string}) tp->query_mm_in() + "\n");
     return 1;
 }
 
@@ -1893,7 +1888,7 @@ rsupport(string str)
 {
     CHECK_SO_WIZ;
 #ifdef UDP_MANAGER
-    return UDP_MANAGER->cmd_support(str);
+    return ({int}) UDP_MANAGER->cmd_support(str);
 #endif
     notify_fail("No udp manager active.\n");
     return 0;
@@ -1907,7 +1902,7 @@ rwho(string str)
 {
     CHECK_SO_WIZ;
 #ifdef UDP_MANAGER
-    return UDP_MANAGER->cmd_rwho(str);
+    return ({int}) UDP_MANAGER->cmd_rwho(str);
 #endif
     notify_fail("No udp manager active.\n");
     return 0;
@@ -1921,7 +1916,7 @@ sanction(string str)
 {
     CHECK_SO_WIZ;
 
-    return SECURITY->sanction(str);
+    return ({int}) SECURITY->sanction(str);
 }
 
 /* **************************************************************************
@@ -1934,7 +1929,7 @@ set_m_out(string m)
 
     if (!sizeof(m))
     {
-        write("Your m-out: " + this_interactive()->query_m_out() + "\n");
+        write("Your m-out: " + ({string}) this_interactive()->query_m_out() + "\n");
         return 1;
     }
 
@@ -1953,11 +1948,11 @@ set_m_in(string m)
 
     if (!sizeof(m))
     {
-        write("Your m-in: " + this_interactive()->query_m_in() + "\n");
+        write("Your m-in: " + ({string}) this_interactive()->query_m_in() + "\n");
         return 1;
     }
 
-    if (wildmatch("*[.!]", m))
+    if ((string) m[<1] in ({".", "!"}))
     {
         notify_fail("Please observe that there should not be a period to " +
                     "this text. Consult the help page if you are doubtful.\n");
@@ -1979,7 +1974,7 @@ set_mm_out(string m)
 
     if (!sizeof(m))
     {
-        write("Your mm-out: " + this_interactive()->query_mm_out() + "\n");
+        write("Your mm-out: " + ({string}) this_interactive()->query_mm_out() + "\n");
         return 1;
     }
 
@@ -1998,7 +1993,7 @@ set_mm_in(string m)
 
     if (!sizeof(m))
     {
-        write("Your mm-in: " + this_interactive()->query_mm_in() + "\n");
+        write("Your mm-in: " + ({string}) this_interactive()->query_mm_in() + "\n");
         return 1;
     }
 
@@ -2018,14 +2013,14 @@ start(string str)
     if (!stringp(str))
     {
         write("Your default starting location: " +
-            this_interactive()->query_default_start_location() + "\n");
+            ({string}) this_interactive()->query_default_start_location() + "\n");
         return 1;
     }
 
     if (str == "valid")
     {
-        str = implode(SECURITY->query_list_def_start(), ", ");
-        write("Available starting locations:\n" + break_string(str, 76, 3) +
+        str = implode(({string *}) SECURITY->query_list_def_start(), ", ");
+        write("Available starting locations:\n" + str +
             "\n");
         return 1;
     }
@@ -2035,7 +2030,7 @@ start(string str)
         str = object_name(environment(this_interactive()));
     }
 
-    if (!this_interactive()->set_default_start_location(str))
+    if (!({int}) this_interactive()->set_default_start_location(str))
     {
         write("<" + str + "> is not a valid starting location.\n");
         return 1;
@@ -2054,7 +2049,7 @@ title(string t)
 
     if (!stringp(t))
     {
-        write("Your title is '" + this_interactive()->query_title() + "'.\n");
+        write("Your title is '" + ({string}) this_interactive()->query_title() + "'.\n");
         return 1;
     }
 
@@ -2091,11 +2086,11 @@ wizopt(string arg)
 {
     if (!stringp(arg))
     {
-        return CMD_LIVE_STATE->options(OPT_AUTO_PWD);
-        return CMD_LIVE_STATE->options(OPT_AUTOLINECMD);
-        return CMD_LIVE_STATE->options(OPT_TIMESTAMP);
+        return ({int}) CMD_LIVE_STATE->options(OPT_AUTO_PWD);
+        return ({int}) CMD_LIVE_STATE->options(OPT_AUTOLINECMD);
+        return ({int}) CMD_LIVE_STATE->options(OPT_TIMESTAMP);
     }
-    return CMD_LIVE_STATE->options(arg);
+    return ({int}) CMD_LIVE_STATE->options(arg);
 }
 
 /* **************************************************************************
@@ -2138,23 +2133,23 @@ whereis(string str)
     write("File: " + object_name(obj) + "\n");
     if (!verbose)
     {
-        write("Room: " + obj->short(this_player()) + "\n");
+        write("Room: " + ({string}) obj->short(this_player()) + "\n");
         return 1;
     }
 
-    write(obj->long(0));
+    write(({string}) obj->long(0));
 
     live = FILTER_LIVE(dead = all_inventory(obj));
     dead = FILTER_SHOWN(dead - live);
     if (sizeof(dead) &&
         sizeof(str = COMPOSITE_DEAD(dead)))
     {
-        write(break_string((capitalize(str) + "."), 76) + "\n");
+        write((capitalize(str) + ".") + "\n");
     }
     if (sizeof(live) &&
         sizeof(str = COMPOSITE_LIVE(live)))
     {
-        write(break_string((capitalize(str) + "."), 76) + "\n");
+        write((capitalize(str) + ".") + "\n");
     }
     return 1;
 }
@@ -2182,10 +2177,10 @@ print_whichsoul(string *soul_list, string cmd, string type)
 
     while(++index < size)
     {
-        cmd_list = soul_list[index]->query_cmdlist();
+        cmd_list = ({mapping}) soul_list[index]->query_cmdlist();
         if (cmd_list[cmd])
         {
-            soul_id = soul_list[index]->get_soul_id();
+            soul_id = ({string}) soul_list[index]->get_soul_id();
             soul_id = (sizeof(soul_id) ? soul_id : "noname");
             text += sprintf("%-7s  %-15s  %-15s  %-s\n", type, soul_id,
                 cmd_list[cmd] + "()", soul_list[index] + ".c");
@@ -2235,7 +2230,7 @@ whichsoul(string str)
         return 0;
     }
 
-    cmds = commands(target);
+    cmds = query_actions(target);
     size = sizeof(cmds);
     while (++index < size)
     {
@@ -2258,9 +2253,9 @@ whichsoul(string str)
         write("Command " + str + " not found among local commands. (add_action's)\n\n");
     }
 
-    text = print_whichsoul(target->query_wizsoul_list(), str, "wizard");
-    text += print_whichsoul(target->query_tool_list(),    str, "tool");
-    text += print_whichsoul(target->query_cmdsoul_list(), str, "command");
+    text = print_whichsoul(({string *}) target->query_wizsoul_list(), str, "wizard");
+    text += print_whichsoul(({string *}) target->query_tool_list(),    str, "tool");
+    text += print_whichsoul(({string *}) target->query_cmdsoul_list(), str, "command");
 
     if (sizeof(text))
     {

@@ -37,19 +37,18 @@ private string name;
 private int time_of_login;
 private int login_attempts;
 private int current_state;
-private object logger = load_object(LOG_FILE);
 
 public void create() {
-    logger->info("=== Login Object Created ===");
-    logger->debug("Object name: %s", object_name(this_object()));
+    log_info("=== Login Object Created ===");
+    log_debug("Object name: %s", object_name(this_object()));
     time_of_login = time();
     current_state = STATE_INIT;
     call_out("check_idle", IDLE_TIMEOUT);
 }
 
 public void logon() {
-    logger->info("New login session started");
-    logger->debug("Object name: %s", object_name(this_object()));
+    log_info("New login session started");
+    log_debug("Object name: %s", object_name(this_object()));
 
     write("\nWelcome to SBLib MUD!\n");
     show_banner();
@@ -57,6 +56,7 @@ public void logon() {
 }
 
 public void check_idle() {
+    log_info("Checking idle status - Timeout occurred");
     write("\nTimeout - disconnecting.\n");
     destruct(this_object());
 }
@@ -79,9 +79,9 @@ private void prompt_password() {
 }
 
 public void handle_name(string input) {
-    logger->info("=== Handling Name Input ===\n");
-    logger->debug("Object name: %s", object_name(this_object()));
-    logger->debug("Processing name input: %s", input);
+    log_info("=== Handling Name Input ===\n");
+    log_debug("Object name: %s", object_name(this_object()));
+    log_debug("Processing name input: %s", input);
     if (!input || input == "") {
         write("Invalid name. Try again: ");
         input_to("handle_name");
@@ -140,14 +140,14 @@ public void handle_password(string input) {
 private void login_success() {
     object player;
     
-    logger->info("Successful login for user: %s", name);
-    logger->debug("Object name: %s", object_name(this_object()));
-    logger->debug("This player object name: %s", object_name(this_player()));
-    logger->debug("This interactive object name: %s", object_name(this_interactive()));
+    log_info("Successful login for user: %s", name);
+    log_debug("Object name: %s", object_name(this_object()));
+    log_debug("This player object name: %s", object_name(this_player()));
+    log_debug("This interactive object name: %s", object_name(this_interactive()));
 
     write("\nWelcome back, " + capitalize(name) + "!\n");
     player = clone_object(PLAYER_OBJECT);
-    logger->info("Cloning player object: %s", object_name(player));
+    log_info("Cloning player object: %s", object_name(player));
     player->initialize(name);
     if (!player)
     {
@@ -156,23 +156,25 @@ private void login_success() {
         return;
     }
 
-    logger->info("Successfully cloned player object: %s", object_name(player));
+    log_info("Successfully cloned player object: %s", object_name(player));
     
     int success = exec(player, this_object());
-    logger->debug("Exec result: %d", success);
+    log_debug("Exec result: %d", success);
 
     if (!success)
     {
-        logger->error("Failed to exec player object");
+        log_error("Failed to exec player object");
         destruct(player);
         destruct(this_object());
         return;
     }
-    logger->info("Player object exec'd successfully");
-    player->player_startup();
+    log_info("Player object exec'd successfully");
     player->move("w/debug/workroom");
-    logger->debug("Player object startup completed");
+    player->player_startup();
+    log_debug("Player object startup completed");
 
+
+    log_info("Player moved to: w/debug/workroom");
 
     destruct(this_object());
 }

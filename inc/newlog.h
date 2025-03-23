@@ -2,7 +2,7 @@
    sys/log.h
 
    This file defines all LOG_ defines relevant to the standard mudlib.
-   It also includes the configurable file /config/sys/log2.h
+   It also includes the configurable file /conf/sys/log2.h
    into which you can put more defines.
  */
 #ifndef LOG_DEF
@@ -76,5 +76,5 @@
 #define LOG_PRAISE_MSG	"your compliments"
 #define LOG_SYSBUG_MSG	"your system bug report"
 
-#include "/config/sys/log2.h"
+#include "/conf/sys/log2.h"
 #endif

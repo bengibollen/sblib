@@ -789,6 +789,10 @@ public int do_glance(int brief)
      * there is WIZINFO in the room.
      */
     env = environment();
+
+    log_debug("This object: " + object_name(this_object()));
+    log_debug("Environment: " + object_name(env));
+
     if (query_wiz_level())
     {
         if (stringp(({string}) env->query_prop(OBJ_S_WIZINFO)))
@@ -796,7 +800,8 @@ public int do_glance(int brief)
 
     	write(object_name(env) + "\n");
     }
-int see_in_room = 0;
+    int see_in_room = 0;
+    
     if (objectp(env)){
         if (({int}) env->query_prop(OBJ_I_LIGHT) > -(({int}) this_object()->query_prop(LIVE_I_SEE_DARK)))
             see_in_room = 1;
@@ -805,8 +810,6 @@ int see_in_room = 0;
     /* It is dark. */
     if (!see_in_room)
     {
-        write(ROOM_S_DARK_LONG + "\n");
-        write(to_string(env) + "\n");
         item = ({string}) env->query_prop(ROOM_S_DARK_LONG);
         if (!stringp(item))
             write(LD_DARK_LONG);

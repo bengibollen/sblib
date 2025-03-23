@@ -215,7 +215,8 @@ query_real_name()
 public int
 query_wiz_level()
 {
-    return (SECURITY->query_wiz_rank(query_real_name()) > WIZ_MORTAL);
+    return 1;
+//    return (SECURITY->query_wiz_rank(query_real_name()) > WIZ_MORTAL);
 }
 
 /*

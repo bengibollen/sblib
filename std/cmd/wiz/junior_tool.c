@@ -31,7 +31,7 @@ inherit "/std/object";
 #include <options.h>
 
 #define CHECK_SO_JUNIOR if (!check_so_junior()) return 0
-#define PARSE_LIST(s)   ("/cmd/std/tracer_tool_base"->parse_list(s))
+#define PARSE_LIST(s)   ("/std/cmd/std/tracer_tool_base"->parse_list(s))
 #define HELP_FILE	"/doc/help/wizard/junior_help"
 #define ENTRY_HEADER	"SYNTAX: "
 
@@ -618,7 +618,7 @@ list(string str)
     }
 
     log_usage("list");
-    wizards = filter(users(), &->query_wiz_level());
+    wizards = filter(users(), (: $1->query_wiz_level() :));
 
     if (!sizeof(wizards))
     {

@@ -8,99 +8,36 @@
 
 inherit "/std/living";
 
+#include "/std/player/cmd_sec.c"
+
 private string name;          // Player's name
 private int state;           // Current player state
 private int level;          // Player level
-private mapping commands;    // Available commands
-private object logger;      // Logger instance
 
 private void show_entrance();
 
 public void create_living() {
-    logger = load_object("/lib/log");
-    logger->info("Player object created");
-    logger->debug("Object name: %s", object_name(this_object()));
+    log_info("Player object created");
+    log_debug("Object name: %s", object_name(this_object()));
+
     configure_object(this_object(), OC_COMMANDS_ENABLED, 1);
-    commands = PLAYER_COMMANDS;  // Load basic commands
     state = PLAYER_STATE_LOADING;
 }
 
 public void initialize(string player_name) {
+    log_debug("Initializing player with name: %s", player_name);
     name = player_name;
     state = PLAYER_STATE_PLAYING;
 //    configure_object(this_object(), OC_COMMANDS_ENABLED, 1);
-    logger->info("Player %s initialized", name);
-    logger->debug("Object name: %s", object_name(this_object()));
+    log_info("Player %s initialized", name);
+    log_debug("Object name: %s", object_name(this_object()));
+
     show_entrance();
 }
 
 private void show_entrance() {
     write("\nWelcome to the game, " + capitalize(name) + "!\n");
 //    command("look");  // Show initial room description
-}
-
-// Command processing
-public int command(string cmd) {
-    string verb, args;
-    
-    if (!cmd || cmd == "") return 0;
-    
-    // Split command into verb and arguments
-    if (sscanf(cmd, "%s %s", verb, args) != 2) {
-        verb = cmd;
-        args = "";
-    }
-    
-    verb = lower_case(verb);
-    
-    // Check if command exists and call it
-    if (member(commands, verb)) {
-        int result;
-        string command = commands[verb];
-        string ob = object_name(this_object());
-
-        result = ({int})this_object()->(commands[verb])(args);
-        // Call the command and ensure we get an int back
-        // result = (int)this_object()->(command)(args);
-        if (intp(result)) return result;
-
-        logger->warn("Command %s in %s did not return an int", command, ob);
-        return 0;  // Non-integer results are treated as failure
-    }
-    
-    return 0;  // Command not found
-}
-
-// Basic commands
-public int cmd_quit(string arg) {
-    write("Goodbye!\n");
-    logger->info("Player %s quit", name);
-    destruct(this_object());
-    return 1;
-}
-
-public int cmd_look(string arg) {
-    write("You look around.\n");  // TODO: Implement proper room description
-    return 1;
-}
-
-public int cmd_say(string arg) {
-    if (!arg || arg == "") {
-        write("Say what?\n");
-        return 1;
-    }
-    write("You say: " + arg + "\n");
-    return 1;
-}
-
-public int cmd_help(string arg) {
-    write("Available commands: " + implode(m_indices(commands), ", ") + "\n");
-    return 1;
-}
-
-public int cmd_who(string arg) {
-    write("Players online: " + capitalize(name) + "\n");  // TODO: Implement proper player listing
-    return 1;
 }
 
 // Query functions
@@ -120,10 +57,21 @@ public int restore_player() {
 }
 
 public void player_startup() {
+    log_debug("Player startup initiated for: %s", query_name());
     cmdhooks_reset();
-    add_prop(LIVE_I_SEE_DARK, 1);
+    cmd_sec_reset();
+
+
     /* Get the soul commands */
-    this_object()->load_command_souls();
-    command("$look");
+//    this_object()->load_command_souls();
+    command("look");
     say(QCNAME(this_object()) + " enters the game.\n");
+}
+
+public void catch_tell(string message) {
+    write(message);
+}   
+
+public void catch_msg(string message) {
+    write(process_string(message));
 }

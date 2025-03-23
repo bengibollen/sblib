@@ -73,9 +73,9 @@ public nomask void create_object()
 {
     cont_block_prop = 0;
     add_prop(CONT_I_IN, 1);         /* Can have things inside it */
-    add_prop(OBJ_I_LIGHT, light());   /* The total light of container */
-    add_prop(OBJ_I_WEIGHT, weight()); /* The total weight of container */
-    add_prop(OBJ_I_VOLUME, volume()); /* The total volume of container */
+    add_prop(OBJ_I_LIGHT, #'light);   /* The total light of container */
+    add_prop(OBJ_I_WEIGHT, #'weight); /* The total weight of container */
+    add_prop(OBJ_I_VOLUME, #'volume); /* The total volume of container */
     add_prop(CONT_I_REDUCE_WEIGHT, 100); /* No reduction */
     add_prop(CONT_I_REDUCE_VOLUME, 100); /* No reduction */
     cont_block_prop = 1;
@@ -443,8 +443,9 @@ public void notify_change_prop(string prop, mixed val, mixed old)
 
     if (old == val)
         return;
-    if (member(prop, NotifyProps) < 0)
+    if (!(prop in NotifyProps))
         return;
+
     pobj = previous_object();
 
     switch(prop)

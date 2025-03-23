@@ -8,6 +8,7 @@
 inherit "/std/command_driver";
 
 #include <filepath.h>
+#include <libfiles.h>
 #include <language.h>
 #include <macros.h>
 #include <std.h>

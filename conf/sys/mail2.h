@@ -1,5 +1,5 @@
 /*
- * /config/sys/mail2.h
+ * /conf/sys/mail2.h
  *
  * This is the mud-specific part of the mail.h file. It should be included
  * by /sys/mail.h.

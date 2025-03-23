@@ -1,5 +1,5 @@
 /*
- * /config/sys/time2.h
+ * /conf/sys/time2.h
  *
  * This is the mud-specific part of the time.h file. It should be included
  * by /sys/time.h.

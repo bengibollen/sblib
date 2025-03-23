@@ -21,6 +21,7 @@
  */
 
 #include <filepath.h>
+#include <files.h>
 #include <stdproperties.h>
 #include <options.h>
 
@@ -58,7 +59,7 @@ cat_file(string path)
 	return 0;
     }
 
-    if (!(SECURITY->valid_read(path, geteuid(), "cat")))
+    if (!(({int}) SECURITY->valid_read(path, geteuid(), "cat")))
     {
 	notify_fail("You have no read access to: " + path + "\n");
 	return 0;
@@ -87,15 +88,15 @@ cd(string str)
     object ob;
     int    auto;
 
-    auto = this_player()->query_option(OPT_AUTO_PWD);
+    auto = ({int}) this_player()->query_option(OPT_AUTO_PWD);
 
     CHECK_SO_WIZ;
 
-    old_path = this_interactive()->query_path();
+    old_path = ({string}) this_interactive()->query_path();
 
     if (!stringp(str))
     {
-	new_path = SECURITY->query_wiz_path(this_player()->query_real_name());
+	new_path = ({string}) SECURITY->query_wiz_path(({string}) this_player()->query_real_name());
     }
     else switch(str)
     {
@@ -108,10 +109,10 @@ cd(string str)
 	return 1;
 
     case "-":
-	if (!(new_path = this_player()->query_prop(WIZARD_S_LAST_DIR)))
+	if (!(new_path = ({string}) this_player()->query_prop(WIZARD_S_LAST_DIR)))
 	{
-	    new_path = SECURITY->query_wiz_path(
-			this_player()->query_real_name());
+	    new_path = ({string}) SECURITY->query_wiz_path(
+			({string}) this_player()->query_real_name());
 	}
 	break;
 
@@ -159,9 +160,9 @@ dirs(string str)
 	return 0;
     }
 
-    paths = this_player()->query_prop(WIZARD_AS_DIRPATH);
+    paths = ({string *}) this_player()->query_prop(WIZARD_AS_DIRPATH);
     size = sizeof(paths);
-    write(this_player()->query_path());
+    write(({string}) this_player()->query_path());
 
     if (size)
 	write(" " + implode(paths, " ") + "\n");
@@ -203,7 +204,7 @@ head(string path)
 	return 0;
     }
 
-    if (!(SECURITY->valid_read(path, geteuid(), "head")))
+    if (!(({int}) SECURITY->valid_read(path, geteuid(), "head")))
     {
 	notify_fail("You have no read access to: " + path + "\n");
 	return 0;
@@ -293,17 +294,17 @@ list_files(string path)
         files = explode(path, "/")[-1..];
     }
     /* See if there is no asterisk in the path. */
-    else if (!wildmatch("*\\**", path))
+    else if (!(strstr(path, "*")))
     {
         /* Add a trailing / if necessary. */
-	if (!wildmatch("*/", path))
-	{
-	    path += "/";
-	}
-	else
-	{
-	    path = "/";
-	}
+        if (!(path[<1] == '/') )
+        {
+            path += "/";
+        }
+        else
+        {
+            path = "/";
+        }
     }
 
     if (!sizeof(files))
@@ -321,14 +322,14 @@ list_files(string path)
     path   = implode(explode(path + "/", "/")[..-2], "/") + "/";
 
     /* Do we dump files with a leading period? */
-    if (!wildmatch("*a*", mode))
+    if (!(strstr(mode, "a")))
     {
-	files = filter(files, &not() @ &wildmatch(".*", ));
-	size  = sizeof(files);
+        files = filter(files, (: !($1[0] == '.') :) );
+        size  = sizeof(files);
     }
 
     /* Do we do sorting on time/date? Note, order is: recent-oldest */
-    if (wildmatch("*t*", mode))
+    if (strstr(mode, "t"))
     {
 	i   = -1;
 	tmp = ({});
@@ -338,7 +339,7 @@ list_files(string path)
 	    tmp += ({ ({ files[i], file_time(path + files[i]) }) });
 	}
 
-	tmp   = sort_array(tmp, "ls_sort_t", this_object());
+	tmp   = sort_array(tmp, #'ls_sort_t);
 	files = ({});
 	i     = -1;
 
@@ -349,16 +350,16 @@ list_files(string path)
     }
 
     /* Directories on top. Tintin finds 'O' more logical for that than 'd'. */
-    if (wildmatch("*O*", mode))
+    if (strstr(mode, "O"))
     {
-        tmp = filter(files, &operator(==)(-2, ) @ &file_size() @ &operator(+)(path, ));
-        files = tmp + (files - (string *)tmp);
+        tmp = filter(files, (: file_size(path + $1) == FSIZE_DIR :));
+        files = tmp + (files - tmp);
     }
 
     /* Do we do a long display? */
-    if (wildmatch("*l*", mode))
+    if (strstr(mode, "l"))
     {
-        mf    = !wildmatch("*f*", mode);
+        mf    = !strstr(mode, "f");
         ml    = 1;
 	i     = -1;
 	items = files + ({});
@@ -394,8 +395,7 @@ list_files(string path)
     /* Distinguish dirs and loaded files?
      * Used to be a -F check, but I reversed that to a negative -f check.
      */
-    if (!ml &&
-        !wildmatch("*f*", mode))
+    if (!ml && (strstr(mode, "f") == -1 ))
     {
 	i = -1;
 	while (++i < size)
@@ -412,7 +412,7 @@ list_files(string path)
     }
 
     /* Do we reverse sort? */
-    if (wildmatch("*r*", mode))
+    if (strstr(mode, "r") != -1)
     {
 	items = files + ({});
 	i     = sizeof(items);
@@ -470,7 +470,7 @@ more_file(string path)
 	return 0;
     }
 
-    if (!(SECURITY->valid_read(path, geteuid(), "cat")))
+    if (!(({int}) SECURITY->valid_read(path, geteuid(), "cat")))
     {
 	notify_fail("You have no read rights to: " + path + "\n");
 	return 0;
@@ -505,7 +505,7 @@ popd(string str)
     else
 	which = 1;
 
-    paths = this_player()->query_prop(WIZARD_AS_DIRPATH);
+    paths = ({string *}) this_player()->query_prop(WIZARD_AS_DIRPATH);
     if (!sizeof(paths))
     {
 	notify_fail("Directory stack empty.\n");
@@ -543,7 +543,7 @@ pushd(string str)
 
     CHECK_SO_WIZ;
 
-    paths = this_player()->query_prop(WIZARD_AS_DIRPATH);
+    paths = ({string *}) this_player()->query_prop(WIZARD_AS_DIRPATH);
     paths = (sizeof(paths) ? paths : ({ }) );
 
     if (!sizeof(str))
@@ -568,18 +568,18 @@ pushd(string str)
 	this_player()->add_prop(WIZARD_S_LAST_DIR,
 	  this_player()->query_path());
 	this_player()->set_path(paths[which]);
-	paths[which] = this_player()->query_prop(WIZARD_S_LAST_DIR);
+	paths[which] = ({string}) this_player()->query_prop(WIZARD_S_LAST_DIR);
     }
     else
     {
-	str = FTPATH(this_player()->query_path(), str);
+	str = FTPATH(({string}) this_player()->query_path(), str);
 	if (file_size(str) != -2)
 	{
 	    notify_fail("No such directory: " + str + "\n");
 	    return 0;
 	}
 
-	paths = ({ this_player()->query_path() }) + paths;
+	paths = ({({string}) this_player()->query_path()}) + paths;
 	this_player()->set_path(str);
     }
 
@@ -596,9 +596,9 @@ pwd()
 {
     string path;
 
-    if (stringp((path = this_player()->query_prop(WIZARD_S_LAST_DIR))))
+    if (stringp((path = ({string}) this_player()->query_prop(WIZARD_S_LAST_DIR))))
 	write("LWD: " + path + "\n");
-    write("CWD: " + this_player()->query_path() + "\n");
+    write("CWD: " + ({string}) this_player()->query_path() + "\n");
 
     return 1;
 }
@@ -634,7 +634,7 @@ tail_input_player(string str)
 
     default:
 	write("Invalid command. \"q/x\" to quit or RETURN to continue --- ");
-	input_to(tail_input_player);
+	input_to(#'tail_input_player);
 	return;
     }
 
@@ -650,9 +650,9 @@ tail_input_player(string str)
 private void
 tail_lines()
 {
-    string path  = this_interactive()->query_prop(WIZARD_S_TAIL_PATH);
+    string path  = ({string}) this_interactive()->query_prop(WIZARD_S_TAIL_PATH);
     int    size  = file_size(path);
-    int    limit = this_interactive()->query_prop(WIZARD_I_TAIL_LIMIT);
+    int    limit = ({int}) this_interactive()->query_prop(WIZARD_I_TAIL_LIMIT);
     int    begin = limit - TAIL_READ_CHUNK;
     string text;
     string *lines;
@@ -660,14 +660,14 @@ tail_lines()
     /* If we reach the begin of the file, stop. */
     if (begin <= 0)
     {
-	text = read_bytes(path, 0, limit);
+	text = read_file(path, 0, limit);
 	write(text + "BOF\n");
 	this_interactive()->remove_prop(WIZARD_S_TAIL_PATH);
 	this_interactive()->remove_prop(WIZARD_I_TAIL_LIMIT);
 	return;
     }
 
-    text = read_bytes(path, begin, TAIL_READ_CHUNK);
+    text = read_file(path, begin, TAIL_READ_CHUNK);
     lines = explode(text, "\n");
 
     /* If there is at least one line, only print the complete lines. */
@@ -682,7 +682,7 @@ tail_lines()
       " --- \"q/x\" to quit, RETURN to continue --- ");
 
     this_interactive()->add_prop(WIZARD_I_TAIL_LIMIT, limit);
-    input_to(tail_input_player);
+    input_to(#'tail_input_player);
 }
 
 /*
@@ -725,7 +725,7 @@ tail_file(string path)
 	return 0;
     }
 
-    if (!(SECURITY->valid_read(path, geteuid(), "tail")))
+    if (!(({int}) SECURITY->valid_read(path, geteuid(), "tail")))
     {
 	notify_fail("You have no read access to: " + path + "\n");
 	return 0;
@@ -796,8 +796,8 @@ build_tree(string path, int spaces, int printed)
 	return printed;
     }
 
-    files = map((files - ({ ".", ".." }) ), &operator(+)(path, ));
-    files = filter(files, &operator(==)(-2) @ file_size);
+    files = map((files - ({ ".", ".." }) ), (: path + $1 :));
+    files = filter(files, (: file_size($1) == FSIZE_DIR :));
 
     if (!(size = sizeof(files)))
     {
@@ -806,7 +806,7 @@ build_tree(string path, int spaces, int printed)
 
     while(++index < size)
     {
-	write(extract(SPACES, 1, spaces) + files[index] + "\n");
+	write(SPACES[..spaces] + files[index] + "\n");
 
 	if (++printed >= MAX_TREE_SIZE)
 	{

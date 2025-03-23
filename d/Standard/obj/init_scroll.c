@@ -9,7 +9,7 @@
 inherit "/std/scroll";
 
 #include <stdproperties.h>
-#include "/config/sys/local.h"
+#include "/conf/sys/local.h"
 
 void
 create_scroll()

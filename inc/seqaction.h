@@ -5,7 +5,7 @@
 */
 
 #ifndef SEQ_DEFINED
-#include "/config/sys/seqaction2.h"
+#include "/conf/sys/seqaction2.h"
 #endif
 
 #ifndef SEQ_DEFINED

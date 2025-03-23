@@ -11,6 +11,7 @@
 
 public int object_visible(object ob, object fob);
 
+
 /*
  * Show a default sublocation
  *
@@ -18,8 +19,7 @@ public int object_visible(object ob, object fob);
  *		0 -	 Unsupported sublocation
  *		1 -	 Empty sublocation.
  */
-public mixed
-show_subloc(mixed sloc, object cont, object for_obj)
+public mixed show_subloc(mixed sloc, object cont, object for_obj)
 {
     string p, pron, defprep, str;
     object *invobs;
@@ -35,7 +35,7 @@ show_subloc(mixed sloc, object cont, object for_obj)
     }
     else if (cont != for_obj)
     {
-	pron = " " + cont->query_objective() + ": ";
+	pron = " " + ({string}) cont->query_objective() + ": ";
 	defprep = "carried by";
     }
     else
@@ -51,7 +51,7 @@ show_subloc(mixed sloc, object cont, object for_obj)
 
     invobs = cont->subinventory(sloc);
     if (sizeof(invobs))
-	invobs = filter(invobs, &object_visible(, for_obj));
+	invobs = filter(invobs, (: object_visible($1, for_obj) :));
 
     if (sizeof(invobs))
     {
@@ -59,7 +59,7 @@ show_subloc(mixed sloc, object cont, object for_obj)
 	    str = capitalize(p) + pron + FO_COMPOSITE_DEAD(invobs, for_obj);
 	else /* It must be a living, right? */
 	    str = "You are carrying " + FO_COMPOSITE_DEAD(invobs, for_obj);
-	return break_string(str + ".", 76, 2) + "\n";
+	return str + ".\n";
     }
     else if (cont == for_obj && sloc == 0)
 	return "  You do not carry anything.\n";
@@ -67,34 +67,35 @@ show_subloc(mixed sloc, object cont, object for_obj)
     return 1;
 }
 
+
 /*
  * Finds out if an object is visible or not.
  * Does not check containers etc, only the object itself
  */
-public int
-object_visible(object ob, object fob)
+public int object_visible(object ob, object fob)
 {
-    if (ob->query_no_show())
+    if (({int}) ob->query_no_show())
 	return 0;
 
-    if (fob->query_wiz_level())
+    if (({int}) fob->query_wiz_level())
 	return 1;
 
-    if (ob->query_prop(OBJ_I_INVIS) <=
-	fob->query_prop(LIVE_I_SEE_INVIS))
+    if (({int}) ob->query_prop(OBJ_I_INVIS) <=
+	({int}) fob->query_prop(LIVE_I_SEE_INVIS))
 	return 1;
     else
 	return 0;
 }
 
-static string
-obshorts(object ob, object fobj)
+
+static string obshorts(object ob, object fobj)
 {
     if (object_visible(ob, fobj))
 	return ob->short(fobj);
     else
 	return 0;
 }
+
 
 /*
  * Function name: subloc_access
@@ -109,49 +110,49 @@ obshorts(object ob, object fobj)
  */
 public int subloc_access(string sloc, object ob, string acs, object for_obj)
 {
-    string p;
+	string p;
 
-    /* Only handle specific preposition sublocation
-     */
-    if (sscanf(sloc, SUBL_PREPOS + "%s", p) != 1)
+	/* Only handle specific preposition sublocation
+	*/
+	if (sscanf(sloc, SUBL_PREPOS + "%s", p) != 1)
+		return 0;
+
+	if (acs == SUBL_ACS_SEE)
+	{
+		switch (sloc)
+		{
+			case "in":
+			case "inside":
+			case "within":
+				if (({int}) ob->query_prop(CONT_I_HIDDEN) ||
+				({int}) ob->query_prop(CONT_I_CLOSED) &&
+				!({int}) ob->query_prop(CONT_I_TRANSP) &&
+				!({int}) ob->query_prop(CONT_I_ATTACH))
+					return 0;
+				else
+					return 1;
+				break;
+			default:
+				return 1;
+		}
+	}
+	else if (acs == SUBL_ACS_MANIP)
+	{
+		switch (sloc)
+		{
+			case "in":
+			case "inside":
+			case "within":
+				if (({int}) ob->query_prop(CONT_I_HIDDEN) ||
+					({int}) ob->query_prop(CONT_I_CLOSED) &&
+					!({int}) ob->query_prop(CONT_I_ATTACH))
+					return 0;
+				else
+					return 1;
+			default:
+				return 1;
+		}
+	}
 	return 0;
-
-    if (acs == SUBL_ACS_SEE)
-    {
-	switch (sloc)
-	{
-	case "in":
-	case "inside":
-	case "within":
-	    if (ob->query_prop(CONT_I_HIDDEN) ||
-		(ob->query_prop(CONT_I_CLOSED) &&
-		 !ob->query_prop(CONT_I_TRANSP) &&
-		 !ob->query_prop(CONT_I_ATTACH)))
-		return 0;
-	    else
-		return 1;
-	    break;
-	default:
-	    return 1;
-	}
-    }
-    else if (acs == SUBL_ACS_MANIP)
-    {
-	switch (sloc)
-	{
-	case "in":
-	case "inside":
-	case "within":
-	    if (ob->query_prop(CONT_I_HIDDEN) ||
-		(ob->query_prop(CONT_I_CLOSED) &&
-		 !ob->query_prop(CONT_I_ATTACH)))
-		return 0;
-	    else
-		return 1;
-	    break;
-	default:
-	    return 1;
-	}
-    }
 }
 

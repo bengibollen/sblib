@@ -518,6 +518,7 @@ void remote_setuid()
 {
     if (function_exists("open_soul", previous_object()) == COMMAND_DRIVER)
     {
+        logger->info("Check for open soul in %O", previous_object());
         configure_object(previous_object(), OC_EUID, "0:0");
     }
 }

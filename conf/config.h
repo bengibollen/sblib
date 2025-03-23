@@ -6,7 +6,7 @@
  */
 
 /* The distributed code holds a file /config.std/sys/local.h
- * You must install that file as /config/sys/local.h if you dont
+ * You must install that file as /conf/sys/local.h if you dont
  * want to make your own.
  */
 #ifndef CONFIG_DEFINED

@@ -7,7 +7,7 @@
 #ifndef SUBL_DEFINED
 #define SUBL_DEFINED
 
-#define SUBL_CODE		"/sys/global/subloc"
+#define SUBL_CODE		"/lib/language/subloc"
 
 #define SUBL_PREPOS		"_subl_prepos_"
 #define SUBL_CONT_PREP(p) 	(SUBL_PREPOS + (p))

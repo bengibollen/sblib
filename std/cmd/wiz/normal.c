@@ -51,7 +51,7 @@
 #pragma no_inherit
 #pragma strict_types
 
-inherit "/cmd/std/tracer_tool_base.c";
+inherit "/std/cmd/std/tracer_tool_base.c";
 
 /*
  * This is necessary for AFT.
@@ -71,13 +71,14 @@ inherit "/lib/cache";
 #include <ss_types.h>
 #include <std.h>
 #include <stdproperties.h>
-#include <time.h>
+#include <libtime.h>
+#include <interactive_info.h>
 
 #define CHECK_SO_WIZ    if (WIZ_CHECK < WIZ_NORMAL) return 0; \
                         if (this_interactive() != this_player()) return 0
 
 // #include "/cmd/wiz/normal/edit.c"
-#include "/cmd/wiz/normal/files.c"
+#include "/std/cmd/wiz/normal/files.c"
 
 static nomask int somelog(string str, string logname, string log);
 static nomask int valid_possess(object demon, object possessed);
@@ -230,13 +231,13 @@ banish(string arg)
         name = argv[0];
     }
 
-    if (SECURITY->exist_player(name))
+    if (({int}) SECURITY->exist_player(name))
     {
         notify_fail(capitalize(name) + " is a player in the game.\n");
         return 0;
     }
 
-    wtype = SECURITY->query_wiz_rank(this_interactive()->query_real_name());
+    wtype = ({int}) SECURITY->query_wiz_rank(this_interactive()->query_real_name());
     switch (what)
     {
     case "-a":
@@ -259,7 +260,7 @@ banish(string arg)
         /*
          * Try to banish.
          */
-        rval = SECURITY->banish(name, 2);
+        rval = ({mixed *}) SECURITY->banish(name, 2);
 
         if (sizeof(rval) != 0)
             write(capitalize(name) + " was banished by " +
@@ -274,7 +275,7 @@ banish(string arg)
         /*
          * Look for information.
          */
-        rval = SECURITY->banish(name, 0);
+        rval = ({mixed *}) SECURITY->banish(name, 0);
         if (sizeof(rval) != 0)
             write(capitalize(name) + " was banished by " +
                   capitalize(rval[0]) + " at " + ctime(rval[1]) + ".\n");
@@ -287,12 +288,12 @@ banish(string arg)
         /*
          * Try to remove.
          */
-        rval = SECURITY->banish(name, 0);
+        rval = ({mixed *}) SECURITY->banish(name, 0);
         if (sizeof(rval) != 0)
         {
             if (wtype != WIZ_KEEPER && wtype != WIZ_ARCH)
             {
-                if (rval[0] != this_interactive()->query_real_name())
+                if (rval[0] != ({string}) this_interactive()->query_real_name())
                 {
                     notify_fail("You have not banished " +
                                 capitalize(name) + ".\n");
@@ -306,7 +307,7 @@ banish(string arg)
             return 0;
         }
 
-        rval = SECURITY->banish(name, 1);
+        rval = ({mixed *}) SECURITY->banish(name, 1);
         if (sizeof(rval) != 0)
         {
             write(capitalize(name) + " was banished by " +
@@ -343,7 +344,7 @@ cmdsoul(string str)
 
     CHECK_SO_WIZ;
 
-    cmdsoul_list = (string *)this_interactive()->query_cmdsoul_list();
+    cmdsoul_list = ({string *})this_interactive()->query_cmdsoul_list();
     if (!stringp(str))
     {
         index = -1;
@@ -360,14 +361,14 @@ cmdsoul(string str)
 
     if (member(str, cmdsoul_list) >= 0)
     {
-        if (this_interactive()->remove_cmdsoul(str))
+        if (({int}) this_interactive()->remove_cmdsoul(str))
             write("Removed " + str + ".\n");
         else
             write("Failed on " + str + ".\n");
         return 1;
     }
 
-    if (this_interactive()->add_cmdsoul(str))
+    if (({int}) this_interactive()->add_cmdsoul(str))
         write("Added " + str + ".\n");
     else
         write("Failed on " + str + ".\n");
@@ -391,7 +392,7 @@ combatdata(string str)
     else if (live = find_living(str));
 
     if (live)
-        write(live->combat_data());
+        write(({string}) live->combat_data());
     else
     {
         notify_fail("No such living found: " + str + "\n");
@@ -417,7 +418,7 @@ combatstat(string str)
     else if (live = find_living(str));
 
     if (live)
-        write(live->combat_status());
+        write(({string}) live->combat_status());
     else
     {
         notify_fail("No such living found: " + str + "\n");
@@ -453,19 +454,19 @@ control(string npc)
         return 0;
     }
 
-    if (!mon->query_npc())
+    if (!({int}) mon->query_npc())
     {
         notify_fail("You feel a strong resistance towards control.\n");
         return 0;
     }
 
-    if (owner = (object)mon->query_link_remote())
+    if (owner = ({object}) mon->query_link_remote())
     {
         owner = environment(owner);
         if (living(owner))
-            str = "is held by " + owner->short();
+            str = "is held by " + ({string}) owner->short();
         else
-            str = "seems to be in: " + owner->short();
+            str = "seems to be in: " + ({string}) owner->short();
         write(capitalize(npc) + " is already controlled. The wand " +
               str + "\n");
         return 1;
@@ -500,13 +501,13 @@ dtell(string str)
     }
 
     if (!sizeof(domain =
-        SECURITY->query_wiz_dom(this_interactive()->query_real_name())))
+        ({string}) SECURITY->query_wiz_dom(({string}) this_interactive()->query_real_name())))
     {
         notify_fail("You are not a member of any domain.\n");
         return 0;
     }
 
-    return WIZ_CMD_APPRENTICE->line((domain + " " + str),
+    return ({int}) WIZ_CMD_APPRENTICE->line((domain + " " + str),
         (query_verb() == "dtelle"));
 }
 
@@ -534,7 +535,7 @@ echo(string str)
     }
 #endif
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
         write("You echo: " + str + "\n");
     }
@@ -580,7 +581,7 @@ echo_to(string str)
 #endif
 
     tell_object(ob, msg + "\n");
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
         write("You echo to " + capitalize(who) + ": " + msg + "\n");
     }
@@ -641,15 +642,15 @@ force(string str)
     }
 #endif
 
-    if (ob->command(what))
+    if (({int}) ob->command(what))
     {
-        tell_object(ob, this_interactive()->query_The_name(ob) +
+        tell_object(ob, ({string}) this_interactive()->query_The_name(ob) +
                     " forced you to: " + what + "\n");
         write("Ok.\n");
     }
     else
     {
-        tell_object(ob, this_interactive()->query_The_name(ob) +
+        tell_object(ob, ({string}) this_interactive()->query_The_name(ob) +
                     " tried to force you to: " + what + "\n");
         write("You failed.\n");
     }
@@ -673,18 +674,18 @@ invis()
 {
     CHECK_SO_WIZ;
 
-    if (this_player()->query_invis())
+    if (({int}) this_player()->query_invis())
     {
         notify_fail("You are already invisible.\n");
         return 0;
     }
 
     write("You are now invisible.\n");
-    say(QCTNAME(this_player()) + " " + this_player()->query_mm_out() + "\n");
+    say(QCTNAME(this_player()) + " " + ({string}) this_player()->query_mm_out() + "\n");
     this_player()->set_invis(1);
-    say( ({ this_player()->query_name() +
+    say( ({ ({string}) this_player()->query_name() +
                 " remains invisible in the room though.\n",
-            "The " + this_player()->query_nonmet_name() +
+            "The " + ({string}) this_player()->query_nonmet_name() +
                 " remains invisible in the room though.\n", "" }) );
     return 1;
 }
@@ -703,7 +704,7 @@ leave(string str)
         return 0;
     }
 
-    return SECURITY->leave_domain();
+    return ({int}) SECURITY->leave_domain();
 }
 
 /* **************************************************************************
@@ -730,7 +731,7 @@ modify(string str)
 
     words = explode(str, " ");
     name = lower_case(words[0]);
-    self = (name == this_player()->query_real_name()) || wildmatch("*jr", name);
+    self = (name == ({string}) this_player()->query_real_name()) || name[<2..] == "jr";
     if (sizeof(words) < (5 - self))
     {
         notify_fail("Syntax: modify <person> <stat>/exp <type> <amount> " +
@@ -768,7 +769,7 @@ modify(string str)
 
         player->modify_exp(words[2], amount, reason);
         write("Changed " + words[2] + " experience of " +
-            player->query_name() + " with delta " + amount + ".\n");
+            ({string}) player->query_name() + " with delta " + amount + ".\n");
         return 1;
     }
 
@@ -790,7 +791,7 @@ modify(string str)
 
     player->modify_stat(words[2], stat, amount, reason);
     write("Altered stat " + words[1] + " using " + words[2] +
-        " experience of " + player->query_name() + " with to value " +
+        " experience of " + ({string}) player->query_name() + " with to value " +
         amount + ".\n");
     return 1;
 }
@@ -851,8 +852,8 @@ money(string str)
             {
                 if (new_coins[index])
                 {
-                    MONEY_MAKE(new_coins[index],
-                        MONEY_TYPES[index])->move(this_player());
+                     MONEY_MAKE(new_coins[index],
+                         MONEY_TYPES[index])->move(this_player());
                 }
             }
         }
@@ -900,17 +901,17 @@ msecond(string str)
 	    msecond("");
 	    return 0;
 	}
-	if (!SECURITY->exist_player(args[1]))
+	if (!({int}) SECURITY->exist_player(args[1]))
 	{
 	    notify_fail("The player " + capitalize(args[1]) + " does not exist.\n");
 	    return 0;
 	}
-	if (!SECURITY->exist_player(args[3]))
+	if (!({int}) SECURITY->exist_player(args[3]))
 	{
 	    notify_fail("The player " + capitalize(args[3]) + " does not exist.\n");
 	    return 0;
 	}
-        if (!SECURITY->add_second(args[3], args[1]))
+        if (!({int}) SECURITY->add_second(args[3], args[1]))
         {
             return 0;
         }
@@ -925,7 +926,7 @@ msecond(string str)
 	    msecond("");
 	    return 0;
 	}
-        if (!SECURITY->remove_second(args[3], args[1]))
+        if (!({int}) SECURITY->remove_second(args[3], args[1]))
         {
             return 0;
         }
@@ -939,13 +940,13 @@ msecond(string str)
 	    msecond("");
 	    return 0;
 	}
-        str = SECURITY->query_find_first(args[0]);
+        str = ({string}) SECURITY->query_find_first(args[0]);
         if (!str)
         {
             notify_fail("No player " + capitalize(args[0]) + " or no seconds.\n");
             return 0;
         }
-	args = sort_array(SECURITY->query_seconds(str));
+	args = sort_array(({string *}) SECURITY->query_seconds(str), #'>);
 	if (!sizeof(args))
 	{
 	    write(sprintf("%-11s: ", capitalize(str)) + "No seconds\n");
@@ -955,7 +956,7 @@ msecond(string str)
         write("Seconds for " + capitalize(str) + ":\n");
         foreach(string second: args)
         {
-           info = SECURITY->query_second_info(str, second);
+           info = ({string}) SECURITY->query_second_info(str, second);
            write(sprintf("- %-11s added %s by %s\n", capitalize(second), ctime(info[1]), capitalize(info[0])));
         }
 	return 1;
@@ -982,7 +983,7 @@ peace(string str)
         oblist = ({ this_player() });
 
         say(QCTNAME(this_player()) + " makes peace with all " +
-            this_player()->query_possessive() + " enemies.\n");
+            ({string}) this_player()->query_possessive() + " enemies.\n");
         write("You make peace for yourself.\n");
     }
     else
@@ -1003,7 +1004,7 @@ peace(string str)
     size = sizeof(oblist);
     while(++index < size)
     {
-        targets = oblist[index]->query_enemy(-1);
+        targets = ({object *}) oblist[index]->query_enemy(-1);
 
         oblist[index]->stop_fight(targets);
         targets->stop_fight(oblist[index]);
@@ -1076,7 +1077,7 @@ possess(string arg)
      * Only an Arch or Keeper can break or force a possession.
      */
     if ((argc == 2) &&
-        (SECURITY->query_wiz_rank(geteuid(this_interactive())) >= WIZ_ARCH))
+        (({int}) SECURITY->query_wiz_rank(geteuid(this_interactive())) >= WIZ_ARCH))
     {
         switch (argv[0])
         {
@@ -1120,7 +1121,7 @@ possess(string arg)
 
     if (!interactive(victim))
     {
-        if (SECURITY->exist_player(v_name))
+        if (({int}) SECURITY->exist_player(v_name))
         {
             notify_fail("You can't possess an object with the same name as a player.\n");
             return 0;
@@ -1134,7 +1135,7 @@ possess(string arg)
     possob->move(victim, 1);
     possob->set_name(v_name);
 
-    if (possob->possess(this_interactive(), victim))
+    if (({int}) possob->possess(this_interactive(), victim))
     {
         snoop(possob, victim);
         possob->set_lock();
@@ -1153,19 +1154,19 @@ valid_possess(object demon, object possessed)
     int rank;
     string dom, by, on;
 
-    rank = SECURITY->query_wiz_rank(geteuid(demon));
+    rank = ({int}) SECURITY->query_wiz_rank(geteuid(demon));
 
     /* Arch & keeper possesses all everywhere */
     if (rank >= WIZ_ARCH)
         return 1;
 
     by = geteuid(demon);
-    dom = SECURITY->query_wiz_dom(by);
+    dom = ({string}) SECURITY->query_wiz_dom(by);
     on = geteuid(possessed);
 
     /* never possess an arch or keeper. */
     if ((rank < WIZ_ARCH) &&
-        (SECURITY->query_wiz_rank(on) >= WIZ_ARCH))
+        (({int}) SECURITY->query_wiz_rank(on) >= WIZ_ARCH))
     {
         return 0;
     }
@@ -1173,9 +1174,9 @@ valid_possess(object demon, object possessed)
     /* Lords can possess members & member's objects everywhere */
     if (rank == WIZ_LORD)
     {
-        if (SECURITY->query_domain_lord(dom) == by)
+        if (({string}) SECURITY->query_domain_lord(dom) == by)
         {
-            if (dom == SECURITY->query_wiz_dom(on))
+            if (dom == ({string}) SECURITY->query_wiz_dom(on))
             {
                 return 1;
             }
@@ -1184,7 +1185,7 @@ valid_possess(object demon, object possessed)
 
     /* You can possess objects in your domain */
     if (!interactive(possessed) &&
-        ((dom == on) || (dom == SECURITY->query_wiz_dom(on))))
+        ((dom == on) || (dom == ({string}) SECURITY->query_wiz_dom(on))))
     {
         return 1;
     }
@@ -1223,26 +1224,26 @@ restrict(string str)
     args = explode(str, " ");
 
     // Mortals don't have any powers to restrict
-    if (args[0] != "list" && SECURITY->query_wiz_rank(args[0]) < WIZ_NORMAL)
+    if (args[0] != "list" && ({int}) SECURITY->query_wiz_rank(args[0]) < WIZ_NORMAL)
     {
         notify_fail("You can only restrict full wizards.\n");
         return 0;
     }
 
     // Mentors can only restrict their students
-    who = this_interactive()->query_real_name();
-    if (SECURITY->query_wiz_rank(who) < WIZ_STEWARD &&
-        SECURITY->query_mentor(args[0]) != who)
+    who = ({string}) this_interactive()->query_real_name();
+    if (({int}) SECURITY->query_wiz_rank(who) < WIZ_STEWARD &&
+        ({int}) SECURITY->query_wiz_rank(args[0]) != WIZ_STEWARD)
     {
         notify_fail("You are not the mentor of " + capitalize(args[0]) + ".\n");
         return 0;
     }
 
     // For lieges, restrict the use of restrict (pun!) to domain members.
-    dom = SECURITY->query_wiz_dom(who);
+    dom = ({string}) SECURITY->query_wiz_dom(who);
     if (args[0] != "list" &&
-        SECURITY->query_wiz_rank(who) < WIZ_ARCH &&
-        (dom != SECURITY->query_wiz_dom(args[0])))
+        ({int}) SECURITY->query_wiz_rank(who) < WIZ_ARCH &&
+        (dom != ({string}) SECURITY->query_wiz_dom(args[0])))
     {
         notify_fail("You can only restrict wizards in your own domain.\n");
         return 0;
@@ -1250,20 +1251,21 @@ restrict(string str)
 
     if (args[0] == "list")
     {
-        wlist = sort_array(filter(SECURITY->query_wiz_list(-1),
-                                  &operator(!=)(0) @ SECURITY->query_restrict));
-        if (SECURITY->query_wiz_rank(who) == WIZ_LORD ||
-            SECURITY->query_wiz_rank(who) == WIZ_STEWARD)
-            wlist = filter(wlist, &operator(==)(dom) @ SECURITY->query_wiz_dom);
-        wlist = filter(wlist, &operator(<=)(WIZ_NORMAL) @ SECURITY->query_wiz_rank);
+        wlist = sort_array(filter(({string *}) SECURITY->query_wiz_list(-1), (: ({int}) SECURITY->query_restrict($1) != 0 :)), #'>);
+        if (({int}) SECURITY->query_wiz_rank(who) == WIZ_LORD ||
+            ({int}) SECURITY->query_wiz_rank(who) == WIZ_STEWARD)
+        {
+            wlist = filter(wlist, (: ({string}) SECURITY->query_wiz_dom($1) == dom :));
+        }
+        wlist = filter(wlist, (: ({int}) SECURITY->query_wiz_rank($1) <= WIZ_NORMAL :));
         if (sizeof(wlist) == 0)
             write("No restricted wizards.\n");
         else
         {
             for (i = 0, sz = sizeof(wlist) ; i < sz ; i++)
             {
-                write(sprintf("%-11s%-11s", capitalize(wlist[i]), SECURITY->query_wiz_dom(wlist[i])));
-                res = SECURITY->query_restrict(wlist[i]);
+                write(sprintf("%-11s%-11s", capitalize(wlist[i]), ({string}) SECURITY->query_wiz_dom(wlist[i])));
+                res = ({int}) SECURITY->query_restrict(wlist[i]);
                 if (res & RESTRICT_SNOOP)
                     write("S   ");
                 if (res & RESTRICT_SNOOP_DOMAIN)
@@ -1282,11 +1284,11 @@ restrict(string str)
         return 1;
     }
 
-    res = SECURITY->query_restrict(args[0]);
+    res = ({int}) SECURITY->query_restrict(args[0]);
     if (sizeof(args) == 1)
     {
-        write(sprintf("%-11s%-11s", capitalize(args[0]), SECURITY->query_wiz_dom(args[0])));
-        res = SECURITY->query_restrict(args[0]);
+        write(sprintf("%-11s%-11s", capitalize(args[0]), ({string}) SECURITY->query_wiz_dom(args[0])));
+        res = ({int}) SECURITY->query_restrict(args[0]);
         if (res & RESTRICT_SNOOP)
             write("S   ");
         if (res & RESTRICT_SNOOP_DOMAIN)
@@ -1347,7 +1349,7 @@ restrict(string str)
         }
 
         if ((res & setres) == 0 &&
-            SECURITY->query_wiz_rank(args[0]) > WIZ_MAGE)
+            ({int}) SECURITY->query_wiz_rank(args[0]) > WIZ_MAGE)
         {
             notify_fail("It's not suitable to restrict a wizard of this level.\nPlease use the demote command instead.\n");
             return 0;
@@ -1394,7 +1396,7 @@ retire(string str)
         return 0;
     }
 
-    return SECURITY->retire_wizard();
+    return ({int}) SECURITY->retire_wizard();
 }
 
 /* **************************************************************************
@@ -1433,8 +1435,8 @@ sdoc(string str)
         return 1;
         break;
     case "-?":
-        write(DOCMAKER->doc_query_status());
-        ord = DOCMAKER->doc_query_orders();
+        write(({string}) DOCMAKER->doc_query_status());
+        ord = ({mixed}) DOCMAKER->doc_query_orders();
         for (i = 0; i < sizeof(ord); i++)
         {
             write(ord[i][1] + " in " + ord[i][0] + " by: " +
@@ -1449,7 +1451,7 @@ sdoc(string str)
             return 0;
         }
 
-        argv[1] = FTPATH(this_player()->query_path(), argv[1]);
+        argv[1] = FTPATH(({string}) this_player()->query_path(), argv[1]);
         if (sizeof(explode(" " + argv[1] + " ", "*")) == 1)
         {
             files = ({ argv[1] });
@@ -1489,6 +1491,7 @@ sdoc(string str)
 
         break;
     }
+    return 1;
 }
 
 /* **************************************************************************
@@ -1518,7 +1521,7 @@ shutdown_game(string str)
             return 1;
 
         case "runlevel":
-            if (grace = SECURITY->query_runlevel())
+            if (grace = ({int}) SECURITY->query_runlevel())
             {
                 write("Runlevel: " + WIZ_RANK_NAME(grace) + " (and higher).\n");
             }
@@ -1605,7 +1608,7 @@ snoop_on(string str)
             return 1;
         }
 
-        if ((object)SECURITY->query_snoop(on))
+        if (({object}) SECURITY->query_snoop(on))
         {
             write(capitalize(argv[0]) + " is already snooped.\n");
             return 1;
@@ -1699,9 +1702,9 @@ show_stat(object ob, int what)
         str += ob->stat_playervars();
      */
     if (what & STAT_LIVING)
-        str += ob->stat_living();
+        str += ({string}) ob->stat_living();
     if (what & STAT_OBJECT)
-        str += ob->stat_object();
+        str += ({string}) ob->stat_object();
     write(str);
     return 1;
 }
@@ -1746,11 +1749,11 @@ stat(string str)
     {
         flags = STAT_LIVING;
     }
-    else if (ob = (object)SECURITY->finger_player(str))
+    else if (ob = ({object})SECURITY->finger_player(str))
     {
         flags = STAT_PLAYER | STAT_LIVING;
         // Remove the temporary finger player object after we're done with it
-        set_alarm(0.0, 0.0, &ob->remove_object());
+        call_out((: ({int}) ob->remove_object() :), 0);
     }
 
     if (!ob)
@@ -1759,13 +1762,13 @@ stat(string str)
         return 0;
     }
 
-    res = SECURITY->query_restrict(this_interactive()->query_real_name());
+    res = ({int}) SECURITY->query_restrict(({string}) this_interactive()->query_real_name());
     if (res & RESTRICT_STAT)
     {
         // A restricted wizard may not stat other players, only himself.
         if (flags & STAT_PLAYER)
         {
-            if (!ob->query_wiz_level() && !wildmatch("*jr", ob->query_real_name()))
+            if (!({int}) ob->query_wiz_level() && ((({string}) ob->query_real_name())[<2..] != "jr"))
             {
                 write("You are currently restricted from using the stat " +
                     "command on mortal players (except juniors).\n");
@@ -1775,7 +1778,7 @@ stat(string str)
 
         // A restricted wizard may only stat objects for which he has read
         // permission
-        if (!SECURITY->valid_read(MASTER_OB(ob), this_interactive(), "stat"))
+        if (!({int}) SECURITY->valid_read(MASTER_OB(ob), this_interactive(), "stat"))
         {
             write("You may only stat objects for which you can read the " +
                 "source code.\n");
@@ -1806,7 +1809,7 @@ skillstat(string str)
         return 0;
     }
 
-    write(ob->skill_living());
+    write(({string}) ob->skill_living());
     return 1;
 }
 
@@ -1823,14 +1826,14 @@ skillstat(string str)
 static string
 team_member_description(object player)
 {
-    string name = capitalize(player->query_real_name());
+    string name = capitalize(({string}) player->query_real_name());
     int idle;
 
     if (!interactive(player))
     {
         name += " (LD)";
     }
-    else if ((idle = query_idle(player)) > 60)
+    else if ((idle = interactive_info(player, II_IDLE)) > 60)
     {
         name += " (" + TIME2STR(idle, 1) + ")";
     }
@@ -1855,7 +1858,7 @@ teams(string str)
      */
     if (objectp(find_object(OWN_STATUE)))
     {
-        players += ((object *)find_object(OWN_STATUE)->query_linkdead_players() - players);
+        players += (({object *})find_object(OWN_STATUE)->query_linkdead_players() - players);
     }
 #endif
 #endif
@@ -1863,16 +1866,16 @@ teams(string str)
     index = sizeof(players);
     while(--index >= 0)
     {
-        members = players[index]->query_team();
+        members = ({object *}) players[index]->query_team();
         if (!sizeof(members))
         {
             continue;
         }
         num_teams++;
         write(HANGING_INDENT(sprintf("%-11s %d %s %s",
-            capitalize(players[index]->query_real_name()), sizeof(members),
+            capitalize(({string}) players[index]->query_real_name()), sizeof(members),
             ((sizeof(members) == 1) ? "member :": "members:"),
-            COMPOSITE_WORDS(map(members, team_member_description))),
+            COMPOSITE_WORDS(map(members, #'team_member_description))),
             23, 0));
     }
     write("There " + ((num_teams == 1) ? "is " : "are ") +
@@ -1886,7 +1889,7 @@ teams(string str)
 nomask int
 tellall(string str)
 {
-    string name = this_player()->query_real_name();
+    string name = ({string}) this_player()->query_real_name();
     int index = -1;
     int size;
     object *list;
@@ -1903,11 +1906,11 @@ tellall(string str)
     }
 
     list = users() - ({ this_player(), 0 });
-    list -= (object *)QUEUE->queue_list(0);
+    list -= ({object *})QUEUE->queue_list(0);
     size = sizeof(list);
     while(++index < size)
     {
-        if (list[index]->query_wiz_level())
+        if (({int}) list[index]->query_wiz_level())
         {
             tell_object(list[index], capitalize(name) +
                 " tells everyone: " + str + "\n");
@@ -1915,14 +1918,14 @@ tellall(string str)
         else
         {
             tell_object(list[index], "An apparition of " +
-                this_player()->query_art_name(list[index]) +
+                ({string}) this_player()->query_art_name(list[index]) +
                 " appears to you.\n" +
-                capitalize(this_player()->query_pronoun()) +
+                capitalize(({string}) this_player()->query_pronoun()) +
                 " tells everyone: " + str +
                 "\nThe figure then disappears.\n");
         }
 
-        names = list[index]->query_prop(PLAYER_AS_REPLY_WIZARD);
+        names = ({string *}) list[index]->query_prop(PLAYER_AS_REPLY_WIZARD);
         if (pointerp(names))
         {
             names = ({ name }) + (names - ({ name }) );
@@ -1934,7 +1937,7 @@ tellall(string str)
         list[index]->add_prop(PLAYER_AS_REPLY_WIZARD, names);
     }
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
         write("You tell everyone: " + str + "\n");
     else
         write("Ok.\n");
@@ -1952,7 +1955,7 @@ toolsoul(string str)
 
     CHECK_SO_WIZ;
 
-    tool_list = (string *)this_interactive()->query_tool_list();
+    tool_list = ({string *})this_interactive()->query_tool_list();
     if (!stringp(str))
     {
         index = -1;
@@ -1969,14 +1972,14 @@ toolsoul(string str)
 
     if (member(str, tool_list) >= 0)
     {
-        if (this_interactive()->remove_toolsoul(str))
+        if (({int}) this_interactive()->remove_toolsoul(str))
             write("Removed " + str + ".\n");
         else
             write("Failed on " + str + ".\n");
         return 1;
     }
 
-    if (this_interactive()->add_toolsoul(str))
+    if (({int}) this_interactive()->add_toolsoul(str))
         write("Added " + str + ".\n");
     else
         write("Failed on " + str + ".\n");
@@ -1995,7 +1998,7 @@ tradestat()
         return 0;
     }
 
-    write(environment(this_player())->stat_trade());
+    write(({string})environment(this_player())->stat_trade());
     return 1;
 }
 
@@ -2043,14 +2046,14 @@ trans(string str)
         tell_object(ob, "You feel yourself magically transferred.\n");
         room = MASTER_OB(environment(ob));
         ob->add_prop(PLAYER_S_TRANSED_FROM, room);
-        if (this_player()->query_option(OPT_ECHO))
+        if (({int}) this_player()->query_option(OPT_ECHO))
         {
             write("Transed from: " + room + "\n");
         }
         if (sizeof(args) > 1)
         {
             ob->move_living("X",
-                FTPATH(this_interactive()->query_path(), args[1]));
+                FTPATH(({string}) this_interactive()->query_path(), args[1]));
         }
         else
         {
@@ -2059,11 +2062,11 @@ trans(string str)
     }
     else
     {
-        if (!(sizeof(room = ob->query_prop(PLAYER_S_TRANSED_FROM))))
+        if (!(sizeof(room = ({string}) ob->query_prop(PLAYER_S_TRANSED_FROM))))
         {
             write(capitalize(args[0]) +
                 " was not transed. Using previous location instead.\n");
-            room = ob->query_prop(LIVE_O_LAST_ROOM);
+            room = ({object}) ob->query_prop(LIVE_O_LAST_ROOM);
         }
         if (!room)
         {
@@ -2073,7 +2076,7 @@ trans(string str)
         }
 
         tell_object(ob, "You feel yourself magically transferred.\n");
-        if (this_player()->query_option(OPT_ECHO))
+        if (({int}) this_player()->query_option(OPT_ECHO))
         {
             write("Transed to: " +
                 (objectp(room) ? object_name(room) : room ) + "\n");
@@ -2102,7 +2105,7 @@ nomask int vis()
 {
     CHECK_SO_WIZ;
 
-    if (!(this_player()->query_invis()))
+    if (!(({int}) this_player()->query_invis()))
     {
         notify_fail("You are not invisible.\n");
         return 0;
@@ -2110,7 +2113,7 @@ nomask int vis()
 
     this_player()->set_invis(0);
     write("You are now visible.\n");
-    say(QCNAME(this_player()) + " " + this_player()->query_mm_in() + "\n");
+    say(QCNAME(this_player()) + " " + ({string}) this_player()->query_mm_in() + "\n");
     return 1;
 }
 
@@ -2118,8 +2121,7 @@ nomask int vis()
  * Function name: somelog
  * Description:   Look at error logs
  */
-static int
-somelog(string str, string logname, string log)
+static nomask int somelog(string str, string logname, string log)
 {
     string file;
     int remove;
@@ -2128,9 +2130,9 @@ somelog(string str, string logname, string log)
     {
         str = ({string})this_interactive()->query_real_name();
     }
-    if (remove = wildmatch("-r*", str))
+    if (remove = (str[..1] == "-r"))
     {
-        str = extract(str, 3);
+        str = str[3..];
     }
 
     file = ({string})SECURITY->query_wiz_path(str) + "/log";
@@ -2160,7 +2162,7 @@ somelog(string str, string logname, string log)
     if (log == "/runtime")
     {
         write("For trace information, see /" +
-            lower_case(SECURITY->get_mud_name()) + ".debug.log\n");
+            lower_case(({string}) SECURITY->get_mud_name()) + ".debug.log\n");
     }
     return 1;
 }

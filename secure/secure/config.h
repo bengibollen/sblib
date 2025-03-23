@@ -9,14 +9,14 @@
 /* And the user configuration part for this world
 */
 #ifndef CONFIG_DEFINED
-#include "/config/sys/local.h"
+#include "/conf/sys/local.h"
 #endif
 
 #ifndef CONFIG_DEFINED
 #define CONFIG_DEFINED
 
 /* The distributed code holds a file /config.std/sys/local.h
-   You must install that file as /config/sys/local.h if you dont
+   You must install that file as /conf/sys/local.h if you dont
    want to make your own.
 */
 

@@ -238,7 +238,11 @@ public void catch_vbfc(mixed str, object from_player = 0)
     }
     else
     {
-	write(process_string(str));
+        
+        log_debug("Function: catch_vbfc");
+        log_debug("Raw string: %s", str);
+        log_debug("Processed string: %s", process_string(str));
+        write(process_string(str));
     }
 }
 
@@ -248,6 +252,10 @@ public void catch_vbfc(mixed str, object from_player = 0)
  */
 public void catch_msg(mixed str, object from_player = 0)
 {
+    write("Function: catch_msg");
+    log_debug("Function: catch_msg");
+    log_debug("Raw string: %s", str);
+    log_debug("Processed string: %s", process_string(str));
     catch_vbfc(str, from_player);
 }
 

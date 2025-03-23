@@ -25,6 +25,7 @@ private mapping MonthToNumMap = ([ "Jan" : 1, "Feb" : 2, "Mar" : 3,
     "Apr" : 4, "May" : 5, "Jun" : 6, "Jul" : 7, "Aug" : 8, "Sep" : 9,
     "Oct" : 10, "Nov" : 11, "Dec" : 12 ]);
 
+
 /*
  * Function name: time_to_numbers
  * Description  : This function is an internal function in this module. It
@@ -33,8 +34,7 @@ private mapping MonthToNumMap = ([ "Jan" : 1, "Feb" : 2, "Mar" : 3,
  *                private global variables.
  * Arguments    : int time - the time to convert.
  */
-nomask private void
-time_to_numbers(int time)
+nomask private void time_to_numbers(int time)
 {
     int n;
 
@@ -54,6 +54,7 @@ time_to_numbers(int time)
     time_sec = time;
 }
 
+
 /*
  * Function name: time2num
  * Description  : This function will convert a time to its component
@@ -65,13 +66,13 @@ time_to_numbers(int time)
  * Returns      : int *    - an array with the days, hours, minutes and
  *                           seconds.
  */
-nomask public int *
-time2num(int time)
+nomask public int *time2num(int time)
 {
     time_to_numbers(time);
 
     return ({ time_day, time_hour, time_min, time_sec });
 }
+
 
 /*
  * Function name: convtime
@@ -83,8 +84,7 @@ time2num(int time)
  * Arguments    : int time - the time in seconds to print.
  * Returns      : string   - the time in string-form.
  */
-nomask public string
-convtime(int time)
+nomask public string convtime(int time)
 {
     string res = "";
 
@@ -97,7 +97,7 @@ convtime(int time)
 
     if (time_hour)
     {
-	if (strlen(res))
+	if (sizeof(res))
 	    res += " ";
 
 	res += time_hour + ((time_hour == 1) ? " hour" : " hours");
@@ -105,7 +105,7 @@ convtime(int time)
 
     if (time_min)
     {
-	if (strlen(res))
+	if (sizeof(res))
 	    res += " ";
 
 	res += time_min + ((time_min == 1) ? " minute" : " minutes");
@@ -113,7 +113,7 @@ convtime(int time)
 
     if (time_sec)
     {
-	if (strlen(res))
+	if (sizeof(res))
 	    res += " ";
 
 	res += time_sec + ((time_sec == 1) ? " second" : " seconds");
@@ -121,6 +121,7 @@ convtime(int time)
 
     return res;
 }
+
 
 /*
  * Function name: time2str1
@@ -130,8 +131,7 @@ convtime(int time)
  *                character.
  * Returns      : string   - the string describing the time.
  */
-nomask private string
-time2str1()
+nomask private string time2str1()
 {
     if (time_day)
     {
@@ -151,6 +151,7 @@ time2str1()
     return time_sec + " s";
 }
 
+
 /*
  * Function name: time2str2
  * Description  : This function returns a string containing a textual
@@ -158,8 +159,7 @@ time2str1()
  *                time-elements.
  * Returns      : string   - the converted time.
  */
-nomask private string
-time2str2()
+nomask private string time2str2()
 {
     /* Return days. */
     if (time_day)
@@ -203,6 +203,7 @@ time2str2()
     return sprintf("      %2d s", time_sec);
 }
 
+
 /*
  * Function name: time2str3
  * Description  : This function will take the number of days, hours, minutes
@@ -210,8 +211,7 @@ time2str2()
  *                the three most significant time-elements.
  * Returns      : string - the result.
  */
-nomask private string
-time2str3()
+nomask private string time2str3()
 {
     /* Return days. */
     if (time_day)
@@ -250,6 +250,7 @@ time2str3()
     return sprintf("           %2d s", time_sec);
 }
 
+
 /*
  * Function name: time2str4
  * Description  : This function takes the number of days, hours, minutes
@@ -258,13 +259,13 @@ time2str3()
  *                abbreviated to only one letter.
  * Returns      : string - the result.
  */
-nomask private string
-time2str4()
+nomask private string time2str4()
 {
     /* Just return all types. */
     return sprintf("%3d d %2d h %2d m %2d s", time_day, time_hour,
 	time_min, time_sec);
 }
+
 
 /*
  * Function name: time2str
@@ -275,8 +276,7 @@ time2str4()
  *                int sig  - the number of significant time-elements.
  * Returns      : string   - the resulting string.
  */
-nomask public string
-time2str(int time, int sig)
+nomask public string time2str(int time, int sig)
 {
     time_to_numbers(time);
 
@@ -299,6 +299,7 @@ time2str(int time, int sig)
     }
 }
 
+
 /*
  * Function name: time2format
  * Description  : Converts a time stamp into a formatted time. The format
@@ -320,13 +321,12 @@ time2str(int time, int sig)
  *                string format - the format to print the timestamp in.
  * Returns      : string - the formatted time.
  */
-nomask public string
-time2format(int timestamp, string format)
+nomask public string time2format(int timestamp, string format)
 {
     string timestring = ctime(timestamp);
     string result = "";
 
-    while(strlen(format))
+    while(sizeof(format))
     {
         if (format[0..3] == "yyyy")
         {

@@ -29,6 +29,7 @@
 /* Prototypes */
 varargs string getuid(object ob);
 int seteuid(string str);
+private object logger = load_object("/lib/log");
 
 nomask varargs void dump_array(mixed a, string tab);
 nomask varargs void dump_mapping(mapping m, string tab);
@@ -132,6 +133,32 @@ int cat(string file, varargs mixed *argv)
     this_player()->catch_tell(slask);
     // Kludge warning!!!
     return (sizeof(lines) == 1 && sizeof(lines[0]) <= 3) ? 0 : sizeof(lines);
+}
+
+#define TAIL_MAX_BYTES 1000
+varargs int tail(string file)
+{
+    if (extern_call())
+        set_this_object(previous_object());
+
+    if (!stringp(file) || !this_player())
+        return 0;
+    string txt = to_text(read_bytes(file, -(TAIL_MAX_BYTES + 80), (TAIL_MAX_BYTES + 80)), "ASCII");
+    if (!stringp(txt))
+        return 0;
+
+    // cut off first (incomplete) line
+    int index = strstr(txt, "\n");
+    if (index > -1) {
+        if (index + 1 < sizeof(txt))
+            txt = txt[index+1..];
+        else
+            txt = "";
+    }
+
+    tell_object(this_player(), txt);
+
+    return 1;
 }
 
 
@@ -694,6 +721,7 @@ int file_time(string path)
  mapping get_names() { return name_living_m; }
  
  void start_simul_efun() {
+
      mixed *info;
  
      if ( !(info = get_extra_wizinfo(0)) )
@@ -821,3 +849,32 @@ int file_time(string path)
      return r && object_info(r, OI_ONCE_INTERACTIVE) && r;
  }
 
+
+ void log_error(string message, varargs mixed args)
+ {
+    logger->error(message, args...);
+ }
+
+
+ void log_warn(string message, varargs mixed args)
+ {
+     logger->warn(message, args...);
+ }
+
+
+ void log_info(string message, varargs mixed args)
+{
+    logger->info(message, args...);
+}
+
+
+void log_debug(string message, varargs mixed args)
+{
+    logger->debug(message, args...);
+}
+
+
+void log_trace(string message, varargs mixed args)
+{
+    logger->trace(message, args...);
+}

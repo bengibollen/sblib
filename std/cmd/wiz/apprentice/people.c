@@ -13,10 +13,11 @@
  * - people
  */
 
-#include "/config/login/login.h"
+#include "/conf/login/login.h"
 #include <filepath.h>
 #include <files.h>
 #include <options.h>
+#include <configuration.h>
 
 /* All options that don't add something, but are used to select people
  * or sort the people.
@@ -75,14 +76,14 @@ guildtell(string str)
         return 0;
     }
 
-    shadow_name = SECURITY->query_guild_long_name(guild);
+    shadow_name = ({string}) SECURITY->query_guild_long_name(guild);
     if (!sizeof(shadow_name))
     {
         notify_fail("No guild '" + guild + "' listed.\n");
         return 0;
     }
 
-    players = filter(users(), &in_guild(, shadow_name));
+    players = filter(users(), (: in_guild($1, shadow_name) :));
     if (!(size = sizeof(players)))
     {
         notify_fail("No players of the guild '" + shadow_name +
@@ -94,14 +95,14 @@ guildtell(string str)
     while(++index < size)
     {
         tell_object(players[index], "Without a sound, you hear a message " +
-            "from " + (players[index]->query_met(this_player()) ?
-            this_player()->query_name() :
-            LANG_ADDART(this_player()->query_nonmet_name())) +
+            "from " + (({int}) players[index]->query_met(this_player()) ?
+            ({string}) this_player()->query_name() :
+            LANG_ADDART(({string}) this_player()->query_nonmet_name())) +
             " to all members of your '" + shadow_name +
             "'.\nThe voice tells you: " + str + "\n");
 
-        names = players[index]->query_prop(PLAYER_AS_REPLY_WIZARD);
-        who = this_player()->query_real_name();
+        names = ({string *}) players[index]->query_prop(PLAYER_AS_REPLY_WIZARD);
+        who = ({string}) this_player()->query_real_name();
         if (pointerp(names))
         {
             names = ({ who }) + (names - ({ who }) );
@@ -113,7 +114,7 @@ guildtell(string str)
         players[index]->add_prop(PLAYER_AS_REPLY_WIZARD, names);
     }
 
-    if (this_player()->query_option(OPT_ECHO))
+    if (({int}) this_player()->query_option(OPT_ECHO))
     {
         write("Told all members of '" + shadow_name + "': " + str + "\n");
     }
@@ -138,8 +139,8 @@ guildtell(string str)
 nomask int
 sort_name(object a, object b)
 {
-    string sa = a->query_real_name();
-    string sb = b->query_real_name();
+    string sa = ({string}) a->query_real_name();
+    string sb = ({string}) b->query_real_name();
 
     if (sa < sb)
         return -1;
@@ -151,8 +152,8 @@ sort_name(object a, object b)
 nomask int
 sort_name_and_level(object a, object b)
 {
-    int ia = SECURITY->query_wiz_rank(a->query_real_name());
-    int ib = SECURITY->query_wiz_rank(b->query_real_name());
+    int ia = ({int}) SECURITY->query_wiz_rank(({string}) a->query_real_name());
+    int ib = ({int}) SECURITY->query_wiz_rank(({string}) b->query_real_name());
 
     /* most likely check first to save cpu-time. */
     if (ia == ib)
@@ -165,8 +166,8 @@ sort_name_and_level(object a, object b)
 nomask int
 sort_level(object a, object b)
 {
-    int ia = SECURITY->query_wiz_rank(a->query_real_name());
-    int ib = SECURITY->query_wiz_rank(b->query_real_name());
+    int ia = ({int}) SECURITY->query_wiz_rank(({string}) a->query_real_name());
+    int ib = ({int}) SECURITY->query_wiz_rank(({string}) b->query_real_name());
 
     /* most likely check first to save cpu-time. */
     if (ia == ib)
@@ -179,8 +180,8 @@ sort_level(object a, object b)
 nomask int
 sort_name_and_ip_name(object a, object b)
 {
-    string sa = query_ip_name(a);
-    string sb = query_ip_name(b);
+    string sa = interactive_info(a, II_IP_NAME);
+    string sb = interactive_info(b, II_IP_NAME);
 
     if (sa == sb)
         return sort_name(a, b);
@@ -192,8 +193,8 @@ sort_name_and_ip_name(object a, object b)
 nomask int
 sort_ip_name(object a, object b)
 {
-    string sa = query_ip_name(a);
-    string sb = query_ip_name(b);
+    string sa = interactive_info(a, II_IP_NAME);
+    string sb = interactive_info(b, II_IP_NAME);
 
     if (sa == sb)
         return 0;
@@ -205,8 +206,8 @@ sort_ip_name(object a, object b)
 nomask int
 sort_name_and_ip_number(object a, object b)
 {
-    string sa = query_ip_number(a);
-    string sb = query_ip_number(b);
+    string sa = interactive_info(a, II_IP_NUMBER);
+    string sb = interactive_info(b, II_IP_NUMBER);
 
     if (sa == sb)
         return sort_name(a, b);
@@ -218,8 +219,8 @@ sort_name_and_ip_number(object a, object b)
 nomask int
 sort_ip_number(object a, object b)
 {
-    string sa = query_ip_number(a);
-    string sb = query_ip_number(b);
+    string sa = interactive_info(a, II_IP_NUMBER);
+    string sb = interactive_info(b, II_IP_NUMBER);
 
     if (sa == sb)
         return 0;
@@ -233,8 +234,7 @@ in_domain(object player, string domain)
 {
     if (objectp(environment(player)))
     {
-        return (explode(object_name(environment(player)), domain)[0] ==
-            P_DOMAIN_ROOT);
+        return (explode(object_name(environment(player)), domain)[0] == P_DOMAIN_ROOT);
     }
 
     return 0;
@@ -243,10 +243,10 @@ in_domain(object player, string domain)
 nomask int
 in_guild(object player, string guild)
 {
-    return ((player->query_guild_name_occ() == guild) ||
-        (player->query_guild_name_lay() == guild) ||
-        (player->query_guild_name_race() == guild) ||
-        (player->query_guild_name_craft() == guild));
+    return (({string}) player->query_guild_name_occ() == guild ||
+        ({string}) player->query_guild_name_lay() == guild ||
+        ({string}) player->query_guild_name_race() == guild ||
+        ({string}) player->query_guild_name_craft() == guild);
 }
 
 nomask int
@@ -267,7 +267,7 @@ people(string opts)
     string  tmp_name, tmp_str, item, *tmp_arr, *flags;
     string  to_write = "";
     mapping snoop_map = ([ ]);
-    int     rank = SECURITY->query_wiz_rank(geteuid());
+    int     rank = ({int}) SECURITY->query_wiz_rank(geteuid());
 
     CHECK_SO_WIZ;
 
@@ -286,13 +286,13 @@ people(string opts)
     /* Filter out the stuff that isn't really interesting, like login
      * objects and players in the creation process.
      */
-    list = filter(users() - ({ 0 }), is_player);
+    list = filter(users() - ({ 0 }), #'is_player);
 
     /* Start by collecting some general information, like the number
      * of players present and active and the number of people trying to
      * log in.
      */
-    to_write += ("--- " + SECURITY->get_mud_name() + ": " + sizeof(list) +
+    to_write += ("--- " + ({string}) SECURITY->get_mud_name() + ": " + sizeof(list) +
         (sizeof(list) == 1 ? " player" : " players"));
 
     i = -1;
@@ -300,7 +300,7 @@ people(string opts)
     size = sizeof(list);
     while(++i < size)
     {
-        if (query_idle(list[i]) >= 300) /* 5 minutes */
+        if (interactive_info(list[i], II_IDLE) >= 300) /* 5 minutes */
         {
             a++;
         }
@@ -341,17 +341,17 @@ people(string opts)
         tmp_arr = exclude_array(tmp_arr, j, j);
 
         /* See whether it is a domain name. */
-        if (SECURITY->query_domain_number(item) > -1)
+        if (({int}) SECURITY->query_domain_number(item) > -1)
         {
-            list = filter(list, &in_domain(, capitalize(item)));
+            list = filter(list, (: in_domain($1, capitalize(item)) :));
             continue;
         }
 
-        opts = SECURITY->query_guild_long_name(item);
+        opts = ({string}) SECURITY->query_guild_long_name(item);
         /* See whether it is a guild name. */
         if (sizeof(opts))
         {
-            list = filter(list, &in_guild(, opts));
+            list = filter(list, (: in_guild($1, opts) :));
             continue;
         }
 
@@ -368,7 +368,7 @@ people(string opts)
     /* Wizard wants to list only the wizards present in the game. */
     if (member("w", flags) >= 0)
     {
-        list = filter(list, &->query_wiz_level());
+        list = filter(list, (: ({int}) $1->query_wiz_level() :));
 
         /* These options have no sense for wizards. */
         flags -= ({ "M" });
@@ -378,7 +378,7 @@ people(string opts)
      */
     else if (member("m", flags) >= 0)
     {
-        list = filter(list, &not() @ &->query_wiz_level());
+        list = filter(list, (: not(({int}) $1->query_wiz_level()) :));
 
         /* Save a LOT of cpu-time if no mortals are logged on..
          * Should not happen, though :-)
@@ -396,7 +396,7 @@ people(string opts)
     }
 
     /* Remove ip-information from those who should not see it. */
-    if (!SECURITY->valid_query_ip(geteuid()))
+    if (!({int}) SECURITY->valid_query_ip(geteuid()))
     {
         flags -= ({ "n", "N", "h", "H", "B" });
     }
@@ -405,7 +405,7 @@ people(string opts)
     /* Non domain wizards should not see stats. Restricted wizards don't see
      * stats either. */
     if ((rank < WIZ_NORMAL) ||
-        (SECURITY->query_restrict(geteuid()) & RESTRICT_STAT))
+        (({int}) SECURITY->query_restrict(geteuid()) & RESTRICT_STAT))
     {
         flags -= ({ "V" });
     }
@@ -425,7 +425,7 @@ people(string opts)
         size = sizeof(list);
         while(++i < size)
         {
-            if (tmpob = SECURITY->query_snoop(list[i]))
+            if (tmpob = ({object}) SECURITY->query_snoop(list[i]))
             {
                 if (objectp(tmpob))
                 {
@@ -451,10 +451,10 @@ people(string opts)
     }
 
     /* Sort the players by their level. */
-    if (member("L", flags) >= 0)
+    if ("L" in flags)
     {
         /* This allows you to specify both "L" and "A" */
-        if (member("A", flags) == -1)
+        if (!("A" in flags))
         {
             list = sort_array(list, "sort_level", this_object());
         }
@@ -464,10 +464,10 @@ people(string opts)
         }
     }
     /* Sort the players by their ip-number. */
-    else if (member("h", flags) >= 0)
+    else if ("h" in flags)
     {
         /* This allows you to specify both "h" and "A" */
-        if (member("A", flags) == -1)
+        if (!("A" in flags))
         {
             list = sort_array(list, "sort_ip_number", this_object());
         }
@@ -477,10 +477,10 @@ people(string opts)
         }
     }
     /* Sort the players by their ip-name. */
-    else if (member("H", flags) >= 0)
+    else if ("H" in flags)
     {
         /* This allows you to specify both "H" and "A" */
-        if (member("A", flags) == -1)
+        if (!("A" in flags))
         {
             list = sort_array(list, "sort_ip_name", this_object());
         }
@@ -490,7 +490,7 @@ people(string opts)
         }
     }
     /* Sort the player by their name. */
-    else if (member("A", flags) >= 0)
+    else if ("A" in flags)
     {
         list = sort_array(list, "sort_name", this_object());
     }
@@ -507,10 +507,10 @@ people(string opts)
     while(++i < size)
     {
         /* should never return 'unknown' any more. */
-        tmp_name = list[i]->query_possessed();
+        tmp_name = ({string}) list[i]->query_possessed();
         if (!sizeof(tmp_name))
         {
-            tmp_name = list[i]->query_real_name();
+            tmp_name = ({string}) list[i]->query_real_name();
         }
         contents[P_NAME] += ({ capitalize(tmp_name) });
         spcs[0] = ((spcs[0] > sizeof(contents[P_NAME][i])) ? spcs[0] :
@@ -522,7 +522,7 @@ people(string opts)
             switch(flags[j])
             {
             case "a": /* age */
-                a = list[i]->query_age();
+                a = ({int}) list[i]->query_age();
 
                 if (a > 43200)
                 {
@@ -543,20 +543,20 @@ people(string opts)
 
             case "b": /* busy */
                 contents[P_BUSY] +=
-                    ({ busy_string(list[i]->query_prop(WIZARD_I_BUSY_LEVEL))
+                    ({ busy_string(({int}) list[i]->query_prop(WIZARD_I_BUSY_LEVEL))
                        });
                 spcs[j + 1] = ((spcs[j + 1] > sizeof(contents[P_BUSY][i])) ?
                     spcs[j + 1] : sizeof(contents[P_BUSY][i]));
                 break;
 
             case "d": /*domain */
-                contents[P_DOMAIN] += ({ SECURITY->query_wiz_dom(tmp_name) });
+                contents[P_DOMAIN] += ({ ({int}) SECURITY->query_wiz_dom(tmp_name) });
                 spcs[j + 1] = ((spcs[j + 1] > sizeof(contents[P_DOMAIN][i])) ?
                     spcs[j + 1] : sizeof(contents[P_DOMAIN][i]));
                 break;
 
             case "i": /* idle */
-                if (query_idle(list[i]) >= 300)
+                if (interactive_info(list[i], II_IDLE) >= 300)
                 {
                     contents[P_IDLE] += ({ "I" });
                 }
@@ -569,17 +569,17 @@ people(string opts)
                 break;
 
             case "l": /* location */
-                if (sizeof(list[i]->query_possessed()))
+                if (sizeof(({string}) list[i]->query_possessed()))
                 {
                     if (function_exists("possess", list[i]) ==
                         POSSESSION_OBJECT)
                     {
                         contents[P_LOCATION] += ({ "Possessed by " +
-                            capitalize(list[i]->query_demon()) + "." });
+                            capitalize(({string}) list[i]->query_demon()) + "." });
                     }
                     else
                     {
-                        contents[P_LOCATION] += ({ capitalize(list[i]->
+                        contents[P_LOCATION] += ({ capitalize(({string}) list[i]->
                             query_real_name()) + "@" + (environment(list[i]) ?
                             RPATH(object_name(environment(list[i]))) :
                             "In the big black void.") });
@@ -597,22 +597,22 @@ people(string opts)
                 break;
 
             case "M": /* met */
-                contents[P_MET] += ({ ((list[i]->
+                contents[P_MET] += ({ ((({int}) list[i]->
                     query_met(this_interactive())) ? "M" : "") });
                 spcs[j + 1] = ((spcs[j + 1] > sizeof(contents[P_MET][i])) ?
                     spcs[j + 1] : sizeof(contents[P_MET][i]));
                 break;
 
             case "n": /* ip-number */
-                contents[P_IPNR] += ({ query_ip_number(list[i]) +
-                    (ban ? SITEBAN_SUFFIXES[SECURITY->check_newplayer(query_ip_number(list[i]))] : "") });
+                contents[P_IPNR] += ({ interactive_info(list[i], II_IP_NUMBER) +
+                    (ban ? SITEBAN_SUFFIXES[({int}) SECURITY->check_newplayer(interactive_info(list[i], II_IP_NUMBER))] : "") });
                 spcs[j + 1] = ((spcs[j + 1] > sizeof(contents[P_IPNR][i])) ?
                     spcs[j + 1] : sizeof(contents[P_IPNR][i]));
                 break;
 
             case "N": /* ip-name */
                 if (WIZ_CHECK >= WIZ_ARCH &&
-                    sizeof(tmp_str = query_ip_ident(list[i])))
+                    sizeof(tmp_str = interactive_info(list[i], II_IP_NAME)))
                 {
                     tmp_str += "@";
                 }
@@ -620,15 +620,15 @@ people(string opts)
                 {
                     tmp_str = "";
                 }
-                contents[P_IPNAME] += ({ tmp_str + query_ip_name(list[i]) +
-                    (ban ? SITEBAN_SUFFIXES[SECURITY->check_newplayer(query_ip_number(list[i]))] : "") });
+                contents[P_IPNAME] += ({ tmp_str + interactive_info(list[i], II_IP_NAME) +
+                    (ban ? SITEBAN_SUFFIXES[({int}) SECURITY->check_newplayer(interactive_info(list[i], II_IP_NUMBER))] : "") });
                 spcs[j + 1] = ((spcs[j + 1] > sizeof(contents[P_IPNAME][i])) ?
                     spcs[j + 1] : sizeof(contents[P_IPNAME][i]));
                 break;
 
             case "r": /* title rank */
                 contents[P_RTITLE] +=
-                    ({ capitalize(WIZ_RANK_NAME(SECURITY->query_wiz_rank(tmp_name))) });
+                    ({ capitalize(WIZ_RANK_NAME(({int}) SECURITY->query_wiz_rank(tmp_name))) });
                 spcs[j + 1] = ((spcs[j + 1] > sizeof(contents[P_RTITLE][i])) ?
                     spcs[j + 1] : sizeof(contents[P_RTITLE][i]));
                 break;
@@ -636,7 +636,7 @@ people(string opts)
             case "R": /* level rank */
 #ifdef USE_WIZ_LEVELS
                 contents[P_RLEVEL] += ({ "" +
-                    SECURITY->query_wiz_level(tmp_name) });
+                    ({string}) SECURITY->query_wiz_level(tmp_name) });
                 spcs[j + 1] = ((spcs[j + 1] > sizeof(contents[P_RLEVEL][i])) ?
                     spcs[j + 1] : sizeof(contents[P_RLEVEL][i]));
 #endif
@@ -644,14 +644,14 @@ people(string opts)
 
             case "s": /* snoop */
                 tmp_str = (objectp(snoop_map[list[i]]) ?  (">" +
-                    capitalize(snoop_map[list[i]]->query_real_name())) : "");
+                    capitalize(({string}) snoop_map[list[i]]->query_real_name())) : "");
 
-                if ((foo = SECURITY->query_snoop(list[i])))
+                if ((foo = ({mixed}) SECURITY->query_snoop(list[i])))
                 {
-                    if (objectp(foo) && sizeof(foo->query_real_name()))
+                    if (objectp(foo) && sizeof(({string}) foo->query_real_name()))
                     {
                         contents[P_SNOOP] += ({ tmp_str + "<" +
-                            capitalize(foo->query_real_name()) });
+                            capitalize(({string}) foo->query_real_name()) });
                     }
                     else
                     {
@@ -667,7 +667,7 @@ people(string opts)
                 break;
 
             case "S": /* Species */
-                if (tmp_str = capitalize(list[i]->query_race_name()))
+                if (tmp_str = capitalize(({string}) list[i]->query_race_name()))
                 {
                     if (stringp(RACES_SHORT[tmp_str]))
                     {
@@ -675,7 +675,7 @@ people(string opts)
                     }
                     else
                     {
-                        contents[P_SPECIES] += ({ extract(tmp_str, 0, 2) });
+                        contents[P_SPECIES] += ({ tmp_str[0..2] });
                     }
                 }
                 else
@@ -686,11 +686,11 @@ people(string opts)
 
             case "V": /* aVerage stat */
                 contents[P_AVERAGE] +=
-                    ({ list[i]->query_average_stat() + "" });
+                    ({ ({int}) list[i]->query_average_stat() + "" });
                 break;
 
             case "D": /* nonmet description */
-                if (sizeof(tmp_arr = list[i]->query_adj(1)) > 0)
+                if (sizeof(tmp_arr = ({string *}) list[i]->query_adj(1)) > 0)
                 {
                     contents[P_DESC] += ({ implode(tmp_arr, " ") });
                 }
@@ -783,8 +783,7 @@ people(string opts)
 
     if (query_verb() == "mpeople")
     {
-        setuid();
-        seteuid(getuid());
+        configure_object(this_object(), OC_EUID, geteuid(this_object()));
 
         this_player()->more(to_write);
     }

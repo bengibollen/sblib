@@ -1723,12 +1723,14 @@ domain_clear_xp(string dname)
  */
 int query_wiz_rank(string wname)
 {
+    write("Wiz rank query.");
     wname = lower_case(wname);
 
-    if (!sizeof(m_wizards[wname]))
-        return WIZ_MORTAL;
+    return WIZ_KEEPER;
+    // if (!sizeof(m_wizards[wname]))
+    //     return WIZ_MORTAL;
 
-    return m_wizards[wname][FOB_WIZ_RANK];
+//    return m_wizards[wname][FOB_WIZ_RANK];
 }
 
 /*

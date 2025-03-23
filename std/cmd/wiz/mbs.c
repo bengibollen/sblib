@@ -11,6 +11,8 @@
 inherit "/std/command_driver";
 
 #include <mbs.h>
+#include <configuration.h>
+#include <libfiles.h>
 
 /* Some nifty defines I tend to use */
 #define NF(message)     notify_fail(message)
@@ -20,6 +22,8 @@ inherit "/std/command_driver";
 #define PO              previous_object()
 #define LC(str)         lower_case((str))
 #define UC(str)         capitalize(lower_case((str)))
+
+#define SB_PATH "/w/msb"
 
 /*
  * Variables to be saved.
@@ -106,7 +110,7 @@ create()
     NoNews = ({
 		"Luchshaya novost' - otsutstvie novostey!\n",
 		"Hadashot tovot she-ein hadashot!\n",
-		"Inga nyheter �r bra nyheter!\n",
+		"Inga nyheter är bra nyheter!\n",
 		"No notizie, buone notizie!\n",
 		"Nuuzu nai wa ii nuuzu desu yo!\n",
 		"Good news: NO news!\n",
@@ -188,10 +192,9 @@ mbm_cmd(string arg)
     string	*args, first, rest;
     int		admin, lvl;
 
-    setuid();
-    seteuid(getuid());
+	configure_object(this_object(), OC_EUID, getuid(this_object()));
 
-    admin = MC->query_admin(TI->query_real_name());
+    admin = ({int}) MC->query_admin(({string}) TI->query_real_name());
     lvl = WIZ_CHECK;
 
     if (!sizeof(arg))
@@ -226,79 +229,79 @@ mbm_cmd(string arg)
 	LORD_CHECK(admin, lvl)
         MBM_ARG_CHECK(args, 4);
 	args[3] = implode(args[3..], " ");
-	mbm_error(MC->add_board(args));
+	mbm_error(({int}) MC->add_board(args));
 	break;
 
     case "d": /* Delete board */
-	LORD_CHECK(admin, lvl)
-	MBM_ARG_CHECK(args, 2)
-	mbm_error(MC->remove_board(first, args[1], 0));
+	LORD_CHECK(admin, lvl);
+	MBM_ARG_CHECK(args, 2);
+	mbm_error(({int}) MC->remove_board(first, args[1], 0));
 	break;
 
     case "dD": /* Delete board and savepath entry */
-	LORD_CHECK(admin, lvl)
-	MBM_ARG_CHECK(args, 2)
-	mbm_error(MC->remove_board(first, args[1], 1));
+	LORD_CHECK(admin, lvl);
+	MBM_ARG_CHECK(args, 2);
+	mbm_error(({int}) MC->remove_board(first, args[1], 1));
 	break;
 
     case "D": /* Delete savepath entry */
-	LORD_CHECK(admin, lvl)
-	MBM_ARG_CHECK(args, 1)
-	mbm_error(MC->remove_central_entry(first));
+	LORD_CHECK(admin, lvl);
+	MBM_ARG_CHECK(args, 1);
+	mbm_error(({int}) MC->remove_central_entry(first));
 	break;
 
     case "":
     case "l": /* List new */
 	LORD_CHECK(admin, lvl)
-	mbm_error(MC->list_new_boards(first));
+	mbm_error(({int}) MC->list_new_boards(first));
 	break;
 
     case "L": /* List old */
 	LORD_CHECK(admin, lvl)
 	if (admin)
-	    mbm_error(MC->list_boards(Selection, 1, first));
+	    mbm_error(({int}) MC->list_boards(Selection, 1, first));
 	else
-	    mbm_error(MC->list_boards(Selection, 0, ""));
+	    mbm_error(({int}) MC->list_boards(Selection, 0, ""));
 	break;
 
     case "r": /* Rename board */
 	LORD_CHECK(admin, lvl)
 	MBM_ARG_CHECK(args, 3)
-	mbm_error(MC->rename_board(first, args[1], args[2],
+	mbm_error(({int}) MC->rename_board(first, args[1], args[2],
 				   implode(args[3..], " ")));
 	break;
 
     case "t": /* Teleport to board by savepath */
 	LORD_CHECK(admin, lvl)
 	MBM_ARG_CHECK(args, 1)
-	mbm_error(MC->tele_to_board(first));
+	mbm_error(({int}) MC->tele_to_board(first));
 	break;
 
     /*
      * Category admin
      */
-    case "ac": /* Add a catergory */
+    case "ac": /* Add a category */
 	ADM_CHECK(admin)
 	MBM_ARG_CHECK(args, 2)
-	mbm_error(MC->add_category(first, rest));
+	mbm_error(({int}) MC->add_category(first, rest));
 	break;
 
-    case "dc": /* Delete a catergory */
+    case "dc": /* Delete a category */
 	ADM_CHECK(admin)
 	MBM_ARG_CHECK(args, 1)
-	mbm_error(MC->delete_category(first));
+	mbm_error(({int}) MC->delete_category(first));
 	break;
 
     case "lc": /* List all categories */
 	LORD_CHECK(admin, lvl)
-	mbm_error(MC->list_categories(1));
+	mbm_error(({int}) MC->list_categories(1));
 	break;
 
     case "rc": /* Rename a category */
 	ADM_CHECK(admin)
 	MBM_ARG_CHECK(args, 2)
 	args += ({ "" });
-	mbm_error(MC->rename_category(first, args[1],
+	mbm_error(({int}) MC->rename_category(first, args[1],
 				      implode(args[2..], " ")));
 	break;
 
@@ -308,21 +311,21 @@ mbm_cmd(string arg)
     case "aa": /* Add a board admin */
 	ADM_CHECK(admin)
 	MBM_ARG_CHECK(args, 1)
-	mbm_error(MC->add_admin(first));
+	mbm_error(({int}) MC->add_admin(first));
 	break;
 
     case "da": /* Delete a board admin */
 	ADM_CHECK(admin)
 	MBM_ARG_CHECK(args, 1)
-	mbm_error(MC->delete_admin(first));
+	mbm_error(({int}) MC->delete_admin(first));
 	break;
 
     case "la": /* List all board admin */
 	LORD_CHECK(admin, lvl)
 	if (admin)
-	    mbm_error(MC->list_admin(1));
+	    mbm_error(({int}) MC->list_admin(1));
 	else
-	    mbm_error(MC->list_admin(0));
+	    mbm_error(({int}) MC->list_admin(0));
 	break;
 
     default:
@@ -344,10 +347,9 @@ mbm_cmd(string arg)
 public nomask int
 mbh_cmd(string arg)
 {
-    setuid();
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
-    mbs_error(MC->do_help(arg));
+    mbs_error(({int}) MC->do_help(arg));
     return 1;
 }
 
@@ -362,10 +364,9 @@ public nomask int
 mbs_cmd(string arg)
 {
     string	*args, first, rest;
-    int admin = MC->query_admin(TI->query_real_name());
+    int admin = ({int}) MC->query_admin(({string}) TI->query_real_name());
 
-    setuid();
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     if (!WIZ_CHECK)
     {
@@ -569,11 +570,11 @@ mbs_cmd(string arg)
      * Misc commands
      */
     case "la": /* List all board admin */
-	mbm_error(MC->list_admin(0));
+	mbm_error(({int}) MC->list_admin(0));
 	break;
 
     case "lc": /* List all categories */
-	mbm_error(MC->list_categories(0));
+	mbm_error(({int}) MC->list_categories(0));
 	break;
 
     case "gr": /* Generate a usage report */
@@ -582,16 +583,16 @@ mbs_cmd(string arg)
 	if (first == "reset")
 	{
 	    ADM_CHECK(admin)
-	    mbm_error(MC->generate_report(2));
+	    mbm_error(({int}) MC->generate_report(2));
 	}
 	else if (first[0..0] == "p")
-	    mbm_error(MC->generate_report(1));
+	    mbm_error(({int}) MC->generate_report(1));
 	else if (first[0..0] == "r")
-	    mbm_error(MC->generate_report(0));
+	    mbm_error(({int}) MC->generate_report(0));
 	else if (first[0..1] == "tp")
-	    mbm_error(MC->generate_report(3));
+	    mbm_error(({int}) MC->generate_report(3));
 	else if (first[0..1] == "tr")
-	    mbm_error(MC->generate_report(4));
+	    mbm_error(({int}) MC->generate_report(4));
 
 	break;
 
@@ -644,12 +645,12 @@ catch_up(int what, int uncatch)
 	    ind = filt_bdata(CurrItem[Selection], ind, SB_GROUP);
 	    break;
 	}
-	map(ind, &set_time(tm, ) @ &operator([])(, SB_SPATH));
+	map(ind, (: set_time(tm, $1[SB_PATH]) :));
 	break;
 
     case 2: /* All boards */
 	ind = m_indices(BdMap);
-	map(ind, &set_time(tm, ));
+	map(ind, (: set_time(tm, $1) :));
 	break;
 
     case 0: /* Current board */
@@ -728,9 +729,9 @@ list_subscribed(int unread, int all)
     if (unread)
     {
 	if (Selection == ORDER_CAT)
-	    olist = sort_array(MC->query_categories());
+	    olist = sort_array(({string *}) MC->query_categories(), #'>);
 	else if (Selection == ORDER_DOMAIN)
-	    olist = sort_array(SECURITY->query_domain_list());
+	    olist = sort_array(({string *}) SECURITY->query_domain_list(), #'>);
 	else
 	    olist = Groups;
 	sz = sizeof(olist);
@@ -740,13 +741,13 @@ list_subscribed(int unread, int all)
 	    if (CurrItem[Selection] != olist[i])
 	    {
 		blist = SbMap[olist[i]];
-		if (sizeof((blist = filter(blist, filt_unread_news))))
+		if (sizeof((blist = filter(blist, #'filt_unread_news))))
 		{
 		    write("Unread news in the " + ({ "category", "domain", "newsgroup" })[Selection] + " '" + olist[i] + "'\n");
 		    if (all)
 		    {
 			write("[");
-			map(blist, print_shortsub_info);
+			map(blist, #'print_shortsub_info);
 			write("]\n");
 		    }
 		    news = 1;
@@ -760,17 +761,16 @@ list_subscribed(int unread, int all)
 
     if (Selection == ORDER_CAT)
     {
-	olist = sort_array(SECURITY->query_domain_list());
+	olist = sort_array(({string *}) SECURITY->query_domain_list(), #'>);
 	for (i = 0, sz = sizeof(olist) ; i < sz ; i++)
 	{
-	    plist = filter(blist, &operator(==)(olist[i]) @
-			   &operator([])(, SB_DOMAIN));
+		plist = filter(blist, (: $1[SB_DOMAIN] == olist[i] :));
 
 	    if (!sizeof(plist))
 		continue;
 
 	    if (unread)
-		plist = filter(plist, filt_unread_news);
+		plist = filter(plist, #'filt_unread_news);
 
 	    if (sizeof(plist))
 	    {
@@ -779,8 +779,8 @@ list_subscribed(int unread, int all)
 		    write(header);
 		    first = 0;
 		}
-		plist = sort_array(plist, "sort_dom_boards", TO);
-		map(plist, print_subboard_info);
+		plist = sort_array(plist, #'sort_dom_boards, TO);
+		map(plist, #'print_subboard_info);
 		write("\n");
 	    }
 	}
@@ -789,17 +789,16 @@ list_subscribed(int unread, int all)
     }
     else
     {
-	olist = sort_array(MC->query_categories());
+	olist = sort_array(({string *}) MC->query_categories(), #'>);
 	for (i = 0, sz = sizeof(olist) ; i < sz ; i++)
 	{
-	    plist = filter(blist, &operator(==)(olist[i]) @
-			   &operator([])(, SB_CAT));
+	    plist = filter(blist, (: $1[SB_CAT] == olist[i] :));
 
 	    if (!sizeof(plist))
 		continue;
 
 	    if (unread)
-		plist = filter(plist, filt_unread_news);
+		plist = filter(plist, #'filt_unread_news);
 
 	    if (sizeof(plist))
 	    {
@@ -808,8 +807,8 @@ list_subscribed(int unread, int all)
 		    write(header);
 		    first = 0;
 		}
-		plist = sort_array(plist, "sort_cath_boards", TO);
-		map(plist, print_subboard_info);
+		plist = sort_array(plist, #'sort_cath_boards, TO);
+		map(plist, #'print_subboard_info);
 		write("\n");
 	    }
 	}
@@ -835,9 +834,9 @@ list_boards(int which, string rest)
 
     if (sizeof(rest))
     {
-	if (member(rest, SECURITY->query_domain_list()) >= 0)
+	if (rest in ({string *}) SECURITY->query_domain_list())
 	    order = ORDER_DOMAIN;
-	else if (member(rest, MC->query_categories()) >= 0)
+	else if (rest in ({string *}) MC->query_categories())
 	    order = ORDER_CAT;
 	else
 	{
@@ -847,9 +846,9 @@ list_boards(int which, string rest)
     }
 
     if (which)
-	blist = MC->query_boards(order, rest, ({}));
+	blist = ({string *}) MC->query_boards(order, rest, ({}));
     else
-	blist = MC->query_boards(order, rest, m_indices(BdMap));
+	blist = ({string *}) MC->query_boards(order, rest, m_indices(BdMap));
 
     if (!sizeof(blist))
     {
@@ -867,33 +866,27 @@ list_boards(int which, string rest)
 	olist = sort_array(SECURITY->query_domain_list());
 	for (i = 0, sz = sizeof(olist) ; i < sz ; i++)
 	{
-	    plist = filter(blist, &operator(==)(olist[i]) @
-			   &operator([])(, BBP_DOMAIN));
-	    plist = filter(plist, &operator(>)(0) @
-			   &member(, ScrapList) @
-			   &operator([])(, BBP_SPATH));
+	    plist = filter(blist, (: $1[BBP_DOMAIN] == olist[i] :));
+	    plist = filter(plist, !(: $1[BBP_SPATH] in Scraplist :));
 	    if (sizeof(plist))
 	    {
-		plist = sort_array(plist, "sort_dom_boards", find_object(MC));
-		map(plist, print_newboard_info);
-		write("\n");
+			plist = sort_array(plist, #'sort_dom_boards, find_object(MC));
+			map(plist, #'print_newboard_info);
+			write("\n");
 	    }
 	}
     }
     else
     {
-	olist = sort_array(MC->query_categories());
+	olist = sort_array(({string *}) MC->query_categories(), #'>);
 	for (i = 0, sz = sizeof(olist) ; i < sz ; i++)
 	{
-	    plist = filter(blist, &operator(==)(olist[i]) @
-			   &operator([])(, BBP_CAT));
-	    plist = filter(plist, &operator(>)(0) @
-			   &member(, ScrapList) @
-			   &operator([])(, BBP_SPATH));
+	    plist = filter(blist, (: $1[BBP_CAT] == olist[i] :));
+	    plist = filter(plist, !(: $1[BBP_SPATH] in Scraplist :));
 	    if (sizeof(plist))
 	    {
-		plist = sort_array(plist, "sort_cath_boards", find_object(MC));
-		map(plist, print_newboard_info);
+		plist = sort_array(plist, #'sort_cath_boards, find_object(MC));
+		map(plist, #'print_newboard_info);
 		write("\n");
 	    }
 	}
@@ -1123,8 +1116,7 @@ select_board(int what, int headers, string board, string item)
 
     if (sizeof(board))
     {
-	blist = filter(SbMap[item], &operator(==)(board) @
-		       &operator([])(, SB_BOARD));
+	blist = filter(SbMap[item], (: $1[SB_BOARD] ==  board :) );
 
 	if (sizeof(item))
 	    CurrItem[Selection] = item;
@@ -1187,25 +1179,25 @@ subscribe(string board, string item, string group)
     item = UC(item);
     group = UC(group);
 
-    if (member(item, SECURITY->query_domain_list()) < 0 &&
-	member(item, MC->query_categories()) < 0)
+    if (!(item in ({string}) SECURITY->query_domain_list()) &&
+        !(item in MC->query_categories()))
     {
-	err_args(item);
-	return MBS_BAD_SEL;
+		err_args(item);
+		return MBS_BAD_SEL;
     }
 
     info = MC->query_board_exist(board, item);
 
     if (sizeof(group))
     {
-	if (member(group, Groups) < 0)
-	{
-	    err_args(group);
-	    return MBS_GRP_NONE;
-	}
+		if (!(group in Groups))
+		{
+			err_args(group);
+			return MBS_GRP_NONE;
+		}
     }
     else
-	group = CurrItem[ORDER_GROUP];
+		group = CurrItem[ORDER_GROUP];
 
     if (sizeof(info))
     {
@@ -1266,7 +1258,7 @@ unsubscribe(string board, string item)
 	else
 	{
 	    itemdata = SbMap[CurrItem[Selection]];
-	    itemdata = filter(itemdata, &operator(==)(board) @ &operator([])(, SB_BOARD));
+	    itemdata = filter(itemdata, (: $1[SB_BOARD] == board :) );
 	    if (!sizeof(itemdata))
 	    {
 		err_args(board, "", "");
@@ -1287,15 +1279,15 @@ unsubscribe(string board, string item)
 	itemdata = m_values(BdMap);
 	if (member(item, MC->query_categories()) < 0)
 	{
-	    itemdata = filter(itemdata, &operator(==)(item) @ &operator([])(, SB_DOMAIN));
+	    itemdata = filter(itemdata, (: $1[SB_DOMAIN] == item :) );
 	    what = "domain";
 	}
 	else
 	{
-	    itemdata = filter(itemdata, &operator(==)(item) @ &operator([])(, SB_CAT));
+	    itemdata = filter(itemdata, (: $1[SB_CAT] == item :) );
 	    what = "category";
 	}
-	itemdata = filter(itemdata, &operator(==)(board) @ &operator([])(, SB_BOARD));
+	itemdata = filter(itemdata, (: $1[SB_BOARD] == board :) );
 
 	if (!sizeof(itemdata))
 	{
@@ -1409,15 +1401,15 @@ unsubscribe_sel(string sel)
     switch (order)
     {
     case ORDER_DOMAIN:
-	blist = filter(blist, &operator(==)(sel) @ &operator([])(, SB_DOMAIN));
+	blist = filter(blist, (: $1[SB_DOMAIN] == sel :));
 	break;
 
     case ORDER_CAT:
-	blist = filter(blist, &operator(==)(sel) @ &operator([])(, SB_CAT));
+	blist = filter(blist, (: $1[SB_CAT] == sel :));
 	break;
 
     default:
-	blist = filter(blist, &operator(==)(sel) @ &operator([])(, SB_GROUP));
+	blist = filter(blist, (: $1[SB_GROUP] == sel :));
 	break;
     }
 
@@ -1465,26 +1457,20 @@ tele_to_board(string board, string sel)
     {
 	if (member(sel, SECURITY->query_domain_list()) >= 0)
 	{
-	    blist = filter(blist, &operator(==)(sel) @
-			   &operator([])(, SB_DOMAIN));
-	    blist = filter(blist, &operator(==)(board) @
-			   &operator([])(, SB_BOARD));
+	    blist = filter(blist, (: $1[SB_DOMAIN] == sel :));
+	    blist = filter(blist, (: $1[SB_BOARD] == board :));
 	    order = ORDER_DOMAIN;
 	}
 	else if (member(sel, MC->query_categories()) >= 0)
 	{
-	    blist = filter(blist, &operator(==)(sel) @
-			   &operator([])(, SB_CAT));
-	    blist = filter(blist, &operator(==)(board) @
-			   &operator([])(, SB_BOARD));
+	    blist = filter(blist, (: $1[SB_CAT] == sel :));
+	    blist = filter(blist, (: $1[SB_BOARD] == board :));
 	    order = ORDER_CAT;
 	}
 	else if (member(sel, Groups) >= 0)
 	{
-	    blist = filter(blist, &operator(==)(sel) @
-			   &operator([])(, SB_GROUP));
-	    blist = filter(blist, &operator(==)(board) @
-			   &operator([])(, SB_BOARD));
+	    blist = filter(blist, (: $1[SB_GROUP] == sel :));
+	    blist = filter(blist, (: $1[SB_BOARD] == board :));
 	    order = ORDER_GROUP;
 	}
 	else
@@ -1492,8 +1478,7 @@ tele_to_board(string board, string sel)
     }
     else
     {
-	blist = filter(SbMap[CurrItem[Selection]], &operator(==)(board) @
-		       &operator([])(, SB_BOARD));
+	blist = filter(SbMap[CurrItem[Selection]], (: $1[SB_BOARD] == board :));
 	order = Selection;
 	sel = CurrItem[Selection];
     }
@@ -1926,9 +1911,9 @@ find_nur_insel(int sw)
 
     if (sizeof(SbMap[CurrItem[Selection]]))
     {
-	blist = map(SbMap[CurrItem[Selection]], &operator([])(, SB_SPATH));
+	blist = map(SbMap[CurrItem[Selection]], (: $1[SB_SPATH] :));
 	bsz = sizeof(blist);
-	bsval = b_ind = member(CurrBoard, blist);
+	bsval = b_ind = member(blist, CurrBoard);
 	if (sw)
 	    b_ind = (b_ind + 1) < bsz ? (b_ind + 1) : 0;
 	if (bsval < 0)
@@ -2357,18 +2342,18 @@ shuffle_boards()
     {
     case ORDER_CAT:
 	caths = MC->query_categories();
-	blist = map(caths, &filt_bdata(, blist, SB_CAT));
+	blist = map(caths, #'filt_bdata, blist, SB_CAT);
 	SbMap = mkmapping(caths, blist);
-	SbMap = filter(SbMap, sizeof);
+	SbMap = filter(SbMap, #'sizeof);
 	if (!sizeof(SbMap[CurrItem[ORDER_CAT]]))
 	    CurrItem[ORDER_CAT] = m_indices(SbMap)[0];
 	break;
 
     case ORDER_DOMAIN:
 	doms = SECURITY->query_domain_list();
-	blist = map(doms, &filt_bdata(, blist, SB_DOMAIN));
+	blist = map(doms, #'filt_bdata, blist, SB_DOMAIN);
 	SbMap = mkmapping(doms, blist);
-	SbMap = filter(SbMap, sizeof);
+	SbMap = filter(SbMap, #'sizeof);
 	if (!sizeof(SbMap[CurrItem[ORDER_DOMAIN]]))
 	    CurrItem[ORDER_DOMAIN] = m_indices(SbMap)[0];
 	break;
@@ -2376,9 +2361,9 @@ shuffle_boards()
     case ORDER_GROUP:
 	/* FALLTHROUGH */
     default:
-	blist = map(Groups, &filt_bdata(, blist, SB_GROUP));
+	blist = map(Groups, #'filt_bdata, blist, SB_GROUP);
 	SbMap = mkmapping(Groups, blist);
-	SbMap = filter(SbMap, sizeof);
+	SbMap = filter(SbMap, #'sizeof);
 	if (!sizeof(SbMap[CurrItem[ORDER_GROUP]]))
 	    CurrItem[ORDER_GROUP] = m_indices(SbMap)[0];
 	break;
@@ -2408,7 +2393,7 @@ filt_unread_news(mixed list)
 static nomask mixed
 filt_bdata(string sort_item, mixed list, int ind)
 {
-    return filter(list, &operator(==)(sort_item) @ &operator([])(, ind));
+    return filter(list, (: $1[ind] == sort_item:));
 }
 
 /*

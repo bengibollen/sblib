@@ -30,10 +30,6 @@ void create_workroom()
 
     add_exit("@@goto_start", "startloc", 0);
     add_prop(ROOM_I_INSIDE, 1);
-    add_prop(ROOM_I_LIGHT, 1);
-    
-    add_prop(OBJ_I_LIGHT, 1);
-
 }
 
 

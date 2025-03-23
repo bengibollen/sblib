@@ -26,7 +26,7 @@
 #pragma no_clone
 #pragma strict_types
 
-inherit "/cmd/std/tracer_tool_base";
+inherit "/std/cmd/std/tracer_tool_base";
 
 #include <filepath.h>
 #include <macros.h>
@@ -1213,9 +1213,9 @@ Reload(string str)
 	dest = environment(this_interactive());
 
     if (living(ob))
-        m = &ob->move_living("M",,1,1);
+        m = (: ob->move_living("M",$1,1,1) :);
     else
-        m = &ob->move(,0);
+        m = (: ob->move($1,0) :);
 
     if (m(dest))
     {

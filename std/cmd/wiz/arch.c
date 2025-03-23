@@ -39,7 +39,7 @@ inherit "/std/command_driver";
 
 #include <adverbs.h>
 #include <composite.h>
-#include <files.h>
+#include <libfiles.h>
 #include <macros.h>
 #include <mail.h>
 #include <log.h>
@@ -49,14 +49,14 @@ inherit "/std/command_driver";
 #define CHECK_SO_ARCH   if (WIZ_CHECK < WIZ_ARCH) return 0; \
                         if (this_interactive() != this_player()) return 0
 
-#define NOPURGE(s)      ("/syslog/nopurge/" + extract((s), 0, 0) + "/" + (s))
+#define NOPURGE(s)      ("/syslog/nopurge/" + (string) s[0] + "/" + (s))
+
 
 /* **************************************************************************
  * Return a list of which souls are to be loaded.
  * The souls are listed in order of command search.
  */
-nomask string *
-get_soul_list()
+nomask string *get_soul_list()
 {
     return ({ WIZ_CMD_ARCH,
               WIZ_CMD_LORD,
@@ -67,20 +67,20 @@ get_soul_list()
               MBS_SOUL });
 }
 
+
 /* **************************************************************************
  * Return a proper name of the soul in order to get a nice printout.
  */
-nomask string
-get_soul_id()
+nomask string get_soul_id()
 {
     return WIZNAME_ARCH;
 }
 
+
 /* **************************************************************************
  * The list of verbs and functions. Please add new in alfabetical order.
  */
-nomask mapping
-query_cmdlist()
+nomask mapping query_cmdlist()
 {
     return ([
              "all_spells":"all_spells",
@@ -120,6 +120,7 @@ query_cmdlist()
          ]);
 }
 
+
 /* **************************************************************************
  * Here follows the actual functions. Please add new functions in the
  * same order as in the function name list.
@@ -128,8 +129,7 @@ query_cmdlist()
 /* **************************************************************************
  * all_spells - list all active spells
  */
-nomask int
-all_spells()
+nomask int all_spells()
 {
     CHECK_SO_ARCH;
 
@@ -138,12 +138,12 @@ all_spells()
     return 1;
 }
 
+
 /* **************************************************************************
  * arch  - send a message on the archline
  * arche - emote a message on the archline
  */
-nomask int
-arch(string str)
+nomask int arch(string str)
 {
     if (!stringp(str))
     {
@@ -151,15 +151,15 @@ arch(string str)
         return 0;
     }
 
-    return WIZ_CMD_APPRENTICE->line((WIZNAME_ARCH + " " + str),
+    return ({int}) WIZ_CMD_APPRENTICE->line((WIZNAME_ARCH + " " + str),
         (query_verb() == "arche"));
 }
+
 
 /* **************************************************************************
  * ateam - maintain the list of admin teams
  */
-nomask int
-ateam(string str)
+nomask int ateam(string str)
 {
     string *tms, *helps, *args = ({});
     int i, sz;
@@ -185,7 +185,7 @@ ateam(string str)
             ateam("?");
             return 0;
         }
-        if (SECURITY->query_wiz_rank(args[2]) < WIZ_NORMAL)
+        if (({int}) SECURITY->query_wiz_rank(args[2]) < WIZ_NORMAL)
         {
             notify_fail("The member must be a full wizard.\n");
             return 0;
@@ -207,14 +207,14 @@ ateam(string str)
         break;
 
     default:
-        tms = sort_array(SECURITY->query_teams());
+        tms = sort_array(({string *}) SECURITY->query_teams(), #'>);
         if (sizeof(tms))
         {
             for (i = 0, sz = sizeof(tms) ; i < sz ; i++)
             {
-                args = sort_array(SECURITY->query_team_list(tms[i]));
+                args = sort_array(({string *}) SECURITY->query_team_list(tms[i]), #'>);
                 write(sprintf("%-10s", capitalize(tms[i])) +
-                    (sizeof(args) ? COMPOSITE_WORDS(map(args, capitalize)) :
+                    (sizeof(args) ? COMPOSITE_WORDS(map(args, #'capitalize)) :
                     "No members") + ".\n");
             }
         }
@@ -226,11 +226,11 @@ ateam(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * delchar - remove a playerfile
  */
-nomask int
-delchar(string str)
+nomask int delchar(string str)
 {
     string who, reason;
 
@@ -249,20 +249,20 @@ delchar(string str)
         return 0;
     }
 
-    if (SECURITY->query_wiz_rank(who))
+    if (({int}) SECURITY->query_wiz_rank(who))
     {
         notify_fail("Wizards should be demoted.\n");
         return 0;
     }
 
-    if (!SECURITY->exist_player(who))
+    if (!({int}) SECURITY->exist_player(who))
     {
         notify_fail("Someone beat you to it. There is no player " +
             capitalize(who) + " anymore.\n");
         return 0;
     }
 
-    if (!SECURITY->remove_playerfile(who, reason))
+    if (!({int}) SECURITY->remove_playerfile(who, reason))
     {
         notify_fail("Failed to delete the player.\n");
         return 0;
@@ -272,11 +272,11 @@ delchar(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * draft - add someone to a domain
  */
-nomask int
-draft(string str)
+nomask int draft(string str)
 {
     string dname;
     string pname;
@@ -290,15 +290,14 @@ draft(string str)
         return 0;
     }
 
-    return SECURITY->draft_wizard_to_domain(dname, pname);
+    return ({int}) SECURITY->draft_wizard_to_domain(dname, pname);
 }
 
 
 /* **************************************************************************
  * global - add/remove people from the global list
  */
-nomask int
-global(string str)
+nomask int global(string str)
 {
     string *cmds;
     string *wnames;
@@ -310,8 +309,8 @@ global(string str)
 
     if (!stringp(str))
     {
-        gread = SECURITY->query_global_read();
-        wnames = sort_array(m_indices(gread));
+        gread = ({mapping}) SECURITY->query_global_read();
+        wnames = sort_array(m_indices(gread), #'>);
         size = sizeof(wnames);
 
         if (!size)
@@ -335,10 +334,10 @@ global(string str)
     switch(cmds[0])
     {
     case "add":
-        return SECURITY->add_global_read(cmds[1], implode(cmds[2..], " "));
+        return ({int}) SECURITY->add_global_read(cmds[1], implode(cmds[2..], " "));
 
     case "remove":
-        return SECURITY->remove_global_read(cmds[1]);
+        return ({int}) SECURITY->remove_global_read(cmds[1]);
 
     default:
         break;
@@ -348,22 +347,22 @@ global(string str)
     return 0;
 }
 
+
 /* **************************************************************************
  * mailadmin - manage the mail system
  */
-nomask int
-mailadmin(string str)
+nomask int mailadmin(string str)
 {
     CHECK_SO_ARCH;
 
-    return SECURITY->mailadmin(str);
+    return ({int}) SECURITY->mailadmin(str);
 }
+
 
 /* **************************************************************************
  * mkdomain - make a new domain
  */
-nomask int
-mkdomain(string arg)
+nomask int mkdomain(string arg)
 {
     string *args;
 
@@ -376,16 +375,16 @@ mkdomain(string arg)
         return 0;
     }
 
-    return SECURITY->make_domain(capitalize(args[0]),
+    return ({int}) SECURITY->make_domain(capitalize(args[0]),
                                  lower_case(args[1]),
                                  lower_case(args[2]));
 }
 
+
 /* **************************************************************************
  * mudstatus - Turn on and off /MUDstatistics
  */
-nomask int
-mudstatus(string arg)
+nomask int mudstatus(string arg)
 {
     int ev, ti;
     string fl;
@@ -409,11 +408,11 @@ mudstatus(string arg)
     return 1;
 }
 
+
 /* **************************************************************************
  * namechange - change someones name.
  */
-nomask int
-namechange(string str)
+nomask int namechange(string str)
 {
     string  *words;
     string  oldname;
@@ -430,7 +429,7 @@ namechange(string str)
     }
 
     oldname = words[0];
-    if (!SECURITY->exist_player(oldname))
+    if (!({int}) SECURITY->exist_player(oldname))
     {
         notify_fail("There is no player named " + capitalize(oldname) +
             ".\n");
@@ -438,7 +437,7 @@ namechange(string str)
     }
 
     newname = words[1];
-    if (SECURITY->exist_player(newname))
+    if (!({int}) SECURITY->exist_player(newname))
     {
         notify_fail("There already is a player named " +
             capitalize(newname) + ".\n");
@@ -468,14 +467,14 @@ namechange(string str)
         }
     }
 
-    return SECURITY->rename_playerfile(oldname, newname);
+    return ({int}) SECURITY->rename_playerfile(oldname, newname);
 }
+
 
 /* **************************************************************************
  * newchar - create a new character
  */
-nomask int
-newchar(string str)
+nomask int newchar(string str)
 {
     string *args, name;
     string passwd;
@@ -513,9 +512,10 @@ newchar(string str)
         return 0;
     }
 
-    tmp_char = restore_map("/secure/proto_char");
+    string data = read_file("/secure/proto_char");
+    tmp_char = restore_value(data);
     tmp_char["name"] = name;
-    passwd = SECURITY->generate_password();
+    passwd = ({string}) SECURITY->generate_password();
     tmp_char["password"] = crypt(passwd, 0);
     tmp_char["mailaddr"] = args[1];
     tmp_char["password_time"] = time();
@@ -535,26 +535,36 @@ newchar(string str)
     /* Ensure that the directories already exist (particularly the first
        letter of the player's name */
     string dir = "/players";
-    if(file_size(dir) == -1) { mkdir(dir); }
-    dir += "/" + extract(name, 0, 0);       /* /players/t/ for example */
-    if(file_size(dir) == -1) { mkdir(dir); }
+    
+    if (file_size(dir) == -1)
+    {
+        mkdir(dir);
+    }
 
-    save_map(tmp_char, PLAYER_FILE(name));
+    dir += "/" + (string) name[0];       /* /players/t/ for example */
+    
+    if (file_size(dir) == -1)
+    {
+        mkdir(dir);
+    }
+
+    string save_data = save_value(tmp_char);
+    write_file(PLAYER_FILE(name), save_data);
 
     write("The player '" + capitalize(name) + "' is created. Password: " +
         passwd + "\n");
     write_file(OPEN_LOG_DIR + "/CREATE_PLAYER", ctime(time()) + " " +
         capitalize(name) + " created by " +
-        capitalize(this_interactive()->query_real_name()) + ".\n");
+        capitalize(({string}) this_interactive()->query_real_name()) + ".\n");
 
     return 1;
 }
 
+
 /* **************************************************************************
  * nopurge - prevent someone from being purged.
  */
-nomask int
-nopurge(string str)
+nomask int nopurge(string str)
 {
     string *words;
     string name;
@@ -586,7 +596,7 @@ nopurge(string str)
         }
 
         name = lower_case(words[1]);
-        if (SECURITY->query_no_purge(name))
+        if (({int}) SECURITY->query_no_purge(name))
         {
             write("Player '" + capitalize(name) +
                 "' is already protected against purging.\n");
@@ -606,9 +616,9 @@ nopurge(string str)
     case "-r":
     case "-remove":
         name = lower_case(words[1]);
-        if (!(SECURITY->query_no_purge(name)))
+        if (!(({int}) SECURITY->query_no_purge(name)))
         {
-            write("Players '" + capitalize(name) +
+            write("Player '" + capitalize(name) +
                 "' is not protected against purging.\n");
             return 1;
         }
@@ -628,7 +638,7 @@ nopurge(string str)
     }
 
     name = lower_case(words[0]);
-    if (!(SECURITY->query_no_purge(name)))
+    if (!(({int}) SECURITY->query_no_purge(name)))
     {
         write("Player '" + name + "' is not purge-protected.\n");
         return 1;
@@ -649,28 +659,28 @@ nopurge(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * pingmud - send a udp ping to another mud
  */
-nomask int
-pingmud(string arg)
+nomask int pingmud(string arg)
 {
     CHECK_SO_ARCH;
 
 #ifdef UDP_MANAGER
-    return UDP_MANAGER->cmd_ping(arg);
+    return ({int}) UDP_MANAGER->cmd_ping(arg);
 #else
     notify_fail("No udp manager active.\n");
     return 0;
 #endif
 }
 
+
 /* **************************************************************************
  * purge - remove all players that have been idle too long or remove one
  *         individual mortal.
  */
-nomask int
-purge(string str)
+nomask int purge(string str)
 {
     CHECK_SO_ARCH;
 
@@ -689,14 +699,14 @@ purge(string str)
         return 1;
     }
 
-    return SECURITY->purge(lower_case(str));
+    return ({int}) SECURITY->purge(lower_case(str));
 }
+
 
 /* **************************************************************************
  * resetpassword - (re)set the password of a player.
  */
-nomask int
-resetpassword(string str)
+nomask int resetpassword(string str)
 {
     string pswd = 0;
     string name;
@@ -720,7 +730,8 @@ resetpassword(string str)
         return 0;
     }
     /* Test whether the name is the same as the saved name. A simple check. */
-    playerfile = restore_map(PLAYER_FILE(name));
+    string data = read_file(PLAYER_FILE(name));
+    playerfile = restore_value(data);
     if (!sizeof(playerfile) || (playerfile["name"] != name))
     {
         notify_fail("No valid player file found for " + capitalize(name) +
@@ -732,7 +743,8 @@ resetpassword(string str)
        login if we set the password to a text. */
     playerfile["password"] = (sizeof(pswd) ? crypt(pswd, 0) : 0);
     playerfile["password_time"] = 0;
-    save_map(playerfile, PLAYER_FILE(name));
+    string savedata = save_value(playerfile);
+    write_file(PLAYER_FILE(name), savedata);
 
     if (pswd)
     {
@@ -746,39 +758,39 @@ resetpassword(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * rmdomain - remove an old domain
  */
-nomask int
-rmdomain(string arg)
+nomask int rmdomain(string arg)
 {
     CHECK_SO_ARCH;
 
-    return SECURITY->remove_domain(arg);
+    return ({int}) SECURITY->remove_domain(arg);
 }
+
 
 /* **************************************************************************
  * siteban - (Dis)allow logins and or new characters from a site.
  */
-nomask int
-siteban(string str)
+nomask int siteban(string str)
 {
     CHECK_SO_ARCH;
 
-    return SECURITY->siteban(str);
+    return ({int}) SECURITY->siteban(str);
 }
+
 
 /* **************************************************************************
  * suspend - suspend a player from playing for a certain time.
  */
-nomask int
-suspend(string str)
+nomask int suspend(string str)
 {
     string *words;
     int number;
     int seconds;
     object player;
-    mapping playerfile;
+    string playerfile;
 
     CHECK_SO_ARCH;
 
@@ -790,7 +802,7 @@ suspend(string str)
     }
 
     words = explode(str, " ");
-    if (!SECURITY->exist_player(words[0]))
+    if (!({int}) SECURITY->exist_player(words[0]))
     {
         notify_fail("There is no player named " + capitalize(words[0]) +
             ".\n");
@@ -809,7 +821,7 @@ suspend(string str)
         SECURITY->log_syslog(LOG_SUSPENDED,
             sprintf("%s %-11s: %-11s lifted.\n",
             ctime(time()),
-            capitalize(this_interactive()->query_real_name()),
+            capitalize(({string}) this_interactive()->query_real_name()),
             capitalize(words[0])));
 #endif /* LOG_SUSPENDED */
         write("Lifted the suspension from " + capitalize(words[0]) + ".\n");
@@ -820,9 +832,11 @@ suspend(string str)
         }
         else
         {
-            playerfile = restore_map(PLAYER_FILE(words[0]));
-            playerfile["restricted"] = 0;
-            save_map(playerfile, PLAYER_FILE(words[0]));
+            playerfile = read_file(PLAYER_FILE(words[0]));
+            mapping data = restore_value(playerfile);
+            data["restricted"] = 0;
+            playerfile = save_value(data);
+            write_file(PLAYER_FILE(words[0]), playerfile);
         }
         return 1;
 
@@ -882,9 +896,11 @@ suspend(string str)
         }
         else
         {
-            playerfile = restore_map(PLAYER_FILE(words[0]));
-            playerfile["restricted"] = -(time() + seconds);
-            save_map(playerfile, PLAYER_FILE(words[0]));
+            playerfile = read_file(PLAYER_FILE(words[0]));
+            mapping data = restore_value(playerfile);
+            data["restricted"] = -(time() + seconds);
+            playerfile = save_value(data);
+            write_file(PLAYER_FILE(words[0]), playerfile);
         }
         return 1;
     }
@@ -894,11 +910,11 @@ suspend(string str)
     return 0;
 }
 
+
 /* **************************************************************************
  * trace - trace the mud
  */
-nomask int
-set_trace(string str)
+nomask int set_trace(string str)
 {
     int n;
     int o;
@@ -908,9 +924,9 @@ set_trace(string str)
     if (stringp(str) &&
         sscanf(str, "%d", n) == 1)
     {
-        o = SECURITY->do_debug("trace", n);
+        o = ({int}) SECURITY->do_debug("trace", n);
         write("Trace was " + o + ", now " +
-              SECURITY->do_debug("trace", n) + "\n");
+              ({int}) SECURITY->do_debug("trace", n) + "\n");
     }
     else
     {
@@ -919,34 +935,34 @@ set_trace(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * traceprefix - set the trace prefixes
  */
-nomask int
-set_traceprefix(string str)
+nomask int set_traceprefix(string str)
 {
     string o;
 
     CHECK_SO_ARCH;
 
     if (stringp(str))
-        o = SECURITY->do_debug("traceprefix", str);
+        o = ({string}) SECURITY->do_debug("traceprefix", str);
     else
-        o = SECURITY->do_debug("traceprefix");
+        o = ({string}) SECURITY->do_debug("traceprefix");
     write("Trace prefix was " + o + "\n");
     return 1;
 }
 
+
 /* **************************************************************************
  * storemuds - Store the mudlist currently in the UDP_MANAGER
  */
-nomask int
-storemuds(string arg)
+nomask int storemuds(string arg)
 {
     CHECK_SO_ARCH;
 
 #ifdef UDP_MANAGER
-    if (UDP_MANAGER->update_masters_list())
+    if (({int}) UDP_MANAGER->update_masters_list())
     {
         write("Ok.\n");
         return 1;
@@ -959,13 +975,13 @@ storemuds(string arg)
 #endif
 }
 
+
 /* **************************************************************************
  * vip - Display the people with vip-access, grant vip access or revoke it.
  */
-nomask int
-vip(string str)
+nomask int vip(string str)
 {
-    string *vips = (string *)QUEUE->query_vip();
+    string *vips = ({string *})QUEUE->query_vip();
 
     CHECK_SO_ARCH;
 
@@ -992,7 +1008,7 @@ vip(string str)
             return 1;
         }
 
-        if (QUEUE->unvip(str))
+        if (({int}) QUEUE->unvip(str))
         {
             write("VIP access of " + capitalize(str) + " revoked.\n");
             return 1;
@@ -1002,19 +1018,19 @@ vip(string str)
         return 1;
     }
 
-    if (!(SECURITY->exist_player(str)))
+    if (!(({int}) SECURITY->exist_player(str)))
     {
         notify_fail("There is no player called " + capitalize(str) + ".\n");
         return 0;
     }
 
-    if (member(str, vips) >= 0)
+    if (str in vips)
     {
         write(capitalize(str) + " already has VIP access.\n");
         return 1;
     }
 
-    if (QUEUE->set_vip(str))
+    if (({int}) QUEUE->set_vip(str))
     {
         tell_object(this_interactive(), "VIP access of " + capitalize(str) +
             " granted.\n");
@@ -1029,10 +1045,9 @@ vip(string str)
 /* **************************************************************************
  * xpclear - Clear the xp counters in master for a specific domain
  */
-nomask int
-xpclear(string dom)
+nomask int xpclear(string dom)
 {
     CHECK_SO_ARCH;
 
-    return SECURITY->domain_clear_xp(dom);
+    return ({int}) SECURITY->domain_clear_xp(dom);
 }

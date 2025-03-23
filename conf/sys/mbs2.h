@@ -1,5 +1,5 @@
 /*
- * /config/sys/mbs2.h
+ * /conf/sys/mbs2.h
  *
  * Mud specific specifications
  */
