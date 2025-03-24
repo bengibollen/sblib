@@ -31,15 +31,16 @@ inherit "/std/combat/ctool";
 #include <ss_types.h>
 #include <std.h>
 #include <options.h>
+#include <libfiles.h>
 
 static  int             attuse;      /* Total %use, 100% is 1 attack */
+
 
 /*
 * Function name: create_ctool
 * Description:   Reset the combat functions
 */
-public nomask void
-create_ctool()
+public nomask void create_ctool()
 {
     if (me)
     {
@@ -49,13 +50,13 @@ create_ctool()
     this_object()->create_chumanoid();
 }
 
+
 /*
  * Function name: cb_configure
  * Description:   Configure humanoid attacks and hitlocations.
  * Returns:       True if hit, otherwise 0.
  */
-public void
-cb_configure()
+public void cb_configure()
 {
     ::cb_configure();
 
@@ -71,9 +72,10 @@ cb_configure()
     add_hitloc(0, 0, 0, A_TORSO); me->cr_reset_hitloc(A_TORSO);
     add_hitloc(0, 0, 0, A_LEGS);  me->cr_reset_hitloc(A_LEGS);
 
-    map(qme()->query_weapon(-1), cb_wield_weapon);
-    map(qme()->query_armour(-1), cb_wear_arm);
+    map(({object *}) qme()->query_weapon(-1), #'cb_wield_weapon);
+    map(({object *}) qme()->query_armour(-1), #'cb_wear_arm);
 }
+
 
 /*
  * Description: Humanoids might reallocate what attacks they use when the
@@ -82,8 +84,7 @@ cb_configure()
  *
  *                       %use = %maxuse * (wchit*wcpen) / ( sum(wchit*wcpen) )
  */
-public void
-cb_modify_procuse()
+public void cb_modify_procuse()
 {
     int il, *attid, *enabled_attacks, swc, puse, weapon_no;
     int unarmed_off;
@@ -97,7 +98,7 @@ cb_modify_procuse()
     att = allocate(sizeof(attid));
     enabled_attacks = allocate(sizeof(attid));
     weapon_no = sizeof(cb_query_weapon(-1));
-    unarmed_off = me->query_option(OPT_UNARMED_OFF);
+    unarmed_off = ({int}) me->query_option(OPT_UNARMED_OFF);
 
     for (swc = 0, il = 0; il < sizeof(attid); il++)
     {
@@ -116,8 +117,8 @@ cb_modify_procuse()
             /* See if there is another kind of tool in the slot
              * that might prevent us from using it to attack.
              */
-            if ((tool = (object)qme()->query_tool(attid[il])) &&
-                tool->query_attack_blocked(attid[il]))
+            if ((tool = ({object})qme()->query_tool(attid[il])) &&
+                ({int})tool->query_attack_blocked(attid[il]))
 	    {
                 continue;
 	    }
@@ -147,29 +148,33 @@ cb_modify_procuse()
     }
 }
 
+
 /*
  * Description: Set the %attacks used each turn. 100% is one attack / turn
  * Arguments:   sumproc: %attack used
  */
-public void
-cb_set_attackuse(int sumproc)
+public void cb_set_attackuse(int sumproc)
 {
     attuse = sumproc;
     cb_modify_procuse();
 }
+
 
 /*
  * Description: Query the total %attacks used each turn. 100% is one attack / turn
  * Returns:     The attackuse
  */
 public int
-cb_query_attackuse() { return attuse; }
+cb_query_attackuse()
+{
+    return attuse;
+}
+
 
 /*
  * Description: Add an attack, see /std/combat/cbase.c
  */
-varargs int
-add_attack(int wchit, mixed wcpen, int damtype, int prcuse, int id, int skill,
+varargs int add_attack(int wchit, mixed wcpen, int damtype, int prcuse, int id, int skill,
     object wep)
 {
     int ret;
@@ -188,17 +193,16 @@ add_attack(int wchit, mixed wcpen, int damtype, int prcuse, int id, int skill,
  * Returns:       string - error message (weapon not wielded)
  *                1 - success (weapon wielded)
  */
-public mixed
-cb_wield_weapon(object wep)
+public mixed cb_wield_weapon(object wep)
 {
     int aid, wcskill, owchit, owcpen;
     mixed *att;
     mixed str;
 
-    if (!me->query_wiz_level() &&
+    if (!({int}) me->query_wiz_level() &&
         function_exists("create_object", wep) != WEAPON_OBJECT)
     {
-	return "The " + wep->short() + " is not a true weapon!\n";
+	return "The " + ({string}) wep->short() + " is not a true weapon!\n";
     }
 
     if (stringp(str = ::cb_wield_weapon(wep)))
@@ -206,15 +210,15 @@ cb_wield_weapon(object wep)
 	return str;
     }
 
-    aid = (int) wep->query_attack_id();
+    aid = ({int}) wep->query_attack_id();
     if (cb_query_weapon(aid) == wep)
     {
 	att = query_attack(aid);
     	/*
          * We get no more use of the weapon than our skill with it allows.
 	 */
-	wcskill = (int)me->query_skill(SS_WEP_FIRST +
-				       ((int)wep->query_wt() - W_FIRST));
+	wcskill = ({int}) me->query_skill(SS_WEP_FIRST +
+				       (({int}) wep->query_wt() - W_FIRST));
 	if (wcskill < 1)
 	    wcskill = -1;
 	add_attack(att[0], att[1], att[2], att[3], aid, wcskill, wep);
@@ -223,19 +227,19 @@ cb_wield_weapon(object wep)
     return 1;
 }
 
+
 /*
  * Function name: cb_wear_arm
  * Description:   Wear an armour
  * Arguments:	  arm - The armour.
  * Returns:       True if worn, errtext if fail
  */
-public mixed
-cb_wear_arm(object arm)
+public mixed cb_wear_arm(object arm)
 {
-    if (!me->query_wiz_level() &&
+    if (!({int}) me->query_wiz_level() &&
         function_exists("create_object", arm) != ARMOUR_OBJECT)
     {
-	return "The " + arm->short() + " is not a true armour!\n";
+	return "The " + ({string}) arm->short() + " is not a true armour!\n";
     }
 
     return ::cb_wear_arm(arm);

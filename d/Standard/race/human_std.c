@@ -3,13 +3,16 @@
 
   This is the race object used for players of race: human
 */
-inherit "/config/race/generic";
+inherit "/conf/race/generic";
 
-start_player()
+static void start_player()
 {
-    start_mail("/d/Standard/start/mailroom");
+//    start_mail("/d/Standard/start/mailroom");
     ::start_player();
 }
 
-query_race() { return "human"; }
+public string query_race()
+{
+  return "human"; 
+}
 

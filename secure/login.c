@@ -40,6 +40,7 @@ private int verify_password(string name, string pass);
 private void login_success();
 private void show_menu();
 public void handle_menu(string input);
+static void start_player();
 
 // Variables
 private string name;
@@ -149,7 +150,8 @@ public void handle_password(string pass) {
         input_to("handle_password", INPUT_NOECHO);
         return;
     }
-    login_success();
+    start_player();
+//    login_success();
 }
 
 private void login_success() {

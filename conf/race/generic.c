@@ -10,9 +10,8 @@
    The generic race object for all the races in Genesis
 
 */
-#pragma save_binary
 
-inherit "/std/player_pub";
+inherit "/std/player";
 inherit "/d/Standard/std/mail_stuff";
 inherit "/d/Standard/std/special_stuff";
 
@@ -23,7 +22,8 @@ inherit "/std/combat/humunarmed";
 #include <std.h>
 #include <ss_types.h>
 #include <stdproperties.h>
-#include "/config/login/login.h"
+#include <libfiles.h>
+#include "/conf/login/login.h"
 
 static	mapping 	com_sounds;
 
@@ -34,14 +34,15 @@ static	mapping 	com_sounds;
 public nomask string
 query_combat_file() { return "/std/combat/chumlock"; }
 
-finger_info()
+
+void finger_info()
 {
     finger_mail();
     finger_special();
 }
 
-public void
-start_player()
+
+public void start_player()
 {
     int val;
 
@@ -68,7 +69,7 @@ start_player()
     }
     com_sounds = RACESOUND;
 
-    if (!SECURITY->is_funmap(this_object()))
+    if (!({int}) SECURITY->is_funmap(this_object()))
 	SECURITY->do_funmap(this_object());
 
     start_mail(this_object()->query_def_post());
@@ -78,23 +79,26 @@ start_player()
     set_this_player(this_object());
 }
 
-query_def_start()
+
+public string query_def_start()
 {
     return RACESTART[this_object()->query_race()];
 }
 
-query_orig_stat()
+
+public int *query_orig_stat()
 {
     return RACESTAT[this_object()->query_race()];
 }
 
-query_def_post()
+
+public string query_def_post()
 {
     return RACEPOST[this_object()->query_race()];
 }
 
-public int
-communicate(string str) /* Must have it here for special with ' */
+
+public varargs int communicate(string str) /* Must have it here for special with ' */
 {
     string verb;
 
@@ -102,7 +106,7 @@ communicate(string str) /* Must have it here for special with ' */
     if (str == 0)
 	str = "";
     if (verb[0] == "'"[0])
-	str = extract(verb, 1) + " " + str;
+	str = verb[1..] + " " + str;
 
     say(QCTNAME(this_object()) + " @@race_sound:" + object_name(this_object()) +
 	"@@: " + str + "\n");
@@ -115,8 +119,8 @@ communicate(string str) /* Must have it here for special with ' */
     return 1;
 }
 
-public string
-race_sound()
+
+public string race_sound()
 {
     object pobj;
     string raceto, racefrom;
@@ -124,10 +128,10 @@ race_sound()
     pobj = previous_object(-1);
 
     raceto = pobj->query_race();
-    if (member_array(raceto, RACES) < 0)
+    if (!(raceto in RACES))
 	return "says";
 
-    return com_sounds[raceto][this_object()->query_race()];
+    return ({string}) com_sounds[raceto][this_object()->query_race()];
 }
 
 

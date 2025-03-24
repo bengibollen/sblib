@@ -16,12 +16,12 @@
 
 inherit "/std/combat/cbase";
 
+
 /*
 * Function name: create_cbase
 * Description:   Reset the combat functions
 */
-public nomask void
-create_cbase()
+public nomask void create_cbase()
 {
     if (qme())
 	return;
@@ -29,12 +29,16 @@ create_cbase()
 
 }
 
+
 /*
  * Function name: cb_configure
  * Description:   Configure nonhumanoid attacks and hitlocations.
  */
-public void
-cb_configure() { qme()->cr_configure(); }
+public void cb_configure()
+{
+    qme()->cr_configure();
+}
+
 
 /******************************************************************
  *
@@ -55,12 +59,11 @@ cb_configure() { qme()->cr_configure(); }
  *
  * Returns:       True if added.
  */
-public int
-cb_add_attack(int wchit, mixed wcpen, int damtype, int prcuse,
-    int id, int skill)
+public int cb_add_attack(int wchit, mixed wcpen, int damtype, int prcuse, int id, int skill)
 {
     return ::add_attack(wchit, wcpen, damtype, prcuse, id, skill);
 }
+
 
 /*
  * Function name: cb_remove_attack
@@ -68,8 +71,11 @@ cb_add_attack(int wchit, mixed wcpen, int damtype, int prcuse,
  * Arguments:     id: The attack id
  * Returns:       True if removed
  */
-public int
-cb_remove_attack(int id) { return ::remove_attack(id); }
+public int cb_remove_attack(int id)
+{
+    return ::remove_attack(id);
+}
+
 
 /*
  * Function name: cb_add_hitloc
@@ -82,11 +88,11 @@ cb_remove_attack(int id) { return ::remove_attack(id); }
  *
  * Returns:       True if added.
  */
-public varargs int
-cb_add_hitloc(int *ac, int prchit, string desc, int id, object *arm)
+public varargs int cb_add_hitloc(int *ac, int prchit, string desc, int id, object *arm)
 {
     return ::add_hitloc(ac, prchit, desc, id);
 }
+
 
 /*
  * Function name: cb_remove_hitloc
@@ -94,8 +100,10 @@ cb_add_hitloc(int *ac, int prchit, string desc, int id, object *arm)
  * Arguments:     id: The hitloc id
  * Returns:       True if removed
  */
-public int
-cb_remove_hitloc(int id) { return ::remove_hitloc(id); }
+public int cb_remove_hitloc(int id)
+{
+    return ::remove_hitloc(id);
+}
 
 
 /******************************************************************
@@ -113,11 +121,11 @@ cb_remove_hitloc(int id) { return ::remove_hitloc(id); }
  * Arguments:     aid:   The attack id
  * Returns:       True if hit, otherwise 0.
  */
-public int
-cb_try_hit(int aid)
+public int cb_try_hit(int aid)
 {
-    return (int)qme()->cr_try_hit(aid);
+    return ({int}) qme()->cr_try_hit(aid);
 }
+
 
 /*
  * Function name: cb_got_hit
@@ -132,11 +140,11 @@ cb_try_hit(int aid)
  *                dt:    The damagetype
  *	 	  dam:	 The damage in hit points
  */
-public varargs void
-cb_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
+public varargs void cb_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
 {
     qme()->cr_got_hit(hid, ph, att, aid, dt, dam);
 }
+
 
 /*
  * Function name: cb_attack_desc
@@ -144,16 +152,16 @@ cb_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
  * Arguments:     aid:   The attack id
  * Returns:       string holding description
  */
-public string
-cb_attack_desc(int aid)
+public string cb_attack_desc(int aid)
 {
     string desc;
 
-    if (desc = qme()->cr_attack_desc(aid))
+    if (desc = ({string}) qme()->cr_attack_desc(aid))
 	return desc;
     else
 	return "body";
 }
+
 
 /*
  * Function name: cb_did_hit
@@ -170,11 +178,17 @@ cb_attack_desc(int aid)
  *		  phit:  The %success that we made with our weapon
  *		  dam:	 The damamge made in hitpoints
  */
-public varargs void
-cb_did_hit(int aid, string hdesc, int hid, int phurt, object enemy, int dt,
-	   int phit, int dam)
+public varargs void cb_did_hit(
+    int aid,
+    string hdesc,
+    int hid,
+    int phurt,
+    object enemy,
+    int dt,
+    int phit,
+    int dam)
 {
-    if (qme()->cr_did_hit(aid, hdesc, phurt, enemy, dt, phit, dam, hid))
+    if (({int}) qme()->cr_did_hit(aid, hdesc, phurt, enemy, dt, phit, dam, hid))
 	return;
     else
 	::cb_did_hit(aid, hdesc, hid, phurt, enemy, dt, phit, dam);

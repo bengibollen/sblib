@@ -68,12 +68,12 @@ static void adjust_ac(int hid, object arm, int rm);
 
 */
 
+
 /*
  * Function name: create_cplain
  * Description:   Reset the combat functions
  */
-public nomask void
-create_cplain()
+public nomask void create_cplain()
 {
     if (me)
     {
@@ -83,20 +83,20 @@ create_cplain()
     this_object()->create_ctool();
 }
 
+
 /*
  * Function name: cb_wield_weapon
  * Description:   Wield a weapon. Here 'weapon' can be any object.
  * Arguments:     wep - The weapon to wield.
  * Returns:       True if wielded.
  */
-public mixed
-cb_wield_weapon(object wep)
+public mixed cb_wield_weapon(object wep)
 {
     int il, aid, extra, size;
     object *obs;
     mixed val;
 
-    aid = (int) wep->query_attack_id();
+    aid = ({int}) wep->query_attack_id();
 
     /* Can we use this weapon ?
      */
@@ -105,8 +105,8 @@ cb_wield_weapon(object wep)
         return "It doesn't seem to fit your body very well.\n";
     }
 
-    add_attack(wep->query_hit(), wep->query_modified_pen(), wep->query_dt(),
-               wep->query_procuse(), aid, 0, wep);
+    add_attack(({int}) wep->query_hit(), ({int *}) wep->query_modified_pen(), ({int}) wep->query_dt(),
+        ({int}) wep->query_procuse(), aid, 0, wep);
 
     /*
      * If more than two weapons wielded check the 2H combat, only with 2H
@@ -115,7 +115,7 @@ cb_wield_weapon(object wep)
      */
     if (sizeof(cb_query_weapon(-1)) > 1)
     {
-        extra = qme()->query_skill(SS_2H_COMBAT);
+        extra = ({int}) qme()->query_skill(SS_2H_COMBAT);
         extra = extra > 20 ? extra / 2 : extra - 20;
         this_object()->cb_set_attackuse(100 + extra);
     }
@@ -123,16 +123,16 @@ cb_wield_weapon(object wep)
     return 1;
 }
 
+
 /*
  * Function name: unwield
  * Description:   Unwield a weapon.
  * Arguments:     wep - The weapon to unwield.
  * Returns:       None.
  */
-public void
-cb_unwield(object wep)
+public void cb_unwield(object wep)
 {
-    int aid = (int)wep->query_attack_id();
+    int aid = ({int}) wep->query_attack_id();
 
     me->cr_reset_attack(aid);
 
@@ -144,6 +144,7 @@ cb_unwield(object wep)
     }
 }
 
+
 /*
  * Function name: adjust_ac
  * Description:   Adjust relevant hitlocations for a given armour slot
@@ -152,15 +153,14 @@ cb_unwield(object wep)
  *                arm:   The armour.
  *                rm:    True if we remove armour
  */
-static void
-adjust_ac(int hid, object arm, int rm)
+static void adjust_ac(int hid, object arm, int rm)
 {
     int il, ac, *am, size;
     mixed *oldloc;
     object *arms;
 
-    ac = (int)arm->query_ac(hid);
-    am = (int*)arm->query_am(hid);
+    ac = ({int}) arm->query_ac(hid);
+    am = ({int*}) arm->query_am(hid);
 
     size = sizeof(am);
     il = -1;
@@ -197,24 +197,24 @@ adjust_ac(int hid, object arm, int rm)
     add_hitloc(oldloc[HIT_AC], oldloc[HIT_PHIT], oldloc[HIT_DESC], hid, arms);
 }
 
+
 /*
  * Function name: cb_wear_arm
  * Description:   Wear an armour
  * Arguments:     arm - The armour.
  * Returns:       True if worn, text if fail
  */
-public mixed
-cb_wear_arm(object arm)
+public mixed cb_wear_arm(object arm)
 {
     int *hid;
 
-    if (arm->query_prop(OBJ_I_IS_MAGIC_ARMOUR))
+    if (({int}) arm->query_prop(OBJ_I_IS_MAGIC_ARMOUR))
     {
-        hid = arm->query_shield_slots();
+        hid = ({int *}) arm->query_shield_slots();
     }
     else
     {
-        hid = arm->query_protects();   /* The hitlocations */
+        hid = ({int *}) arm->query_protects();   /* The hitlocations */
     }
 
     /* Can we use this armour ? We must define all the hitlocs it protects
@@ -224,17 +224,17 @@ cb_wear_arm(object arm)
         return "It seems not to fit your body very well.";
     }
 
-    map(hid, &adjust_ac(, arm, 0));
+    map(hid, (: adjust_ac($1, arm, 0) :));
     return 1;
 }
+
 
 /*
  * Function name: cb_remove_arm
  * Description:   Remove an armour
  * Arguments:     arm - The armour.
  */
-public void
-cb_remove_arm(object arm)
+public void cb_remove_arm(object arm)
 {
     int i, *hids, size;
 
@@ -247,7 +247,7 @@ cb_remove_arm(object arm)
     size = sizeof(hids);
     while(++i < size)
     {
-        if (member(arm, query_hitloc(hids[i])[HIT_ARMOURS]) >= 0)
+        if (arm in query_hitloc(hids[i])[HIT_ARMOURS])
         {
             adjust_ac(hids[i], arm, 1);
 
@@ -259,14 +259,14 @@ cb_remove_arm(object arm)
     }
 }
 
+
 /*
  * Function name: cb_attack_desc
  * Description:   Gives the description of a certain attack slot.
  * Arguments:     aid:   The attack id
  * Returns:       string holding description on VBFC form. Do not use write()
  */
-public string
-cb_attack_desc(int aid)
+public string cb_attack_desc(int aid)
 {
     object wep = query_attack(aid)[ATT_OBJ];
 
@@ -276,9 +276,10 @@ cb_attack_desc(int aid)
     }
     else
     {
-        return qme()->cr_attack_desc(aid);
+        return ({string}) qme()->cr_attack_desc(aid);
     }
 }
+
 
 /*
  * Function name: cb_try_hit
@@ -288,14 +289,14 @@ cb_attack_desc(int aid)
  * Arguments:     aid:   The attack id
  * Returns:       True if hit, otherwise 0.
  */
-public int
-cb_try_hit(int aid)
+public int cb_try_hit(int aid)
 {
     object wep = query_attack(aid)[ATT_OBJ];
 
     return (wep ?
-        wep->try_hit(cb_query_attack()) : (int)qme()->cr_try_hit(aid));
+        ({int}) wep->try_hit(cb_query_attack()) : ({int}) qme()->cr_try_hit(aid));
 }
+
 
 /*
  * Function name: cb_did_hit
@@ -310,9 +311,15 @@ cb_try_hit(int aid)
  *                phit:  The %success that we made with our weapon
  *                dam:   The damamge made in hit points
  */
-public varargs void
-cb_did_hit(int aid, string hdesc, int hid, int phurt, object enemy, int dt,
-           int phit, int dam)
+public varargs void cb_did_hit(
+    int aid,
+    string hdesc,
+    int hid,
+    int phurt,
+    object enemy,
+    int dt,
+    int phit,
+    int dam)
 {
     object wep;
 
@@ -325,7 +332,7 @@ cb_did_hit(int aid, string hdesc, int hid, int phurt, object enemy, int dt,
 
     if (wep)
     {
-        if (wep->did_hit(aid, hdesc, phurt, enemy, dt, phit, dam, hid))
+        if (({int}) wep->did_hit(aid, hdesc, phurt, enemy, dt, phit, dam, hid))
     	{
     	    /* Adjust our panic level */
     	    cb_add_panic(((phurt >= 0) ? -3 - phurt / 5 : 1));
@@ -335,6 +342,7 @@ cb_did_hit(int aid, string hdesc, int hid, int phurt, object enemy, int dt,
 
     ::cb_did_hit(aid, hdesc, hid, phurt, enemy, dt, phit, dam, wep);
 }
+
 
 /*
  * Function name: cb_got_hit
@@ -347,8 +355,7 @@ cb_did_hit(int aid, string hdesc, int hid, int phurt, object enemy, int dt,
  *                dt:    The damagetype
  *                dam:   The damage done in hitpoints
  */
-public varargs void
-cb_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
+public varargs void cb_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
 {
     int il, size;
     object *arms;
@@ -365,13 +372,13 @@ cb_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
     qme()->cr_got_hit(hid, ph, att, aid, dt, dam);
 }
 
+
 /*
  * Function namn: cb_update_armour
  * Description:   Call this function if the ac of a shielding object has changed
  * Arguments:     obj - the object which ac has changed
  */
-public void
-cb_update_armour(object obj)
+public void cb_update_armour(object obj)
 {
     int *hids, i;
     object *arms;
@@ -387,13 +394,14 @@ cb_update_armour(object obj)
     {
         arms = query_hitloc(hids[i])[HIT_ARMOURS];
 
-        if (pointerp(arms) && (member(obj, arms) >= 0))
+        if (pointerp(arms) && (obj in arms))
 	{
             me->cr_reset_hitloc(hids[i]);
-            map(arms, &adjust_ac(hids[i], , 0));
+            map(arms, (: adjust_ac(hids[i], $1, 0) :));
         }
     }
 }
+
 
 /*
  * Function namn: cb_update_weapon
@@ -401,15 +409,14 @@ cb_update_armour(object obj)
  *                stats to change, skill raise or sharpening the weapon or so.
  * Arguments:     wep - The weapon
  */
-public void
-cb_update_weapon(object wep)
+public void cb_update_weapon(object wep)
 {
     if (!wep)
     {
         return;
     }
 
-    add_attack(wep->query_hit(), wep->query_modified_pen(), wep->query_dt(),
-                wep->query_procuse(), wep->query_attack_id(),
-                me->query_skill(wep->query_wt()), wep);
+    add_attack(({int}) wep->query_hit(), ({int *}) wep->query_modified_pen(), ({int}) wep->query_dt(),
+        ({int}) wep->query_procuse(), ({int}) wep->query_attack_id(),
+        ({int}) me->query_skill(({int}) wep->query_wt()), wep);
 }

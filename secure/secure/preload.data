@@ -30,7 +30,7 @@
 /std/room
 /std/living
 /std/player_sec
-/std/player_pub
+/std/player
 /std/mobile
 /std/creature
 /std/npc

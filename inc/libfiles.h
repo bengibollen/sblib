@@ -110,7 +110,7 @@
 #define PARALYZE_OBJECT    ("/std/paralyze")
 #define PLAYER_OBJECT      ("/std/player")
 #define PLAYER_SEC_OBJECT  ("/std/player_sec")
-#define PLAYER_PUB_OBJECT  ("/std/player_pub")
+#define PLAYER_PUB_OBJECT  ("/std/player")
 #define POISON_OBJECT      ("/std/poison_effect")
 #define POTION_OBJECT      ("/std/potion")
 #define PROJECTILE_OBJECT  ("/std/projectile")

@@ -18,19 +18,19 @@
 
 inherit "/std/combat/unarmed";
 
-#include "/sys/wa_types.h"
-#include "/sys/ss_types.h"
-#include "/sys/macros.h"
-#include "/sys/formulas.h"
+#include "/inc/wa_types.h"
+#include "/inc/ss_types.h"
+#include "/inc/macros.h"
+#include "/inc/formulas.h"
 
-#define QEXC (this_object()->query_combat_object())
+#define QEXC (({object}) this_object()->query_combat_object())
+
 
 /*
  * Function name: cr_configure
  * Description:   Configures basic values for this humanoid.
  */
-public nomask void
-cr_configure()
+public nomask void cr_configure()
 {
     ::cr_configure();
 
@@ -40,14 +40,14 @@ cr_configure()
 	QEXC->cb_set_attackuse(100);
 }
 
+
 /*
  * Function name: cr_reset_attack
  * Description:   Set the values for a specific attack. These are called from
  *		  the external combat object.
  * Arguments:     aid: The attack id
  */
-public nomask void
-cr_reset_attack(int aid)
+public nomask void cr_reset_attack(int aid)
 {
     int wchit, wcpen, uskill;
 
@@ -57,10 +57,10 @@ cr_reset_attack(int aid)
     {
 	wchit = W_HAND_HIT;
 	wcpen = W_HAND_PEN;
-	if (uskill = this_object()->query_skill(SS_UNARM_COMBAT))
+	if (uskill = ({int}) this_object()->query_skill(SS_UNARM_COMBAT))
 	{
-	    wchit += F_UNARMED_HIT(uskill, this_object()->query_stat(SS_DEX));
-	    wcpen += F_UNARMED_PEN(uskill, this_object()->query_stat(SS_STR));
+	    wchit += F_UNARMED_HIT(uskill, ({int}) this_object()->query_stat(SS_DEX));
+	    wcpen += F_UNARMED_PEN(uskill, ({int}) this_object()->query_stat(SS_STR));
 	}
 
 	if (uskill < 1)
@@ -90,13 +90,13 @@ cr_reset_attack(int aid)
     }
 }
 
+
 /*
  * Function name: cr_reset_hitloc
  * Description:   Set the values for a specific hitlocation
  * Arguments:     hid: The hitlocation (bodypart) id
  */
-public void
-cr_reset_hitloc(int hid)
+public void cr_reset_hitloc(int hid)
 {
     ::cr_reset_hitloc(hid);
 
@@ -123,6 +123,7 @@ cr_reset_hitloc(int hid)
     }
 }
 
+
 /*
  * Function name: cr_try_hit
  * Description:   Decide if a certain attack fails because of something
@@ -130,8 +131,11 @@ cr_reset_hitloc(int hid)
  * Arguments:     aid:   The attack id
  * Returns:       True if hit, otherwise 0.
  */
-public nomask int
-cr_try_hit(int aid) { return 1; }
+public nomask int cr_try_hit(int aid)
+{
+	return 1;
+}
+
 
 /*
  * Function name: cr_attack_desc
@@ -139,8 +143,7 @@ cr_try_hit(int aid) { return 1; }
  * Arguments:     aid:   The attack id
  * Returns:       string holding description
  */
-public string
-cr_attack_desc(int aid)
+public string cr_attack_desc(int aid)
 {
     switch(aid)
     {
@@ -153,6 +156,7 @@ cr_attack_desc(int aid)
     return "mind"; /* should never occur */
 }
 
+
 /*
  * Function name: cr_got_hit
  * Description:   Tells us that we got hit. It can be used to reduce the ac
@@ -164,12 +168,12 @@ cr_attack_desc(int aid)
  *                dt:    The damagetype
  *		  dam:   The damage in hit points
  */
-public void
-cr_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
+public varargs void cr_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
 {
     /* We do not tell if we get hit in any special way
     */
 }
+
 
 /*
  * Function name: set_all_attack_unarmed
@@ -177,8 +181,7 @@ cr_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
  * Arguments:     hit - the hit value
  * 		  pen - the pen value
  */
-public nomask void
-set_all_attack_unarmed(int hit, int pen)
+public nomask void set_all_attack_unarmed(int hit, int pen)
 {
     set_attack_unarmed(W_RIGHT, hit, pen, W_BLUDGEON, 25, "");
     set_attack_unarmed(W_LEFT, hit, pen, W_BLUDGEON, 25, "");
@@ -186,13 +189,13 @@ set_all_attack_unarmed(int hit, int pen)
     set_attack_unarmed(W_FOOTL, hit, pen, W_BLUDGEON, 25, "");
 }
 
+
 /*
  * Function name: set_all_hitloc_unarmed
  * Description:   Set up all unarmed hit location basics
  * Arguments:     ac - an int or an array to modify the ac....
  */
-public nomask void
-set_all_hitloc_unarmed(mixed ac)
+public nomask void set_all_hitloc_unarmed(mixed ac)
 {
     set_hitloc_unarmed(A_BODY, ac, 45, "body");
     set_hitloc_unarmed(A_HEAD, ac, 15, "head");
@@ -201,12 +204,12 @@ set_all_hitloc_unarmed(mixed ac)
     set_hitloc_unarmed(A_L_ARM, ac, 10, "right arm");
 }
 
+
 /*
  * Function name: update_procuse()
  * Description:   use this to update the percent usage of attacks
  */
-public nomask void
-update_procuse()
+public nomask void update_procuse()
 {
     QEXC->cb_modify_procuse();
 }

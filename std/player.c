@@ -1,86 +1,76 @@
+/*
+ * /std/player_pub.c
+ *
+ * This is the customizable part of the old player.c. Inherit this object
+ * to make your race object. That race dependant object should then be 
+ * inherited by the guild dependant object. 
+ *
+ * This file inherits the player_sec object statically to ensure the 
+ * protection of all lower level routines.
+ */
+
 #pragma strict_types
-#pragma save_types
 
-#include <player.h>
-#include <input_to.h>
-#include <configuration.h>
+inherit "/std/player_sec";
+
 #include <macros.h>
+#include <config.h>
 
-inherit "/std/living";
+public int
+check_player_pub() { return 1; }  /* Security, checked by /secure/login */
 
-/* This order is on purpose to limit the number of prototypes necessary. */
-#include "/std/player/savevars_sec.c"
-#include "/std/player/quicktyper.c"
-#include "/std/player/cmd_sec.c"
-#include "/std/player/getmsg_sec.c"
-#include "/std/player/death_sec.c"
-#include "/std/player/querys_sec.c"
-#include "/std/player/pcombat.c"
-#include "/std/player/more.c"
-
-private string name;          // Player's name
-private int state;           // Current player state
-private int level;          // Player level
-
-private void show_entrance();
-
-public void create_living() {
-    log_info("Player object created");
-    log_debug("Object name: %s", object_name(this_object()));
-
-    configure_object(this_object(), OC_COMMANDS_ENABLED, 1);
-    state = PLAYER_STATE_LOADING;
-}
-
-public void initialize(string player_name) {
-    log_debug("Initializing player with name: %s", player_name);
-    name = player_name;
-    state = PLAYER_STATE_PLAYING;
-//    configure_object(this_object(), OC_COMMANDS_ENABLED, 1);
-    log_info("Player %s initialized", name);
-    log_debug("Object name: %s", object_name(this_object()));
-
-    show_entrance();
-}
-
-private void show_entrance() {
-    write("\nWelcome to the game, " + capitalize(name) + "!\n");
-//    command("look");  // Show initial room description
-}
-
-// Query functions
-public varargs string query_name() { return name; }
-public int query_level() { return level; }
-public int query_state() { return state; }
-
-// Save/restore functions - to be implemented
-public int save_player() {
-    // TODO: Implement save functionality
-    return 1;
-}
-
-public int restore_player() {
-    // TODO: Implement restore functionality
-    return 1;
-}
-
-public void player_startup() {
-    log_debug("Player startup initiated for: %s", query_name());
-    
-    cmdhooks_reset();
-    cmd_sec_reset();
-
-
+public void
+start_player()
+{
     /* Get the soul commands */
-//    this_object()->load_command_souls();
-    command("look");
+    this_object()->load_command_souls();
+    command("$look");
     say(QCNAME(this_object()) + " enters the game.\n");
 }
 
-public void catch_tell(string message) {
-    write(message);
-}   
+/*
+ * Function name: death_modify_stat
+ * Description:   Modification function for free stats on death
+ * Returns:       The modified stat.
+ */
+int
+death_modify_stat(int stat) { return query_stat(stat); }
 
-public void catch_msg(string message) {
-    write(process_string(message));
+/*
+ * Function name: death_sequence
+ * Description:   Defines what happens to the player after death
+ */
+void
+death_sequence()
+{
+    object death_mark;
+    if (!query_ghost()) return;
+    
+    death_mark = clone_object(DEFAULT_DEATH);
+    death_mark->move(this_object(), 1);
+}
+
+/*
+ * Function:    query_new_title
+ * Description: Returns the title of the player calculated from stats
+ *
+ */
+public string
+query_new_title()
+{
+    return "the utter novice";
+}
+
+public int *
+query_orig_stat()
+{
+    /*        STR, DEX, CON, INT, WIS, DIS */
+    return ({ 10,  10,  10,  10,  10,  10 });
+}
+
+public int *
+query_orig_learn()
+{
+    /*        STR, DEX, CON, INT, WIS, DIS */
+    return ({  17,  16,  16,  17,  17,  17 });
 }

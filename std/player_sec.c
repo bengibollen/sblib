@@ -33,9 +33,9 @@ inherit "/std/living";
 #include <std.h>
 #include <stdproperties.h>
 
-#define LINKDEATH_TIME    180.0 /* three minutes */
-#define AUTOLOAD_INTERVAL 0.0
-#define RECOVERY_INTERVAL 0.5
+#define LINKDEATH_TIME    180 /* three minutes */
+#define AUTOLOAD_INTERVAL 0
+#define RECOVERY_INTERVAL 1
 
 /* 
  * List of properties that are to be saved in the player object. This list
@@ -52,10 +52,10 @@ inherit "/std/living";
 /*
  * Global variables. They are not saved.
  */
-private static int    ld_alarm;    /* The alarm used when a player linkdies. */
 #ifndef NO_SKILL_DECAY
 private static int do_skill_decay = 0; /* Flag to control skill decay */
-#endif NO_SKILL_DECAY
+#endif
+
 
 /*
  * Function name: query_def_start
@@ -63,11 +63,11 @@ private static int do_skill_decay = 0; /* Flag to control skill decay */
  *                This function is supposed to be replaced in inheriting
  *                player objects.
  */
-public string
-query_def_start()
+public string query_def_start()
 {
     return DEFAULT_START;
 }
+
 
 /*
  * Function name: query_orig_stat
@@ -75,8 +75,7 @@ query_def_start()
  *                This function is supposed to be replaced in inheriting
  *                player objects.
  */
-public int *
-query_orig_stat() 
+public int *query_orig_stat() 
 {
     int i, *list;
 
@@ -89,14 +88,14 @@ query_orig_stat()
     return list;
 }
 
+
 /*
  * Function name: query_orig_learn
  * Description:   Return the default starting stats of a player
  *                This function is supposed to be replaced in inheriting
  *                player objects.
  */
-public int *
-query_orig_learn() 
+public int *query_orig_learn() 
 {
     int i, *list;
 
@@ -109,6 +108,7 @@ query_orig_learn()
     return list;
 }
 
+
 #ifndef NO_ALIGN_TITLE
 /*
  * Function name: query_new_al_title
@@ -116,20 +116,19 @@ query_orig_learn()
  *                This function is supposed to be replaced in inheriting
  *                player objects.
  */
-public string
-query_new_al_title()
+public string query_new_al_title()
 {
     return "neutral";
 }
-#endif NO_ALIGN_TITLE
+#endif 
+
 
 /*
  * Function name: fixup_screen
  * Description:   Restore the players screen width. Normally called
  *                during login.
  */
-public nomask void
-fixup_screen()
+public nomask void fixup_screen()
 {
     int width = query_option(OPT_SCREEN_WIDTH);
 
@@ -147,17 +146,18 @@ fixup_screen()
 //  set_screen_width(width);
 }
 
+
 #ifndef NO_SKILL_DECAY
 /*
  * Function name:   query_skill_decay
  * Description:     Gives back the skill decay status
  * Returns:         The skill decay status
  */
-public nomask int
-query_skill_decay()
+public nomask int query_skill_decay()
 {
     return do_skill_decay;
 }
+
 
 /*
  * Function name: get_train_max
@@ -166,20 +166,20 @@ query_skill_decay()
  *                ob - the object defining the skill
  * Returns:       See above.
  */
-static nomask int
-get_train_max(int skill, mixed ob)
+static nomask int get_train_max(int skill, mixed ob)
 {
     int rval = 0;
 
 #ifdef LOG_BAD_TRAIN
-    if (catch(rval = ob->sk_query_max(skill, 1)))
+    if (catch(rval = ({int}) ob->sk_query_max(skill, 1)))
         log_file(LOG_BAD_TRAIN, ctime(time()) + ": " + ob + "\n");
 #else
-    catch(rval = ob->sk_query_max(skill, 1));
-#endif LOG_BAD_TRAIN
+    catch(rval = ({int}) ob->sk_query_max(skill, 1));
+#endif 
 
     return rval;
 }
+
 
 /*
  * Function name: query_decay_skill
@@ -188,8 +188,7 @@ get_train_max(int skill, mixed ob)
  *                skill - the skill to be examined.
  * Returns:       See above.
  */
-static nomask int
-query_decay_skill(mixed list, int skill)
+static nomask int query_decay_skill(mixed list, int skill)
 {
     int *sklist;
     int index;
@@ -201,7 +200,7 @@ query_decay_skill(mixed list, int skill)
     catch(list->teleledningsanka());
 
     /* Check the contents */
-    sklist = ({ }) + map(list, &get_train_max(skill, ));
+    sklist = ({ }) + map(list, (: get_train_max(skill, $1) :));
     sk = (sizeof(SS_SKILL_DESC[skill]) ? SS_SKILL_DESC[skill][4] : 0);
     sklist += ({ ((sk > MIN_SKILL_LEVEL) ? sk : MIN_SKILL_LEVEL) });
 
@@ -210,6 +209,7 @@ query_decay_skill(mixed list, int skill)
     return (query_base_skill(skill) > maximum);
 }
 
+
 /*
  * Function name: decay_skills
  * Description:   Do skill decay in the player
@@ -217,8 +217,7 @@ query_decay_skill(mixed list, int skill)
  *                entering the game or entering/leaving a guild as
  *                it's a bit costly.
  */
-static nomask void
-decay_skills()
+static nomask void decay_skills()
 {
     mixed obs;
     mixed otmp;
@@ -239,31 +238,31 @@ decay_skills()
 
     /* Get the list of trainer objects */
     obs = ({});
-    otmp = this_object()->query_guild_trainer_occ();
+    otmp = ({mixed}) this_object()->query_guild_trainer_occ();
     obs += pointerp(otmp) ? otmp : ({ otmp });
-    otmp = this_object()->query_guild_trainer_race();
+    otmp = ({mixed}) this_object()->query_guild_trainer_race();
     obs += pointerp(otmp) ? otmp : ({ otmp });
-    otmp = this_object()->query_guild_trainer_lay();
+    otmp = ({mixed}) this_object()->query_guild_trainer_lay();
     obs += pointerp(otmp) ? otmp : ({ otmp });
-    otmp = this_object()->query_guild_trainer_craft();
+    otmp = ({mixed}) this_object()->query_guild_trainer_craft();
     obs += pointerp(otmp) ? otmp : ({ otmp });
     obs -= ({ 0 });
     
     /* Filter all relevant skills */
-    skills = filter(query_all_skill_types(), &operator(>)(99999));
+    skills = filter(query_all_skill_types(), (: 99999 > $1 :));
 
     /* Find out what skills need decay */
-    skills = filter(skills, &query_decay_skill(obs, ));
+    skills = filter(skills, (: query_decay_skill(obs, $1) :));
 
     /* Do decay */
     if (sizeof(skills))
     {
-        tmp = ((tmp = this_object()->query_guild_name_occ()) ? tmp : "") + ", " +
-            ((tmp = this_object()->query_guild_name_lay()) ? tmp : "") + ", " +
-	    ((tmp = this_object()->query_guild_name_craft()) ? tmp : "") + ", " +
-            ((tmp = this_object()->query_guild_name_race()) ? tmp : "");
+        tmp = ((tmp = ({string}) this_object()->query_guild_name_occ()) ? tmp : "") + ", " +
+            ((tmp = ({string}) this_object()->query_guild_name_lay()) ? tmp : "") + ", " +
+	    ((tmp = ({string}) this_object()->query_guild_name_craft()) ? tmp : "") + ", " +
+            ((tmp = ({string}) this_object()->query_guild_name_race()) ? tmp : "");
         
-        str = sprintf("%s\t\t%s\n%s\t\t", this_object()->query_name(), tmp,
+        str = sprintf("%s\t\t%s\n%s\t\t", ({string}) this_object()->query_name(), tmp,
             ctime(time()));
 
         sz = sizeof(skills);
@@ -280,45 +279,46 @@ decay_skills()
     }
 }
 
+
 /*
  * Function name:   setup_skill_decay()
  * Description:     setup the skill decay flag.
  */
-public nomask void
-setup_skill_decay()
+public nomask void setup_skill_decay()
 {
     if (query_wiz_level())
         return;
 
     do_skill_decay = 1;
-    set_alarm(90.0, 0.0, decay_skills);
+
+    call_out(#'decay_skills, 90);
 }
-#endif NO_SKILL_DECAY
+#endif
+
 
 /*
  * Function name: reset_userids
  * Description  : Called to set the euid of this player. Wizards get their own
  *                name as effective user id.
  */
-public void
-reset_userids()
+public void reset_userids()
 {
-    seteuid(0);
+    configure_object(this_object(), OC_EUID, 0);
 
-    if (SECURITY->query_wiz_rank(query_real_name()))
+    if (({int}) SECURITY->query_wiz_rank(query_real_name()))
     {
         SECURITY->reset_wiz_uid(this_object());
     }
 
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
+
 
 /*
  * Function:     new_init
  * Description:  Initialises all variables to default conditions.
  */
-static nomask void
-new_init()
+static nomask void new_init()
 {
     int i;
     int *ostat;
@@ -337,8 +337,9 @@ new_init()
 
 #ifndef NO_ALIGN_TITLE
     set_al_title(query_new_al_title());
-#endif NO_ALIGN_TITLE
+#endif
 }
+
 
 /*
  * Function name: slow_load_auto_files
@@ -347,8 +348,7 @@ new_init()
  *                much for their own good.
  * Arguments    : string *auto_files - the autoloading files still to load.
  */
-nomask static void
-slow_load_auto_files(string *auto_files)
+nomask static void slow_load_auto_files(string *auto_files)
 {
     string file;
     string argument;
@@ -356,8 +356,7 @@ slow_load_auto_files(string *auto_files)
 
     if (sizeof(auto_files) > 1)
     {
-        set_alarm(AUTOLOAD_INTERVAL, 0.0,
-            &slow_load_auto_files(auto_files[1..]));
+        call_out((: slow_load_auto_files(auto_files[1..]) :), 0);
     }
     else
     {
@@ -383,7 +382,7 @@ slow_load_auto_files(string *auto_files)
      */
     if (stringp(argument))
     {
-        if (ob->init_arg(argument))
+        if (({int}) ob->init_arg(argument))
         {
             ob->remove_object();
             return;
@@ -392,14 +391,14 @@ slow_load_auto_files(string *auto_files)
     ob->move(this_object(), 1);
 }
 
+
 /*
  * Function name: load_auto_files
  * Description  : Loads all autoloaded objects. We use an alarm to make sure
  *                that people always get their stuff, even when they carry too
  *                much for their own good.
  */
-nomask static void
-load_auto_files()
+nomask static void load_auto_files()
 {
     string *auto_files;
 
@@ -412,8 +411,9 @@ load_auto_files()
 
     add_prop(PLAYER_I_AUTOLOAD_TIME, (time() + 5 + sizeof(auto_files)));
 
-    set_alarm(AUTOLOAD_INTERVAL, 0.0, &slow_load_auto_files(auto_files));
+    call_out((: slow_load_auto_files(auto_files) :), AUTOLOAD_INTERVAL);
 }
+
 
 /*
  * Function name: slow_load_recover_files
@@ -422,8 +422,7 @@ load_auto_files()
  *                much for their own good.
  * Arguments    : string *recover_files - the recoverable files still to load.
  */
-nomask static void
-slow_load_recover_files(string *recover_files)
+nomask static void slow_load_recover_files(string *recover_files)
 {
     string  file;
     string  argument;
@@ -431,8 +430,7 @@ slow_load_recover_files(string *recover_files)
 
     if (sizeof(recover_files) > 1)
     {
-        set_alarm(RECOVERY_INTERVAL, 0.0,
-            &slow_load_recover_files(recover_files[1..]));
+        call_out((: slow_load_recover_files(recover_files[1..]) :), RECOVERY_INTERVAL);
     }
 
     set_this_player(this_object());
@@ -454,7 +452,7 @@ slow_load_recover_files(string *recover_files)
      */
     if (stringp(argument))
     {
-        if (ob->init_recover(argument))
+        if (({int}) ob->init_recover(argument))
         {
             ob->remove_object();
             return;
@@ -463,9 +461,10 @@ slow_load_recover_files(string *recover_files)
 
     /* Tell the person. Little touch to tell when it's the last one. */
     write("You " + ((sizeof(recover_files) == 1) ? "finally " : "") +
-        "recover your " + ob->short() + ".\n");
+        "recover your " + ({string}) ob->short() + ".\n");
     ob->move(this_object(), 1);
 }
+
 
 /*
  * Function name: load_recover_files
@@ -473,8 +472,7 @@ slow_load_recover_files(string *recover_files)
  *                that people always get their stuff, even when they carry too
  *                much for their own good.
  */
-nomask static void
-load_recover_files()
+nomask static void load_recover_files()
 {
     string *recover_files;
     int     size;
@@ -498,9 +496,9 @@ load_recover_files()
     catch_tell("Preparing to recover " + LANG_WNUM(size) + " item" +
         ((size == 1) ? "" : "s") + ".\n");
 
-    set_alarm(RECOVERY_INTERVAL, 0.0,
-        &slow_load_recover_files(recover_files));
+    call_out((: slow_load_recover_files(recover_files) :), RECOVERY_INTERVAL);
 }
+
 
 /*
  * Function name: load_auto_shadows
@@ -508,8 +506,7 @@ load_recover_files()
  *                player should have when he logs in. No special measures are
  *                taken for shadows at login time.
  */
-nomask static void
-load_auto_shadows()
+nomask static void load_auto_shadows()
 {
     string *load_arr;
     string file;
@@ -552,12 +549,12 @@ load_auto_shadows()
     }
 }
 
+
 /*
  * Function name: init_saved_props
  * Description  : Add the saved properties to the player.
  */
-static void
-init_saved_props()
+static void init_saved_props()
 {
     int index = -1;
     int size = ((sizeof(SAVE_PROPS) < sizeof(saved_props)) ?
@@ -578,6 +575,7 @@ init_saved_props()
     saved_props = 0;
 }
 
+
 /*
  * Function name: setup_player
  * Description:   Restore player variables from the player file and go through
@@ -585,8 +583,7 @@ init_saved_props()
  * Arguments:     (string) pl_name - The player's name
  * Returns:       True if setup completed normally
  */
-private static nomask int
-setup_player(string pl_name)
+private nomask int setup_player(string pl_name)
 {
     string      *souls;
     int         il, size;
@@ -596,8 +593,8 @@ setup_player(string pl_name)
     ::set_adj(({}));            /* No adjectives and no default */
     new_init();                 /* All variables to default condition */
 
-    seteuid(0);
-    if (!SECURITY->load_player())
+    configure_object(this_object(), OC_EUID, 0);
+    if (!({int}) SECURITY->load_player())
     {
         return 0;
     }
@@ -691,7 +688,7 @@ setup_player(string pl_name)
      * recovery with a little alarm to make it safe. */
     load_auto_shadows();
     load_auto_files();
-    set_alarm(RECOVERY_INTERVAL, 0.0, load_recover_files);
+    call_out(#'load_recover_files, RECOVERY_INTERVAL);
 
     /* Set up skill decay now that the guild shadows are loaded. Do a first
      * decay as well, making it a bit more frequent for people who log
@@ -700,10 +697,12 @@ setup_player(string pl_name)
 #ifndef NO_SKILL_DECAY
     decay_time = time();
     setup_skill_decay();
-#endif NO_SKILL_DECAY
+#endif
 
     query_combat_object()->cb_configure();
+    return 1;
 }
+
 
 #ifdef CHANGE_PLAYEROB_OBJECT
 /*
@@ -713,8 +712,7 @@ setup_player(string pl_name)
  *                                   this one.
  * Returns:       True if initialization was successful
  */
-public nomask int
-change_player_object(object old_plob)
+public nomask int change_player_object(object old_plob)
 {
     if (MASTER_OB(previous_object()) != CHANGE_PLAYEROB_OBJECT)
     {
@@ -730,7 +728,8 @@ change_player_object(object old_plob)
     add_prop(PLAYER_I_LASTXP, old_plob->query_prop(PLAYER_I_LASTXP));
     return 1;
 }
-#endif CHANGE_PLAYEROB_OBJECT
+#endif
+
 
 /*
  * Function name: try_start_location
@@ -738,8 +737,7 @@ change_player_object(object old_plob)
  * Arguments    : string path - the path to try.
  * Returns      : int 1/0 - if true, the player moved to the room.
  */
-static nomask int
-try_start_location(string path)
+static nomask int try_start_location(string path)
 {
     object room;
 
@@ -761,6 +759,7 @@ try_start_location(string path)
     return objectp(environment());
 }
 
+
 /*
  * Function name: enter_game
  * Description  : Enter the player into the game.
@@ -768,8 +767,7 @@ try_start_location(string path)
  *                string pwd     - the password if it was changed.
  * Returns      : int 1/0 - login succeeded/failed.
  */
-public nomask int
-enter_game(string pl_name, string pwd)
+public nomask int enter_game(string pl_name, string pwd)
 {
     int    lost_money;
     string path;
@@ -778,7 +776,7 @@ enter_game(string pl_name, string pwd)
     if ((MASTER_OB(previous_object()) != LOGIN_OBJECT) &&
         (MASTER_OB(previous_object()) != LOGIN_NEW_PLAYER))
     {
-        write("Bad login object: " + file_name(previous_object()) + "\n");
+        write("Bad login object: " + object_name(previous_object()) + "\n");
         return 0;
     }
 
@@ -793,7 +791,7 @@ enter_game(string pl_name, string pwd)
 
     /* Try the temporary start location. */
     if (query_temp_start_location() &&
-        SECURITY->check_temp_start_loc(query_temp_start_location()) >= 0)
+        ({int}) SECURITY->check_temp_start_loc(query_temp_start_location()) >= 0)
     {
         try_start_location(query_temp_start_location());
         set_temp_start_location(0);
@@ -804,7 +802,7 @@ enter_game(string pl_name, string pwd)
     {
         if (!query_default_start_location() ||
             (!query_wiz_level() && 
-             (SECURITY->check_def_start_loc(query_default_start_location()) < 0)))
+             (({int}) SECURITY->check_def_start_loc(query_default_start_location()) < 0)))
         {
             set_default_start_location(query_def_start());
         }
@@ -845,7 +843,7 @@ enter_game(string pl_name, string pwd)
         {
             /* If this start location is corrupt too, destruct the player */
             write("PANIC, your starting locations are corrupt!!\n");
-            destruct();
+            destruct(this_object());
         }
     }
 
@@ -866,20 +864,21 @@ enter_game(string pl_name, string pwd)
     return 1;
 }
 
+
 /*
  * Function name: open_player
  * Description  : This function may only be called by SECURITY or by the
  *                login object to reset the euid of this object.
  */
-public nomask void
-open_player()
+public nomask void open_player()
 {
     if ((previous_object() == find_object(SECURITY)) ||
         (MASTER_OB(previous_object()) == LOGIN_OBJECT))
     {
-        seteuid(0);
+        configure_object(this_object(), OC_EUID, 0);
     }
 }
+
 
 /*
  * Function name: fix_saveprops_list
@@ -887,8 +886,7 @@ open_player()
  *                store several properties into an array that will be
  *                saved in the player file.
  */
-nomask public int
-fix_saveprop_list()
+nomask public void fix_saveprop_list()
 {
     int i, size;
 
@@ -902,14 +900,14 @@ fix_saveprop_list()
     }
 }
 
+
 /*
  * Function name: save_player
  * Description  : This function actually saves the player object.
  * Arguments    : string pl_name - the name of the player
  * Returns      : int 1/0 - success/failure.
  */
-nomask public int
-save_player(string pl_name)
+nomask public int save_player(string pl_name)
 {
     if (!pl_name)
     {
@@ -926,6 +924,7 @@ save_player(string pl_name)
     return 1;
 }
 
+
 /*
  * Function name: load_player
  * Description  : This function actually loads the player file into the
@@ -933,8 +932,7 @@ save_player(string pl_name)
  * Arguments    : string pl_name - the name of the player.
  * Returns      : int 1/0 - success/failure.
  */
-nomask public int
-load_player(string pl_name)
+nomask public int load_player(string pl_name)
 {
     int ret;
    
@@ -945,9 +943,10 @@ load_player(string pl_name)
 
     configure_object(this_object(), OC_EUID, getuid(this_object()));
     ret = restore_object(PLAYER_FILE(pl_name));
-    seteuid(0);
+    configure_object(this_object(), OC_EUID, 0);
     return ret;
 }
+
 
 /*
  * Function name: linkdeath_hook
@@ -956,10 +955,10 @@ load_player(string pl_name)
  * Arguments    : int linkdeath - 1/0 - if true, the player linkdied, else
  *                    he revives from linkdeath.
  */
-public void
-linkdeath_hook(int linkdeath)
+public void linkdeath_hook(int linkdeath)
 {
 }
+
 
 /*
  * Function name: actual_linkdeath
@@ -967,25 +966,23 @@ linkdeath_hook(int linkdeath)
  *                If the player is in combat, this will be delayed, or else
  *                it is called directly.
  */
-static nomask void
-actual_linkdeath()
+static nomask void actual_linkdeath()
 {
 #ifdef STATUE_WHEN_LINKDEAD
 #ifdef OWN_STATUE
     OWN_STATUE->linkdie(this_object());
 #else   
     tell_room(environment(), LD_STATUE_TURN(this_object()), ({ }) );
-#endif OWN_STATUE
-#endif STATUE_WHEN_LINKDEAD
+#endif
+#endif
 
     /* People should not autosave while they are linkdead. */
     stop_autosave();
 
-    if (ld_alarm)
+    if (find_call_out(#'actual_linkdeath) != -1)
     {
         SECURITY->notify(this_object(), 5);
-        remove_alarm(ld_alarm);
-        ld_alarm = 0;
+        remove_call_out(#'actual_linkdeath);
     }
     set_linkdead(1);
 
@@ -997,12 +994,12 @@ actual_linkdeath()
     all_inventory(this_object())->linkdeath_hook(this_object(), 1);
 }
 
+
 /*
  * Function name: linkdie
  * Description  : When a player linkdies, this function is called.
  */
-nomask public void
-linkdie()
+nomask public void linkdie()
 {
     if (previous_object() != find_object(SECURITY))
     {
@@ -1018,8 +1015,8 @@ linkdie()
 #ifdef STATUE_WHEN_LINKDEAD
 #ifdef OWN_STATUE
         OWN_STATUE->nonpresent_linkdie(this_object());
-#endif OWN_STATUE
-#endif STATUE_WHEN_LINKDEAD
+#endif
+#endif
 
         tell_room(environment(), ({
             capitalize(query_real_name()) + " loses touch with reality.\n",
@@ -1027,9 +1024,10 @@ linkdie()
             "" }),
             ({ this_object() }) );
 
-        ld_alarm = set_alarm(LINKDEATH_TIME, 0.0, actual_linkdeath);
+        call_out(#'actual_linkdeath, LINKDEATH_TIME);
     }
 }
+
 
 /*
  * Function name: query_linkdead_in_combat
@@ -1037,19 +1035,18 @@ linkdie()
  *                but still in combat.
  * Returns      : int 1/0 - in combat while linkdead or not.
  */
-nomask public int
-query_linkdead_in_combat()
+nomask public int query_linkdead_in_combat()
 {
-    return (ld_alarm != 0);
+    return (find_call_out(#'actual_linkdeath) != -1);
 }
+
 
 /*
  * Function name: revive
  * Description  : When a player revives from linkdeath, this function is
  *                called.
  */
-nomask public void
-revive()
+nomask public void revive()
 {
     if (MASTER_OB(previous_object()) != LOGIN_OBJECT)
     {
@@ -1057,12 +1054,12 @@ revive()
     }
 
     tell_object(this_object(), "You sense that you have " +
-        MAIL_FLAGS[MAIL_CHECKER->query_mail(query_real_name())] + ".\n\n");
+        MAIL_FLAGS[({int}) MAIL_CHECKER->query_mail(query_real_name())] + ".\n\n");
  
     /* If the player is not in combat, revive him. Else, just give a
      * a message about the fact that the player reconnected.
      */
-    if (!ld_alarm)
+    if (find_call_out(#'actual_linkdeath) == -1)
     {
         set_linkdead(0);
 
@@ -1071,7 +1068,7 @@ revive()
 #else   
         tell_room(environment(), QCTNAME(this_object()) + " " +
             STATUE_TURNS_ALIVE + ".\n", ({ this_object() }) );
-#endif OWN_STATUE
+#endif
 
         /* We reset these variables so the player does not gain mana or
          * hitpoints while in LD.
@@ -1100,11 +1097,11 @@ revive()
 
 #ifdef OWN_STATUE
         OWN_STATUE->nonpresent_revive(this_object());
-#endif OWN_STATUE
-        remove_alarm(ld_alarm);
-        ld_alarm = 0;
+#endif
+        remove_call_out(#'actual_linkdeath);
     }
 }
+
 
 /*
  * Function name: linkdead_save_vars_reset
@@ -1112,8 +1109,7 @@ revive()
  *                his save-vars reset, that is to prevent them from being
  *                updated during a save or quit action.
  */
-public void
-linkdead_save_vars_reset()
+public void linkdead_save_vars_reset()
 {
     if (!interactive())
     {
@@ -1134,8 +1130,7 @@ linkdead_save_vars_reset()
  *                string pfile   - the player save file.
  * Returns      : int 1/0 - success/failure.
  */
-public nomask int
-new_save(string pl_name, string pwd, string pfile)
+public nomask int new_save(string pl_name, string pwd, string pfile)
 {
     if (!CALL_BY(LOGIN_NEW_PLAYER))
     {
@@ -1153,25 +1148,26 @@ new_save(string pl_name, string pwd, string pfile)
     return 1;
 }
 
+
 /*
  * Function name: create_living
  * Description  : Called to create the player. It initializes some variables.
  */
-public nomask void
-create_living()
+public nomask void create_living()
 {
     player_save_vars_reset();
 }
+
 
 /*
  * Function name: reset_living
  * Description  : We don't want people to mask this function.
  */
-public nomask void
-reset_living()
+public nomask void reset_living()
 {
     return;
 }
+
 
 /*
  * Function name: command
@@ -1183,14 +1179,13 @@ reset_living()
  * Returns      : int - the amount of eval-cost ticks if the command was
  *                    successful, or 0 if unsuccessfull.
  */
-public nomask int
-command(string cmd)
+public nomask int command(string cmd)
 {
     /* Test permissions if you try to force a wizard. */
     if (query_wiz_level() &&
         objectp(previous_object()))
     {
-        if (!SECURITY->wiz_force_check(geteuid(previous_object()),
+        if (!({int}) SECURITY->wiz_force_check(geteuid(previous_object()),
             geteuid()))
         {
             return 0;
@@ -1201,7 +1196,7 @@ command(string cmd)
      * to prevent people from using the quicktyper to circumvent being forced
      * to do particular commands.
      */
-    if (!wildmatch("$*", cmd) &&
+    if (cmd[0] != '$' &&
         (previous_object() != this_object()))
     {
         cmd = "$" + cmd;
@@ -1209,6 +1204,7 @@ command(string cmd)
 
     return ::command(cmd);
 }
+
 
 /*
  * Function name: id
@@ -1218,8 +1214,7 @@ command(string cmd)
  * Arguments    : string str - the name to test
  * Returns      : int 1/0 - true if the name is valid.
  */
-public int
-id(string str)
+public int id(string str)
 {
     if ((str == query_real_name()) &&
         notmet_me(this_player()))
@@ -1230,6 +1225,7 @@ id(string str)
     return ::id(str);
 }
 
+
 /*
  * Function name: parse_command_id_list
  * Description  : Mask of player_command_id_list() in /std/object.c to make sure
@@ -1238,8 +1234,7 @@ id(string str)
  * Returns      : string * - the original parse_command_id_list() without the
  *                    lower case name of the person.
  */
-public string *
-parse_command_id_list()         
+public string *parse_command_id_list()         
 { 
     string *ids;
 

@@ -16,7 +16,7 @@
          3 - The players racefile is not a legal playerfile, a new body
              must be choosen.
 */
-inherit "/std/player_pub";
+inherit "/std/player";
 
 #include <std.h>
 #include <macros.h>

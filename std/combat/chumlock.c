@@ -12,15 +12,16 @@
 
 inherit "/std/combat/chumanoid";
 
+
 /*
 * Function name: create_chumanoid
 * Description:   Reset the combat functions
 */
-public nomask void
-create_chumanoid()
+public nomask void create_chumanoid()
 {
     this_object()->create_chumplayer();
 }
+
 
 /*
  * Function name: cb_add_attack
@@ -35,36 +36,40 @@ create_chumanoid()
  *
  * Returns:       True if added.
  */
-public nomask int
-cb_add_attack(int wchit, mixed wcpen, int damtype, int prcuse,
+public nomask int cb_add_attack(int wchit, mixed wcpen, int damtype, int prcuse,
               int id, int skill)
 {
     /* Allow modification only of known attacks */
-    if (member(id, query_attack_id()) >= 0)
+    if (id in query_attack_id())
 	return ::cb_add_attack(wchit, wcpen, damtype, prcuse, id, skill);
     else
 	return 0;
 }
 
+
 /*
  * Description:   Stops removal of attacks
  */
-public nomask int cb_remove_attack(int id) { return 0; }
+public nomask int cb_remove_attack(int id)
+{
+    return 0;
+}
+
 
 /*
  * Description:   Add a hitlocation to the hitloc array
  */
-public nomask int
-cb_add_hitloc(int *ac, int prchit, string desc, int id)
+public nomask varargs int cb_add_hitloc(int *ac, int prchit, string desc, int id)
 {
     /*
      * Allow modification only of known hit locations
      */
-    if (member(id, query_hitloc_id()) >= 0)
+    if (id in query_hitloc_id())
 	return ::add_hitloc(ac, prchit, desc, id);
     else
 	return 0;
 }
+
 
 /*
  * Function name: cb_remove_hitloc
@@ -72,6 +77,8 @@ cb_add_hitloc(int *ac, int prchit, string desc, int id)
  * Arguments:     id: The hitloc id
  * Returns:       True if removed
  */
-public nomask int
-cb_remove_hitloc(int id) { return 0; }
+public nomask int cb_remove_hitloc(int id)
+{
+    return 0;
+}
 

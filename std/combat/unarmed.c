@@ -24,7 +24,8 @@ static  int 		ua_attuse;      /* %attacked used each turn */
 public void cr_reset_attack(int aid);
 public void cr_reset_hitloc(int hid);
 
-#define QEXC (this_object()->query_combat_object())
+#define QEXC (({object}) this_object()->query_combat_object())
+
 
 /*
  * Description: Set data for a specific attack
@@ -36,9 +37,13 @@ public void cr_reset_hitloc(int hid);
  *	       adesc: A string desc of the attack, ie "right claw" etc
  *
  */
-public varargs void
-set_attack_unarmed(int aid, int wchit, int wcpen, int dt, int puse,
-		   string adesc)
+public varargs void set_attack_unarmed(
+    int aid,
+    int wchit,
+    int wcpen,
+    int dt,
+    int puse,
+	string adesc)
 {
     if (!mappingp(ua_attdata))
 	ua_attdata = ([]);
@@ -49,12 +54,16 @@ set_attack_unarmed(int aid, int wchit, int wcpen, int dt, int puse,
      * If we have a combat object and no weapon for this attack then
      * modify direct
      */
-    if (QEXC && !objectp(QEXC->cb_query_weapon(aid)))
-	this_object()->cr_reset_attack(aid);
+    if (QEXC && !objectp(({object}) QEXC->cb_query_weapon(aid)))
+	    this_object()->cr_reset_attack(aid);
 }
 
-public mixed *
-query_ua_attack(int aid) { return ua_attdata[aid]; }
+
+public mixed *query_ua_attack(int aid)
+{
+    return ua_attdata[aid];
+}
+
 
 /*
  * Description: Set data for a specific hitlocation
@@ -63,8 +72,7 @@ query_ua_attack(int aid) { return ua_attdata[aid]; }
  *	      phit:  The chance that a hit will hit this location
  *	      hdesc: String describing this hitlocation, ie "head", "tail"
  */
-public varargs void
-set_hitloc_unarmed(int hid, int *ac, int phit, string hdesc)
+public varargs void set_hitloc_unarmed(int hid, int *ac, int phit, string hdesc)
 {
     if (!mappingp(ua_hitdata))
 	ua_hitdata = ([]);
@@ -74,47 +82,54 @@ set_hitloc_unarmed(int hid, int *ac, int phit, string hdesc)
      * If we have a combat object and no armour for this hitlocation then
      * modify direct
      */
-    if (QEXC && !objectp(QEXC->cb_query_armour(hid)))
+    if (QEXC && !objectp(({object}) QEXC->cb_query_armour(hid)))
 	this_object()->cr_reset_hitloc(hid);
 }
 
-public mixed *
-query_ua_hitloc(int hid) { return ua_hitdata[hid]; }
+
+public mixed *query_ua_hitloc(int hid)
+{
+    return ua_hitdata[hid];
+}
+
 
 /*
  * Description: Set the %attacks used each turn. 100% is one attack / turn
  * Arguments:   sumproc: %attack used
  */
-public void
-set_attackuse(int sumproc)
+public void set_attackuse(int sumproc)
 {
     ua_attuse = sumproc;
     if (QEXC)
 	QEXC->cb_set_attackuse(sumproc);
 }
 
+
 /*
  * Description: Give the %attacks used each turn. 100% is one attack / turn
  * Returns:     %attack used
  */
-public int
-query_attackuse() { return ua_attuse; }
+public int query_attackuse()
+{
+    return ua_attuse;
+}
+
 
 /*
  * Function name: cr_configure
  * Description:   Configures basic values for this creature.
  */
-public void
-cr_configure()
+public void cr_configure()
 {
     if (mappingp(ua_attdata))
-	map(m_indexes(ua_attdata), cr_reset_attack);
+	map(m_indices(ua_attdata), #'cr_reset_attack);
     if (mappingp(ua_hitdata))
-	map(m_indexes(ua_hitdata), cr_reset_hitloc);
+	map(m_indices(ua_hitdata), #'cr_reset_hitloc);
 
     if (ua_attuse)
 	QEXC->cb_set_attackuse(ua_attuse);
 }
+
 
 /*
  * Function name: cr_reset_attack
@@ -122,8 +137,7 @@ cr_configure()
  *		  the external combat object.
  * Arguments:     aid: The attack id
  */
-public void
-cr_reset_attack(int aid)
+public void cr_reset_attack(int aid)
 {
     mixed att;
 
@@ -141,13 +155,13 @@ cr_reset_attack(int aid)
     }
 }
 
+
 /*
  * Function name: cr_reset_hitloc
  * Description:   Set the values for a specific hitlocation
  * Arguments:     hid: The hitlocation (bodypart) id
  */
-public void
-cr_reset_hitloc(int hid)
+public void cr_reset_hitloc(int hid)
 {
     mixed hloc;
 
@@ -160,6 +174,7 @@ cr_reset_hitloc(int hid)
 	QEXC->cb_add_hitloc(hloc[0], hloc[1], hloc[2], hid);
 }
 
+
 /*
  * Function name: cr_try_hit
  * Description:   Decide if a certain attack fails because of something
@@ -167,8 +182,11 @@ cr_reset_hitloc(int hid)
  * Arguments:     aid:   The attack id
  * Returns:       True if hit, otherwise 0.
  */
-public int
-cr_try_hit(int aid) { return 1; }
+public int cr_try_hit(int aid)
+{
+    return 1;
+}
+
 
 /*
  * Function name: cr_attack_desc
@@ -176,8 +194,7 @@ cr_try_hit(int aid) { return 1; }
  * Arguments:     aid:   The attack id
  * Returns:       string holding description
  */
-public string
-cr_attack_desc(int aid)
+public string cr_attack_desc(int aid)
 {
     mixed att;
 
@@ -188,6 +205,7 @@ cr_attack_desc(int aid)
     else
 	return "mind";
 }
+
 
 /*
  * Function name: cr_got_hit
@@ -200,8 +218,7 @@ cr_attack_desc(int aid)
  *                dt:    The damagetype
  *		  dam:   The damage in hitpoints
  */
-public varargs void
-cr_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
+public varargs void cr_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
 {
 }
 
@@ -213,7 +230,6 @@ cr_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
  *		   system will start a fight without us doing anything here.
  * Arguments:	   ob: The attacker
  */
-public void
-cr_attacked_by(object ob)
+public void cr_attacked_by(object ob)
 {
 }

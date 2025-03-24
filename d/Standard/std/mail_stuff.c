@@ -6,12 +6,12 @@
 
 */
 
-start_mail(qroom)
+void start_mail(mixed qroom)
 {
     call_other(qroom, "query_mail");
 }
 
-finger_mail()
+void finger_mail()
 {
 }
 

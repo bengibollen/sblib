@@ -5,16 +5,16 @@
 
 #define WIZ_PATH "/d/Standard/doc/infowiz/"
 
-start_special(qroom)
+void start_special(mixed qroom)
 {
     call_other(qroom, "query_mail");
 }
-
-finger_special()
+    
+void finger_special()
 {
     string file, nam;
 
-    nam = this_object()->query_real_name();
+    nam = ({string}) this_object()->query_real_name();
     file = WIZ_PATH + nam;
     if (file_size(file) >= 0)
     {
