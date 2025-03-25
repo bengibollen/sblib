@@ -54,7 +54,7 @@
  *
  * Used in: /std/living/savevars.c
  */
-#undef "SET_SKILL"
+#undef SET_SKILL
 
 /*
  * Define this flag if you want to log when the game shuts down.

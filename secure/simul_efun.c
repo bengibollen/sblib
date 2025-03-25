@@ -637,9 +637,8 @@ int file_time(string path)
  *		  text: The text to add to the file
  * 		  csize: The cycle size, if any (optional)
  */
- public varargs void
- log_file(string file, string text, int csize)
- {
+public varargs void log_file(string file, string text, int csize)
+{
      mixed           path,
                      oldeuid,
                      cr;

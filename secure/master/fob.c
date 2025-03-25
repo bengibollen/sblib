@@ -2330,8 +2330,7 @@ query_wiz_pretitle(mixed wiz)
  * Arguments    : string wname - the wizard name.
  * Returns      : string - the default path for the wizard.
  */
-string
-query_wiz_path(string wname)
+string query_wiz_path(string wname)
 {
     string dname;
 

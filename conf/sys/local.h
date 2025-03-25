@@ -49,7 +49,7 @@
  * Just a guess.  Part of the ateam code.  The aop team has extra read privs
  * (see master.c)  Seems to be a Genesis thing.
  */
-#define AOP_TEAM_LOGS ({ "aop_team", })
+#define AOP_TEAM_LOGS "aop_team"
 
 /*
  * DEFAULT_DOMAINS
