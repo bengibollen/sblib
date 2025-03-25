@@ -17,10 +17,10 @@
  * 64 - B - Try to block notification. Higher wizards still see you.
  */
 
-#include "/sys/flags.h"
-#include "/sys/log.h"
-#include "/sys/stdproperties.h"
-#include "/sys/time.h"
+#include "/inc/flags.h"
+#include "/inc/log.h"
+#include "/inc/stdproperties.h"
+#include "/inc/libtime.h"
 
 #define NOTIFY_ALL     (1)
 #define NOTIFY_WIZARDS (2)
@@ -78,6 +78,10 @@ private int  *graph_reboots;
  */
 private static mixed graph_tmp_players = ({ });
 private static mapping wiz_notify_map = ([ ]);
+
+
+
+varargs int valid_query_ip(mixed actor, object target);
 
 /*
  * Function name: reset_graph
@@ -333,8 +337,8 @@ graph(string str)
         return 0;
     }
 
-    write("Fatal end of switch() in 'graph'! Please report this!\n");
-    return 1;
+    // write("Fatal end of switch() in 'graph'! Please report this!\n");
+    // return 0;
 }
 
 /*
@@ -424,8 +428,7 @@ probe_for_graph()
 
     tmp = allocate(GRAPH_SIZE);
     /* Get all real players. */
-    players = filter(users(), &operator(==)(PLAYER_SEC_OBJECT) @
-                     &function_exists("enter_game"));
+    players = filter(users(), (: PLAYER_SEC_OBJECT == function_exists("enter_game", $1):) );
 
     /* Count all mortals and wizards in their respective ranks. Note that
      * the keepers are counted with the arches.
@@ -527,9 +530,11 @@ notify(object ob, int level)
 {
     string name     = ob->query_real_name();
     string message  = "[" + capitalize(name) + " ";
-    string ip_name  = query_ip_name(ob);
+    string ip_name  = interactive_info(ob, II_IP_NAME);
     string wizname;
+#ifdef LOG_ENTER
     string log;
+#endif
     object *players = users() - ({ 0, ob });
     int    notify_lvl;
     int    index    = -1;
@@ -601,14 +606,14 @@ notify(object ob, int level)
     ip_name = (sizeof(ip_name) ? (" (" + ip_name + ")") : "");
 
     /* First we filter the wizards. */
-    players = filter(players, &->query_wiz_level());
+    players = filter(players, (: $1->query_wiz_level() :));
 
     /* If the wizard tries to block notification, we filter those who are
      * still allowed to see the players action.
      */
     if (ob->query_notify() & NOTIFY_BLOCK)
     {
-        players = filter(players, &notify_try_block(, rank));
+        players = filter(players, (: notify_try_block($1, rank) :));
     }
 
     size = sizeof(players);

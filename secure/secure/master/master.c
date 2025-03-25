@@ -990,8 +990,7 @@ valid_query_ip_ident(object actor, object target)
  *                object target - the object the actor wants to know about.
  * Returns      : int 1/0 - allowed/ disallowed.
  */
-varargs int
-valid_query_ip(mixed actor, object target)
+varargs int valid_query_ip(mixed actor, object target)
 {
     if (objectp(actor))
     {
@@ -1023,8 +1022,7 @@ valid_query_ip(mixed actor, object target)
  *                string func - the type of info the actor wants to know.
  * Returns      : int 1/0 - allowed/disallowed.
  */
-public int
-valid_player_info(mixed actor, string name, string func)
+public int valid_player_info(mixed actor, string name, string func)
 {
     if (objectp(actor))
     {

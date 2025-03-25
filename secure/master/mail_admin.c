@@ -18,9 +18,10 @@
  *   not pointed at by any mail folder.
  */
 
-#include "/sys/composite.h"
-#include "/sys/mail.h"
-#include "/sys/std.h"
+#include "/inc/composite.h"
+#include "/inc/mail.h"
+#include "/inc/std.h"
+#include "/inc/filepath.h"
 
 #define DIR_NAME_MESSAGE(dir)  (MSG_DIR + "d" + (dir))
 #define MESSAGE_FILENAME(d, m) (DIR_NAME_MESSAGE(d) + "/" + (m))
@@ -57,7 +58,7 @@ restore_mail(string name)
 {
     mapping mail;
 
-    mail = restore_map(FILE_NAME_MAIL(name));
+    mail = restore_value(read_file(FILE_NAME_MAIL(name)));
 
     if ((!mappingp(mail)) ||
 	(sizeof(mail) != M_SIZEOF_MAIL))
@@ -77,7 +78,7 @@ restore_mail(string name)
 static void
 save_mail(mapping mail, string name)
 {
-    save_map(mail, FILE_NAME_MAIL(name));
+    write_file(FILE_NAME_MAIL(name), save_value(mail));
 }
 
 /*
@@ -91,7 +92,7 @@ restore_message(int number)
 {
     mapping message;
 
-    message = restore_map(FILE_NAME_MESSAGE(number, HASH_SIZE));
+    message = restore_value(read_file(FILE_NAME_MESSAGE(number, HASH_SIZE)));
 
     if ((!mappingp(message)) ||
 	(sizeof(message) != M_SIZEOF_MSG))
@@ -111,7 +112,7 @@ restore_message(int number)
 static void
 save_message(mapping message, int number)
 {
-    save_map(message, FILE_NAME_MESSAGE(number, HASH_SIZE));
+    write_file(FILE_NAME_MESSAGE(number, HASH_SIZE), save_value(message));
 }
 
 /*
@@ -143,7 +144,6 @@ string
 wrap_text(string text)
 {
     string *lines;
-    int    size;
 
     if (!sizeof(text))
     {
@@ -151,14 +151,6 @@ wrap_text(string text)
     }
 
     lines = explode(text, "\n");
-    size = sizeof(lines);
-    while(--size >= 0)
-    {
-	if (sizeof(lines[size]) > LINE_LENGTH)
-	{
-	    lines[size] = break_string(lines[size], LINE_LENGTH);
-	}
-    }
 
     return implode(lines, "\n");
 }
@@ -182,7 +174,7 @@ export_mail(string name, string path)
     string  text;
 
     /* Get the output path and test its valitity by writing the header. */
-    path = FTPATH(this_player()->query_path(), path);
+    path = FTPATH(({string}) this_player()->query_path(), path);
     if (file_size(path) != -1)
     {
 	notify_fail("File " + path + " already exists.\n");
@@ -296,7 +288,7 @@ purge_one_message(int dir, string file)
         }
 
         /* Recipient does not have this message referenced. */
-        if (member(date, mail_system[names[index]]) == -1)
+        if (!(date in mail_system[names[index]]))
         {
             names[index] = "";
             touched = 1;
@@ -315,7 +307,7 @@ purge_one_message(int dir, string file)
     /* Some, but not all recipients were removed. Save the message. */
     if (touched)
     {
-        message[MSG_ADDRESS] = implode(map(names, capitalize), ",");
+        message[MSG_ADDRESS] = implode(map(names, #'capitalize), ",");
         save_message(message, date);
     }
 
@@ -351,8 +343,7 @@ purge_check_messages(int dir, int messages, int purged, string *files)
     if (sizeof(files) > size)
     {
         files = files[size..];
-        mail_alarm = set_alarm(5.0, 0.0,
-            &purge_check_messages(dir, messages, purged, files));
+        call_out(#'purge_check_messages, 5, dir, messages, purged, files);
         return;
     }
 
@@ -364,8 +355,7 @@ purge_check_messages(int dir, int messages, int purged, string *files)
             dir + ".\n");
         files = get_dir(DIR_NAME_MESSAGE(dir) + "/m*.o");
         messages += sizeof(files);
-        mail_alarm = set_alarm(5.0, 0.0,
-            &purge_check_messages(dir, messages, purged, files));
+        call_out(#'purge_check_messages, 5, dir, messages, purged, files);
         return;
     }
 
@@ -418,7 +408,7 @@ purge_collect_mailboxes(string *files)
         mail_tell_wizard("MAIL ADMINISTRATOR ->> Last mailbox: " +
             capitalize(files[size - 1]) + ".\n");
         files = files[size..];
-        mail_alarm = set_alarm(10.0, 0.0, &purge_collect_mailboxes(files));
+        call_out(#'purge_collect_mailboxes, 10, files);
         return;
     }
 
@@ -427,8 +417,7 @@ purge_collect_mailboxes(string *files)
     /* Fetch the first directory of messages. */
     files = get_dir(DIR_NAME_MESSAGE(0) + "/m*.o");
 
-    mail_alarm = set_alarm(10.0, 0.0,
-        &purge_check_messages(0, sizeof(files), 0, files));
+    call_out(#'purge_check_messages, 10, 0, 0, files);
 }
 
 /*
@@ -472,7 +461,7 @@ purge_check_mailboxes()
     }
 
     /* Strip the .o suffix. */
-    files = map(files, &extract(, 0, -3));
+    files = map(files, (: $1[..<3] :));
 
     mail_tell_wizard("MAIL ADMINISTRATOR ->> Checked " + sizeof(files) +
         " and purged " + purged +
@@ -506,7 +495,7 @@ purge_mail()
     mail_system = ([ ]);
 
     mail_wizard = this_player()->query_real_name();
-    mail_alarm = set_alarm(5.0, 0.0, purge_check_mailboxes);
+    call_out(#'purge_check_mailboxes, 5);
 
     return 1;
 }
@@ -554,8 +543,7 @@ count_messages(int boxes, int messages)
 	message_files += sizeof(get_dir(DIR_NAME_MESSAGE(index) + "/m*.o"));
     }
 
-    mail_alarm = set_alarm(5.0, 0.0,
-	&report_statistics(boxes, messages, message_files));
+    call_out(#'report_statistics, 5, boxes, messages, message_files);
 }
 
 /*
@@ -596,17 +584,16 @@ count_mailboxes(int boxes, int messages, string *files)
         mail_tell_wizard("MAIL ADMINISTRATOR ->> Last mailbox: " +
             capitalize(files[size - 1]) + ".\n");
         files = files[size..];
-        mail_alarm = set_alarm(10.0, 0.0,
-            &count_mailboxes(boxes, messages, files));
+        call_out(#'count_mailboxes, 10, boxes, messages, files);
         return;
     }
 
     /* Continue with counting the message files. */
-    mail_alarm = set_alarm(10.0, 0.0, &count_messages(boxes, messages));
+    call_out(#'count_messages, 10, boxes, messages);
 }
 
 /*
- * Function mame: mail_statistics
+ * Function name: mail_statistics
  * Description  : This function will print various statistics about the
  *                mail system.
  * Returns      : int 1/0 - success/failure.
@@ -615,7 +602,6 @@ static int
 mail_statistics()
 {
     int    index = -1;
-    int    boxes;
     string *files = ({ });
 
     /* Loop over all letters of the alphabet. */
@@ -625,14 +611,13 @@ mail_statistics()
     }
 
     /* Strip the .o suffix. */
-    files = map(files, &extract(, 0, -3));
+    files = map(files, (: $1[..<3] :));
 
     /* Start the gathering of statistics. */
-    mail_wizard = this_player()->query_real_name();
-    mail_alarm = set_alarm(5.0, 0.0,
-        &count_mailboxes(sizeof(files), 0, files));
+    mail_wizard = ({string}) this_player()->query_real_name();
+    call_out(#'count_mailboxes, 5, sizeof(files), 0, files);
 
-    write("Statictics gathering started.\n");
+    write("Statistics gathering started.\n");
     return 1;
 }
 
@@ -668,7 +653,7 @@ mailadmin(string str)
 	return 0;
     }
 
-    set_auth(this_object(), "root:root");
+    configure_object(this_object(), OC_EUID, "root");
 
     args = explode(str, " ");
     switch(args[0])
@@ -697,7 +682,7 @@ mailadmin(string str)
 	/* Set all variables to 0. */
 	mail_wizard = 0;
 	mail_system = 0;
-	remove_alarm(mail_alarm);
+//	remove_call_out(mail_alarm);
 	mail_alarm = 0;
 
 	write("Reset the \"mailadmin\" command.\n");
@@ -719,6 +704,6 @@ mailadmin(string str)
 	return 0;
     }
 
-    write("Impossible end of \"mailadmin\". Please report this.\n");
-    return 1;
+    // write("Impossible end of \"mailadmin\". Please report this.\n");
+    // return 1;
 }

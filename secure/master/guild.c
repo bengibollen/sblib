@@ -6,9 +6,9 @@
  * central place may make it easier to maintain a good overview.
  */
 
-#include "/sys/const.h"
-#include "/sys/language.h"
-#include "/sys/log.h"
+#include "/inc/const.h"
+#include "/inc/language.h"
+#include "/inc/log.h"
 
 /*
  * Global variable. It is stored in the KEEPERSAVE.
@@ -79,8 +79,8 @@ filter_is_club(string name)
 static void
 update_guild_cache()
 {
-    club_names = sort_array(filter(m_indices(guilds), filter_is_club));
-    guild_names = sort_array(m_indices(guilds));
+    club_names = sort_array(filter(m_indices(guilds), #'filter_is_club), #'>);
+    guild_names = sort_array(m_indices(guilds), #'>);
     guild_names -= club_names;
 }
 
@@ -418,7 +418,7 @@ query_guild_masters(string short_name)
     short_name = lower_case(short_name);
 
     if (pointerp(guilds[short_name]))
-	return secure_var(sort_array(guilds[short_name][GUILD_MASTERS]));
+	return secure_var(sort_array(guilds[short_name][GUILD_MASTERS], #'>));
 
     return ({ });
 }
@@ -586,7 +586,7 @@ guild_command(string str)
 		return 0;
 	    }
 
-	    args[1] = ({});
+	    args[1..1] = ({});
 	    num_args--;
 	    break;
 
@@ -677,7 +677,7 @@ guild_command(string str)
 	    type = guilds[guild][GUILD_TYPE];
 	    write("Style & Type: " + capitalize(query_guild_style(guild)) +
 		"; " + query_guild_type_long_string(type) + "\n");
-	    names = map(query_guild_masters(guild), capitalize);
+	    names = map(query_guild_masters(guild), #'capitalize);
 	    write(capitalize(verb) + "master" +
 	        ((sizeof(names) == 1) ? " " : "s") + (club ? " " : "") + ": " +
 		(sizeof(names) ? COMPOSITE_WORDS(names) : "NONE!") + "\n");
@@ -717,7 +717,7 @@ guild_command(string str)
 	    case "l":
 	    case "o":
 		type = query_guild_type_int(args[1]);
-		names = filter(names, &guild_filter_type(, type));
+		names = filter(names, #'guild_filter_type, type);
 		break;
 
 	    case "short":
@@ -727,7 +727,7 @@ guild_command(string str)
 		return 1;
 
 	    case "styles":
-		names = sort_array(names, guild_sort_styles);
+		names = sort_array(names, #'guild_sort_styles);
 		break;
 
 	    default:
@@ -745,8 +745,7 @@ guild_command(string str)
 
 	    while(++index < num_guilds)
 	    {
-		str = implode(map(query_guild_masters(names[index]),
-		    capitalize), " ");
+		str = implode(map(query_guild_masters(names[index]), #'capitalize), " ");
 		write(sprintf("%-10s %-1s %-3s %-7s %-35s %-3s %-1s\n",
 		    names[index],
 		    capitalize(query_guild_phase(names[index]))[0..0],
@@ -1031,6 +1030,6 @@ guild_command(string str)
 	return 0;
     }
 
-    write("Fatal end of switch() in guild() in SECURITY. Report this!\n");
-    return 1;
+    // write("Fatal end of switch() in guild() in SECURITY. Report this!\n");
+    // return 1;
 }

@@ -11,6 +11,8 @@
 #define SITEBAN_DATE    2
 #define SITEBAN_COMMENT 3
 
+#include "/inc/mail.h"
+
 /*
  * Global variable in the save-file:
  *
@@ -59,10 +61,8 @@ init_sitebans()
         sitebans = ([ ]);
     }
 
-    sitebans_nologin = filter(m_indices(sitebans),
-        &filter_sitebans(, SITEBAN_NOLOGIN));
-    sitebans_nonew = filter(m_indices(sitebans),
-        &filter_sitebans(, SITEBAN_NONEW));
+    sitebans_nologin = filter(m_indices(sitebans), #'filter_sitebans, SITEBAN_NOLOGIN);
+    sitebans_nonew = filter(m_indices(sitebans), #'filter_sitebans, SITEBAN_NONEW);
 }
 
 /*
@@ -79,10 +79,10 @@ check_newplayer(string ipnumber)
     if (!sizeof(ipnumber))
         return 0;
 
-    if (sizeof(filter(sitebans_nologin, &wildmatch(, ipnumber))))
+    if (sizeof(filter(sitebans_nologin, (: strstr(ipnumber, $1) != -1 :))))
         return SITEBAN_NOLOGIN;
 
-    if (sizeof(filter(sitebans_nonew, &wildmatch(, ipnumber))))
+    if (sizeof(filter(sitebans_nonew, (: strstr(ipnumber, $1) != -1 :))))
         return SITEBAN_NONEW;
 
     return 0;
@@ -147,7 +147,7 @@ list_siteban(string wildcards)
 
     default:
         bans = sitebans_nologin + sitebans_nonew;
-        bans = filter(bans, &wildmatch(wildcards, ));
+        bans = filter(bans, (: strstr($1, wildcards) :));
     }
 
     size = sizeof(bans);
@@ -167,7 +167,7 @@ list_siteban(string wildcards)
         return 1;
     }
 
-    bans = sort_array(bans);
+    bans = sort_array(bans, #'>);
     index = -1;
     while(++index < size)
     {

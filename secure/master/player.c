@@ -5,14 +5,16 @@
  * registration of seconds.
  */
 
-#include "/sys/log.h"
-#include "/deprecated/seteuid.c"
+#include "/inc/log.h"
 
 #define SECONDS_SAVE "/players/seconds"
 
 /* Indices to the m_seconds mapping. */
 #define SNDS_REPORTER 0
 #define SNDS_TIME     1
+
+public int valid_player_info(mixed actor, string name, string func);
+
 
 /*
  * Global variable in the save-file:
@@ -44,7 +46,7 @@ static private mapping m_firsts = ([ ]);
 static void
 save_seconds()
 {
-    seteuid("root");
+    configure_object(this_object(), OC_EUID, "root");
     string data = save_value(m_seconds);
     write_file(SECONDS_SAVE, data, 1);
 }
@@ -392,7 +394,7 @@ init_player_info()
     string *firsts;
     string *seconds;
 
-    m_seconds = restore_map(SECONDS_SAVE);
+    m_seconds = restore_value(read_file(SECONDS_SAVE));
     if (!mappingp(m_seconds))
     {
         m_seconds = ([ ]);

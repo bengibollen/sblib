@@ -162,13 +162,12 @@
 #define MAX_SUBJECT   50         /* Maxmimum subject length                 */
 #define GUEST_NAME    "guest"    /* The name of Guest                       */
 
-#define MAKE_DATE(d)  (extract(ctime(d), 4, 9))
-#define DATE_YEAR(d)  (extract(ctime(d), -4))
-#define MAKE_LONG_DATE(d) \
-    (extract(ctime(d), 4, 9) + extract(ctime(d), 19, 23))
+#define MAKE_DATE(d)  (ctime(d)[4..9])
+#define DATE_YEAR(d)  (ctime(d)[..<4])
+#define MAKE_LONG_DATE(d)  (ctime(d)[4..9] + ctime(d)[19..23])
 #define READER_HELP   "/doc/help/general/mail_"
 #define FILE_NAME_MAIL(n) \
-    (MAIL_DIR + extract((n), 0, 0) + "/" + (n))
+    (MAIL_DIR + (n))
 #define FILE_NAME_MESSAGE(t, h) \
     (MSG_DIR + "d" + ((t) % (h)) + "/m" + (t))
 

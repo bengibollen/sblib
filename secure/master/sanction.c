@@ -287,7 +287,7 @@ create_sanction(string giver, string receiver, string type, string path)
     int    index;
     int    size;
 
-    set_auth(this_object(), "root:root");
+	configure_object(this_object(), OC_EUID, "root");
 
     /* This is the file we are supposed to write. */
     path = SANCTION_DIR + giver + "/" + receiver +
@@ -362,7 +362,7 @@ recursive_rmdir(string path)
     }
 
     /* Should never happen. */
-    return 0;
+//    return 0;
 }
 
 /*
@@ -384,7 +384,7 @@ remove_sanction(string giver, string receiver, string type, string path)
     string *parts;
     int    size;
 
-    set_auth(this_object(), "root:root");
+	configure_object(this_object(), OC_EUID, "root");
 
     /* Construct the path to remove. */
     path = SANCTION_DIR + giver +
@@ -445,7 +445,7 @@ static void remove_all_sanctions(string name)
     int    index;
     int    size;
 
-    set_auth(this_object(), "root:root");
+	configure_object(this_object(), OC_EUID, "root");
 
     /* Remove the sanctions this wizard or domain has given out. */
     remove_sanction(name);

@@ -24,6 +24,8 @@ string clone_uid(object obj, string name);
 string create_super(string file);
 string create_object(string file);
 static void save_master();
+mixed valid_write(string file, string uid, string func, object|lwobject writer);
+
 
 private object logger;  // We'll initialize this later
 
@@ -90,13 +92,13 @@ private void log_message(string type, string msg, varargs mixed *args) {
 // }
 
 // ---------- MANDATORY: File Security ----------
-string valid_read(string path, string uid, string func, object|lwobject obj) {
-    return path;  // TODO: Implement proper security
-}
+// string valid_read(string path, string uid, string func, object|lwobject obj) {
+//     return path;  // TODO: Implement proper security
+// }
 
-string valid_write(string path, string uid, string func, object|lwobject ob) {
-    return path;  // TODO: Implement proper security
-}
+// string valid_write(string path, string uid, string func, object|lwobject ob) {
+//     return path;  // TODO: Implement proper security
+// }
 
 // ---------- MANDATORY: File Resolution ----------
 mixed inherit_file(string file, string compiled_file) {
@@ -151,9 +153,9 @@ public object connect() {
 }
 
 // ---------- MANDATORY: Root Access ----------
-string get_bb_uid() {
-    return "BACKBONE";
-}
+// string get_bb_uid() {
+//     return "BACKBONE";
+// }
 
 // ---------- MANDATORY: UID Management ----------
 string load_uid(string file) {
@@ -179,9 +181,9 @@ string create_object(string file) {
 }
 
 // ---------- Optional: Initialization ----------
-void flag(string arg) {
-    // Called for each -f flag passed to driver
-}
+// void flag(string arg) {
+//     // Called for each -f flag passed to driver
+// }
 
 string *epilog(int eflag) {
     return ({ });  // No objects to preload by default
@@ -442,25 +444,25 @@ string get_ed_buffer_save_file_name(string file) {
 }
 
 // ---------- Optional: parse_command Support ----------
-string *parse_command_id_list() {
-    return ({ });
-}
+// string *parse_command_id_list() {
+//     return ({ });
+// }
 
-string *parse_command_plural_id_list() {
-    return ({ });
-}
+// string *parse_command_plural_id_list() {
+//     return ({ });
+// }
 
-string *parse_command_adjectiv_id_list() {
-    return ({ });
-}
+// string *parse_command_adjectiv_id_list() {
+//     return ({ });
+// }
 
-string *parse_command_prepos_list() {
-    return ({ });
-}
+// string *parse_command_prepos_list() {
+//     return ({ });
+// }
 
-string parse_command_all_word() {
-    return "all";
-}
+// string parse_command_all_word() {
+//     return "all";
+// }
 
 
 /*
@@ -545,8 +547,6 @@ varargs mixed do_debug(string icmd, mixed a1, mixed a2, mixed a3)
 
 /* All prototypes have been placed in /secure/master.h */
 #include "/secure/master.h"
-// First, include only the absolute minimum required headers
-#include "/sys/std.h"
 
 // Then declare any critical functions needed before simul_efun loads
 static void load_simul_efun() {
@@ -626,15 +626,15 @@ create()
 #else
     memory_limit = 28000000;
 #endif
-    set_auth(this_object(), "root:root");
+    configure_object(this_object(), OC_EUID, "root");
 
     /* We reset the master every RESET time seconds, initially synchronizing
      * it at exactly 1 second after that occurance. I.e. if RESET_TIME is
      * 1 hour, it will be started exactly one second after the top of the
      * hour.
      */
-    set_alarm(((RESET_TIME + 1.0) - (to_float(time() % to_int(RESET_TIME)))),
-        RESET_TIME, reset_master);
+    // set_alarm(((RESET_TIME + 1.0) - (to_float(time() % to_int(RESET_TIME)))),
+    //     RESET_TIME, reset_master);
 
     /* Compute the uptime for this reboot. */
 #ifdef REGULAR_UPTIME
@@ -685,7 +685,7 @@ short()
 static void
 save_master()
 {
-    set_auth(this_object(), "root:root");
+    configure_object(this_object(), OC_EUID, "root");
 
     save_object(SAVEFILE);
 }
@@ -754,17 +754,19 @@ get_mud_name()
     n = MUD_NAME;
     if (mappingp(n))
     {
-        if (stringp(n[debug("mud_port")]))
-            return n[debug("mud_port")];
-        else
-            return n[0];
+        n = n;
+        // if (stringp(n[debug("mud_port")]))
+        //     return n[debug("mud_port")];
+        // else
+        //     return n[0];
     }
     else if (stringp(MUD_NAME))
     {
         return MUD_NAME;
     }
 #endif
-    return "LPmud(" + debug("version") + ":" + MUDLIB_VERSION + ")";
+//    return "LPmud(" + debug("version") + ":" + MUDLIB_VERSION + ")";
+    return "SBMud";
 }
 
 /*
@@ -786,8 +788,7 @@ get_root_uid()
  *                root naturally.
  * Returns      : string - the name of the 'backbone' user.
  */
-string
-get_bb_uid()
+string get_bb_uid()
 {
     return BACKBONE_UID;
 }
@@ -812,14 +813,13 @@ get_vbfc_object()
  *                The efun input_to() cannot be called from here.
  * Returns      : object - the login object.
  */
-static object
-connect()
-{
-    write("\n");
-    set_auth(this_object(), "root:root");
+// static object connect()
+// {
+//     write("\n");
+//     configure_object(this_object(), OC_EUID, "root");
 
-    return clone_object(LOGIN_OBJECT);
-}
+//     return clone_object(LOGIN_OBJECT);
+// }
 
 /*
  * Function name: valid_set_auth
@@ -837,7 +837,7 @@ valid_set_auth(object setter, object getting_set, string value)
 {
     string *oldauth;
     string *newauth;
-    string auth = query_auth(getting_set);
+    string auth = geteuid(getting_set);
 
     if (!stringp(value) ||
             ((setter != this_object()) &&
@@ -934,8 +934,7 @@ valid_seteuid(object ob, string str)
  *                string func  - the calling function.
  * Returns      : int 1/0 - allowed/disallowed.
  */
-int
-valid_write(string file, mixed writer, string func)
+mixed valid_write(string file, string uid, string func, object|lwobject writer)
 {
     string *dirs, *wpath;
     string dname;
@@ -945,18 +944,17 @@ valid_write(string file, mixed writer, string func)
 
     if (objectp(writer))
     {
-	wpath = explode(object_name(writer), "/") - ({ "" });
-        writer = geteuid(writer);
+    	wpath = explode(object_name(writer), "/") - ({ "" });
     }
 
     /* Root may do as he please. */
-    if (writer == ROOT_UID)
+    if (uid == ROOT_UID)
     {
         return 1;
     }
 
     /* Keepers and arches may do as they please. */
-    if (query_wiz_rank(writer) >= WIZ_ARCH)
+    if (query_wiz_rank(uid) >= WIZ_ARCH)
     {
         return 1;
     }
@@ -1002,20 +1000,20 @@ valid_write(string file, mixed writer, string func)
 	     * or if the ateam code is writing in its own dir. Otherwise we
 	     * disallow it.
 	     */
-	    return IN_ARRAY(dir, query_team_membership(writer) ||
-		((dname == writer) && (sizeof(wpath) > 3) && (wpath[2] == "ateam") &&
+	    return IN_ARRAY(dir, query_team_membership(uid) ||
+		((dname == uid) && (sizeof(wpath) > 3) && (wpath[2] == "ateam") &&
 		 (wpath[3] == dirs[3])));
 	}
 
         /* The domain can write itself, unless it's the lonely wizard domain. */
-        if (dname == writer)
+        if (dname == uid)
         {
             return (dname != WIZARD_DOMAIN);
         }
 
         /* A Lord and steward can write anywhere in the domain. */
-        if ((query_domain_lord(dname) == writer) ||
-            (query_domain_steward(dname) == writer))
+        if ((query_domain_lord(dname) == uid) ||
+            (query_domain_steward(dname) == uid))
         {
             return 1;
         }
@@ -1023,7 +1021,7 @@ valid_write(string file, mixed writer, string func)
         /* We have to check for the directory sanctions here because they
          * might disclose the private directories.
          */
-        if (recursive_valid_write_path_sanction(writer, dname, dirs[2..]))
+        if (recursive_valid_write_path_sanction(uid, dname, dirs[2..]))
         {
             return 1;
         }
@@ -1040,19 +1038,19 @@ valid_write(string file, mixed writer, string func)
             if (size > 5 &&
                 (dirs[3] == "private" && dirs[4] == "restrictlog"))
             {
-                return IN_ARRAY(dirs[5], query_students(writer));
+                return IN_ARRAY(dirs[5], query_students(uid));
             }
 
-            return valid_write_all_sanction(writer, dname);
+            return valid_write_all_sanction(uid, dname);
         }
 
         /* Wizards can write everywhere in the domain unless this is the
          * domain for 'lonely' wizards.
          */
-        if (query_wiz_dom(writer) == dname)
+        if (query_wiz_dom(uid) == dname)
         {
             /* The exception being restricted wizards */
-            if (query_restrict(writer) &
+            if (query_restrict(uid) &
                 (RESTRICT_RW_HOMEDIR | RESTRICT_NO_W_DOMAIN))
             {
                 return 0;
@@ -1068,8 +1066,8 @@ valid_write(string file, mixed writer, string func)
         }
 
         /* To write something now you need a sanction. */
-        return (valid_write_sanction(writer, dname) ||
-                valid_write_all_sanction(writer, dname));
+        return (valid_write_sanction(uid, dname) ||
+                valid_write_all_sanction(uid, dname));
         /* Not reached. */
 
     case "w":
@@ -1090,20 +1088,20 @@ valid_write(string file, mixed writer, string func)
         /* A Lord can write anywhere in the domain, and wizards can naturally
          * write their own directory.
          */
-        if ((query_domain_lord(dname) == writer) ||
-            (wname == writer))
+        if ((query_domain_lord(dname) == uid) ||
+            (wname == uid))
         {
             return 1;
         }
 
         /* A mentor can write in all the directories of his students. */
-        if (IN_ARRAY(wname, query_students(writer)))
+        if (IN_ARRAY(wname, query_students(uid)))
         {
             return 1;
         }
 
         /* Steward can write anywhere, except in the Lord's directory. */
-        if ((query_domain_steward(dname) == writer) &&
+        if ((query_domain_steward(dname) == uid) &&
             (wname != query_domain_lord(dname)))
         {
             return 1;
@@ -1119,8 +1117,8 @@ valid_write(string file, mixed writer, string func)
         /* To write something now you need a sanction. It must be a personal
          * sanction or a domain 'write all' sanction.
          */
-        return (valid_write_sanction(writer, wname) ||
-                valid_write_all_sanction(writer, dname));
+        return (valid_write_sanction(uid, wname) ||
+                valid_write_all_sanction(uid, dname));
         /* Not reached. */
 
     default:
@@ -1128,7 +1126,7 @@ valid_write(string file, mixed writer, string func)
     }
 
     /* No show. */
-    return 0;
+//    return 0;
 }
 
 /*
@@ -1139,8 +1137,7 @@ valid_write(string file, mixed writer, string func)
  *                string func  - the calling function.
  * Returns      : int 1/0 - allowed/disallowed.
  */
-int
-valid_read(string file, mixed reader, string func)
+mixed valid_read(string file, mixed reader, string func)
 {
     string *dirs, *rpath;
     string dname;
@@ -1385,8 +1382,7 @@ valid_read(string file, mixed reader, string func)
          */
         if ((size > 2) &&
             ((query_wiz_rank(reader) >= WIZ_LORD) ||
-              query_team_member("aop", reader)) &&
-            IN_ARRAY(dirs[2], explode(AOP_TEAM_LOGS, ",")))
+              query_team_member("aop", reader)) && (dirs[2] in explode(AOP_TEAM_LOGS, ",")))
         {
             return 1;
         }
@@ -1398,7 +1394,7 @@ valid_read(string file, mixed reader, string func)
     }
 
     /* No show. */
-    return 0;
+//    return 0;
 }
 
 #if 0
@@ -1619,7 +1615,7 @@ check_snoop_validity(object snooper, object snoopee, int sanction)
 
     /* Check for domain restriction */
     if ((SECURITY->query_restrict(by_name) & RESTRICT_SNOOP_DOMAIN) &&
-        domain(environment(snoopee)) != query_wiz_dom(by_name))
+        environment(snoopee)->query_domain() != query_wiz_dom(by_name))
     {
         return 0;
     }
@@ -1667,8 +1663,8 @@ valid_snoop(object initiator, object snooper, object snoopee)
 {
     string caller_name;
     string actor_name;
-    string target_name;
-    int result;
+    // string target_name;
+    // int result;
 
     caller_name = geteuid(initiator);
     actor_name  = geteuid(snooper);
@@ -1705,7 +1701,7 @@ valid_snoop(object initiator, object snooper, object snoopee)
      * only valid for archwizards++. We do not consider sanctioning in
      * this case.
      */
-    target_name = geteuid(snoopee);
+//    target_name = geteuid(snoopee);
     if (caller_name != actor_name)
     {
         if ((query_wiz_rank(caller_name) < WIZ_ARCH) ||
