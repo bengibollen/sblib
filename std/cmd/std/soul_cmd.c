@@ -44,8 +44,7 @@ inherit "/std/command_driver";
 /* **************************************************************************
  * Return a proper name of the soul in order to get a nice printout.
  */
-string
-get_soul_id()
+string get_soul_id()
 {
     return "emotions";
 }
@@ -53,8 +52,7 @@ get_soul_id()
 /* **************************************************************************
  * The list of verbs and functions. Please add new in alphabetical order.
  */
-mapping
-query_cmdlist()
+mapping query_cmdlist()
 {
     return ([
              "ack":"ack",
@@ -289,8 +287,7 @@ query_cmdlist()
  *                living object.
  * Arguments    : object live - the living using the soul.
  */
-public void
-using_soul(object live)
+public void using_soul(object live)
 {
     live->add_subloc(SUBLOC_SOULEXTRADESC, object_name(this_object()));
 }
@@ -322,9 +319,9 @@ show_subloc(string subloc, object on, object for_obj)
  * Description  : This is a command soul. This defines it as such.
  * Returns      : int 1 - always.
  */
-public int
-query_cmd_soul()
+public int query_cmd_soul()
 {
+    log_debug("Query command soul called for soul: %s", object_name(this_object()));
     return 1;
 }
 

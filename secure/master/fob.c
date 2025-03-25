@@ -7,9 +7,10 @@
  * Handles all domain, wizard and application administration in the game.
  */
 
+#include "/inc/std.h"
 #include "/inc/composite.h"
 #include "/inc/const.h"
-#include "/inc/std.h"
+#include "/inc/config.h"
 #include "/inc/libfiles.h"
 
 /*
@@ -26,6 +27,12 @@ static int add_wizard_to_domain(string dname, string wname, string cmder);
 static void do_change_rank(string wname, int rank, string cmder);
 static void remove_all_sanctions(string name);
 static void remove_all_applications(string wname);
+mixed secure_var(mixed var);
+varargs mixed do_debug(string icmd, mixed a1, mixed a2, mixed a3);
+public varargs void log_file(string file, string text, int csize);
+object find_player(string name);
+int exist_player(string pl_name);
+varargs object finger_player(string pl_name, string file);
 
 /**************************************************************************
  *
@@ -139,8 +146,7 @@ void load_fob_defaults() {
  *                of the previous object must be equal in order to function.
  * Returns      : string - the name or "" in case of inconsistencies.
  */
-static string
-getwho()
+static string getwho()
 {
     string euid;
 
@@ -553,7 +559,7 @@ transform_mortal_into_wizard(string wname, string cmder)
     object  wizard;
     object  scroll;
     object *players;
-//    mapping playerfile;
+    mapping playerfile;
     int     fingered;
 
     /* Update the wizard-mapping. This just adds an empty slot for the
@@ -583,22 +589,22 @@ transform_mortal_into_wizard(string wname, string cmder)
     }
     else
     {
-        // playerfile = restore_map(PLAYER_FILE(wname));
+        playerfile = restore_value(read_file(PLAYER_FILE(wname)));
 
-        // if (!pointerp(playerfile["auto_load"]))
-        //     playerfile["auto_load"] = ({ });
+        if (!pointerp(playerfile["auto_load"]))
+            playerfile["auto_load"] = ({ });
 
-        // playerfile["auto_load"] += ({ APPRENTICE_SCROLL_FILE });
-        // playerfile["default_start_location"] = WIZ_ROOM;
+        playerfile["auto_load"] += ({ APPRENTICE_SCROLL_FILE });
+        playerfile["default_start_location"] = WIZ_ROOM;
 
-        // save_map(playerfile, PLAYER_FILE(wname));
+        write_file(PLAYER_FILE(wname), save_value(playerfile));
 
-        // fingered = 1;
-        // wizard = SECURITY->finger_player(wname);
+        fingered = 1;
+        wizard = ({object}) SECURITY->finger_player(wname);
     }
 
     players = users() - ({ this_interactive(), wizard });
-    players -= QUEUE->queue_list(0);
+    players -= ({mixed}) QUEUE->queue_list(0);
 
     players->catch_tell("There is a flash of pure magic, and suddenly you " +
         "realize that " + capitalize(wname) + " has been " +
@@ -687,7 +693,7 @@ static int add_wizard_to_domain(string dname, string wname, string cmder)
     tell_domain(dname, wname, ("You are now a member of " + dname +".\n"),
         capitalize(wname) + " is now a member of " + dname + ".\n");
 
-    set_auth(this_object(), "root:root");
+//    set_auth(this_object(), "root:root");
 
     new_dir = "/w/" + wname;
 
@@ -891,8 +897,7 @@ leave_domain()
  * Arguments    : string oldname - the old name of the wizard.
  *                string newname - the new name of the wizard.
  */
-static int
-rename_wizard(string oldname, string newname)
+static void rename_wizard(string oldname, string newname)
 {
     string dname = m_wizards[oldname][FOB_WIZ_DOM];
 
@@ -939,7 +944,7 @@ rename_wizard(string oldname, string newname)
         ctime(time()),
         capitalize(oldname),
         capitalize(newname),
-        capitalize(this_interactive()->query_real_name())));
+        capitalize(({string}) this_interactive()->query_real_name())));
 }
 
 /************************************************************************
@@ -954,16 +959,15 @@ rename_wizard(string oldname, string newname)
  * Arguments    : string dname - domain the application goes to.
  * Returns      : int 1/0 - success/failure.
  */
-int
-apply_to_domain(string dname)
+int apply_to_domain(string dname)
 {
     string wname;
-    string *appl;
-    object wiz;
 
     /* May only be called from the apprentice soul. */
     if (!CALL_BY(WIZ_CMD_APPRENTICE))
+    {
         return 0;
+    }
 
     if (!sizeof(dname))
     {
@@ -976,31 +980,30 @@ apply_to_domain(string dname)
 
     switch(m_wizards[wname][FOB_WIZ_RANK])
     {
-    case WIZ_MAGE:
-    case WIZ_ARCH:
-    case WIZ_KEEPER:
-        if (m_wizards[wname][FOB_WIZ_DOM] != WIZARD_DOMAIN)
-        {
-            notify_fail("You are already a member of the domain " +
-                m_wizards[wname][FOB_WIZ_DOM] + ".");
-            return 0;
-        }
-        break;
+        case WIZ_MAGE:
+        case WIZ_ARCH:
+        case WIZ_KEEPER:
+            if (m_wizards[wname][FOB_WIZ_DOM] != WIZARD_DOMAIN)
+            {
+                notify_fail("You are already a member of the domain " +
+                    m_wizards[wname][FOB_WIZ_DOM] + ".");
+                return 0;
+            }
+            break;
 
-    case WIZ_PILGRIM:
-        notify_fail("Pilgrims are doomed to wander the world; " +
-            "they may not settle down.\n");
-        return 0;
-        break;
-
-    default:
-        if (m_wizards[wname][FOB_WIZ_DOM] != "")
-        {
-            notify_fail("You are already a member of the domain " +
-                m_wizards[wname][FOB_WIZ_DOM] + ".\n");
+        case WIZ_PILGRIM:
+            notify_fail("Pilgrims are doomed to wander the world; " +
+                "they may not settle down.\n");
             return 0;
-        }
-        break;
+
+        default:
+            if (m_wizards[wname][FOB_WIZ_DOM] != "")
+            {
+                notify_fail("You are already a member of the domain " +
+                    m_wizards[wname][FOB_WIZ_DOM] + ".\n");
+                return 0;
+            }
+            break;
     }
 
     if (!sizeof(m_domains[dname]))
@@ -1011,8 +1014,9 @@ apply_to_domain(string dname)
 
     /* See if there is an array of people for that domain already. */
     if (!pointerp(m_applications[dname]))
+    {
         m_applications[dname] = ({ });
-
+    }
     /* else see if the player already applied. */
     else if (member(wname, m_applications[dname]) != -1)
     {
@@ -1289,14 +1293,11 @@ list_applications_by_wizard(string wname, int list_self)
  * Arguments    : string str - the command line argument.
  * Returns      : int 1/0 - success/failure.
  */
-int
-list_applications(string str)
+int list_applications(string str)
 {
     string cmder;
     string dname;
     string *words;
-    int    index;
-    int    size;
     int    rank;
 
     cmder = getwho();
@@ -1326,7 +1327,7 @@ list_applications(string str)
             {
                 write(FORMAT_NAME(word) + " " +
                     COMPOSITE_WORDS(sort_array(map(m_applications[word],
-                    capitalize))) + "\n");
+                    #'capitalize), #'>)) + "\n");
             }
             return 1;
         }
@@ -1377,7 +1378,7 @@ list_applications(string str)
 
         write("The following people have applied to your domain: " +
             COMPOSITE_WORDS(sort_array(map(m_applications[m_wizards[cmder][FOB_WIZ_DOM]],
-            capitalize))) + ".\n");
+            #'capitalize), #'>)) + ".\n");
         return 1;
     }
 
@@ -1403,10 +1404,16 @@ list_applications(string str)
  */
 public void bookkeep_exp(string type, int exp)
 {
+#ifdef EXP_FROM_COMBAT_OBJECT
     int    cobj = 0;
+#endif
+#ifdef LOG_BOOKKEEP
     int    should_log = 0;
+#endif
     string dname = "";
+#ifdef LOG_BOOKKEEP_ROTATE
     string log;
+#endif
     object pobj = previous_object();
     object giver = previous_object(-1);
 
@@ -1422,9 +1429,11 @@ public void bookkeep_exp(string type, int exp)
     if (!interactive(pobj) ||
         (geteuid(pobj) != BACKBONE_UID) ||
         ((pobj == giver) &&
-         (ABS(exp) < 2)) ||
-        wildmatch("*jr", pobj->query_real_name()))
+         (ABS(exp) < 2)) || (({string}) pobj->query_real_name()[..<2] == "jr"))
+    {
         return;
+    }
+
 
 #ifdef EXP_FROM_COMBAT_OBJECT
     /* If it is combat XP, we want to get the living, not the combat
@@ -1438,7 +1447,7 @@ public void bookkeep_exp(string type, int exp)
     }
 #endif
 
-    set_auth(this_object(), "root:root");
+    // set_auth(this_object(), "root:root");
 #ifdef LOG_BOOKKEEP_ERR
     /* BAD wiz! Won't be wiz much longer. */
     if (objectp(this_interactive()))
@@ -1551,6 +1560,7 @@ public void bookkeep_exp(string type, int exp)
 #endif
 }
 
+
 /*
  * Function name: do_decay
  * Description  : The mapping m_domains is mapped over this function to
@@ -1558,8 +1568,7 @@ public void bookkeep_exp(string type, int exp)
  * Arguments    : mixed *darr - the array of the individual domains.
  * Returns      : mixed * - the modified array of the individual domains.
  */
-static mixed *
-do_decay(mixed *darr)
+static mixed *do_decay(mixed *darr)
 {
     int decay;
 #ifdef DECAY_XP
@@ -1607,10 +1616,9 @@ do_decay_cmd(int count)
  *                is called from check_memory which is called at regular
  *                intervalls. check_memory also saves to KEEPERSAVE.
  */
-static void
-decay_exp()
+static void decay_exp()
 {
-    m_domains = map(m_domains, do_decay);
+    m_domains = map(m_domains, #'do_decay);
 }
 
 /*
@@ -1677,7 +1685,9 @@ query_domain_cexp(string dname)
 int
 domain_clear_xp(string dname)
 {
+#ifdef LOG_BOOKKEEP
     string wname;
+#endif
 
     /* May only be called from the arch soul. */
     if (!CALL_BY(WIZ_CMD_ARCH))
@@ -1740,10 +1750,8 @@ int query_wiz_rank(string wname)
  * Arguments    : string wname - the wizard.
  * Returns      : int - the level.
  */
-int
-query_wiz_level(string wname)
+int query_wiz_level(string wname)
 {
-    return 9;
 #ifdef USE_WIZ_LEVELS
     wname = lower_case(wname);
 
@@ -1837,7 +1845,7 @@ reset_wiz_uid(object wiz)
     if (!query_wiz_level(wiz->query_real_name()))
         return;
 
-    set_auth(wiz, wiz->query_real_name() + ":#");
+    // set_auth(wiz, wiz->query_real_name() + ":#");
 }
 
 /*
@@ -2046,7 +2054,7 @@ wizard_change_rank(string wname, int rank)
     }
 
     /* See whether the transition is legal. */
-    if (member(rank, WIZ_RANK_POSSIBLE_CHANGE(old_rank)) == -1)
+    if (member(WIZ_RANK_POSSIBLE_CHANGE(old_rank), rank) == -1)
     {
         write("It is not possible to " +
             ((rank > old_rank) ? "promote" : "demote") + " someone from " +
@@ -2264,7 +2272,7 @@ query_wiz_pretitle(mixed wiz)
      */
     if (!objectp(wiz))
     {
-        set_auth(this_object(), "root:root");
+        // set_auth(this_object(), "root:root");
         wiz = finger_player(name);
 
         if (!objectp(wiz))
@@ -2360,7 +2368,7 @@ query_mage_links()
     string *links;
     int index;
 
-    links = sort_array( ({ }) + m_domains[WIZARD_DOMAIN][FOB_DOM_MEMBERS]);
+    links = sort_array( ({ }) + m_domains[WIZARD_DOMAIN][FOB_DOM_MEMBERS], #'>);
     index = sizeof(links);
     while(--index >= 0)
         links[index] = "/w/" + links[index] + "/" + WIZARD_LINK;
@@ -2380,7 +2388,7 @@ query_domain_links()
     string *links;
     int index;
 
-    links = sort_array(m_indices(m_domains));
+    links = sort_array(m_indices(m_domains), #'>);
     index = sizeof(links);
     while(--index >= 0)
         links[index] = "/d/" + links[index] + "/" + DOMAIN_LINK;
@@ -2959,8 +2967,8 @@ set_channels(mapping channels)
     if (!CALL_BY(WIZ_CMD_APPRENTICE))
         return 0;
 
-    set_auth(this_object(), "root:root");
-    save_map(channels, CHANNELS_SAVE);
+//    set_auth(this_object(), "root:root");
+    write_file(CHANNELS_SAVE, save_value(channels));
     return 1;
 }
 
@@ -2977,6 +2985,6 @@ query_channels()
     if (!CALL_BY(WIZ_CMD_APPRENTICE))
         return 0;
 
-    set_auth(this_object(), "root:root");
-    return restore_map(CHANNELS_SAVE);
+//    set_auth(this_object(), "root:root");
+    return restore_value(read_file(CHANNELS_SAVE));
 }

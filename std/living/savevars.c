@@ -1829,12 +1829,24 @@ nomask static int valid_change_soul()
  */
 nomask public int add_cmdsoul(string soul)
 {
+    log_debug("Adding command soul: " + soul);
 
     if (!valid_change_soul())
+    {
+        log_debug("Soul change not valid for: " + object_name(previous_object()));
         return 0;
+    }
+    log_debug("This interactive: %s", object_name(this_interactive()));
+    log_debug("This player: %s", object_name(this_player()));
+    log_debug("This object: %s", object_name(this_object()));
+    log_debug("Previous object: %s", object_name(previous_object()));
+
 
     if (!(({int})soul->query_cmd_soul()))
+    {
+        log_debug("Invalid command soul: " + soul);
         return 0;
+    }
 
     /*
      * There can only be one!
@@ -1859,13 +1871,16 @@ nomask public int remove_cmdsoul(string soul)
 {
     int index;
 
+    
+    log_debug("Removing command soul: " + soul);
+
     if (!valid_change_soul())
         return 0;
 
-    if ((index = member(soul, cmdsoul_list)) < 0)
+    if ((index = member(cmdsoul_list, soul)) < 0)
         return 0;
 
-    cmdsoul_list = exclude_array(cmdsoul_list, index, index);
+    cmdsoul_list[index..index] = ({});
     return 1;
 }
 

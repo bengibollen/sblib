@@ -23,17 +23,16 @@ inherit "/std/command_driver";
 #include <std.h>
 #include <stdproperties.h>
 
-void
-create()
+void create()
 {
     seteuid(getuid());
 }
 
+
 /*
  * What souls to use as misc souls
  */
-string *
-replace_soul()
+string *replace_soul()
 {
     return
 	({
@@ -47,11 +46,11 @@ replace_soul()
 	});
 }
 
+
 /*
  * Return a proper name of the soul in order to get a nice printout.
  */
-string
-get_soul_id()
+string get_soul_id()
 {
     string *st;
 
@@ -59,25 +58,26 @@ get_soul_id()
     return st[sizeof(st) - 1];
 }
 
+
 /*
  * This is a command soul.
  */
-int
-query_cmd_soul()
+int query_cmd_soul()
 {
     return 1;
 }
 
+
 /*
  * The list of verbs and functions. Please add new in alphabetical order.
  */
-mapping
-query_cmdlist()
+mapping query_cmdlist()
 {
     return ([
 /*	"command" : "function",	*/
 	]);
 }
+
 
 /* **************************************************************************
  * Here follows the actual functions. Please add new functions in the

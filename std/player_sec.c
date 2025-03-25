@@ -779,6 +779,7 @@ public nomask int enter_game(string pl_name, string pwd)
         write("Bad login object: " + object_name(previous_object()) + "\n");
         return 0;
     }
+    log_debug("Login attempt for: " + object_name(previous_object()));
 
     setup_player(pl_name);
 
