@@ -12,6 +12,7 @@
 #include "/inc/const.h"
 #include "/inc/config.h"
 #include "/inc/libfiles.h"
+#include "/inc/libtime.h"
 
 /*
  * These global variables are stored in the KEEPERSAVE.
@@ -1549,7 +1550,7 @@ public void bookkeep_exp(string type, int exp)
     /* Cycle the log with the same day number every month. */
     log = "/syslog/log/" + LOG_BOOKKEEP_ROTATE + "." + TIME2FORMAT(time(), "dd");
     if ((file_size(log) > 0) &&
-        ((file_time(log) + 86400) < time()))
+        ((get_dir(log, GETDIR_DATES)[0] + 86400) < time()))
     {
         rm(log);
     }
@@ -1733,7 +1734,7 @@ domain_clear_xp(string dname)
  */
 int query_wiz_rank(string wname)
 {
-    write("Wiz rank query.");
+    logger->debug("Wiz rank query.");
     wname = lower_case(wname);
 
     return WIZ_KEEPER;
@@ -2937,7 +2938,7 @@ query_team_membership(string wname)
     wname = lower_case(wname);
     foreach(string team: m_indices(m_teams))
     {
-        if (IN_ARRAY(wname, m_teams[team]))
+        if ((wname in m_teams[team]))
         {
             rlist += ({ team });
         }
@@ -2966,7 +2967,7 @@ set_channels(mapping channels)
     if (!CALL_BY(WIZ_CMD_APPRENTICE))
         return 0;
 
-//    set_auth(this_object(), "root:root");
+    configure_object(this_object(), OC_EUID, "root");
     write_file(CHANNELS_SAVE, save_value(channels));
     return 1;
 }
@@ -2978,12 +2979,13 @@ set_channels(mapping channels)
  *                are stored in a safe place.
  * Returns      : mapping - the mapping with the channels.
  */
-mapping
-query_channels()
+mapping query_channels()
 {
     if (!CALL_BY(WIZ_CMD_APPRENTICE))
         return 0;
 
-//    set_auth(this_object(), "root:root");
+    configure_object(this_object(), OC_EUID, "root");
+    if (file_size(CHANNELS_SAVE) < 1)
+        return ([ ]);
     return restore_value(read_file(CHANNELS_SAVE));
 }

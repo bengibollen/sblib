@@ -506,11 +506,11 @@ public void add_prop(string prop, mixed val)
 {
     mixed oval;
 
-    log_debug(
-        "Adding property: %s for object: %s with value: %s",
-        prop,
-        to_string(this_object()),
-        to_string(val));
+    // log_debug(
+    //     "Adding property: %s for object: %s with value: %s",
+    //     prop,
+    //     to_string(this_object()),
+    //     to_string(val));
 
     /* If there isn't a value, remove the current value. */
     if (!val)
@@ -546,10 +546,10 @@ public void add_prop(string prop, mixed val)
     string *keys = m_indices(obj_props);
     
 
-    log_debug("[%s] Current properties:", to_string(this_object()));
-    map(keys, (: log_debug("key: %s value: %s", $1, to_string(obj_props[$1])) :));
+//    log_debug("[%s] Current properties:", to_string(this_object()));
+//    map(keys, (: log_debug("key: %s value: %s", $1, to_string(obj_props[$1])) :));
     
-    log_debug("==================");
+//    log_debug("==================");
 
     if (environment())
     {
@@ -615,11 +615,11 @@ public mixed query_prop(string prop)
         return 0;
 
     mixed result = check_call(obj_props[prop]);
-    log_debug(
-        "This object: %s, Query prop: %s, Prop value: %s",
-        to_string(this_object()),
-        prop,
-        to_string(result));
+    // log_debug(
+    //     "This object: %s, Query prop: %s, Prop value: %s",
+    //     to_string(this_object()),
+    //     prop,
+    //     to_string(result));
     return result;
 }
 
@@ -1831,7 +1831,7 @@ public int remove_item(string name)
 
     for (index = 0; index < sizeof(obj_items); index++)
     {
-        if (IN_ARRAY(name, obj_items[index][0]))
+        if ((name in obj_items[index][0]))
         {
             obj_items[index..index] = ({});
             removed = 1;

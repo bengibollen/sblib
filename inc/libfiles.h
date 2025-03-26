@@ -20,7 +20,7 @@
 #define CMD_LIVE_THIEF     ("/std/cmd/live/thief")
 #define CMD_LIVE_THINGS    ("/std/cmd/live/things")
 
-#define COMMAND_DRIVER     ("/std/std/command_driver")
+#define COMMAND_DRIVER     ("/std/command_driver")
 #define SOUL_CMD           ("/std/cmd/std/soul_cmd")
 #define TRACER_TOOL_SOUL   ("/std/cmd/std/tracer_tool")
 

@@ -5,7 +5,7 @@ mm_out "disappears in a puff of smoke."
 race_name "human"
 title 0
 al_title 0
-cmdsoul_list ({"/d/Standard/cmd/soul_cmd_human","/d/Standard/cmd/misc_cmd_human","/cmd/live/things","/cmd/live/social","/cmd/live/speech","/cmd/live/state","/cmd/live/items","/cmd/live/info",})
+cmdsoul_list ({"/d/Standard/cmd/soul_cmd_human","/d/Standard/cmd/misc_cmd_human","/std/cmd/live/things","/std/cmd/live/social","/std/cmd/live/speech","/std/cmd/live/state","/std/cmd/live/items","/std/cmd/live/info",})
 tool_list 0
 hit_points 120
 mana 110

@@ -30,13 +30,7 @@
 				 "s" : SANCTION_SNOOP ])
 
 
-int file_time(string path)
-{
-	mixed *v;
-	set_this_object(previous_object());
-	return (sizeof(v = get_dir(path, GETDIR_DATES)) ? v[0] : 0);
-}
-
+int file_time(string path);
 
 /*
  * Function name: valid_snoop_sanction
@@ -48,8 +42,7 @@ int file_time(string path)
  *                string snoopee - the person that is to be snooped.
  * Returns      : int 1/0 - allowed/disallowed.
  */
-static int
-valid_snoop_sanction(string snooper, string snoopee)
+static int valid_snoop_sanction(string snooper, string snoopee)
 {
     return (file_time(SANCTION_DIR + snoopee + "/" + snooper +
 			SANCTION_SNOOP) > 0);
@@ -65,8 +58,7 @@ valid_snoop_sanction(string snooper, string snoopee)
  *                string euid   - the euid that 'reader' wants to read.
  * Returns      : int 1/0 - allowed/disallowed.
  */
-static int
-valid_read_sanction(string reader, string euid)
+static int valid_read_sanction(string reader, string euid)
 {
     return (file_time(SANCTION_DIR + euid + "/all" +
 		       SANCTION_READ) ||
@@ -86,8 +78,7 @@ valid_read_sanction(string reader, string euid)
  *                string euid   - the euid that 'reader' wants to read.
  * Returns      : int 1/0 - allowed/disallowed.
  */
-static int
-valid_read_all_sanction(string reader, string euid)
+static int valid_read_all_sanction(string reader, string euid)
 {
     return (file_time(SANCTION_DIR + euid + "/" + reader +
 		       SANCTION_READ_ALL) ||

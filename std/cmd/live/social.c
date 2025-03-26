@@ -1387,7 +1387,7 @@ varargs int team(string str)
             return 0;
         }
 
-        if (!IN_ARRAY(leader, members))
+        if (!(leader in members))
         {
             write(({string}) rear->query_The_name(this_player()) +
                 " is not a member of your team.\n");
@@ -1519,7 +1519,7 @@ varargs int team(string str)
             return 0;
         }
 
-        if (!IN_ARRAY(rear, members))
+        if (!(rear in members))
         {
             write(({string}) rear->query_The_name(this_player()) +
                 " is not a member of your team.\n");

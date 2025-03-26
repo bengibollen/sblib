@@ -306,7 +306,7 @@ public void do_die(object killer)
      * weaker party.
      */
     sparring = ({object *}) query_prop(LIVE_AO_SPARRING);
-    if (IN_ARRAY(killer, sparring))
+    if ((killer in sparring))
     {
         killer->stop_fight(this_object());
         this_object()->stop_fight(killer);
@@ -558,7 +558,7 @@ public int team_join(object member)
     if (!({int}) member->set_leader(this_object()))
         return 0;
 
-    if (IN_ARRAY(member, query_team()))
+    if ((member in query_team()))
         return 1;
 
     my_team += ({ member });
@@ -678,7 +678,7 @@ public void attack_object(object ob)
     CEX; combat_extern->cb_attack(ob);
 
     /* Check for sparring, and give the appropriate message if necessary. */
-    if (IN_ARRAY(ob, query_prop(LIVE_AO_SPARRING)))
+    if ((ob in query_prop(LIVE_AO_SPARRING)))
     {
         tell_object(this_object(), "You are sparring with " +
             ({string}) ob->query_the_name(this_object()) + ".\n");
@@ -696,7 +696,7 @@ public void attacked_by(object ob)
     CEX; combat_extern->cb_attacked_by(ob);
 
     /* Check for sparring, and give the appropriate message if necessary. */
-    if (IN_ARRAY(ob, query_prop(LIVE_AO_SPARRING)))
+    if ((ob in query_prop(LIVE_AO_SPARRING)))
     {
         tell_object(this_object(), "You are sparring with " +
             ({string}) ob->query_the_name(this_object()) + ".\n");
@@ -733,7 +733,7 @@ nomask void combat_init()
     if (!CAN_SEE(this_object(), this_player()))
         return;
 
-    if (IN_ARRAY(this_player(), query_enemy(-1)) &&
+    if ((this_player() in query_enemy(-1)) &&
         !NPATTACK(this_player()))
     {
         this_object()->reveal_me(1);
@@ -1151,7 +1151,7 @@ public void remove_sparring_partner(object partner)
  */
 public int query_sparring_partner(object partner)
 {
-    return IN_ARRAY(partner, query_prop(LIVE_AO_SPARRING));
+    return (partner in query_prop(LIVE_AO_SPARRING));
 }
 
 #if 0

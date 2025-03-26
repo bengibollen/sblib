@@ -38,12 +38,12 @@ replace_soul()
     return
 	({
 	    MASTER,
-	    "/cmd/live/things",
-	    "/cmd/live/social",
-	    "/cmd/live/speech",
-	    "/cmd/live/state",
-	    "/cmd/live/items",
-	    "/cmd/live/info"
+	    "/std/cmd/live/things",
+	    "/std/cmd/live/social",
+	    "/std/cmd/live/speech",
+	    "/std/cmd/live/state",
+	    "/std/cmd/live/items",
+	    "/std/cmd/live/info"
 	});
 }
 

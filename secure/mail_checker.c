@@ -19,15 +19,15 @@
 
 #pragma no_clone
 #pragma no_inherit
-#pragma resident
 
 #pragma strict_types
 
 /* If we define DEBUG, debug mail directories will be used. */
-#undef
 
 #include <mail.h>
 #include <std.h>
+#include <libfiles.h>
+#include <configuration.h>
 
 /*
  * Function name: create
@@ -36,8 +36,7 @@
 nomask void
 create()
 {
-    setuid();
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
 
 /*
@@ -63,14 +62,15 @@ nomask int
 query_mail(mixed player = this_player())
 {
     mapping mail;
+    string file_data;
 
     if (objectp(player))
     {
-	player = player->query_real_name();
+	player = ({string}) player->query_real_name();
     }
 
     /* Check whether the player exists. */
-    if (!(SECURITY->exist_player(player)))
+    if (!(({int}) SECURITY->exist_player(player)))
     {
 	return 0;
     }
@@ -78,11 +78,18 @@ query_mail(mixed player = this_player())
     /* If something is wrong with the mail-file, there is no mail for
      * the player.
      */
-    mail = restore_map(FILE_NAME_MAIL(player));
-    if ((sizeof(mail) != M_SIZEOF_MAIL) ||
-	(member(MAIL_NEW_MAIL, m_indices(mail)) == -1))
+    if (file_data = read_file(FILE_NAME_MAIL(player)))
     {
-	return 0;
+    mail = restore_value(file_data);
+        if ((sizeof(mail) != M_SIZEOF_MAIL) ||
+            (member(MAIL_NEW_MAIL, m_indices(mail)) == -1))
+        {
+        return 0;
+        }
+    }
+    else
+    {
+        return 0;
     }
 
     return mail[MAIL_NEW_MAIL];

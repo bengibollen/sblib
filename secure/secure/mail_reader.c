@@ -623,7 +623,7 @@ alias(string str)
             return 0;
         }
 
-        if (!IN_ARRAY(list[1], m_indices(pAliases)))
+        if (!(list[1] in m_indices(pAliases)))
         {
             notify_fail("No such mailreader alias: \"" + list[1] + "\".\n");
             return 0;
@@ -642,7 +642,7 @@ alias(string str)
     m_delete(pAliases, list[0]);
 
     if (SECURITY->exist_player(list[0]) ||
-        IN_ARRAY(capitalize(list[0]), SECURITY->query_domain_list()))
+        (capitalize(list[0]) in SECURITY->query_domain_list()))
     {
         WRITE("Name \"" + list[0] + "\" is a player or domain name.\n");
         return 1;
@@ -830,14 +830,14 @@ convert_to_names(string *list)
         }
 
         /* It may be an area-related alias. */
-        if (IN_ARRAY(name, m_indices(gAliases)))
+        if ((name in m_indices(gAliases)))
         {
             return_arr |= gAliases[name];
             continue;
         }
 
         /* It may be a personal alias. */
-        if (IN_ARRAY(name, m_indices(pAliases)))
+        if ((name in m_indices(pAliases)))
         {
             return_arr |= pAliases[name];
             continue;
@@ -902,21 +902,21 @@ check_mailing_list(string *list)
             return "''";
 
         /* Some domains are not allowed. */
-        if (IN_ARRAY(name, NON_DOMAINS))
+        if ((name in NON_DOMAINS))
             return ("'" + name + "'");
 
         /* If it is a player or domain-name, it is oke. */
         if (SECURITY->exist_player(name) ||
-            IN_ARRAY(capitalize(name), SECURITY->query_domain_list()))
+            (capitalize(name) in SECURITY->query_domain_list()))
             continue;
 
         /* If it is any sort of alias, allow it. */
         if ((environment()->query_wiz_level() &&
-                IN_ARRAY(LANG_SWORD(name), WIZ_N)) ||
-            IN_ARRAY(name, m_indices(pAliases)) ||
-            IN_ARRAY(name, m_indices(gAliases)) ||
-            IN_ARRAY(name, SPECIAL_TYPES) ||
-            IN_ARRAY(name, SECURITY->query_teams()) ||
+                (LANG_SWORD(name) in WIZ_N)) ||
+            (name in m_indices(pAliases)) ||
+            (name in m_indices(gAliases)) ||
+            (name in SPECIAL_TYPES) ||
+            (name in SECURITY->query_teams()) ||
             (name == "playerarch") ||
             (file_size(ALIAS_DIR + name) > 0))
             continue;
@@ -1052,11 +1052,11 @@ from(string str)
     {
         words = explode(str, " ");
 
-        if (filter_new = IN_ARRAY("new", words))
+        if (filter_new = ("new" in words))
             words -= ({ "new" });
-        if (filter_star = IN_ARRAY("*", words))
+        if (filter_star = ("*" in words))
             words -= ({ "*" });
-        else if (filter_star = IN_ARRAY("star", words))
+        else if (filter_star = ("star" in words))
             words -= ({ "star" });
 
         /* List will be all names, i.e. words not starting with an asterisk. */
@@ -1106,7 +1106,7 @@ from(string str)
             continue;
 
         if (filter_name &&
-            !IN_ARRAY(pMessages[index][MAIL_FROM], list))
+            !(pMessages[index][MAIL_FROM] in list))
             continue;
 
         if (sizeof(filter_text) &&
@@ -1844,7 +1844,7 @@ send_mail(string name)
     addressees = ((gTo - gCc) + gCc);
 
     /* If you mail yourself, you will rather CC yourself. */
-    if (IN_ARRAY(name, gTo))
+    if ((name in gTo))
     {
         gTo -= ({ name });
         gCc |= ({ name });
@@ -2494,7 +2494,7 @@ erase()
         rm(FILE_NAME_MAIL(name) + ".o");
 
     /* If the current message is being deleted, reset gCurrent. */
-    if (IN_ARRAY(gCurrent, del_arr))
+    if ((gCurrent in del_arr))
         gCurrent = 0;
 
     LOOP;
@@ -2813,9 +2813,9 @@ set_alias(string alias, string *names)
     /* Check whether the alias name is not already in use. */
     alias = lower_case(alias);
     if (SECURITY->exist_player(alias) ||
-        IN_ARRAY(capitalize(alias), SECURITY->query_domain_list()) ||
-        IN_ARRAY(LANG_SWORD(alias), WIZ_N) ||
-        IN_ARRAY(alias, SECURITY->query_teams()) ||
+        (capitalize(alias) in SECURITY->query_domain_list()) ||
+        (LANG_SWORD(alias) in WIZ_N) ||
+        (alias in SECURITY->query_teams()) ||
         (alias == "playerarch") ||
         (file_size(ALIAS_DIR + alias) >= 0))
     {

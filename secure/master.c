@@ -19,6 +19,7 @@ inherit "/secure/simul/security";
 #include "/sys/object_info.h"
 #include "/sys/driver_info.h"
 #include "/inc/cd_log.h"
+#include "/sys/functionlist.h"
 
 // Forward declarations for functions used in config
 string load_uid(string file);
@@ -167,8 +168,6 @@ string load_uid(string file) {
 
 string clone_uid(object blueprint, string name) {
     debug_message("Cloning UID for file: " + name + "\n");
-    write("UID = " + getuid(blueprint) + "\n");
-    write("Cloning UID for file: " + name + "\n");
     return getuid(blueprint);  // For now, everything gets ROOT uid
 }
 
@@ -240,7 +239,7 @@ string get_wiz_name(string file) {
 }
 
 string printf_obj_name(object obj) {
-    return sprintf("<%O>", obj);
+    return sprintf("<%s>", to_string(obj));
 }
 
 mixed prepare_destruct(object obj) {
@@ -376,7 +375,7 @@ int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3
             logger->warn("Privilege violation for operation: " + op + ", who: " + to_string(who));
             return -1;
         }
-      case "erq":
+    case "erq":
         if (objectp(who)) {
             who = object_name(who);
         }
@@ -385,21 +384,26 @@ int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3
             logger->info("Privilege granted for operation: " + op + ", who: " + to_string(who));
             return 1;
         }        
-	switch(arg) {
-	  case ERQ_RLOOKUP:
-        logger->info("Privilege granted for operation: " + op + ", who: " + to_string(who));
-	    return 1;
-	  case ERQ_EXECUTE:
-	  case ERQ_FORK:
-	  case ERQ_AUTH:
-	  case ERQ_SPAWN:
-	  case ERQ_SEND:
-	  case ERQ_KILL:
-      default:
-	    logger->warn("Privilege violation for operation: " + op + ", who: " + to_string(who));
-	    return -1;
-	}
-      default:
+        switch(arg) {
+            case ERQ_RLOOKUP:
+                logger->info("Privilege granted for operation: " + op + ", who: " + to_string(who));
+                return 1;
+            case ERQ_EXECUTE:
+            case ERQ_FORK:
+            case ERQ_AUTH:
+            case ERQ_SPAWN:
+            case ERQ_SEND:
+            case ERQ_KILL:
+            default:
+                logger->warn("Privilege violation for operation: " + op + ", who: " + to_string(who));
+                return -1;
+        }
+    case "configure_object":
+    case "configure_interactive":
+        logger->debug("Configuring object: %s, setting: %d, value %s", object_name(arg), arg2, to_string(arg3));
+        return 1;
+    
+    default:
         logger->warn("Privilege violation for operation: " + op + ", who: " + to_string(who));
 	    return -1; /* Make this violation an error */
     }
@@ -486,7 +490,7 @@ varargs mixed do_debug(string icmd, mixed a1, mixed a2, mixed a3)
     /* Some debug() commands are not meant to be called by just anybody. Only
      * 'root' and the administration may call them.
      */
-    if (IN_ARRAY(icmd, DEBUG_RESTRICTED))
+    if ((icmd in DEBUG_RESTRICTED))
     {
         if ((euid != ROOT_UID) &&
             (previous_object() != this_object()) &&
@@ -1002,7 +1006,7 @@ mixed valid_write(string file, string uid, string func, object|lwobject writer)
 	     * or if the ateam code is writing in its own dir. Otherwise we
 	     * disallow it.
 	     */
-	    return IN_ARRAY(dir, query_team_membership(uid) ||
+	    return (dir in query_team_membership(uid) ||
 		((dname == uid) && (sizeof(wpath) > 3) && (wpath[2] == "ateam") &&
 		 (wpath[3] == dirs[3])));
 	}
@@ -1040,7 +1044,7 @@ mixed valid_write(string file, string uid, string func, object|lwobject writer)
             if (size > 5 &&
                 (dirs[3] == "private" && dirs[4] == "restrictlog"))
             {
-                return IN_ARRAY(dirs[5], query_students(uid));
+                return (dirs[5] in query_students(uid));
             }
 
             return valid_write_all_sanction(uid, dname);
@@ -1097,7 +1101,7 @@ mixed valid_write(string file, string uid, string func, object|lwobject writer)
         }
 
         /* A mentor can write in all the directories of his students. */
-        if (IN_ARRAY(wname, query_students(uid)))
+        if ((wname in query_students(uid)))
         {
             return 1;
         }
@@ -1227,7 +1231,7 @@ mixed valid_read(string file, string uid, string func, object|lwobject reader)
              */
             if ((size > 5) && (dirs[3] == "private") && (dirs[4] == "restrictlog"))
             {
-                return IN_ARRAY(dirs[5], query_students(uid));
+                return (dirs[5] in query_students(uid));
             }
         }
 
@@ -1242,7 +1246,7 @@ mixed valid_read(string file, string uid, string func, object|lwobject reader)
 	//      * or if the ateam code is reading in its own dir. Otherwise we
 	//      * disallow it.
 	//      */
-	//     return IN_ARRAY(dir, query_team_membership(uid)) ||
+	//     return (dir in query_team_membership(uid)) ||
 	// 	((dname == uid) && (sizeof(rpath) > 3) && (rpath[2] == "ateam") &&
 	// 	 (rpath[3] == dirs[3]));
 	// }
@@ -1332,7 +1336,7 @@ mixed valid_read(string file, string uid, string func, object|lwobject reader)
         }
 
         /* A mentor can read in all the directories of his students. */
-        if (IN_ARRAY(wname, query_students(uid)))
+        if ((wname in query_students(uid)))
         {
             return 1;
         }
@@ -1526,7 +1530,7 @@ valid_player_info(mixed actor, string name, string func)
 
     case WIZ_LORD:
 	/* Lieges have some special commands. */
-	if (IN_ARRAY(func, ALLOWED_LIEGE_COMMANDS))
+	if ((func in ALLOWED_LIEGE_COMMANDS))
 	{
 	    return 1;
 	}
@@ -1629,7 +1633,7 @@ check_snoop_validity(object snooper, object snoopee, int sanction)
     }
 
     /* Mentors can snoop their students. */
-    if (IN_ARRAY(on_name, query_students(snooper->query_real_name())))
+    if ((on_name in query_students(snooper->query_real_name())))
     {
         return 1;
     }
@@ -2980,8 +2984,7 @@ rename_playerfile(string oldname, string newname)
  * Arguments    : string str - the password to check.
  * Returns      : int 1/0 - proper/bad.
  */
-int
-proper_password(string str)
+int proper_password(string str)
 {
     int index = -1;
     int size;
@@ -3079,10 +3082,12 @@ generate_password()
  */
 void remote_setuid()
 {
+    logger->debug("Check for remote setuid in %s", to_string(previous_object()));
+
     if (function_exists("open_soul", previous_object()) == COMMAND_DRIVER)
     {
         logger->info("Check for open soul in %O", previous_object());
-        configure_object(previous_object(), OC_EUID, "0:0");
+        configure_object(previous_object(), OC_EUID, BACKBONE_UID);
     }
 }
 
@@ -3333,18 +3338,18 @@ query_list_temp_start()
     return secure_var(temp_locations);
 }
 
-int
-check_temp_start_loc(string str)
+int check_temp_start_loc(string str)
 {
-    return IN_ARRAY(str, temp_locations);
+    if (pointerp(temp_locations))
+        return member(temp_locations, str);
+    return 0;
 }
 
-int
-check_def_start_loc(string str)
+int check_def_start_loc(string str)
 {
     if (!def_locations)
         def_locations = STARTING_PLACES;
-    return IN_ARRAY(str, def_locations);
+    return (str in def_locations);
 }
 
 public varargs void log_syslog(string file, string text, int length = 0)
@@ -4025,7 +4030,7 @@ banish(string name, int what)
 //     /* Some debug() commands are not meant to be called by just anybody. Only
 //      * 'root' and the administration may call them.
 //      */
-//     if (IN_ARRAY(icmd, DEBUG_RESTRICTED))
+//     if ((icmd in DEBUG_RESTRICTED))
 //     {
 //         if ((euid != ROOT_UID) &&
 //             (previous_object() != this_object()) &&

@@ -73,12 +73,12 @@ leftover_init(string organ, string race)
         set_short(race + " " + organ);
 	set_long(long_description);
 
-	if (IN_ARRAY(organ, LD_BONES))
+	if ((organ in LD_BONES))
 	{
 	    add_name("bone");
 	    add_pname("bones");
 	}
-	if (IN_ARRAY(organ, LD_ORGANS))
+	if ((organ in LD_ORGANS))
 	{
 	    add_name("organ");
 	    add_pname("organs");

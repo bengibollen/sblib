@@ -21,18 +21,22 @@ inherit "/std/player";
 #include <std.h>
 #include <macros.h>
 #include <stdproperties.h>
-#include "/config/login/login.h"
+#include <libfiles.h>
+#include <configuration.h>
+#include <interactive_info.h>
+#include "/conf/login/login.h"
 
 static 	object		wiz,		/* For 'jr' this is the wizard */
-                        pold;   	/* An 'old' player object */
+                    pold;   	/* An 'old' player object */
 static	string		wizpass;	/* The wizards password */
+static mapping      racemap = RACEMAP;  /* Declare the RACEMAP variable */
 
 /*
  * Prototypes
  */
 public void ghost_start();
 void next_query();
-void ask_player();
+static void ask_player();
 
 /*
  * Description:  Gives the object pointer to the old player to be converted
@@ -60,7 +64,7 @@ legal_player(object ob)
 	return 1;
 
     r = RACEMAP;
-    if (member(m, m_values(r)) >= 0)
+    if (m in m_values(r))
 	return 1;
 
     return 0;
@@ -93,7 +97,7 @@ enter_new_player(string name, string pass)
     }
 
     set_name(name);
-    seteuid(0);
+    configure_object(this_object(), OC_EUID, 0);
 
     /*
      * Check if the player exist
@@ -120,8 +124,8 @@ enter_new_player(string name, string pass)
 		    log_file("OLD_FAIL", ctime(time()) + " FAIL: " +
 			     query_name() + " " + pass + ":" +
 			     pold->q_password() +
-			     " (" + query_ip_number() + ")\n");
-		    destruct();
+			     " (" + interactive_info(this_object(), II_IP_NUMBER) + ")\n");
+		    destruct(this_object());
 		    return;
 		}
 	    }
@@ -130,7 +134,7 @@ enter_new_player(string name, string pass)
 	/*
          * name'jr' is a wizard helper if it is not an old player
          */
-	if (!pold && extract(name, sizeof(name) - 2, sizeof(name)) == "jr")
+	if (!pold && name[<2..] == "jr")
 	{
 	    write("\nOk, you say you're a wizard. Let's see if it's true.\n" +
 		  "And do remember: Max two helpers per wizard!\n");
@@ -165,7 +169,7 @@ enter_new_player(string name, string pass)
 	{
 	    write("Creating a new player.\n");
 	    log_file("CREATE_PLAYER", ctime(time()) + " " + query_name() +
-		     "(" + query_ip_number() + ")\n");
+		     "(" + interactive_info(this_object(), II_IP_NUMBER) + ")\n");
 	    set_ghost(GP_NEW);
 	}
 	cat(LOGIN_FILE_NEW_PLAYER_INFO);
@@ -207,7 +211,7 @@ check_identity1(string id)
 {
     remove_call_out("time_out");
 
-    wiz = (object)SECURITY->finger_player(id);
+    wiz = ({object})SECURITY->finger_player(id);
 
     if (!wiz || !wiz->query_wiz_level())
     {
@@ -272,8 +276,7 @@ static string   *new_queries;
  * Function name: ask_player
  * Description:   Ask some questions of new players
  */
-static void
-ask_player()
+static void ask_player()
 {
     new_queries = ({ "dummy", "q_mail" });
     next_query();
@@ -300,7 +303,7 @@ next_query()
     {
 	if (sizeof(new_queries) < 2)
 	    return end_query();	/* does not return */
-	new_queries = slice_array(new_queries, 1, sizeof(new_queries));
+	new_queries = new_queries[1..];
 	if (call_other(this_object(), new_queries[0] + "_pretext"))
 	{
 	    call_out("time_out", 120);
@@ -374,7 +377,7 @@ ghost_start()
     enter_game(query_real_name(), "");
 }
 
-start_player()
+void start_player()
 {
     if (!sizeof(this_object()->query_cmdsoul_list()))
     {
@@ -415,16 +418,26 @@ stats_to_acc_exp()
     ::stats_to_acc_exp();
 }
 
-public void set_exp_general(int e) { ::set_exp_general(e); }
-public void set_exp_combat(int e) { ::set_exp_combat(e); }
-public void update_acc_exp() { ::update_acc_exp(); }
+public void set_exp_general(int e)
+{
+    ::set_exp_general(e);
+}
+
+public void set_exp_combat(int e)
+{
+    ::set_exp_combat(e);
+}
+
+public varargs void update_acc_exp()
+{
+    ::update_acc_exp();
+}
 
 /*
  * Now the configuration is ready, and we want to swap to the correct
  * playerfile.
  */
-public int
-ghost_ready()
+public int ghost_ready()
 {
     string plfile;
     object ob;
@@ -482,7 +495,7 @@ ghost_ready()
     /*
      * If it is a wizard, restore wizhood
      */
-    if (wizlev = (int) (SECURITY->wiz_level(ob->query_real_name())))
+    if (wizlev = ({int}) (SECURITY->wiz_level(ob->query_real_name())))
     {
 	write("You appear to be a wizard, now how did you die?\n");
 	write("Restoring your immortality...\n\n");
@@ -496,13 +509,14 @@ ghost_ready()
      */
     call_out("damn_stubborn_object",1);
     remove_object();
-    destruct();
+    destruct(this_object());
+    return 0;
 }
 
 void damn_stubborn_object()
 {
     call_out("damn_stubborn_object",1);
-    destruct();
+    destruct(this_object());
 }
 
 /*

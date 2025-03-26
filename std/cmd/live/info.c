@@ -29,7 +29,10 @@ inherit "/std/command_driver";
 #include <log.h>
 #include <macros.h>
 #include <std.h>
-#include <time.h>
+#include <libtime.h>
+#include <libfiles.h>
+#include <cd_log.h>
+#include <configuration.h>
 
 /* These properties are only internal to this module, so we define them
  * here rather than in the properties file stdproperties.h.
@@ -43,8 +46,7 @@ inherit "/std/command_driver";
 void
 create()
 {
-    setuid();
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
 
 /* **************************************************************************
@@ -116,7 +118,7 @@ using_soul(object live)
 public void
 done_reporting(string str)
 {
-    int type = this_player()->query_prop(PLAYER_I_LOG_TYPE);
+    int type = ({int}) this_player()->query_prop(PLAYER_I_LOG_TYPE);
 
     if (!sizeof(str))
     {
@@ -125,8 +127,7 @@ done_reporting(string str)
     }
 
     /* Log the note, thank the player and then clean up after ourselves. */
-    SECURITY->note_something(str, type,
-        this_player()->query_prop(PLAYER_O_LOG_OBJECT));
+    SECURITY->note_something(str, type, ({object}) this_player()->query_prop(PLAYER_O_LOG_OBJECT));
     write(LOG_THANK_MSG(LOG_MSG(type)));
 
     this_player()->remove_prop(PLAYER_I_LOG_TYPE);
@@ -147,34 +148,34 @@ date()
     int delay, interval;
 
     write("Local time    : " + ctime(time()) + "\n");
-    write("Start time    : " + ctime(SECURITY->query_start_time()) + "\n");
+    write("Start time    : " + ctime(({int}) SECURITY->query_start_time()) + "\n");
     write("Up time       : " + CONVTIME(time() -
-	SECURITY->query_start_time()) + "\n");
-    write("Memory usage  : " + SECURITY->query_memory_percentage() + "%\n");
+	    ({int}) SECURITY->query_start_time()) + "\n");
+    write("Memory usage  : " + ({int}) SECURITY->query_memory_percentage() + "%\n");
 #ifdef REGULAR_REBOOT
     write("Regular reboot: " + "Every day after " + REGULAR_REBOOT + ":00\n");
 #endif
 
 #ifdef REGULAR_UPTIME
     delay = SECURITY->query_irregular_uptime() +
-        SECURITY->query_start_time() - time();
+        ({int}) SECURITY->query_start_time() - time();
 #endif
 
     /* Information about the reboot status. */
-    if (ARMAGEDDON->shutdown_active())
+    if (({int}) ARMAGEDDON->shutdown_active())
     {
 	write("Armageddon    : Shutdown in " +
-	     CONVTIME(ARMAGEDDON->shutdown_time()) + ".\n");
-	write("Shutdown by   : " + capitalize(ARMAGEDDON->query_shutter()) +
+	     CONVTIME(({int}) ARMAGEDDON->shutdown_time()) + ".\n");
+	write("Shutdown by   : " + capitalize(({string}) ARMAGEDDON->query_shutter()) +
 	     ".\n");
-	write("Reason        : " + ARMAGEDDON->query_reason() + "\n");
+	write("Reason        : " + ({string}) ARMAGEDDON->query_reason() + "\n");
     }
 #ifdef REGULAR_UPTIME
     else if (delay <= 0)
     {
         write("Regular reboot: Announced within the next 15 minutes.\n");
     }
-    else if (this_player()->query_wiz_level())
+    else if (({int}) this_player()->query_wiz_level())
     {
         write("Regular reboot: " + CONVTIME(delay) + " to go.\n");
     }
@@ -206,16 +207,16 @@ date()
 #endif
 
     /* Tell wizards some system data. */
-    if (this_player()->query_wiz_level())
+    if (({int}) this_player()->query_wiz_level())
     {
-        if (runlevel = SECURITY->query_runlevel())
+        if (runlevel = ({int}) SECURITY->query_runlevel())
         {
             write("Runlevel      : " + WIZ_RANK_NAME(runlevel) +
                 " (and higher).\n");
         }
 
 	write(HANGING_INDENT("System data   : " +
-	    SECURITY->do_debug("load_average"), 16, 0) + "\n");
+        ({int}) SECURITY->do_debug("load_average"), 16, 0) + "\n");
     }
 
     return 1;
@@ -235,13 +236,13 @@ help(string what)
     }
 
     /* Wizards get to see the wizard help pages by default. */
-    if ((this_player()->query_wiz_level()) &&
+    if ((({int}) this_player()->query_wiz_level()) &&
     	(this_player() == this_interactive()))
     {
 	/* ... unless they want to see the general page. */
-	if (wildmatch("g *", what))
+	if (what[..1] == "g ")
 	{
-	    what = extract(what, 2);
+	    what = what[..2];
 	}
 	else if (file_size("/doc/help/wizard/" + what) > 0)
 	{
@@ -251,11 +252,10 @@ help(string what)
 
     if (file_size("/doc/help/" + dir + what) > 0)
     {
-    	setuid();
-    	seteuid(getuid());
+        configure_object(this_object(), OC_EUID, getuid(this_object()));
 
-	this_player()->more(("/doc/help/" + dir + what), 1);
-	return 1;
+    	this_player()->more(("/doc/help/" + dir + what), 1);
+	    return 1;
     }
 
     notify_fail("No help on \"" + what + "\" available.\n");
@@ -329,8 +329,7 @@ report(string str)
     this_player()->add_prop(PLAYER_I_LOG_TYPE, type);
     this_player()->add_prop(PLAYER_O_LOG_OBJECT, target);
 
-    setuid();
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     clone_object(EDITOR_OBJECT)->edit("done_reporting", "");
     return 1;

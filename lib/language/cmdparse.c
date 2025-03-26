@@ -337,7 +337,7 @@ in_containers(object ob)
     if (!environment(ob))
 	return 0;
 
-    return IN_ARRAY(environment(ob), gContainers);
+    return (environment(ob) in gContainers);
 }
 
 /* General command routine for "verb %i %w %i" (typical hit xx with yy )

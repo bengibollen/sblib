@@ -354,7 +354,7 @@
 
 
 // UIDs
-#define ROOT_UID "ROOT"
+#define ROOT_UID "root"
 
 // Settings
 #define false 			        0

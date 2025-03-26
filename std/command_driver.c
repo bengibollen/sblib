@@ -78,6 +78,7 @@ nomask public int exist_command(string verb)
  */
 nomask public void open_soul(int state)
 {
+
     if (state)
     {
         configure_object(this_object(), OC_EUID, getuid(this_object()));
@@ -86,6 +87,7 @@ nomask public void open_soul(int state)
     {
         SECURITY->remote_setuid();
     }
+    log_debug("open_soul: %s called with state: %d", object_name(this_object()), state);
 }
 
 /*
@@ -97,7 +99,9 @@ nomask public void open_soul(int state)
  */
 void teleledningsanka()
 {
+    log_debug("teleledningsanka: " + object_name(this_object()));
     SECURITY->remote_setuid();
+    log_debug("Remote setuid executed for: " + object_name(previous_object()));
 }
 
 /*

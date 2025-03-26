@@ -594,7 +594,7 @@ notify(object ob, int level)
     /* Cycle the log with the same day number every month. */
     log = "/syslog/log/" + LOG_ENTER + "." + TIME2FORMAT(time(), "mmdd");
     if ((file_size(log) > 0) &&
-        ((file_time(log) + MIN_LOG_AGE) < time()))
+        ((get_dir(log, GETDIR_DATES)[0] + MIN_LOG_AGE) < time()))
     {
         rm(log);
     }

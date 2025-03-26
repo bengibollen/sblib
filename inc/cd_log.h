@@ -61,7 +61,7 @@
  *
  * Used in: /secure/master.c
  */
-#define LOG_SHUTDOWN "SHUTDOWN"
+// #define LOG_SHUTDOWN "SHUTDOWN"
 
 /*
  * Define this flag if you want to log when a players hitpoints are

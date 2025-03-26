@@ -63,7 +63,7 @@ query_mail(int silent)
     string new;
     int mail;
 
-    mail = MAILCHECKER->query_mail(this_player());
+    mail = ({int}) MAILCHECKER->query_mail(this_player());
     if (!mail)
 	return 0;
     new = "";

@@ -514,7 +514,7 @@ valid_write(string file, mixed writer, string func)
 	     * or if the ateam code is writing in its own dir. Otherwise we
 	     * disallow it.
 	     */
-	    return IN_ARRAY(dir, query_team_membership(writer) ||
+	    return ((dir in query_team_membership(writer)) ||
 		((dname == writer) && (sizeof(wpath) > 3) && (wpath[2] == "ateam") &&
 		 (wpath[3] == dirs[3])));
 	}
@@ -552,7 +552,7 @@ valid_write(string file, mixed writer, string func)
             if (size > 5 &&
                 (dirs[3] == "private" && dirs[4] == "restrictlog"))
             {
-                return IN_ARRAY(dirs[5], query_students(writer));
+                return (dirs[5] in query_students(writer));
             }
 
             return valid_write_all_sanction(writer, dname);
@@ -609,7 +609,7 @@ valid_write(string file, mixed writer, string func)
         }
 
         /* A mentor can write in all the directories of his students. */
-        if (IN_ARRAY(wname, query_students(writer)))
+        if (wname in query_students(writer))
         {
             return 1;
         }
@@ -746,7 +746,7 @@ valid_read(string file, mixed reader, string func)
              */
             if ((size > 5) && (dirs[3] == "private") && (dirs[4] == "restrictlog"))
             {
-                return IN_ARRAY(dirs[5], query_students(reader));
+                return (dirs[5] in query_students(reader));
             }
         }
 
@@ -761,7 +761,7 @@ valid_read(string file, mixed reader, string func)
 	     * or if the ateam code is reading in its own dir. Otherwise we
 	     * disallow it.
 	     */
-	    return IN_ARRAY(dir, query_team_membership(reader)) ||
+	    return (dir in query_team_membership(reader)) ||
 		((dname == reader) && (sizeof(rpath) > 3) && (rpath[2] == "ateam") &&
 		 (rpath[3] == dirs[3]));
 	}
@@ -851,7 +851,7 @@ valid_read(string file, mixed reader, string func)
         }
 
         /* A mentor can read in all the directories of his students. */
-        if (IN_ARRAY(wname, query_students(reader)))
+        if (wname in query_students(reader))
         {
             return 1;
         }
@@ -898,7 +898,7 @@ valid_read(string file, mixed reader, string func)
         if ((size > 2) &&
             ((query_wiz_rank(reader) >= WIZ_LORD) ||
               query_team_member("aop", reader)) &&
-            IN_ARRAY(dirs[2], explode(AOP_TEAM_LOGS, ",")))
+            (dirs[2] in explode(AOP_TEAM_LOGS, ",")))
         {
             return 1;
         }
@@ -1044,7 +1044,7 @@ public int valid_player_info(mixed actor, string name, string func)
 
     case WIZ_LORD:
 	/* Lieges have some special commands. */
-	if (IN_ARRAY(func, ALLOWED_LIEGE_COMMANDS))
+	if (func in ALLOWED_LIEGE_COMMANDS)
 	{
 	    return 1;
 	}
@@ -1147,7 +1147,7 @@ check_snoop_validity(object snooper, object snoopee, int sanction)
     }
 
     /* Mentors can snoop their students. */
-    if (IN_ARRAY(on_name, query_students(snooper->query_real_name())))
+    if ((on_name in query_students(snooper->query_real_name())))
     {
         return 1;
     }
@@ -3083,7 +3083,7 @@ query_list_temp_start()
 int
 check_temp_start_loc(string str)
 {
-    return IN_ARRAY(str, temp_locations);
+    return (str in temp_locations);
 }
 
 int
@@ -3091,7 +3091,7 @@ check_def_start_loc(string str)
 {
     if (!def_locations)
         def_locations = STARTING_PLACES;
-    return IN_ARRAY(str, def_locations);
+    return (str in def_locations);
 }
 
 public varargs void
@@ -3791,7 +3791,7 @@ do_debug(string icmd, mixed a1, mixed a2, mixed a3)
     /* Some debug() commands are not meant to be called by just anybody. Only
      * 'root' and the administration may call them.
      */
-    if (IN_ARRAY(icmd, DEBUG_RESTRICTED))
+    if ((icmd in DEBUG_RESTRICTED))
     {
         if ((euid != ROOT_UID) &&
             (previous_object() != this_object()) &&

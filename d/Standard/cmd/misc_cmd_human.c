@@ -22,10 +22,11 @@ inherit "/std/command_driver";
 #include <macros.h>
 #include <std.h>
 #include <stdproperties.h>
+#include <configuration.h>
 
 void create()
 {
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
 
 
@@ -34,15 +35,17 @@ void create()
  */
 string *replace_soul()
 {
+    log_debug("replace_soul()");
+    log_debug("MASTER: " + MASTER);
     return
 	({
 	    MASTER,
-	    "/cmd/live/things",
-	    "/cmd/live/social",
-	    "/cmd/live/speech",
-	    "/cmd/live/state",
-	    "/cmd/live/items",
-	    "/cmd/live/info"
+	    "/std/cmd/live/things",
+	    "/std/cmd/live/social",
+	    "/std/cmd/live/speech",
+	    "/std/cmd/live/state",
+	    "/std/cmd/live/items",
+	    "/std/cmd/live/info"
 	});
 }
 

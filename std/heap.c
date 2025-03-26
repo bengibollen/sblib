@@ -14,17 +14,18 @@ inherit "/std/object";
 #include <macros.h>
 #include <ss_types.h>
 #include <stdproperties.h>
+#include <configuration.h>
 
 /*
  * Protoypes.
  */
-void count_up(float delay, int amount, int counted);
-int count(string str);
-int stop(string str);
-int heap_volume();
-int heap_weight();
-int heap_value();
-int heap_light();
+void count_up(int delay, int amount, int counted);
+public int count(string str);
+varargs int stop(string str);
+public int heap_volume();
+public int heap_weight();
+public int heap_value();
+public int heap_light();
 int no_garbage_collection();
 void collect_garbage();
 
@@ -34,7 +35,7 @@ static private int     count_alarm,
                        gNo_merge;
 static private mapping gOwn_props;
 
-#define GARBAGE_COLLECTION_DELAY (5.0 /* seconds */)
+#define GARBAGE_COLLECTION_DELAY (5 /* seconds */)
 
 /*
  * Function name: create_object
@@ -43,17 +44,17 @@ static private mapping gOwn_props;
 nomask void
 create_object()
 {
-    add_prop(OBJ_I_WEIGHT, heap_weight);
-    add_prop(OBJ_I_VOLUME, heap_volume);
-    add_prop(OBJ_I_VALUE,  heap_value);
-    add_prop(OBJ_I_LIGHT,  heap_light);
+    add_prop(OBJ_I_WEIGHT, #'heap_weight);
+    add_prop(OBJ_I_VOLUME, #'heap_volume);
+    add_prop(OBJ_I_VALUE,  #'heap_value);
+    add_prop(OBJ_I_LIGHT,  #'heap_light);
     add_prop(HEAP_I_IS, 1);
 
     gOwn_props = obj_props;
 
     if (!no_garbage_collection())
     {
-        set_alarm(GARBAGE_COLLECTION_DELAY, 0.0, collect_garbage);
+        call_out(#'collect_garbage, GARBAGE_COLLECTION_DELAY);
     }
 
     this_object()->create_heap();
@@ -78,7 +79,7 @@ void
 init()
 {
     ::init();
-    add_action(count, "count");
+    add_action(#'count, "count");
 }
 
 /*
@@ -154,8 +155,8 @@ set_heap_size(int num)
 
     if (num <= 0)
     {
-	add_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT, 1);
-	set_alarm(0.0, 0.0, remove_object);
+        add_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT, 1);
+        call_out(#'remove_object, 0);
         leave_behind = 0;
         num = 0;
     }
@@ -211,7 +212,7 @@ split_heap(int num)
         return item_count;
     }
     leave_behind = item_count - num;
-    set_alarm(0.0, 0.0, restore_heap);
+    call_out(#'restore_heap, 0);
     update_state();
     return num;
 }
@@ -231,8 +232,8 @@ remove_split_heap()
 
     if (item_count <= 0)
     {
-	add_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT, 1);
-	set_alarm(0.0, 0.0, remove_object);
+    	add_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT, 1);
+        call_out(#'remove_object, 0);
     }
 
     update_state();
@@ -285,8 +286,8 @@ short(object for_obj)
 
     if (!sizeof(query_prop(HEAP_S_UNIQUE_ID)))
     {
-	add_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT, 1);
-        set_alarm(0.0, 0.0, remove_object);
+        add_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT, 1);
+        call_out(#'remove_object, 0);
         return "ghost " + singular_short(for_obj);
     }
 
@@ -310,7 +311,7 @@ short(object for_obj)
     {
         return "a dozen " + str;
     }
-    if (this_player()->query_stat(SS_INT) / 2 > num_heap())
+    if (({int}) this_player()->query_stat(SS_INT) / 2 > num_heap())
     {
         return num_heap() + " " + str;
     }
@@ -432,7 +433,7 @@ enter_env(mixed env, object old)
         env = find_object(env);
     }
     ob = filter(all_inventory(env) - ({ this_object() }),
-        &->query_prop(HEAP_I_IS));
+        (: ({int}) $1->query_prop(HEAP_I_IS) :) );
 
     tmphide = !!query_prop(OBJ_I_HIDE);
     tmpinvis = !!query_prop(OBJ_I_INVIS);
@@ -440,22 +441,22 @@ enter_env(mixed env, object old)
 
     for (i = 0; i < sizeof(ob); i++)
     {
-        if ((ob[i]->query_prop(HEAP_S_UNIQUE_ID) == unique) &&
-            (!!ob[i]->query_prop(OBJ_I_HIDE) == tmphide) &&
-            (!!ob[i]->query_prop(OBJ_I_INVIS) == tmpinvis) &&
-            !ob[i]->query_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT))
+        if ((({string}) ob[i]->query_prop(HEAP_S_UNIQUE_ID) == unique) &&
+            (!!({int}) ob[i]->query_prop(OBJ_I_HIDE) == tmphide) &&
+            (!!({int}) ob[i]->query_prop(OBJ_I_INVIS) == tmpinvis) &&
+            !({int}) ob[i]->query_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT))
         {
-            ob[i]->set_heap_size(item_count + ob[i]->num_heap());
+            ob[i]->set_heap_size(item_count + ({int}) ob[i]->num_heap());
 
-            if (ob[i]->query_keepable() && !(ob[i]->query_keep()))
+            if (({int}) ob[i]->query_keepable() && !(({int}) ob[i]->query_keep()))
             {
-                ob[i]->set_keep(this_object()->query_keep());
+                ob[i]->set_keep(({int}) this_object()->query_keep());
             }
 
             leave_behind = 0;
             catch(move(ob[i], 1));
             add_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT, 1);
-	    set_alarm(0.0, 0.0, remove_object);
+            call_out(#'remove_object, 0);
             return;
         }
     }
@@ -470,7 +471,7 @@ set_no_merge(int i)
 {
     if (i && !gNo_merge)
     {
-        set_alarm(0.0, 0.0, &set_no_merge(0));
+        call_out(#'set_no_merge, 0, 0);
     }
 
     gNo_merge = i;
@@ -484,7 +485,7 @@ force_heap_merge()
     string unique;
 
     ob = filter(all_inventory(environment(this_object())) - ({ this_object() }),
-        &->query_prop(HEAP_I_IS));
+        (: ({int}) $1->query_prop(HEAP_I_IS) :) );
 
     tmphide = !!query_prop(OBJ_I_HIDE);
     tmpinvis = !!query_prop(OBJ_I_INVIS);
@@ -492,14 +493,14 @@ force_heap_merge()
 
     for (i = 0; i < sizeof(ob); i++)
     {
-        if ((ob[i]->query_prop(HEAP_S_UNIQUE_ID) == unique) &&
-            (!!ob[i]->query_prop(OBJ_I_HIDE) == tmphide) &&
-            (!!ob[i]->query_prop(OBJ_I_INVIS) == tmpinvis) &&
-            !ob[i]->query_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT))
+        if ((({string}) ob[i]->query_prop(HEAP_S_UNIQUE_ID) == unique) &&
+            (!!({int}) ob[i]->query_prop(OBJ_I_HIDE) == tmphide) &&
+            (!!({int}) ob[i]->query_prop(OBJ_I_INVIS) == tmpinvis) &&
+            !({int}) ob[i]->query_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT))
         {
-            ob[i]->set_heap_size(item_count + ob[i]->num_heap());
-	    add_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT, 1);
-            set_alarm(0.0, 0.0, remove_object);
+            ob[i]->set_heap_size(item_count + ({int}) ob[i]->num_heap());
+    	    add_prop(TEMP_OBJ_ABOUT_TO_DESTRUCT, 1);
+            call_out(#'remove_object, 0);
         }
     }
 }
@@ -542,31 +543,30 @@ config_split(int new_num, object orig)
 {
     item_count = new_num;
 
-    set_name(orig->query_name(1));
+    set_name(({string}) orig->query_name(1));
     remove_name(OB_NAME(orig));
-    set_pname(orig->query_pname(1));
-    set_adj(orig->query_adj(1));
+    set_pname(({string}) orig->query_pname(1));
+    set_adj(({string}) orig->query_adj(1));
 
-    set_short(orig->query_short());
-    set_pshort(orig->query_plural_short());
-    set_long(orig->query_long());
+    set_short(({string}) orig->query_short());
+    set_pshort(({string}) orig->query_plural_short());
+    set_long(({string}) orig->query_long());
 
-    obj_props = orig->query_prop_map() + gOwn_props;
+    obj_props = ({mapping}) orig->query_prop_map() + gOwn_props;
 
-    if (orig->query_keepable())
+    if (({int}) orig->query_keepable())
     {
-        this_object()->set_keep(orig->query_keep());
+        this_object()->set_keep(({int}) orig->query_keep());
     }
 }
 
 /*
  * Description: Function called when player gives 'count' command
  */
-public int
-count(string str)
+public int count(string str)
 {
     string *tmp;
-    float delay;
+    int delay;
     int intg;
 
     if (!check_seen(this_player()))
@@ -574,7 +574,7 @@ count(string str)
         return 0;
     }
 
-    if (this_player()->query_attack())
+    if (({int}) this_player()->query_attack())
     {
         notify_fail("You are too busy fighting to count anything!\n");
         return 0;
@@ -583,15 +583,15 @@ count(string str)
     if (!stringp(str) ||
         !parse_command(str, ({ this_object() }), "%i", tmp))
     {
-        notify_fail("Count what?\n", 0);
+        notify_fail("Count what?\n");
         return 0;
     }
 
-    intg = this_player()->query_stat(SS_INT);
-    delay = 60.0 / to_float(intg);
+    intg = ({int}) this_player()->query_stat(SS_INT);
+    delay = to_int(60 / to_float(intg));
     /* count_arg contains interval, coins per count and total so far */
-    count_alarm = set_alarm(delay, 0.0, &count_up(delay, 5 * (intg / 10 + 1), 0));
-    add_action(stop, "", 1);
+    call_out(#'count_up, delay, delay, 5 * (intg / 10 + 1), 0);
+    add_action(#'stop, "", 1);
 
     write("You start counting your " + plural_short(this_player()) + ".\n");
     say(QCTNAME(this_player()) + " starts to count some " +
@@ -608,15 +608,15 @@ stop(string str)
     if (query_verb() == "stop")
     {
         update_actions();
-        remove_alarm(count_alarm);
+        remove_call_out(#'count_up);
         write("You stop counting.\n");
         say(QCTNAME(this_player()) + " stops counting.\n");
         return 1;
     }
 
     /* Allow wizards and allow commands that are allowed. */
-    if (this_player()->query_wiz_level() ||
-    	(member(query_verb(), CMDPARSE_PARALYZE_ALLOWED) != -1))
+    if (({int}) this_player()->query_wiz_level() ||
+    	(query_verb() in CMDPARSE_PARALYZE_ALLOWED))
     {
         /* When quitting, update the actions, so people can drop stuff. */
         if (query_verb() == "quit")
@@ -634,22 +634,21 @@ stop(string str)
 /*
  * Description: Count some more, how much depends on intelligence of player
  */
-void
-count_up(float delay, int amount, int counted)
+void count_up(int delay, int amount, int counted)
 {
     counted += amount;
     if (counted < num_heap())
     {
         write("... " + counted + "\n");
-        count_alarm = set_alarm(delay, 0.0, &count_up(delay, amount, counted));
+        delay = to_int(delay);
+        call_out(#'count_up, delay, delay, amount, counted);
     }
     else
     {
         write("The last count reached " + num_heap() + ".\n");
         say(QCTNAME(this_player()) + " finishes " +
-            this_player()->query_possessive() + " count.\n");
+            ({string}) this_player()->query_possessive() + " counting.\n");
         update_actions();
-        count_alarm = 0;
     }
 }
 
@@ -695,14 +694,14 @@ appraise_number(int num)
     int value, skill, seed;
 
     if (!num)
-        skill = this_player()->query_skill(SS_APPR_OBJ);
+        skill = ({int}) this_player()->query_skill(SS_APPR_OBJ);
     else
         skill = num;
 
     skill = 1000 / (skill + 1);
     value = num_heap();
     sscanf(OB_NUM(this_object()), "%d", seed);
-    skill = random(skill, seed);
+    skill = random(skill);
     value = cut_sig_fig(value + (skill % 2 ? -skill % 70 : skill) *
         value / 100);
 
@@ -715,12 +714,12 @@ appraise_number(int num)
 void
 appraise_object(int num)
 {
-    write(this_object()->long() + "\n");
-    write(break_string("You appraise that the weight is " +
+    write(({string}) this_object()->long() + "\n");
+    write("You appraise that the weight is " +
         appraise_weight(num) + " and you guess its volume is about " +
-        appraise_volume(num) + ".\n", 75));
-    write(break_string("You estimate that there are " + appraise_number(num) +
-        " pieces worth approx " + appraise_value(num) + ".\n", 75));
+        appraise_volume(num) + ".\n");
+    write("You estimate that there are " + appraise_number(num) +
+        " pieces worth approx " + appraise_value(num) + ".\n");
 }
 
 /*
@@ -750,7 +749,7 @@ stat_object()
 int
 add_prop_obj_i_value(mixed val)
 {
-    if (!functionp(val))
+    if (!closurep(val))
     {
         add_prop(HEAP_I_UNIT_VALUE, val);
         return 1;
@@ -768,7 +767,7 @@ add_prop_obj_i_value(mixed val)
 int
 add_prop_obj_i_volume(mixed val)
 {
-    if (!functionp(val))
+    if (!closurep(val))
     {
         add_prop(HEAP_I_UNIT_VOLUME, val);
         return 1;
@@ -786,7 +785,7 @@ add_prop_obj_i_volume(mixed val)
 int
 add_prop_obj_i_weight(mixed val)
 {
-    if (!functionp(val))
+    if (!closurep(val))
     {
         add_prop(HEAP_I_UNIT_WEIGHT, val);
         return 1;

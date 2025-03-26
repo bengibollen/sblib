@@ -24,10 +24,7 @@
  * This mapping holds the names of the allowed player races in the game and
  * which player file to use for new characters of a given race.
  */
-#define RACEMAP ([                                          \
-		"human"  : "/d/Standard/race/human_std",   \
-		"vogon"  : "/d/Standard/race/vogon_std"    \
-		])
+#define RACEMAP ([ "human": "/d/Standard/race/human_std", "vogon": "/d/Standard/race/vogon_std" ])
 /*
  * RACEATTR
  *

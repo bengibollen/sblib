@@ -195,6 +195,8 @@ nomask public string *start_souls(string *souls)
             log_debug("Start_soul: %s", ob);
             
             catch(ob->teleledningsanka());
+
+            log_debug("Teleledningsanka executed for: %s", ob);
             ob = find_object(ob);
             if (ob)
             {
@@ -231,6 +233,8 @@ nomask public string *start_souls(string *souls)
         if (rflag)
             souls = replace_souls + ({});
     } while (rflag);
+
+    log_debug("Used souls: %O", used_souls);
 
     return used_souls;
 }
