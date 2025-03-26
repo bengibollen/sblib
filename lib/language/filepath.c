@@ -8,6 +8,9 @@
 #pragma strict_types
 
 #include <std.h>
+#include <libfiles.h>
+#include "/conf/sys/local.h"
+
 
 /*
  * Function name: fix_path
@@ -16,8 +19,7 @@
  *                string name - a filename with possibly a relative path.
  * Returns      : string - the full path filename.
  */
-string
-fix_path(string path, string name)
+string fix_path(string path, string name)
 {
     string *parts;
     int index;
@@ -47,6 +49,7 @@ fix_path(string path, string name)
     return "/";
 }
 
+
 /*
  * Function name: get_tilde_path
  * Description  : Gets the default path for a wizard or domain.
@@ -56,8 +59,7 @@ fix_path(string path, string name)
  *                    "~wizname" or  "~Domainname".
  * Returns      : string - the full path.
  */
-string
-get_tilde_path(string name, string tilde)
+string get_tilde_path(string name, string tilde)
 {
     string *parts;
     string wizpath;
@@ -73,13 +75,13 @@ get_tilde_path(string name, string tilde)
     /* Look at the name of another wizard/domain. */
     if (parts[0] != "~")
     {
-        name = extract(parts[0], 1);
+        name = parts[0][1..];
     }
 
     /* Check against a wizard name if the name is in lower case. */
     if (name != capitalize(name))
     {
-        if (!strlen(wizpath = SECURITY->query_wiz_path(name)))
+        if (!sizeof(wizpath = ({string}) SECURITY->query_wiz_path(name)))
         {
             return tilde;
         }
@@ -91,6 +93,7 @@ get_tilde_path(string name, string tilde)
     return "/d/" + name + "/" + implode(parts[1..], "/");
 }
 
+
 /*
  * Function name: reduce_to_tilde_path
  * Description  : Take a path and reduce it to its tilde equivalent, i.e. the
@@ -98,8 +101,7 @@ get_tilde_path(string name, string tilde)
  * Arguments    : string path - the path to transform.
  * Returns      : string - the tilde path representation of the path.
  */
-string
-reduce_to_tilde_path(string path)
+string reduce_to_tilde_path(string path)
 {
     string *parts;
 
@@ -114,7 +116,7 @@ reduce_to_tilde_path(string path)
     if (parts[0] == "d")
     {
         /* Not a domain, or the independant wizard domain. */
-        if ((SECURITY->query_domain_number(parts[1]) < 0) ||
+        if ((({int}) SECURITY->query_domain_number(parts[1]) < 0) ||
             (parts[1] == WIZARD_DOMAIN))
         {
             return path;
@@ -126,7 +128,7 @@ reduce_to_tilde_path(string path)
     if (parts[0] == "w")
     {
         /* Only for domain wizards we allow the tilde notation. */
-        if (strlen(SECURITY->query_wiz_dom(parts[1])))
+        if (sizeof(({string}) SECURITY->query_wiz_dom(parts[1])))
         {
             return "~" + implode(parts[1..], "/");
         }

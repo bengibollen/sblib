@@ -14,9 +14,10 @@ inherit "/std/command_driver.c";
  */
 public string *replace_soul()
 {
+	log_debug("Replacing soul with new souls");
     return
 	({
-//	    "/std/cmd/live/info",
+	    "/std/cmd/live/info",
 	    "/std/cmd/live/items",
 	    "/std/cmd/live/magic",
 	    "/std/cmd/live/social",

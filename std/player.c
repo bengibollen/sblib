@@ -19,29 +19,34 @@ inherit "/std/player_sec";
 public int
 check_player_pub() { return 1; }  /* Security, checked by /secure/login */
 
-public void
-start_player()
+
+public void start_player()
 {
+    log_debug("Player is starting.");
     /* Get the soul commands */
     this_object()->load_command_souls();
     command("$look");
     say(QCNAME(this_object()) + " enters the game.\n");
+    log_debug("Player has entered the game.");
 }
+
 
 /*
  * Function name: death_modify_stat
  * Description:   Modification function for free stats on death
  * Returns:       The modified stat.
  */
-int
-death_modify_stat(int stat) { return query_stat(stat); }
+int death_modify_stat(int stat)
+{
+    return query_stat(stat);
+}
+
 
 /*
  * Function name: death_sequence
  * Description:   Defines what happens to the player after death
  */
-void
-death_sequence()
+void death_sequence()
 {
     object death_mark;
     if (!query_ghost()) return;
@@ -50,26 +55,26 @@ death_sequence()
     death_mark->move(this_object(), 1);
 }
 
+
 /*
  * Function:    query_new_title
  * Description: Returns the title of the player calculated from stats
  *
  */
-public string
-query_new_title()
+public string query_new_title()
 {
     return "the utter novice";
 }
 
-public int *
-query_orig_stat()
+
+public int *query_orig_stat()
 {
     /*        STR, DEX, CON, INT, WIS, DIS */
     return ({ 10,  10,  10,  10,  10,  10 });
 }
 
-public int *
-query_orig_learn()
+
+public int *query_orig_learn()
 {
     /*        STR, DEX, CON, INT, WIS, DIS */
     return ({  17,  16,  16,  17,  17,  17 });

@@ -59,18 +59,16 @@ seq_reset()
 /*
  *   Description: The core function that actually runs the commands
  */
-public void
-seq_heartbeat(int steps)
+public void seq_heartbeat(int steps)
 {
     int il, newstep, stopseq, stopped;
     mixed cmd;
     mixed cmdres;
     mixed *calls;
 
-    set_alarm(rnd() * SEQ_SLOW + SEQ_SLOW / 2.0, 0.0, &seq_heartbeat(1));
+    call_out(#'seq_heartbeat, (int) random(10000)/10000 * SEQ_SLOW + SEQ_SLOW / 2.0, 1);
 
-    stopseq = ((time() -
-                this_object()->query_last_met_interactive()) > SEQ_STAY_AWAKE);
+    stopseq = ((time() - this_object()->query_last_met_interactive()) > SEQ_STAY_AWAKE);
 
     newstep = 0;
     stopped = 0;

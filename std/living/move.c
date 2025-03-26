@@ -229,7 +229,11 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
     /* See is people were hunting us or if we were hunting people. */
     this_object()->adjust_combat_on_move(0);
 
-    dragged = filter(query_prop(TEMP_DRAGGED_ENEMIES), #'objectp);
+    dragged = query_prop(TEMP_DRAGGED_ENEMIES);
+    if (pointerp(dragged))
+        dragged = filter(dragged, #'objectp);
+    else
+        dragged = ({});
     if (sizeof(dragged))
     {
 	foreach(object dragee: dragged)

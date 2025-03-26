@@ -303,6 +303,9 @@ public nomask void setup_skill_decay()
  */
 public void reset_userids()
 {
+    
+    log_debug("Resetting user IDs for player.");
+
     configure_object(this_object(), OC_EUID, 0);
 
     if (({int}) SECURITY->query_wiz_rank(query_real_name()))
@@ -311,6 +314,7 @@ public void reset_userids()
     }
 
     configure_object(this_object(), OC_EUID, getuid(this_object()));
+    log_debug("User IDs reset successfully.");
 }
 
 
@@ -322,6 +326,8 @@ static nomask void new_init()
 {
     int i;
     int *ostat;
+
+    log_debug("Initializing player statistics.");
 
     ostat = query_orig_stat();
 
@@ -428,6 +434,7 @@ nomask static void slow_load_recover_files(string *recover_files)
     string  argument;
     object  ob;
 
+    log_debug("Loading recover files...");
     if (sizeof(recover_files) > 1)
     {
         call_out((: slow_load_recover_files(recover_files[1..]) :), RECOVERY_INTERVAL);
@@ -588,6 +595,9 @@ private nomask int setup_player(string pl_name)
     string      *souls;
     int         il, size;
 
+    
+    log_debug("Setting up player with name: " + pl_name);
+
     set_name(pl_name);
 
     ::set_adj(({}));            /* No adjectives and no default */
@@ -596,6 +606,7 @@ private nomask int setup_player(string pl_name)
     configure_object(this_object(), OC_EUID, 0);
     if (!({int}) SECURITY->load_player())
     {
+        log_debug("Failed to load player: " + pl_name);
         return 0;
     }
 
@@ -607,20 +618,27 @@ private nomask int setup_player(string pl_name)
     /* Mortals should have one of the base races by default. */
     if (!query_wiz_level())
     {
+        
+        log_debug("Resetting race name for mortal player: " + to_string(this_object()));
         reset_race_name();
     }
 
     add_name(query_race_name());
     add_pname(LANG_PWORD(query_race_name()));
 
+    log_debug("Adding names for player: " + query_name());
+
     if (query_wiz_level())
     {
+        
+        log_debug("Adding wizard names for player: " + query_name());
         /* Wizards should have the term wizard as added name. */
         add_name("wizard");
         add_pname("wizards");
     }
     else
     {
+        log_debug("Resetting entrance messages for mortal player: " + to_string(this_object()));
         /* Mortals should not have altered entrance messages. */
         move_reset();
     }
@@ -652,6 +670,7 @@ private nomask int setup_player(string pl_name)
     /* Non wizards should not have a lot of souls */
     if (!query_wiz_level())
     {
+        log_debug("Querying command souls for player: " + to_string(this_object()));
         souls = query_cmdsoul_list();
         if (sizeof(souls))
         {
@@ -659,6 +678,7 @@ private nomask int setup_player(string pl_name)
             size = sizeof(souls);
             while(++il < size)
             {
+                log_debug("Removing command soul: " + souls[il]);
                 remove_cmdsoul(souls[il]);
             }
         }
@@ -670,6 +690,7 @@ private nomask int setup_player(string pl_name)
             size = sizeof(souls);
             while(++il < size)
             {
+                log_debug("Removing tool soul: " + souls[il]);
                 this_object()->remove_toolsoul(souls[il]);
             }
         }
@@ -700,6 +721,7 @@ private nomask int setup_player(string pl_name)
 #endif
 
     query_combat_object()->cb_configure();
+    log_debug("Player setup completed successfully.");
     return 1;
 }
 
@@ -714,18 +736,24 @@ private nomask int setup_player(string pl_name)
  */
 public nomask int change_player_object(object old_plob)
 {
+
     if (MASTER_OB(previous_object()) != CHANGE_PLAYEROB_OBJECT)
     {
         return 0;
-    }    
+    }
+
+    log_debug("Changing player object for: " + old_plob->query_real_name());
 
     set_name(old_plob->query_real_name());
 
     setup_player(old_plob->query_real_name());
 
+    log_debug("Player object changed successfully for: " + old_plob->query_real_name());
     this_object()->start_player();
 
     add_prop(PLAYER_I_LASTXP, old_plob->query_prop(PLAYER_I_LASTXP));
+    
+    log_debug("Player object initialization complete for: " + old_plob->query_real_name());
     return 1;
 }
 #endif
@@ -740,6 +768,9 @@ public nomask int change_player_object(object old_plob)
 static nomask int try_start_location(string path)
 {
     object room;
+
+    
+    log_debug("Attempting to check start location: " + path);
 
     /* Sanity check. */
     if (!sizeof(path) ||
@@ -773,6 +804,9 @@ public nomask int enter_game(string pl_name, string pwd)
     string path;
     object room;
 
+    
+    log_debug("Enter game and checking player setup...");
+
     if ((MASTER_OB(previous_object()) != LOGIN_OBJECT) &&
         (MASTER_OB(previous_object()) != LOGIN_NEW_PLAYER))
     {
@@ -782,6 +816,7 @@ public nomask int enter_game(string pl_name, string pwd)
     log_debug("Login attempt for: " + object_name(previous_object()));
 
     setup_player(pl_name);
+    cmdhooks_reset();
 
     /* Tell the player when he was last logged in and from which site. */
     if (MASTER_OB(previous_object()) == LOGIN_OBJECT)
@@ -873,6 +908,9 @@ public nomask int enter_game(string pl_name, string pwd)
  */
 public nomask void open_player()
 {
+    
+    log_debug("Opening player object.");
+
     if ((previous_object() == find_object(SECURITY)) ||
         (MASTER_OB(previous_object()) == LOGIN_OBJECT))
     {
@@ -941,9 +979,13 @@ nomask public int load_player(string pl_name)
     {
         return 0;
     }
+    log_debug("Loading player file: " + pl_name);
 
     configure_object(this_object(), OC_EUID, getuid(this_object()));
     ret = restore_object(PLAYER_FILE(pl_name));
+    if (!ret) {
+        log_debug("Failed to load player file: " + pl_name);
+    }
     configure_object(this_object(), OC_EUID, 0);
     return ret;
 }

@@ -38,11 +38,11 @@
 
 #define SPACES ("                              ")
 
+
 /* **************************************************************************
  * cat - display the contents of a file
  */
-int
-cat_file(string path)
+int cat_file(string path)
 {
     CHECK_SO_WIZ;
 
@@ -76,11 +76,11 @@ cat_file(string path)
     return 1;
 }
 
+
 /* **************************************************************************
  * cd - change current directory
  */
-int
-cd(string str)
+int cd(string str)
 {
     string old_path;
     string new_path;
@@ -143,11 +143,11 @@ cd(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * dirs - display your dirs list.
  */
-varargs int
-dirs(string str)
+varargs int dirs(string str)
 {
     string	*paths;
     int		size;
@@ -171,11 +171,11 @@ dirs(string str)
     return 1;
 }
 
+
 /* **************************************************************************
  * head - display the header of a file
  */
-int
-head(string path)
+int head(string path)
 {
     int lines = 10;
     int size;
@@ -232,17 +232,17 @@ head(string path)
     return 1;
 }
 
+
 /* **************************************************************************
  * ls - list the files in a directory
  */
-int
-ls_sort_t(mixed *item1, mixed *item2)
+int ls_sort_t(mixed *item1, mixed *item2)
 {
     return item2[1] - item1[1];
 }
 
-int
-list_files(string path)
+
+int list_files(string path)
 {
     int     i;
     int     j;

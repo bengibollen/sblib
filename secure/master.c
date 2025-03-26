@@ -28,6 +28,7 @@ string create_super(string file);
 string create_object(string file);
 static void save_master();
 mixed valid_write(string file, string uid, string func, object|lwobject writer);
+string modify_command(string cmd, object ob);
 
 
 private object logger;  // We'll initialize this later
@@ -50,9 +51,11 @@ private object logger;  // We'll initialize this later
 string mudlib_version = "SBLib v0.1";
 
 // ---------- MANDATORY: Initialization Functions ----------
-string get_master_uid() {
-    return "ROOT";
+string get_master_uid()
+{
+    return ROOT_UID;
 }
+
 
 void inaugurate_master(int arg)
 { 
@@ -75,14 +78,17 @@ void inaugurate_master(int arg)
     debug_message("=== Master Initialization Complete ===\n");
 }
 
+
 // For all logging calls, add error checking
-private void log_message(string type, string msg, varargs mixed *args) {
+private void log_message(string type, string msg, varargs mixed *args) 
+{
     if (logger) {
         catch(logger->info(msg, args...));
     } else {
         debug_message(sprintf("%s: %s\n", type, sprintf(msg, args...)));
     }
 }
+
 
 // ---------- MANDATORY: Error Handling ----------
 // void log_error(string file, string err, int warn, int line) {
@@ -104,12 +110,15 @@ private void log_message(string type, string msg, varargs mixed *args) {
 // }
 
 // ---------- MANDATORY: File Resolution ----------
-mixed inherit_file(string file, string compiled_file) {
+mixed inherit_file(string file, string compiled_file)
+{
     if (file[0] != '/') file = "/" + file;
     return file;
 }
 
-mixed include_file(string file, string compiled_file, int sys_include) {
+    
+mixed include_file(string file, string compiled_file, int sys_include)
+{
     if (sys_include) {
         if (file_size("/inc/" + file) > 0)
             return "/inc/" + file;
@@ -126,7 +135,9 @@ mixed include_file(string file, string compiled_file, int sys_include) {
 private nosave mapping connection_throttle = ([]);
 private nosave int cleanup_time;
 
-public object connect() {
+
+public object connect()
+{
     debug_message("\n=== New Connection Attempt ===\n");
     string ip = interactive_info(this_player(), II_IP_NUMBER);
     int now = time();
@@ -155,42 +166,54 @@ public object connect() {
     return clone_object("/secure/login");
 }
 
+
 // ---------- MANDATORY: Root Access ----------
 // string get_bb_uid() {
 //     return "BACKBONE";
 // }
 
 // ---------- MANDATORY: UID Management ----------
-string load_uid(string file) {
+string load_uid(string file)
+{
     debug_message("Loading UID for file: " + file + "\n");
     return ROOT_UID;  // For now, everything gets ROOT uid
 }
 
-string clone_uid(object blueprint, string name) {
+
+string clone_uid(object blueprint, string name)
+{
     debug_message("Cloning UID for file: " + name + "\n");
     return getuid(blueprint);  // For now, everything gets ROOT uid
 }
 
-string create_super(string file) {
+
+string create_super(string file)
+{
     debug_message("Creating super for file: " + file + "\n");
     return ROOT_UID;  // For now, everything gets ROOT uid
 }
 
-string create_object(string file) {
+
+string create_object(string file)
+{
     debug_message("Creating object for file: " + file + "\n");
     return ROOT_UID;  // For now, everything gets ROOT uid
 }
+
 
 // ---------- Optional: Initialization ----------
 // void flag(string arg) {
 //     // Called for each -f flag passed to driver
 // }
 
-string *epilog(int eflag) {
+string *epilog(int eflag)
+{
     return ({ });  // No objects to preload by default
 }
 
-void preload(string file) {
+
+void preload(string file)
+{
     catch(load_object(file));
 }
 
@@ -216,51 +239,74 @@ string get_simul_efun ()
     return 0;
 }
 
+
 // ---------- Optional: Connection Handling ----------
-void disconnect(object obj, string remaining) {
+void disconnect(object obj, string remaining)
+{
     // Called when user disconnects
 }
 
-void remove_player(object user) {
+
+void remove_player(object user)
+{
     // Called when player object is removed
 }
 
-void stale_erq(closure callback) {
+
+void stale_erq(closure callback)
+{
     // Called when ERQ connection is lost
 }
 
+
 // ---------- Optional: Runtime Support ----------
-object compile_object(string filename) {
+object compile_object(string filename)
+{
     return 0;  // No virtual objects
 }
 
-string get_wiz_name(string file) {
+
+string get_wiz_name(string file)
+{
     return "NOBODY";
 }
 
-string printf_obj_name(object obj) {
+
+string printf_obj_name(object obj)
+{
     return sprintf("<%s>", to_string(obj));
 }
 
-mixed prepare_destruct(object obj) {
+
+mixed prepare_destruct(object obj)
+{
     return 0;  // Allow destruction
 }
 
-void quota_demon() {
+
+void quota_demon()
+{
     // Memory quota handling
 }
 
-void receive_imp(string host, string msg, int port) {
+
+void receive_imp(string host, string msg, int port)
+{
     // IMP message handling
 }
 
-void slow_shut_down(int minutes) {
+
+void slow_shut_down(int minutes)
+{
     // Gradual shutdown handling
 }
 
-void notify_shutdown() {
+
+void notify_shutdown()
+{
     logger->info("System shutdown initiated");
 }
+
 
 // ---------- Optional: Error Handling ----------
 // void dangling_lfun_closure() {
@@ -274,7 +320,6 @@ void notify_shutdown() {
 // }
 
 // ---------- Optional: Security ----------
-int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3)
 
 // Validate the execution of a privileged operation.
 //
@@ -333,8 +378,8 @@ int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3
 // should therefore be restricted to admins.
 // All other operations are potential sources for direct security breaches -
 // any use of them should be scrutinized closely.
+int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3)
 {
-
     logger->info("Privilege violation check initiated.");
     logger->debug("Checking privileges for operation: " + op);
     logger->debug("Operation details: " + op + ", who: " + to_string(who));
@@ -409,6 +454,7 @@ int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3
     }
 }
 
+
 // int query_allow_shadow(object victim) {
 //     return 0;  // No shadowing by default
 // }
@@ -424,9 +470,11 @@ int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3
 //     return 0;  // No exec() by default
 // }
 
-int valid_query_snoop(object obj) {
+int valid_query_snoop(object obj)
+{
     return 0;  // No snoop queries by default
 }
+
 
 // int valid_snoop(object snoopee, object snooper) {
 //     return 0;  // No snooping by default
@@ -555,7 +603,8 @@ varargs mixed do_debug(string icmd, mixed a1, mixed a2, mixed a3)
 #include "/secure/master.h"
 
 // Then declare any critical functions needed before simul_efun loads
-static void load_simul_efun() {
+static void load_simul_efun()
+{
     if (!find_object(SIMUL_EFUN)) {
         write("Loading simul_efun.\n");
         load_object(SIMUL_EFUN);
@@ -577,21 +626,30 @@ private int     runlevel;
  */
 private static int     mem_fail_flag;
 private static int     memory_limit;
-private static mapping command_substitute;
+private static mapping command_substitute = ([
+    "n"  : "north",
+    "s"  : "south",
+    "w"  : "west",
+    "e"  : "east",
+    "u"  : "up",
+    "d"  : "down",
+    "sw" : "southwest",
+    "se" : "southeast",
+    "nw" : "northwest",
+    "ne" : "northeast",
+    ]);
 private static mapping move_opposites;
 private static string  udp_manager;
 private static int     irregular_uptime;
+
 
 /*
  * Function name: create
  * Description  : This is the first function called in this object.
  */
-void
-create()
+void create()
 {
     load_simul_efun();
-    
-
 
     /* Using a global variable for this is exactly TWICE as fast as using a
      * defined mapping. At this point we only have the default direction
@@ -652,14 +710,14 @@ create()
 #endif
 }
 
+
 /*
  * Function name: reset_master
  * Description  : This function will be called regularly, each RESET_TIME
  *                seconds. Since we want only one alarm running, from this
  *                function we can make calls to other modules that need it.
  */
-static void
-reset_master()
+static void reset_master()
 {
     /* Check whether there is still enough memory to run the game. The
      * argument 1 means decay the domain experience.
@@ -673,28 +731,29 @@ reset_master()
     save_master();
 }
 
+
 /*
  * Function name: short
  * Description  : This function returns the short description of this object.
  * Returns      : string - the short description.
  */
-string
-short()
+string short()
 {
     return "the hole of the donut";
 }
+
 
 /*
  * Function name: save_master
  * Description  : This function saves the master object to a file.
  */
-static void
-save_master()
+static void save_master()
 {
     configure_object(this_object(), OC_EUID, "root");
 
     save_object(SAVEFILE);
 }
+
 
 /*********************************************************************
  *
@@ -709,8 +768,7 @@ save_master()
  * To test a new function xx in object yy, do
  * driver "-fcall yy xx arg" "-fshutdown"
  */
-static void
-flag(string str)
+static void flag(string str)
 {
     string file, arg;
 
@@ -743,6 +801,7 @@ flag(string str)
     write("master: Unknown flag " + str + "\n");
 }
 
+
 /*
  * Function name:   get_mud_name
  * Description:     Gives the name of the mud. The name will be #defined in
@@ -751,8 +810,7 @@ flag(string str)
  *                  We always return a string but we must declare it mixed
  *                  otherwise the type checker gets allergic reactions.
  */
-mixed
-get_mud_name()
+mixed get_mud_name()
 {
 #ifdef MUD_NAME
     mixed n;
@@ -775,16 +833,17 @@ get_mud_name()
     return "SBMud";
 }
 
+
 /*
  * Function name: get_root_uid
  * Description  : Gives the uid of the root user.
  * Returns      : string - the name of the 'root' user.
  */
-string
-get_root_uid()
+string get_root_uid()
 {
     return ROOT_UID;
 }
+
 
 /*
  * Function name: get_bb_uid
@@ -799,17 +858,18 @@ string get_bb_uid()
     return BACKBONE_UID;
 }
 
+
 /*
  * Function name: get_vbfc_object
  * Description  : This function returns the objectpointer to the VBFC
  *                object.
  * Returns      : object - the objectpointer to the VBFC object.
  */
-object
-get_vbfc_object()
+object get_vbfc_object()
 {
     return VBFC_OBJECT->ob_pointer();
 }
+
 
 /*
  * Function name: connect
@@ -838,8 +898,7 @@ get_vbfc_object()
  *                string value       - the new value.
  * Returns      : string - the new value.
  */
-string
-valid_set_auth(object setter, object getting_set, string value)
+string valid_set_auth(object setter, object getting_set, string value)
 {
     string *oldauth;
     string *newauth;
@@ -871,6 +930,7 @@ valid_set_auth(object setter, object getting_set, string value)
     return implode(newauth, ":");
 }
 
+
 /*
  * Function name: valid_seteuid
  * Description:   Checks if a certain user has the right to set a certain
@@ -887,8 +947,7 @@ valid_set_auth(object setter, object getting_set, string value)
  * Note:          Setting of effuserid to userid is allowed in the GD as
  *                well as setting effuserid to 0.
  */
-int
-valid_seteuid(object ob, string str)
+int valid_seteuid(object ob, string str)
 {
     string uid = getuid(ob);
 
@@ -930,6 +989,7 @@ valid_seteuid(object ob, string str)
     /* No one else can be anything. */
     return 0;
 }
+
 
 /*
  * Function name: valid_write
@@ -1130,10 +1190,8 @@ mixed valid_write(string file, string uid, string func, object|lwobject writer)
     default:
         return 0;
     }
-
-    /* No show. */
-//    return 0;
 }
+
 
 /*
  * Function name: valid_read
@@ -1392,9 +1450,6 @@ mixed valid_read(string file, string uid, string func, object|lwobject reader)
     default:
         return 1;
     }
-
-    /* No show. */
-//    return 0;
 }
 
 #if 0
@@ -1427,6 +1482,7 @@ valid_resident(object ob)
 }
 #endif
 
+
 /*
  * Function name: valid_debug
  * Description  : This function is called to see whether the object is allowed
@@ -1441,11 +1497,11 @@ valid_resident(object ob)
  *                mixed arg3 - the argument 3 to debug.
  * Returns      : int 1/0 - allowed/ disallowed.
  */
-varargs int
-valid_debug(object ob, string cmd, mixed arg1, mixed arg2, mixed arg3)
+varargs int valid_debug(object ob, string cmd, mixed arg1, mixed arg2, mixed arg3)
 {
     return 0;
 }
+
 
 /*
  * Function name: valid_query_ip_ident
@@ -1456,14 +1512,14 @@ valid_debug(object ob, string cmd, mixed arg1, mixed arg2, mixed arg3)
  *                object target - the object the actor wants to know about.
  * Returns      : int 1/0 - allowed/ disallowed.
  */
-varargs int
-valid_query_ip_ident(object actor, object target)
+varargs int valid_query_ip_ident(object actor, object target)
 {
     string euid = geteuid(actor);
 
     /* Only archwizard and keepers may call this efun. */
     return (query_wiz_rank(euid) >= WIZ_ARCH);
 }
+
 
 /*
  * Function name: valid_query_ip
@@ -1474,8 +1530,7 @@ valid_query_ip_ident(object actor, object target)
  *                object target - the object the actor wants to know about.
  * Returns      : int 1/0 - allowed/ disallowed.
  */
-varargs int
-valid_query_ip(mixed actor, object target)
+varargs int valid_query_ip(mixed actor, object target)
 {
     if (objectp(actor))
     {
@@ -1498,6 +1553,7 @@ valid_query_ip(mixed actor, object target)
     return 0;
 }
 
+
 /*
  * Function name: valid_player_info
  * Description  : Find out whether the actor is allowed to access certain
@@ -1507,8 +1563,7 @@ valid_query_ip(mixed actor, object target)
  *                string func - the type of info the actor wants to know.
  * Returns      : int 1/0 - allowed/disallowed.
  */
-public int
-valid_player_info(mixed actor, string name, string func)
+public int valid_player_info(mixed actor, string name, string func)
 {
     if (objectp(actor))
     {
@@ -1554,6 +1609,7 @@ valid_player_info(mixed actor, string name, string func)
     return 0;
 }
 
+
 /*
  * Function name: check_snoop_validity
  * Description  : Do the actual validity checking.
@@ -1562,8 +1618,7 @@ valid_player_info(mixed actor, string name, string func)
  *                int sanction - consider sanctioning or not.
  * Returns      : int 1/0 - allowed/disallowed.
  */
-static int
-check_snoop_validity(object snooper, object snoopee, int sanction)
+static int check_snoop_validity(object snooper, object snoopee, int sanction)
 {
     int by_type;
     int on_type;
@@ -1641,6 +1696,7 @@ check_snoop_validity(object snooper, object snoopee, int sanction)
     return 0;
 }
 
+
 /* This macro will log the snoop-action when the actor is not a member of
  * the administration.
  */
@@ -1649,6 +1705,7 @@ check_snoop_validity(object snooper, object snoopee, int sanction)
 if (query_wiz_rank(caller_name) < WIZ_ARCH) \
 { this_object()->log_syslog(LOG_SNOOP, ctime(time()) + " " + (str)); }
 #endif
+
 
 /*
  * Function name: valid_snoop
@@ -1734,6 +1791,7 @@ public int valid_snoop(object snooper, object snoopee)
     return 0;
 }
 
+
 /*
  * Function name: creator_file
  * Description  : Gives the name of the creator of a file. This is a
@@ -1743,8 +1801,7 @@ public int valid_snoop(object snooper, object snoopee)
  * Arguments    : string str - the path to process.
  * Returns      : string - the name of the creator.
  */
-string
-creator_file(string str)
+string creator_file(string str)
 {
     string *parts;
 
@@ -1794,11 +1851,12 @@ creator_file(string str)
     return BACKBONE_UID;
 }
 
-string
-modify_path(string path, object ob)
+
+string modify_path(string path, object ob)
 {
     return path;
 }
+
 
 #if 0
 string
@@ -1807,6 +1865,7 @@ valid_compile_path(string path, string filename, string fun)
     return path;
 }
 #endif
+
 
 /*
  * Convert a possibly relative path to an absolute path. We can assume
@@ -1834,14 +1893,14 @@ string make_path_absolute(string path)
     return FPATH(base_path, path);
 }
 
+
 /*
  * Function name: load_domain_link
  * Description:   Try to load a domain_link file
  * Arguments:     file - The domain_link to load
  * Returns:       True if everything went ok, false otherwise
  */
-static int
-load_domain_link(string file)
+static int load_domain_link(string file)
 {
     string err, creator;
 
@@ -1866,6 +1925,7 @@ load_domain_link(string file)
 
     return 1;
 }
+
 
 /*
  * Function name: start_boot
@@ -1948,14 +2008,14 @@ static string *start_boot(int load_empty)
     return prefiles;
 }
 
+
 /*
  * Function name: preload_boot
  * Description  : Called at game start time for every file that needs to be
  *                preloaded to load it into memory.
  * Arguments    : string file - the file to preload (without ".c" suffix).
  */
-static void
-preload_boot(string file)
+static void preload_boot(string file)
 {
     string err, creator;
 
@@ -1981,6 +2041,7 @@ preload_boot(string file)
     }
 }
 
+
 /*
  * Function name: final_boot
  * Description  : This function will be called from the gamedriver when the
@@ -1988,8 +2049,7 @@ preload_boot(string file)
  *                called. Note that this function is not called when the
  *                master is updated.
  */
-static void
-final_boot()
+static void final_boot()
 {
     // int theport;
 
@@ -2027,6 +2087,7 @@ final_boot()
 #endif
 }
 
+
 /*
  * Function name: start_shutdown
  * Description  : This function is called by the gamedriver to get a list
@@ -2034,11 +2095,11 @@ final_boot()
  *                from the game when it is shutting down.
  * Returns      : object * - the interactive users in the game.
  */
-object *
-start_shutdown()
+object *start_shutdown()
 {
     return users();
 }
+
 
 /*
  * Function name: cleanup_shutdown
@@ -2047,20 +2108,19 @@ start_shutdown()
  *                quit the game.
  * Arguments    : object ob - the object to force to quit.
  */
-static void
-cleanup_shutdown(object ob)
+static void cleanup_shutdown(object ob)
 {
     set_this_player(ob);
     ob->quit();
 }
+
 
 /*
  * Function name: final_shutdown
  * Description  : When all mortals are kicked out of the game, this function
  *                is called last by the gamedriver before the game closes.
  */
-static void
-final_shutdown()
+static void final_shutdown()
 {
 #ifdef UDP_ENABLED
     if (stringp(udp_manager))
@@ -2079,6 +2139,7 @@ final_shutdown()
     /* Call the domain links. */
     ARMAGEDDON->execute_shutdown();
 }
+
 
 /*
  * Function name: log_error
@@ -2111,12 +2172,12 @@ final_shutdown()
 //     write_file(path, error);
 // }
 
+
 /*
  * This function is called from GD when rooms are destructed so that master
  * can move players to safety.
  */
-void
-destruct_environment_of(object ob)
+void destruct_environment_of(object ob)
 {
     if (environment(ob))
     {
@@ -2130,6 +2191,7 @@ destruct_environment_of(object ob)
     ob->move_living("X", ob->query_default_start_location());
 }
 
+
 /*
  * Function name: define_include_dirs
  * Description  : Define  where the '#include' statement is supposed to
@@ -2139,11 +2201,11 @@ destruct_environment_of(object ob)
  *                searched for.
  * Returns      : string * - the array of path to search.
  */
-string *
-define_include_dirs()
+string *define_include_dirs()
 {
     return ({ "/sys/%s" });
 }
+
 
 /*
  * Function name: get_ed_buffer_save_object_name
@@ -2155,8 +2217,7 @@ define_include_dirs()
  * Returns      : string - the name of the secured save-file
  *                0      - the player has no write-rights.
  */
-string
-get_ed_buffer_save_object_name(string file)
+string get_ed_buffer_save_object_name(string file)
 {
     string *path;
 
@@ -2171,6 +2232,7 @@ get_ed_buffer_save_object_name(string file)
 
     return implode(path, "/");
 }
+
 
 /* save_ed_setup and restore_ed_setup are called by the ed to maintain
    individual options settings. These functions are located in the master
@@ -2195,6 +2257,7 @@ int save_ed_setup(object who, int code)
     return write_file(file, code + "");
 }
 
+
 /*
  * Retrieve the ed setup. No meaning to defend this file read from
  * unauthorized access.
@@ -2211,6 +2274,7 @@ int retrieve_ed_setup(object who)
     return code;
 }
 
+
 /*
  * Function name: query_allow_shadow
  * Description  : This function is called from the game driver to find out
@@ -2225,6 +2289,7 @@ int query_allow_shadow(object target)
 {
     return !(target->query_prevent_shadow(previous_object()));
 }
+
 
 /*
  * Function name: valid_exec
@@ -2250,6 +2315,7 @@ int valid_exec(string name, object to, object from)
     return 0;
 }
 
+
 /*
  * Function name: simul_efun_reload
  * Description  : This function sets the authorisation variables for the
@@ -2259,6 +2325,7 @@ void simul_efun_reload()
 {
     configure_object(find_object(SIMUL_EFUN), OC_EUID, "root");
 }
+
 
 /*
  * Function name: loaded_object
@@ -2298,6 +2365,7 @@ void loaded_object(object lob, object ob)
     configure_object(ob, OC_EUID, creator);
 }
 
+
 /*
  * Function name: cloned_object
  * Description  : This function is called when an object is cloned. It
@@ -2308,8 +2376,7 @@ void loaded_object(object lob, object ob)
  * Arguments    : object cob - the cloning object.
  *                object ob  - the cloned object.
  */
-void
-cloned_object(object cob, object ob)
+void cloned_object(object cob, object ob)
 {
     string creator = creator_object(ob);
     string *auth = ({ geteuid(cob), getuid(cob) });
@@ -2340,6 +2407,7 @@ cloned_object(object cob, object ob)
     configure_object(ob, OC_EUID, creator);
 }
 
+
 /*
  * Function name: modify_command
  * Description  : Modify a command given by a certain living object. This can
@@ -2355,6 +2423,8 @@ string modify_command(string cmd, object ob)
     string str;
     string domain;
     int no_subst;
+
+    logger->debug("== Command to modify: %s", cmd);
 
     if (!sizeof(cmd))
     {
@@ -2372,14 +2442,16 @@ string modify_command(string cmd, object ob)
         cmd = cmd[1..];
     }
 
-    if (sizeof(str = command_substitute[cmd]))
+
+
+    if (cmd in command_substitute)
     {
         if (interactive(ob) && !ob->query_wiz_level() &&
             pointerp(m_domains[domain = environment(ob)->query_domain()]))
         {
             m_domains[domain][FOB_DOM_CMNDS]++;
         }
-        return str;
+        return command_substitute[cmd];
     }
 
     /* No modification for NPC's */
@@ -2411,6 +2483,7 @@ string modify_command(string cmd, object ob)
     return cmd;
 }
 
+
 /*
  * Function name: query_move_opposites
  * Description  : Returns the exact pointer to the mapping move_opposites.
@@ -2422,6 +2495,7 @@ mapping query_move_opposites()
     return move_opposites;
 }
 
+
 /*
  * Function name: query_memory_percentage
  * Description  : This function will return the percentage of memory usage
@@ -2429,8 +2503,7 @@ mapping query_move_opposites()
  *                time to reboot.
  * Returns      : int - the relative memory usage.
  */
-nomask public int
-query_memory_percentage()
+nomask public int query_memory_percentage()
 {
     string foobar, *data = explode(SECURITY->do_debug("malloc"), "\n");
     int    f, cval, sz = sizeof(data);
@@ -2443,6 +2516,7 @@ query_memory_percentage()
 	return 0;
 }
 
+
 /*
  * Function name: memory_failure
  * Description:   This function is called when the gamedriver considers
@@ -2451,8 +2525,7 @@ query_memory_percentage()
  *                may only be called by root itself or by a member of the
  *                administration.
  */
-static void
-memory_failure()
+static void memory_failure()
 {
     if (!mem_fail_flag)
     {
@@ -2464,6 +2537,7 @@ memory_failure()
     }
 }
 
+
 /*
  * Function name: memory_reconfigure
  * Description  : This function is called when the gamedriver receives
@@ -2471,8 +2545,7 @@ memory_failure()
  *                has changed.
  * Arguments    : int mem - Memory size, 0 small, 1 large.
  */
-static void
-memory_reconfigure(int mem)
+static void memory_reconfigure(int mem)
 {
     string mess = "a different";
     object *list;
@@ -2503,11 +2576,11 @@ memory_reconfigure(int mem)
     list->catch_tell("@ Armageddon: I have switched to " + mess + " memory mode.\n");
 }
 
+
 /*
  * This function is called if the driver gets sent a signal that it catches.
  */
-static void
-external_signal(string sig_name)
+static void external_signal(string sig_name)
 {
     write("Received " + sig_name + " signal.\n");
     switch (sig_name)
@@ -2536,22 +2609,22 @@ external_signal(string sig_name)
     }
 }
 
+
 /*
  * Function name: query_memory_limit
  * Description:   This function returns the current memory limit.
  */
-public int
-query_memory_limit()
+public int query_memory_limit()
 {
     return memory_limit;
 }
+
 
 /*
  * Function name: query_memory_failure
  * Description:   This function returns 1 if memory failure is detected.
  */
-public int
-query_memory_failure()
+public int query_memory_failure()
 {
     return mem_fail_flag;
 }
@@ -2571,6 +2644,7 @@ valid_save_binary(string filename)
     return 1;
 }
 
+
 /*
  * Function name: valid_inherit
  * Description  : This function is called when a file has asked to inherit
@@ -2585,6 +2659,7 @@ valid_inherit(object ob, string inherit_file)
     return 1;
 }
 
+
 /* ob trying to load file */
 int
 valid_load(object ob, string file)
@@ -2593,17 +2668,17 @@ valid_load(object ob, string file)
 }
 #endif
 
+
 /*
  * Function name:   master_reload
  * Description:     Called from GD after a reload of the master object
  */
-void
-master_reload()
+void master_reload()
 {
 }
 
-void
-recreate(object old_master)
+
+void recreate(object old_master)
 {
     create();
     game_started = 0;
@@ -2616,6 +2691,7 @@ recreate(object old_master)
 #endif
 }
 
+
 /*
  * Function name: incoming_udp
  * Description:   Called from GD if a udp message has been received. This
@@ -2624,8 +2700,7 @@ recreate(object old_master)
  * Arguments:     from_host: The IP number of the sending host
  *                message:   The message sent.
  */
-void
-incoming_udp(string from_host, string message)
+void incoming_udp(string from_host, string message)
 {
 #ifdef UDP_ENABLED
     if (stringp(udp_manager))
@@ -2642,8 +2717,8 @@ incoming_udp(string from_host, string message)
 #endif
 }
 
-static void
-mark_quit(object player)
+
+static void mark_quit(object player)
 {
     string text;
     int index = 0;
@@ -2694,6 +2769,7 @@ mark_quit(object player)
     write_file("/syslog/log/DESTRUCTED", text + "\n");
 }
 
+
 /*
  * Function name: remove_interactive
  * Description  : Called from GD if a player logs out or goes linkdead. If
@@ -2701,8 +2777,7 @@ mark_quit(object player)
  * Arguments    : object ob    - the player that leaves the game.
  *                int linkdead - true if the player linkdied.
  */
-static void
-remove_interactive(object ob, int linkdied)
+static void remove_interactive(object ob, int linkdied)
 {
     string master_ob;
 
@@ -2739,17 +2814,18 @@ remove_interactive(object ob, int linkdied)
 #endif
 }
 
+
 /*
  * Function name: gamedriver_message
  * Description  : This function may (only) be called by the gamedriver to
  *                give a message to all players if that is necessary.
  * Arguments    : string str - the message to tell the people
  */
-static void
-gamedriver_message(string str)
+static void gamedriver_message(string str)
 {
     users()->catch_tell(str);
 }
+
 
 /*
  * Function name: runtime_error
@@ -2811,6 +2887,7 @@ static void runtime_e_error(string error, object ob, string prog, string file)
     write_file(path, fmt_error + "\n");
 }
 
+
 /*
  *    ----------------------------------------------------------------
  *    The code below this divisor is never called from the gamedriver.
@@ -2841,6 +2918,7 @@ public int remove_binary(string path)
     return rm("/binaries" + path);
 }
 
+
 /*
  * Function name: remove_playerfile
  * Description:   This function moves a playerfile from /players/<?>/
@@ -2850,8 +2928,7 @@ public int remove_binary(string path)
  *                string reason - The reason to why the file is removed
  * Returns:       True if everything went ok, false other wise
  */
-public int
-remove_playerfile(string player, string reason)
+public int remove_playerfile(string player, string reason)
 {
     string file;
     string deleted;
@@ -2909,6 +2986,7 @@ remove_playerfile(string player, string reason)
     return 1;
 }
 
+
 /*
  * Function name: rename_playerfile
  * Description  : This renames a player.
@@ -2916,8 +2994,7 @@ remove_playerfile(string player, string reason)
  *                string newname - the new name of the player.
  * Returns      : int 1/0 - success/failure.
  */
-public int
-rename_playerfile(string oldname, string newname)
+public int rename_playerfile(string oldname, string newname)
 {
     mapping playerfile;
 
@@ -2972,6 +3049,7 @@ rename_playerfile(string oldname, string newname)
         capitalize(this_interactive()->query_real_name()) + ".\n", -1);
     return 1;
 }
+
 
 /*
  * Function name: proper_password
@@ -3031,6 +3109,7 @@ int proper_password(string str)
     return (stage == 3);
 }
 
+
 /*
  * Function name: generate_password
  * Description  : This function will generate a six character password that
@@ -3039,8 +3118,7 @@ int proper_password(string str)
  *                be safe enough other than for a brute force attack.
  * Returns      : string - the password.
  */
-public string
-generate_password()
+public string generate_password()
 {
     string tmp = "";
     int    size = 8;
@@ -3074,6 +3152,7 @@ generate_password()
     return tmp;
 }
 
+
 /*
  * Function name: remote_setuid
  * Description  : With this function the COMMAND_DRIVER can request that
@@ -3099,14 +3178,14 @@ void remote_setuid()
  *                requires a higher access level than normally. Make sure that
  *                only the right object qualifies, though.
  */
-public void
-set_helper_soul_euid()
+public void set_helper_soul_euid()
 {
     if (object_name(previous_object()) == WIZ_CMD_HELPER)
     {
         configure_object(previous_object(), OC_EUID, "root");
     }
 }
+
 
 /*
  * Function name: creator_object
@@ -3126,6 +3205,7 @@ string creator_object(object obj)
     return creator_file(object_name(obj));
 }
 
+
 /*
  * Function name: domain_object
  * Description:   Gives the name of the domain of an object. This is a
@@ -3133,8 +3213,7 @@ string creator_object(object obj)
  * Arguments    : object obj - the object to test.
  * Returns      : string - the name of the domain.
  */
-string
-domain_object(object obj)
+string domain_object(object obj)
 {
     string str;
     string dom;
@@ -3156,6 +3235,7 @@ domain_object(object obj)
     return dom;
 }
 
+
 /*
  * Function name: load_player
  * Descripton:    This function is called from /std/player_sec
@@ -3163,8 +3243,7 @@ domain_object(object obj)
  *                It sets the euid of the player to root for
  *                the duration of the load.
  */
-int
-load_player()
+int load_player()
 {
     int res;
     object pobj;
@@ -3181,14 +3260,13 @@ load_player()
     }
 }
 
+
 /*
  * Function name: save_player
  * Description:   Saves a player object.
  */
-int
-save_player()
+int save_player()
 {
-
     int res;
     object pobj;
 
@@ -3208,6 +3286,7 @@ save_player()
     }
 }
 
+
 /*
  * Function name: store_predeath
  * Description  : Just before the death-modifications are made to a player
@@ -3216,8 +3295,7 @@ save_player()
  *                after the call to this routine, so we don't have to make
  *                a costly copy, but can rely on moving it.
  */
-void
-store_predeath()
+void store_predeath()
 {
     object pobj;
     string pfile, prefile;
@@ -3252,6 +3330,7 @@ int rem_def_start_loc(string str)
 
     return 0;
 }
+
 
 int add_def_start_loc(string str)
 {
@@ -3332,11 +3411,12 @@ public string *query_list_def_start()
     return secure_var(def_locations);
 }
 
-public string *
-query_list_temp_start()
+
+public string *query_list_temp_start()
 {
     return secure_var(temp_locations);
 }
+
 
 int check_temp_start_loc(string str)
 {
@@ -3345,12 +3425,14 @@ int check_temp_start_loc(string str)
     return 0;
 }
 
+
 int check_def_start_loc(string str)
 {
     if (!def_locations)
         def_locations = STARTING_PLACES;
     return (str in def_locations);
 }
+
 
 public varargs void log_syslog(string file, string text, int length = 0)
 {
@@ -3367,6 +3449,7 @@ public varargs void log_syslog(string file, string text, int length = 0)
 
     log_file(file, text, length);
 }
+
 
 void log_public(string file, string text)
 {
@@ -3394,8 +3477,8 @@ void log_public(string file, string text)
     write_file(file, text);
 }
 
-void
-log_restrict(string verb, string arg)
+
+void log_restrict(string verb, string arg)
 {
     string path,
            dom = query_wiz_dom(getuid(previous_object())),
@@ -3425,6 +3508,7 @@ log_restrict(string verb, string arg)
     write_file(path + "/" + wiz, ctime(time()) + ": " + verb + " " + arg + "\n");
 }
 
+
 /*
  * Function name: query_player_file_time()
  * Description  : This function will return the file-time the playerfile
@@ -3434,8 +3518,7 @@ log_restrict(string verb, string arg)
  * Arguments    : string pl_name - the name of the player.
  * Returns      : int - the file-time of the players save-file.
  */
-int
-query_player_file_time(string pl_name)
+int query_player_file_time(string pl_name)
 {
     if (!sizeof(pl_name))
     {
@@ -3446,6 +3529,7 @@ query_player_file_time(string pl_name)
     configure_object(this_object(), OC_EUID, "root");
     return file_time(PLAYER_FILE(pl_name) + ".o");
 }
+
 
 /*
  * Function name: exist_player
@@ -3463,6 +3547,7 @@ int exist_player(string pl_name)
     pl_name = lower_case(pl_name);
     return (file_size(PLAYER_FILE(pl_name) + ".o") > 0);
 }
+
 
 /*
  * Function name: finger_player
@@ -3512,6 +3597,7 @@ varargs object finger_player(string pl_name, string file)
         return 0;
     }
 }
+
 
 /*
  * Function name: note_something
@@ -3569,6 +3655,7 @@ void note_something(string str, int id, object env)
     }
 }
 
+
 /*
  * Function name: query_snoop
  * Description:   Tells caller if a user is snooped.
@@ -3596,13 +3683,13 @@ mixed query_snoop(object snoopee)
     return 0;
 }
 
+
 /*
  * Function name: query_start_time
  * Description  : Return the time when the game started.
  * Returns      : int - the time.
  */
-public int
-query_start_time()
+public int query_start_time()
 {
     int theport;
     string game_start;
@@ -3621,6 +3708,7 @@ query_start_time()
     return object_time(this_object());
 }
 
+
 /*
  * Function name: query_irregular_uptime
  * Description  : The (irregular) uptime after which this game is being
@@ -3628,11 +3716,11 @@ query_start_time()
  *                game.
  * Returns      : int - the (irregular) uptime, or 0.
  */
-public int
-query_irregular_uptime()
+public int query_irregular_uptime()
 {
     return irregular_uptime;
 }
+
 
 /*
  * Function name: commune_log
@@ -3640,13 +3728,13 @@ query_irregular_uptime()
  * Arguments    : string str  - the message.
  *                int filtered - if true, the message was filtered out.
  */
-varargs public void
-commune_log(string str, int filtered = 0)
+varargs public void commune_log(string str, int filtered = 0)
 {
     log_public((filtered ? "COMMUNE.filtered" : "COMMUNE"),
         sprintf("%s: %-11s: %s", ctime(time()),
         capitalize(this_interactive()->query_real_name()), str));
 }
+
 
 /*
  * Function name: set_runlevel
@@ -3658,8 +3746,7 @@ commune_log(string str, int filtered = 0)
  * Arguments    : int - the runlevel. The argument is not checked for
  *                    validity. That must have been done in the command.
  */
-public void
-set_runlevel(int level)
+public void set_runlevel(int level)
 {
     if (previous_object() != find_object(WIZ_CMD_NORMAL))
     {
@@ -3678,6 +3765,7 @@ set_runlevel(int level)
     save_master();
 }
 
+
 /*
  * Function name: query_runlevel
  * Description  : Returns the runlevel. This is the lowest rank of player
@@ -3685,11 +3773,11 @@ set_runlevel(int level)
  *                when the game is open to all players and wizards.
  * Returns      : int - the runlevel.
  */
-public int
-query_runlevel()
+public int query_runlevel()
 {
     return runlevel;
 }
+
 
 /*
  * Function name: master_shutdown
@@ -3697,8 +3785,7 @@ query_runlevel()
  *                called from the armageddon object.
  * Returns      : 1 - Ok, 0 - No shutdown performed.
  */
-public int
-master_shutdown(string reason)
+public int master_shutdown(string reason)
 {
     if (MASTER_OB(previous_object()) != ARMAGEDDON)
     {
@@ -3716,6 +3803,7 @@ master_shutdown(string reason)
     return 1;
 }
 
+
 /*
  * Function name: request_shutdown
  * Description  : When a wizard wants to shut down the game, this
@@ -3725,8 +3813,7 @@ master_shutdown(string reason)
  * Arguments    : string reason - the reason to shut down the game.
  *                int    delay  - the delay in minutes.
  */
-public void
-request_shutdown(string reason, int delay)
+public void request_shutdown(string reason, int delay)
 {
     string euid    = getwho();
     string shutter = ARMAGEDDON->query_shutter();
@@ -3783,6 +3870,7 @@ request_shutdown(string reason, int delay)
     ARMAGEDDON->start_shutdown(reason, delay, euid);
 }
 
+
 /*
  * Function name: calcel_shutdown
  * Description  : When the wizard has second thoughts and does not want
@@ -3790,8 +3878,7 @@ request_shutdown(string reason, int delay)
  *                called. The function should be called from
  *                WIZ_CMD_NORMAL.
  */
-public void
-cancel_shutdown()
+public void cancel_shutdown()
 {
     string euid    = getwho();
     string shutter = ARMAGEDDON->query_shutter();
@@ -3820,14 +3907,15 @@ cancel_shutdown()
 
     ARMAGEDDON->cancel_shutdown(euid);
 }
+
+
 /*
  * Function name:  wiz_home
  * Description:    Gives a default 'home' for a wizard, domain or a player
  * Arguments:      wiz: The wizard name.
  * Returns:        A filename for the 'home' room.
  */
-string
-wiz_home(string wiz)
+string wiz_home(string wiz)
 {
     string path;
 
@@ -3843,6 +3931,7 @@ wiz_home(string wiz)
     return path;
 }
 
+
 /*
  * Function name: wiz_force_check
  * Description:   Checks if one wizard is allowed to force another
@@ -3850,8 +3939,7 @@ wiz_home(string wiz)
  *                forced: Name of wizard being forced
  * Returns:       True if ok
  */
-int
-wiz_force_check(string forcer, string forced)
+int wiz_force_check(string forcer, string forced)
 {
     int rlev;
     int dlev;
@@ -3877,14 +3965,14 @@ wiz_force_check(string forcer, string forced)
     return 0;
 }
 
+
 /*
  * Function name: set_sanctioned
  * Description:   Set the 'sanctioned' field in the player.
  * Arguments:     wizname - The wizard to set in
  *                map - The 'sanctioned' map to set.
  */
-public int
-set_sanctioned(string wizname, mapping map)
+public int set_sanctioned(string wizname, mapping map)
 {
     string wname;
     object wiz;
@@ -3902,6 +3990,7 @@ set_sanctioned(string wizname, mapping map)
     return 1;
 }
 
+
 /*
  * Function name: query_banished
  * Description  : Find out whether a name has been banished for use by
@@ -3909,8 +3998,7 @@ set_sanctioned(string wizname, mapping map)
  * Arguments    : string name - the name to check for banishment.
  * Returns      : int 1/0     - true when the name has been banished.
  */
-public int
-query_banished(string name)
+public int query_banished(string name)
 {
     if (!sizeof(name))
     {
@@ -3922,6 +4010,7 @@ query_banished(string name)
     return (file_size(BANISH_FILE(name)) > 0);
 }
 
+
 /*
  * Function name: banish
  * Description  : Banish a name, info about name, remove a banishment.
@@ -3931,8 +4020,7 @@ query_banished(string name)
  *                    the name of the person banishing and the time value at
  *                    which the name was banished.
  */
-mixed *
-banish(string name, int what)
+mixed *banish(string name, int what)
 {
     string euid;
     string file;
@@ -4010,6 +4098,7 @@ banish(string name, int what)
     return ({});
 }
 
+
 /*
  * Function name: do_debug
  * Description  : This function is a front for the efun debug(). You are
@@ -4057,6 +4146,7 @@ banish(string name, int what)
 //     return secure_var(debug(icmd, a1, a2, a3));
 // }
 
+
 /*
  * Function name:   send_udp_message
  * Description:     Sends a udp message to arbitrary host, port
@@ -4066,8 +4156,7 @@ banish(string name, int what)
  * Returns:            True if the message is sent. There is of course no
  *                    guarantee it will be received.
  */
-int
-send_udp_message(string to_host, int to_port, string msg)
+int send_udp_message(string to_host, int to_port, string msg)
 {
 #ifdef UDP_ENABLED
     if (stringp(udp_manager) &&
@@ -4079,14 +4168,14 @@ send_udp_message(string to_host, int to_port, string msg)
     return 0;
 }
 
+
 /*
  * Function name:  check_memory
  * Description:    Checks with 'debug malloc' if it is time to reboot
  * Arguments:      dodecay - decay xp or nto.
  *                   The limit can be defined in config.h as MEMORY_LIMIT
  */
-public void
-check_memory(int dodecay)
+public void check_memory(int dodecay)
 {
     int uptime;
 
@@ -4129,6 +4218,7 @@ check_memory(int dodecay)
     }
 }
 
+
 /*
  * Function name: startup_udp
  * Description:   Give the contents of the package to send as startup
@@ -4136,8 +4226,7 @@ check_memory(int dodecay)
  *                have no UDP_MANAGER.
  * Returns:       The message.
  */
-string
-startup_udp()
+string startup_udp()
 {
     return
         "||NAME:" + get_mud_name() +
@@ -4148,6 +4237,7 @@ startup_udp()
         "||PORTUDP:" + "xxxx" +
         "||TIME:" + ctime(time());
 }
+
 
 /*
  * Function name: set_known_muds
@@ -4168,13 +4258,13 @@ int set_known_muds(mapping m)
     return 0;
 }
 
+
 /*
  * Function name: query_known_muds
  * Description:   Give the currently known muds
  * Returns:       A mapping of information indexed with mudnames
  */
-mapping
-query_known_muds()
+mapping query_known_muds()
 {
 #ifdef UDP_ENABLED
     if (mappingp(known_muds))
@@ -4185,13 +4275,13 @@ query_known_muds()
     return 0;
 }
 
+
 /*
  * Function name: query_prevent_shadow
  * Description  : This function will prevent shadowing of this object.
  * Returns      : int 1 - always.
  */
-nomask int
-query_prevent_shadow()
+nomask int query_prevent_shadow()
 {
     return 1;
 }

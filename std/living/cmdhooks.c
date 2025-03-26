@@ -200,21 +200,29 @@ nomask public string *start_souls(string *souls)
             ob = find_object(ob);
             if (ob)
             {
+                log_debug("Found object: %s", to_string(ob));
                 if (replaced[ob]) /* Dont replace twice */
+                {
+                    log_debug("Object already replaced: %s", to_string(ob));
                     continue;
+                }
                 else
                 {
+                    log_debug("Replace object: %s", to_string(ob));
                     tmp = ({string *}) ob->replace_soul();
                     replaced[ob] = 1;
                 }
 
                 if (stringp(tmp))
                 {
+                    
+                    log_debug("Replacing soul with single string: %s", tmp);
                     replace_souls += ({ (string) tmp });
                     rflag = 1;
                 }
                 else if (pointerp(tmp))
                 {
+                    log_debug("Replacing soul with multiple strings: %O", tmp);
                     replace_souls += tmp;
                     rflag = 1;
                     if (souls[il] in tmp)
@@ -223,15 +231,23 @@ nomask public string *start_souls(string *souls)
 
                 if ((tmp == 0) && !(souls[il] in used_souls))
                 {
+                    
+                    log_debug("Using soul for: %s", souls[il]);
                     ob->using_soul(this_object());
                     used_souls += ({ souls[il] });
                 }
             }
             else
+            
+                log_debug("Adding soul to used souls: %s", souls[il]);
                 used_souls += ({ souls[il] });
         }
         if (rflag)
+        {
+            
+            log_debug("Clearing souls for next iteration");
             souls = replace_souls + ({});
+        }
     } while (rflag);
 
     log_debug("Used souls: %O", used_souls);
@@ -272,8 +288,7 @@ static nomask int load_wiz_souls()
     log_debug("Checking wizard rank for euid: %s", geteuid(this_object()));
     log_debug("SECURITY: %s", SECURITY);
     log_debug("Function: %s", to_string(function_exists("query_wiz_rank", FEXISTS_LINENO)));
-//    if (rank = ({int}) SECURITY->query_wiz_rank(geteuid(this_object())))
-    if (rank = WIZ_KEEPER)
+    if (rank = ({int}) SECURITY->query_wiz_rank(geteuid(this_object())))
     {
         log_debug("Wizard rank found: %d", rank);
         wiz_souls = ({string *}) WIZ_SOUL(rank)->get_soul_list();
@@ -363,9 +378,8 @@ static int my_commands(string str)
 
     /* Don't waste the wiz-souls and toolsouls on mortals.
      */
-//    if (query_wiz_level())
-    if (1)
-        {
+    if (query_wiz_level())
+    {
         /* This construct with while is faster than any for-loop, so keep
          * it this way.
          */

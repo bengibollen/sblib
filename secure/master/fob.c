@@ -1736,9 +1736,9 @@ int query_wiz_rank(string wname)
 {
     logger->debug("Wiz rank query.");
     wname = lower_case(wname);
-
+    if (sizeof(m_wizards[wname]))
+        logger->debug("Wizard found: " + wname);
     return WIZ_KEEPER;
-    // if (!sizeof(m_wizards[wname]))
     //     return WIZ_MORTAL;
 
 //    return m_wizards[wname][FOB_WIZ_RANK];

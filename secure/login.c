@@ -165,6 +165,7 @@ private void login_success() {
     write("\nWelcome back, " + capitalize(name) + "!\n");
     player = clone_object(PLAYER_OBJECT);
     log_info("Cloning player object: %s", object_name(player));
+
     player->initialize(name);
     if (!player)
     {
@@ -430,12 +431,18 @@ static void start_player1()
 {
     object ob;
 
+    
+    log_debug("Running start player 1");
+
     /* Now we can enter the game, find the player file */
     if (player_file)
     {
+        
+        log_debug("Attempting to clone player file.");
         ob = clone_object(player_file);
         if (function_exists("enter_game", ob) != PLAYER_SEC_OBJECT)
         {
+            log_debug("Player file does not have the required function.");
             ob->remove_object();
         }
 
@@ -513,6 +520,7 @@ static void start_player()
     other_copy = find_player(name);
     if (!objectp(other_copy))
     {
+        log_debug("No other copy found, starting player.");
         start_player1();
         return;
     }
@@ -714,40 +722,40 @@ static void get_name(string str)
     }
 
     /* When Armageddon is active, players may not be allowed to connect. */
-    if (({int}) ARMAGEDDON->shutdown_active())
-    {
-        delay = ({int}) ARMAGEDDON->query_delay();
+    // if (({int}) ARMAGEDDON->shutdown_active())
+    // {
+    //     delay = ({int}) ARMAGEDDON->query_delay();
 
-        /* But 'full' wizards (++) are always allowed access. */
-        if (({int}) SECURITY->query_wiz_rank(str) >= WIZ_NORMAL)
-        {
-            write("\nArmageddon is active, but you can login anyway.\n");
-            write("Shutdown in " + CONVTIME(delay) + ".\n");
-        }
-        else if (delay > PASS_ARMAGEDDON)
-        {
-            write("\nArmageddon is active, but you can still login.\n");
-            write("Shutdown in " + CONVTIME(delay) + ".\n");
-        }
-        else
-        {
-            write("\nArmageddon is active, The game is close to a " +
-                "reboot. Please try again when\nthe game is back up.\n\n");
-            write("Shutdown in " + CONVTIME(delay) + ".\n\n");
-            write("NOTE: After the game shut down, it may take a few " +
-                "minutes before the game\nis up and accessible again.\n");
+    //     /* But 'full' wizards (++) are always allowed access. */
+    //     if (({int}) SECURITY->query_wiz_rank(str) >= WIZ_NORMAL)
+    //     {
+    //         write("\nArmageddon is active, but you can login anyway.\n");
+    //         write("Shutdown in " + CONVTIME(delay) + ".\n");
+    //     }
+    //     else if (delay > PASS_ARMAGEDDON)
+    //     {
+    //         write("\nArmageddon is active, but you can still login.\n");
+    //         write("Shutdown in " + CONVTIME(delay) + ".\n");
+    //     }
+    //     else
+    //     {
+    //         write("\nArmageddon is active, The game is close to a " +
+    //             "reboot. Please try again when\nthe game is back up.\n\n");
+    //         write("Shutdown in " + CONVTIME(delay) + ".\n\n");
+    //         write("NOTE: After the game shut down, it may take a few " +
+    //             "minutes before the game\nis up and accessible again.\n");
 
-            destruct(this_object());
-            return;
-        }
-    }
+    //         destruct(this_object());
+    //         return;
+    //     }
+    // }
 
     /* Restore the player. If that fails, we make some additional checks
      * for we must be dealing with a new player.
      */
     if (!restore_object("/players/" + str))
     {
-
+        log_debug("Failed to restore player: %s", str);
 
         vowels = sizeof(filter(explode(str, ""), (: $1 in LANG_VOWELS :)));
         if (!vowels)

@@ -1,4 +1,3 @@
-static void _move_hook_fun (object item, object dest)
 
 // Move object <item> into object <dest>.
 //
@@ -10,7 +9,7 @@ static void _move_hook_fun (object item, object dest)
 // destination exists, destination is not current environment, etc).
 // In addition, it implements the init() protocol needed for add_action()
 // to work.
-
+static void _move_hook_fun (object item, object dest)
 {
     object *others;
     string name;
@@ -104,6 +103,16 @@ public void setup_filesystem() {
     set_driver_hook(H_FILE_ENCODING, "UTF-8");
 }
 
+public void setup_command()
+{
+    set_driver_hook(H_MODIFY_COMMAND, #'modify_command);
+        // ([ "e":"east", "w":"west", "s":"south", "n":"north"
+        //  , "d":"down", "u":"up", "nw":"northwest", "ne":"northeast"
+        //  , "sw":"southwest", "se":"southeast" ]));
+    set_driver_hook(H_MODIFY_COMMAND_FNAME, "modify_command");
+    
+}
+
 public void setup_include_dirs()
 {
     set_driver_hook(H_INCLUDE_DIRS, ({
@@ -130,6 +139,7 @@ public void setup_all()
 {
     setup_filesystem();
     setup_include_dirs();
+    setup_command();
     setup_error_handling();
     setup_uid_management();
     setup_move();

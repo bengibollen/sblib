@@ -8,7 +8,7 @@
 #ifndef FPATH_DEF
 #define FPATH_DEF
 
-#define FPATH_FILENAME "/sys/global/filepath"
+#define FPATH_FILENAME "/lib/language/filepath"
 
 /*
  * Gives a composite path from a default and a given pathname
