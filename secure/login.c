@@ -96,10 +96,12 @@ public void handle_menu(string input) {
     switch(input) {
         case "1":
             write("Name: ");
-            input_to("handle_name");
+            input_to(#'handle_name);
             break;
         case "2":
-            start_character_creation();
+            write("Creating new character...\n");
+            write("Please enter your character's name: ");
+//            input_to(#'new_player);
             break;
         case "3":
             write("\nGoodbye! Come back soon!\n");
@@ -112,21 +114,47 @@ public void handle_menu(string input) {
     }
 }
 
+public void new_player(string name)
+{
+    log_info("=== Creating New Player ===\n");
+    log_debug("New player name: %s", name);
+    if (!valid_name(name)) {
+        log_debug("Invalid name: %s", name);
+        write("Invalid name. Please choose a name between 3 and 16 characters, using only lowercase letters.\n");
+        write("Please enter your character's name: ");
+        input_to(#'new_player);
+        return;
+    }
+    
+    if (user_exists(name)) {
+        log_debug("User already exists: %s", name);
+        write("User already exists. Try a different name.\n");
+        write("Please enter your character's name: ");
+        input_to(#'new_player);
+        return;
+    }
+
+    write("Do you really want to use the name " + capitalize(name) +
+    "? y[es], n[o] or q[uit]? ");
+
+//    input_to(#'confirm_name);
+
+    // password = "";
+    // write("Please enter your password: ");
+    // input_to("new_password", INPUT_NOECHO);
+}
+
 
 public void handle_name(string name) {
     log_info("=== Handling Name Input ===\n");
     log_debug("Object name: %s", object_name(this_object()));
     log_debug("Processing name input: %s", name);
-    
-    if (!name || name == "") {
-        write("Invalid name. Try again: ");
-        input_to("handle_name");
-        return;
-    }
-    
+   
     name = lower_case(name);
     
-    if (restore_object("/players/" + name)) {
+    log_debug("Player file: %s", PLAYER_FILE(name)[..<3]);
+
+    if (restore_object(PLAYER_FILE(name)[..<3])) {
         write("\nPassword: ");
         input_to("handle_password", INPUT_NOECHO);    
     }
@@ -198,16 +226,33 @@ private void login_success() {
 }
 
 // Utility functions
-private int valid_name(string str) {
-    return stringp(str) 
-           && sizeof(str) >= 3 
-           && sizeof(str) <= 16
-           && !!regmatch(str, "^[a-z]+$"); // !! converts to 0 or 1
+private int valid_name(string str)
+{
+    log_info("Validating name: %s", str);
+    if (stringp(str))
+    {
+        log_info("Name is a string: %s", str);
+        if (sizeof(str) >= 3 || sizeof(str) <= 16)
+        {
+            log_info("Name length is valid: %d", sizeof(str));
+            if (!!regmatch(str, "^[a-z]+$"))
+            {
+                log_info("Name does not contain invalid characters: %s", str);
+                return 1;
+            }
+        }
+    }
+    log_info("Name is not a valid string: %s", str);
+    return 0;
 }
 
-private int user_exists(string name) {
+private int user_exists(string name)
+{
+    log_debug("Checking user existence for: %s", name);
+    log_debug("Player file: %s", PLAYER_FILE(name) + ".o");
+    log_debug("File size: %d", file_size(PLAYER_FILE(name)));
     // TODO: Implement user checking
-    return 1;
+    return file_size(PLAYER_FILE(name) + ".o") > 0;
 }
 
 private int verify_password(string name, string pass) {
@@ -219,12 +264,6 @@ private void start_character_creation() {
     write("\nCharacter creation not implemented yet.\n");
     show_menu();
 }
-
-
-
-
-
-
 
 
 #define ATTEMPT_LOG  "/open/attempt"

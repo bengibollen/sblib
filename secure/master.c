@@ -20,6 +20,7 @@ inherit "/secure/simul/security";
 #include "/sys/driver_info.h"
 #include "/inc/cd_log.h"
 #include "/sys/functionlist.h"
+#include "/sys/lpctypes.h"
 
 // Forward declarations for functions used in config
 string load_uid(string file);
@@ -29,7 +30,6 @@ string create_object(string file);
 static void save_master();
 mixed valid_write(string file, string uid, string func, object|lwobject writer);
 string modify_command(string cmd, object ob);
-
 
 private object logger;  // We'll initialize this later
 
@@ -562,6 +562,17 @@ varargs mixed do_debug(string icmd, mixed a1, mixed a2, mixed a3)
     /* Since debug() returns arrays and mappings by reference, we need to
      * process the value to make it secure, so people cannot alter it.
      */
+    logger->debug("Debug command: %s", icmd);
+    switch (icmd)
+    {
+        case "get_variables":
+            mixed * vars = variable_list(previous_object(), RETURN_FUNCTION_NAME|RETURN_VARIABLE_VALUE);
+            logger->debug("vars: %O", vars);
+            return mkmapping(map(vars, (: $1[0] :), map(vars, (: $1[1] :)))); 
+        default:
+            break;
+
+    }
 //    return secure_var(debug(icmd, a1, a2, a3));
     return "";
 }
