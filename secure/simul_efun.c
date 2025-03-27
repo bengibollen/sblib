@@ -34,6 +34,11 @@ private object logger = load_object("/lib/log");
 nomask varargs void dump_array(mixed a, string tab);
 nomask varargs void dump_mapping(mapping m, string tab);
 static nomask void dump_elem(mixed sak, string tab);
+void log_debug(string message, varargs mixed args);
+void log_error(string message, varargs mixed args);
+void log_info(string message, varargs mixed args);
+void log_warning(string message, varargs mixed args);
+
 
 /*
  * No one is allowed to shadow the simulated efuns
@@ -108,6 +113,8 @@ int cat(string file, varargs mixed *argv)
     int i;
     string euid, slask;
 
+    log_debug("Printing file: %s", file);
+
     sscanf(geteuid(previous_object()), "%s:%s", slask, euid);
 
     configure_object(this_object(), OC_EUID, "#:" + euid);
@@ -143,7 +150,7 @@ varargs int tail(string file)
 
     if (!stringp(file) || !this_player())
         return 0;
-    string txt = to_text(read_bytes(file, -(TAIL_MAX_BYTES + 80), (TAIL_MAX_BYTES + 80)), "ASCII");
+    string txt = read_file(file, -(TAIL_MAX_BYTES + 80), (TAIL_MAX_BYTES + 80));
     if (!stringp(txt))
         return 0;
 

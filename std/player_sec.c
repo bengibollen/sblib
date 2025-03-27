@@ -806,6 +806,7 @@ public nomask int enter_game(string pl_name, string pwd)
 
     
     log_debug("Enter game and checking player setup...");
+    configure_interactive(this_object(), IC_ENCODING, "utf-8");
 
     if ((MASTER_OB(previous_object()) != LOGIN_OBJECT) &&
         (MASTER_OB(previous_object()) != LOGIN_NEW_PLAYER))

@@ -437,7 +437,7 @@ static int my_commands(string str)
 
             if (({int}) ob->exist_command(verb))
             {
-                log_debug("Found command soul: %s", ob);
+                log_debug("Found command soul: %s", to_string(ob));
                 log_debug("Command: %s", verb);
                 log_debug("String: %s", str);
                 ob->open_soul(0);
