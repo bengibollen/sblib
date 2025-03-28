@@ -61,6 +61,8 @@ nomask public string modify_command(string str)
     if (!sizeof(str))
 	return str;
 
+    log_debug("Modifying command (quicktyper) for: %s", to_string(this_object()));
+
     /* Player wants to repeat the last command. */
     if (str == "%%")
     {

@@ -281,6 +281,8 @@ public int remove_object()
  */
 string modify_command(string cmd)
 {
+    log_debug("Modifying command (living) for: %s", to_string(this_object()));
+
     return cmd;
 }
 

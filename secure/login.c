@@ -41,6 +41,9 @@ private void login_success();
 private void show_menu();
 public void handle_menu(string input);
 static void start_player();
+public void new_player(string name);
+public void new_password(string input);
+private int check_password_rules(string password);
 
 // Variables
 private string name;
@@ -101,7 +104,7 @@ public void handle_menu(string input) {
         case "2":
             write("Creating new character...\n");
             write("Please enter your character's name: ");
-//            input_to(#'new_player);
+            input_to(#'new_player);
             break;
         case "3":
             write("\nGoodbye! Come back soon!\n");
@@ -114,28 +117,193 @@ public void handle_menu(string input) {
     }
 }
 
-public void new_player(string name)
+public void handle_intro(string input)
+{
+    
+    log_info("=== Handling Intro Input ===\n");
+    log_debug("Input: %s", input);
+    switch(input) {
+        case "y":
+            write("Welcome to your new adventure!\n");
+            break;
+        case "n":
+            write("You have chosen to skip the intro.\n");
+            break;
+        case "q":
+            write("Goodbye! Come back soon!\n");
+            destruct(this_object());
+            break;
+        default:
+            write("Invalid choice. Please enter y[es], n[o], or q[uit]: ");
+            input_to(#'handle_intro);
+            break;
+    }
+}
+
+
+private void create_player()
+{
+    object player_obj;
+
+    player_obj = clone_object(LOGIN_NEW_PLAYER);
+    if (objectp(player_obj))
+    {
+        exec(player_obj, this_object());
+        write("Do you want the newbie intro?\n");
+        write("y[es], n[o] or q[uit]? ");
+        input_to(#'handle_intro);
+
+        write("You wake up from the darkness...\n");
+        write("How long have you been asleep?\n");
+        write("You open your eyes and see nothing but bright light.\n");
+        write("You feel a sense of confusion as you try to remember your past.\n");
+        write("How did you get here?\n");
+        write("Who are you?\n");
+        write("Where were you before you got here?\n");
+        write("What are you?\n");
+        write("- I am...\n");
+        write("- I am ... " + capitalize(name) + "\n");
+        write("- ... " + capitalize(name) + "... ?\n");
+        write("How did you know that?\n");
+        write("You look down at your hands but see nothing but a translucent blur.\n");
+        write("Suddenly you hear an overbearing voice in your head.\n");
+        write("- So... You have finally arrived, the voice booms.\n");
+        write("You think you hear papers shuffling.\n");
+        write("- I have been waiting for you...erm..\n");
+        write("More papers shuffling.\n");
+        write("- " + capitalize(name) + "?\n");
+        write("You nod silently, or at least you think you do.\n");
+        write("- Oh, sorry. I'll release you.\n");
+        write("You hear the snapping of fingers.\n");
+        write("You feel a sudden rush of clarity as the world around you comes into focus.\n");
+        write("Your muddled senses clear and you can see you are standing on a flat surface that seems to stretch endlessly before you.\n");
+        write("Above you is a vast expanse of blue sky, without a cloud in sight.\n");
+        write("In front of you sits a scrawny old man at a desk, sifting through a pile of papers.\n");
+        write("He looks up at you and smiles.\n");
+        write("- Better now? he says in a crackling voice.\n");
+        write("You nod again, this time more confidently.\n");
+        write("- Good, good. No need to be afraid. Have a seat.\n");
+        write("He says, pointing at a chair in front of the desk.\n");
+        write("- I am god... or A god would be more correct.\n");
+        write("- Your soul has been assigned for relocation.\n");
+        write("He says, looking at the papers on his desk.\n");
+        write("- As you might have guessed, you are dead.\n");
+        write("He says, looking at you with a twinkle in his eye.\n");
+        write("- But don't worry, you will be assigned a new body.\n");
+        write("- You will not be reborn, per se, but you will still be able to explore your new existence.\n");
+        write("He looks down on the papers again.\n");
+        write("- Your new world is for some reason called Silver Bucket.\n");
+        write("- I don't know why, but it seems to be a popular name.\n");
+        write("- The rules of this world are a bit different from the one you come from.\n");
+        write("- As if you could remember anything from your previous life, but still...\n");
+        write("- Some concepts from your previous life still reside in your soul.\n");
+        write("- Now to the important part.\n");
+        write("- You have to choose a new body.\n");
+        write("- You can choose between a human, a human, a human or a human.\n");
+        write("He adjusts his glasses and looks at the paper in his hand.\n");
+        write("- I am not sure why, but it seems to be the only option.\n");
+        write("- I guess you will have to make do with what you have.\n");
+        write("- The world is still in early access after all.\n");
+        write("- There should be a choice of classes available too...\n");
+        write("- Buuut.... Early access.\n");
+        write("- You might encounter some bugs along the way.\n");
+        write("- But don't worry, that's part of the adventure!\n");
+        write("- I guess that's it for now.\n");
+        write("- You will be able to acquire the new body from the church.\n");
+        write("- I will send you on your way now, No reason to keep you here.\n");
+        write("- Have fun!\n");
+        write("He snaps his fingers again and you feel a sudden rush of energy.\n");
+        write("You feel your body being pulled in all directions at once as you brace yourself.\n");
+        write("A sudden rush of energy flows through your body as you are pulled into the new world.\n");
+        write("ZZZZZzzzzzzzappppppp!\n");
+        write(read_file(LOGIN_FILE_WELCOME));
+
+
+    }
+    else
+    {
+        write("Failed to create player object.\n");
+        destruct(this_object());
+    }
+
+}
+
+
+public void confirm_password(string input) {
+    log_info("=== Confirming Password ===\n");
+    log_debug("Input: %s", input);
+    if (input == password) {
+        write("\nCreating new character...\n");
+        cat(LOGIN_FILE_NEW_PLAYER_INFO);
+        input_to(#'create_player, INPUT_PROMPT, "Press ENTER to continue...");
+    } else {
+        write("\nPasswords do not match. Please try again: ");
+        password = "";
+        input_to(#'new_password, INPUT_NOECHO);
+    }
+}
+
+
+public void new_password(string input) {
+    log_info("=== New Password ===\n");
+    log_debug("Input: %s", input);
+    if (check_password_rules(input)) {
+        password = input;
+        write("\nPlease confirm your password: ");
+        input_to(#'confirm_password, INPUT_NOECHO);
+    } else {
+        write("\nInvalid password. Please try again: ");
+        input_to(#'new_password, INPUT_NOECHO);
+    }
+} 
+
+public void confirm_name(string input) {
+    log_info("=== Confirming Name ===\n");
+    log_debug("Input: %s", input);
+    input = lower_case(input);
+    if (input[0] == 'y') {
+        log_debug("Confirmed name: %s", name);
+        write("\nPlease enter your password: ");
+        input_to(#'new_password, INPUT_NOECHO);
+    } else if (input[0] == 'n') {
+        name = "";
+        log_debug("User chose to enter a new name.");
+        write("\nPlease enter your character's name: ");
+        input_to(#'new_player);
+    } else if (input[0] == 'q') {
+        name="";
+        write("\nGoodbye! Come back soon!\n");
+        destruct(this_object());
+    } else {
+        write("\nInvalid choice. Please enter y[es], n[o], or q[uit]: ");
+        input_to(#'confirm_name);
+    }
+}
+
+public void new_player(string input)
 {
     log_info("=== Creating New Player ===\n");
-    log_debug("New player name: %s", name);
-    if (!valid_name(name)) {
-        log_debug("Invalid name: %s", name);
+    log_debug("New player name: %s", input);
+    if (!valid_name(input)) {
+        log_debug("Invalid name: %s", input);
         write("Invalid name. Please choose a name between 3 and 16 characters, using only lowercase letters.\n");
         write("Please enter your character's name: ");
         input_to(#'new_player);
         return;
     }
     
-    if (user_exists(name)) {
-        log_debug("User already exists: %s", name);
+    if (user_exists(input)) {
+        log_debug("User already exists: %s", input);
         write("User already exists. Try a different name.\n");
         write("Please enter your character's name: ");
         input_to(#'new_player);
         return;
     }
+    name = input;
 
     write("Do you really want to use the name " + capitalize(name) +
     "? y[es], n[o] or q[uit]? ");
+    input_to(#'confirm_name);
 
 //    input_to(#'confirm_name);
 
@@ -156,7 +324,7 @@ public void handle_name(string name) {
 
     if (restore_object(PLAYER_FILE(name)[..<3])) {
         write("\nPassword: ");
-        input_to("handle_password", INPUT_NOECHO);    
+        input_to(#'handle_password, INPUT_NOECHO);    
     }
     else {
         write("User not found. Try 'new' to create a character.\n");
@@ -175,7 +343,7 @@ public void handle_password(string pass) {
     if (crypt(pass, password) != password)
     {
         write("\nIncorrect password. Try again: ");
-        input_to("handle_password", INPUT_NOECHO);
+        input_to(#'handle_password, INPUT_NOECHO);
         return;
     }
     start_player();
@@ -232,7 +400,7 @@ private int valid_name(string str)
     if (stringp(str))
     {
         log_info("Name is a string: %s", str);
-        if (sizeof(str) >= 3 || sizeof(str) <= 16)
+        if (sizeof(str) >= 3 && sizeof(str) <= 16)
         {
             log_info("Name length is valid: %d", sizeof(str));
             if (!!regmatch(str, "^[a-z]+$"))
@@ -255,8 +423,45 @@ private int user_exists(string name)
     return file_size(PLAYER_FILE(name) + ".o") > 0;
 }
 
+private int check_password_rules(string password)
+{
+
+
+    if (sizeof(password) < 8) {
+        write("Password must be at least 8 characters long.\n");
+        return 0;
+    }
+
+
+    if (!regmatch(password, "[A-Z]")) {
+        write("Password must contain at least one uppercase letter.\n");
+        return 0;
+    }
+
+
+    if (!regmatch(password, "[a-z]")) {
+        write("Password must contain at least one lowercase letter.\n");
+        return 0;
+    }
+
+
+    if (!regmatch(password, "[0-9]")) {
+        write("Password must contain at least one digit.\n");
+        return 0;
+    }
+
+
+    if (!regmatch(password, "[^a-zA-Z0-9]")) {
+        write("Password must contain at least one special character.\n");
+        return 0;
+    }
+
+    return 1;
+}
+
 private int verify_password(string name, string pass) {
     // TODO: Implement password verification
+    write("Verifying password for user: " + name + "\n");
     return 1;
 }
 
@@ -656,11 +861,11 @@ int ovalid_name(string str)
  *                the use of the name.
  * Arguments    : string str - the entered text.
  */
-static void confirm_use_name(string str)
+static void confirm_use_name(string input)
 {
     /* Only allow valid answers. */
-    str = lower_case(str);
-    if (str[0] == 'q')
+    input = lower_case(input);
+    if (input[0] == 'q')
     {
         write("\nWelcome another time then!\n");
         destruct(this_object());
@@ -668,7 +873,7 @@ static void confirm_use_name(string str)
     }
 
 
-    if (str[0] == 'n')
+    if (input[0] == 'n')
     {
         write("\nThen please select a different name, or use 'quit' " +
             "to disconnect.\n\nPlease enter your name: ");
@@ -676,10 +881,10 @@ static void confirm_use_name(string str)
         return;
     }
 
-    if (str[0] != 'y')
+    if (input[0] != 'y')
     {
         write("\nPlease answer with either y[es], n[o] or q[uit].\n" +
-            "Would you really like to use the name " + capitalize(name) + "? ");
+            "Would you really like to use the name " + capitalize(input) + "? ");
         input_to(#'confirm_use_name);
         return;
     }
@@ -870,7 +1075,7 @@ static void get_name(string str)
  *                password.
  * Arguments    : string p - the intended password.
  */
-static void new_password(string p)
+static void new_passwordo(string p)
 {
     write("\n");
 

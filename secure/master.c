@@ -2478,12 +2478,16 @@ string modify_command(string cmd, object ob)
     {
         m_domains[domain][FOB_DOM_CMNDS]++;
     }
+    logger->debug("(before no_subst) cmd is now: %s", to_string(cmd));
 
     /* Allow modification if it does not start with a "$". */
     if (!no_subst)
     {
+        logger->debug("Modifying command for object: %s", to_string(ob));
         cmd = ({string})ob->modify_command(cmd);
     }
+
+    logger->debug("(after no_subst) cmd is now: %s", to_string(cmd));
 
     /* We can not allow any handwritten VBFC */
     while(strstr(cmd, "@@") != -1)
