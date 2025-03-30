@@ -939,8 +939,10 @@ void recursive_rm(object ob)
 public int remove_object()
 {
     map(all_inventory(this_object()), #'recursive_rm);
+
     if (environment(this_object()))
         environment(this_object())->leave_inv(this_object(),0);
+
     this_object()->leave_env(environment(this_object()),0);
     destruct(this_object());
     return 1;
@@ -2052,6 +2054,8 @@ public void set_trusted(int arg)
 {
     object cobj;
 
+    log_debug("Setting trusted status for object: %s", object_name(this_object()));
+
     if (!objectp(cobj = previous_object()))
         return;
 
@@ -2063,10 +2067,20 @@ public void set_trusted(int arg)
         return;
     }
 
+    
+    log_debug("Configuring object EUID: %s", to_string(this_object()));
+    log_debug("Current EUID: %s", to_string(geteuid(this_object())));
+
     if (arg)
+    {
+        log_debug("Setting EUID for object: %s", to_string(this_object()));
         configure_object(this_object(), OC_EUID, geteuid(this_object()));
+    }
     else
+    {
+        log_debug("Removing EUID for object: %s", to_string(this_object()));
         configure_object(this_object(), OC_EUID, 0);
+    }
 }
 
 

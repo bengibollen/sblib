@@ -13,8 +13,7 @@ mixed *OldArr = ({});
  *  Prototypes
  */
 string desc_same(object *oblist, object for_obj);
-varargs string composite(mixed arr, string sepfunc, closure descfunc,
-    object for_obj, int include_no_show);
+varargs string composite(mixed arr, string sepfunc, closure descfunc, object for_obj, int include_no_show);
 string lpc_describe(mixed *uarr, closure dfun, object for_obj);
 varargs string composite_words(string *wlist, string word);
 

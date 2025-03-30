@@ -359,7 +359,7 @@ cmdsoul(string str)
 
     str = FTPATH(({string})this_interactive()->query_path(), str);
 
-    if (member(str, cmdsoul_list) >= 0)
+    if (str in cmdsoul_list)
     {
         if (({int}) this_interactive()->remove_cmdsoul(str))
             write("Removed " + str + ".\n");

@@ -915,8 +915,12 @@ public nomask void open_player()
     if ((previous_object() == find_object(SECURITY)) ||
         (MASTER_OB(previous_object()) == LOGIN_OBJECT))
     {
+
         configure_object(this_object(), OC_EUID, 0);
+        log_debug("Player object opened with euid set to 0.");
     }
+    log_debug("Player object opened successfully.");
+
 }
 
 

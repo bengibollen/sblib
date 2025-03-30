@@ -45,7 +45,7 @@
 /*
  * when m_indexex work on constants: m_indexes(RACEMAP)
  */
-#define RACES ({ "human", "vogon" })
+#define RACES ({ "human" })
 
 /*
  * RACES_SHORT

@@ -1734,7 +1734,7 @@ domain_clear_xp(string dname)
  */
 int query_wiz_rank(string wname)
 {
-    logger->debug("Wiz rank query.");
+    logger->debug("Wiz rank query: %s", to_string(wname));
     wname = lower_case(wname);
     if (sizeof(m_wizards[wname]))
         logger->debug("Wizard found: " + wname);
@@ -2968,7 +2968,7 @@ set_channels(mapping channels)
         return 0;
 
     configure_object(this_object(), OC_EUID, "root");
-    write_file(CHANNELS_SAVE, save_value(channels));
+    write_file(CHANNELS_SAVE, save_value(channels), 1);
     return 1;
 }
 
@@ -2985,6 +2985,10 @@ mapping query_channels()
         return 0;
 
     configure_object(this_object(), OC_EUID, "root");
+
+    logger->debug("File size: %s", to_string(file_size(CHANNELS_SAVE)));
+    logger->debug("File contents:\n%s", read_file(CHANNELS_SAVE));
+
     if (file_size(CHANNELS_SAVE) < 1)
         return ([ ]);
     return restore_value(read_file(CHANNELS_SAVE));

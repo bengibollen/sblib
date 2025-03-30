@@ -113,7 +113,7 @@
  * This is the file with all adverbs known to the game. The file contains
  * a sorted list with every adverb on a new line.
  */
-#define ADVERB_SAVE_FILE ("/sys/global/ADVERBS")
+#define ADVERB_SAVE_FILE ("/lib/language/ADVERBS")
 
 /*
  * ADVERB_SPECIAL_SAVE_FILE
@@ -123,7 +123,7 @@
  * file contains on each line the adverb and the replacement, separated
  * by a colon, i.e. "friendly:in a friendly manner"
  */
-#define ADVERB_REPLACEMENT_SAVE_FILE ("/sys/global/ADVERB_REPLACEMENTS")
+#define ADVERB_REPLACEMENT_SAVE_FILE ("/lib/language/ADVERB_REPLACEMENTS")
 
 /* No definitions beyond this line. */
 #endif

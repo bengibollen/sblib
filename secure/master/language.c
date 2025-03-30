@@ -38,8 +38,7 @@ parse_command_plural_id_list()
  *                i.e. an adjective 'id'.
  * Returns      : string * - the list.
  */
-string *
-parse_command_adjectiv_id_list()
+string *parse_command_adjectiv_id_list()
 {
     return ({ "present", "that" });
 }
@@ -49,8 +48,7 @@ parse_command_adjectiv_id_list()
  * Description  : This will return a list of prepositions.
  * Arguments    : string * - the list.
  */
-string *
-parse_command_prepos_list()
+string *parse_command_prepos_list()
 {
     return ({ "on", "in", "under", "beneeth", "behind", "beside", "inside",
 	      "in front of", "above", "left of", "right of", "on top of" });

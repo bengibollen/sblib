@@ -126,7 +126,7 @@
 #define WORKROOM_OBJECT    ("/std/workroom")
 
 /* The section /sys */
-#define MANCTRL            ("/sys/global/manpath")
+#define MANCTRL            ("/lib/language/manpath")
 
 
 /* Determine the type of an object based on its constructors. */

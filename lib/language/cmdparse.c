@@ -19,6 +19,7 @@
 #include <stdproperties.h>
 #include <cmdparse.h>
 #include <composite.h>
+#include <libfiles.h>
 
 #define PARSE_ENV (objectp(environment(this_player()))	\
 		   ? environment(this_player()) : this_player())
@@ -34,6 +35,7 @@ int gNum;
 int gParseCommandSize = 0;
 static mixed *gContainers;
 
+
 /*
  * Function name: visible_access
  * Description  : Provides a numerical context to a selection by a player.
@@ -47,24 +49,32 @@ static mixed *gContainers;
  *                int include_invis - if true, invis objects are matched.
  * Returns      : object * - the objects that matched, or ({ }).
  */
-varargs mixed *
-visible_access(mixed *arr, string acsfunc, object acsobj, int normflag,
-	       int include_invis)
+varargs mixed *visible_access(
+    mixed *arr,
+    string acsfunc,
+    object acsobj,
+    int normflag,
+    int include_invis)
 {
     int num;
     object *invenv;
     object *items;
 
+    log_debug("=== Handling visible access ===");
+
     /* Access failure. */
     if (!pointerp(arr) || !sizeof(arr) || !this_player())
-	return  ({ });
+    {
+    	return  ({ });
+    }
 
     /* The number designation. */
     num = arr[0];
 
     /* Sort items by short description. */
     items = COMPOSITE_SORT(arr[1..], "short");
-    items = filter(items, objectp);
+    items = filter(items, #'objectp);
+
     if (!sizeof(items))
     {
         return ({ });
@@ -72,21 +82,25 @@ visible_access(mixed *arr, string acsfunc, object acsobj, int normflag,
 
     if (acsfunc)
     {
-	items = filter(items, acsfunc, acsobj);
+    	items = filter(items, "acsfunc", acsobj);
     }
     else
     {
         /* Items must be in the inventory or environment of the player. */
         invenv = all_inventory(this_player());
+
         if (environment(this_player()))
         {
             invenv += all_inventory(environment(this_player()));
         }
+
         items &= invenv;
     }
 
     if (!include_invis)
-        items = filter(items, &->check_seen(this_player()));
+    {
+        items = filter(items, (: $1->check_seen(this_player()) :));
+    }
 
     /* Most often we do not want to return this_player() */
     if (normflag)
@@ -96,27 +110,34 @@ visible_access(mixed *arr, string acsfunc, object acsobj, int normflag,
 
     /* All items required, or none found. */
     if (!num || !sizeof(items))
-	return items;
+    {
+        return items;
+    }
 
     /* Select a certain item, eg. first or third */
     if (num < 0)
-	return order_num(items, -num);
+    {
+        return order_num(items, -num);
+    }
 
     /* Select a number of items, eg. one or three */
     /* Get the first so many we want */
     gNum = num;
-    return filter(items, filter_first);
+    return filter(items, #'filter_first);
 }
+
 
 /*
  * Function name: normal_access
  * Description  : See visible_access(), but with normflag = 1 set.
  */
-varargs mixed *
-normal_access(mixed *arr, string acsfunc, object acsobj, int include_invis)
+varargs mixed *normal_access(mixed *arr, string acsfunc, object acsobj, int include_invis)
 {
+    
+    log_debug("=== Handling normal access ===");
     return visible_access(arr, acsfunc, acsobj, 1, include_invis);
 }
+
 
 /*
  * Function name: parse_command_access
@@ -129,8 +150,7 @@ normal_access(mixed *arr, string acsfunc, object acsobj, int include_invis)
  *                string pattern - the pattern to parse against.
  * Returns      : object * - the matching objects, ({ }) or 0.
  */
-object *
-parse_command_access(string str, mixed invenv, string pattern)
+object *parse_command_access(string str, mixed invenv, string pattern)
 {
     object *oblist;
 
@@ -138,6 +158,7 @@ parse_command_access(string str, mixed invenv, string pattern)
     {
         return 0;
     }
+
     /* In case no object was given, then by default take the inventory and
      * environment of this_player().
      */
@@ -147,12 +168,15 @@ parse_command_access(string str, mixed invenv, string pattern)
         {
             return 0;
         }
+
         invenv = all_inventory(this_player());
+
         if (environment(this_player()))
         {
             invenv += all_inventory(environment(this_player()));
         }
     }
+
     if (parse_command(str, invenv, pattern, oblist))
     {
         return NORMAL_ACCESS(oblist, 0, 0);
@@ -162,6 +186,7 @@ parse_command_access(string str, mixed invenv, string pattern)
         return 0;
     }
 }
+
 
 /*
  * Function name: parse_command_one
@@ -176,8 +201,7 @@ parse_command_access(string str, mixed invenv, string pattern)
  *                string pattern - the pattern to parse against.
  * Returns      : object the matching object - or 0.
  */
-object
-parse_command_one(string str, mixed env, string pattern)
+object parse_command_one(string str, mixed env, string pattern)
 {
     object *oblist = parse_command_access(str, env, pattern);
 
@@ -191,17 +215,18 @@ parse_command_one(string str, mixed env, string pattern)
     }
 }
 
+
 /*
  * Function name: parse_command_size
  * Description  : When using parse_command_one() and it fails, use this
  *                routine to find out how many were actually found.
  * Returns      : int - the number of items actually found.
  */
-int
-parse_command_size()
+int parse_command_size()
 {
     return gParseCommandSize;
 }
+
 
 /*
  * Function name: filter_first
@@ -211,41 +236,44 @@ parse_command_size()
  * Arguments    : object ob - the object to test.
  * Returns      : int - if true, the object is selected.
  */
-nomask int
-filter_first(object ob)
+nomask int filter_first(object ob)
 {
     if (gNum < 1)
-	return 0;
+    	return 0;
     else if (ob->query_prop(HEAP_I_IS))
-	gNum -= ob->split_heap(gNum);
+	    gNum -= ob->split_heap(gNum);
     else
-	gNum -= 1;
+    	gNum -= 1;
+
     return 1;
 }
 
-static mixed *
-order_num(mixed *objs, int num)
+
+static mixed *order_num(mixed *objs, int num)
 {
     int cnt = 1;
 
     foreach(mixed obj: objs)
     {
-	if (obj->query_prop(HEAP_I_IS))
-	{
-	    cnt += obj->num_heap();
-	    if (cnt > num)
-	    {
-		obj->split_heap(1);
-		return ({ obj });
-	    }
-	}
-	else
-	    cnt++;
-	if (cnt > num)
-	    return ({ obj });
+        if (obj->query_prop(HEAP_I_IS))
+        {
+            cnt += obj->num_heap();
+            if (cnt > num)
+            {
+                obj->split_heap(1);
+                return ({ obj });
+            }
+        }
+        else
+            cnt++;
+
+        if (cnt > num)
+            return ({ obj });
     }
+
     return ({ });
 }
+
 
 /* General command routine for "verb %i"
 
@@ -253,8 +281,7 @@ order_num(mixed *objs, int num)
    Parses command and calls 'single_func' for each object to do the command
    upon. Returns an array of these objects for which 'single_func' returned 1.
 */
-varargs object *
-do_verb_1obj(string cmd, string single_func, string acsfunc, object cobj,
+varargs object *do_verb_1obj(string cmd, string single_func, string acsfunc, object cobj,
 	     int include_invis)
 {
     mixed * itema;
@@ -268,14 +295,16 @@ do_verb_1obj(string cmd, string single_func, string acsfunc, object cobj,
 	call_obj = cobj;
 
     if (!parse_command(cmd, PARSE_ENV, "[the] %i", itema))
-	return 0;
+    	return 0;
 
     itema = normal_access(itema, acsfunc, cobj, include_invis);
-    if (!itema)
-	return 0;
 
-    return filter(itema, single_func, call_obj);
+    if (!itema)
+    	return 0;
+
+    return filter(itema, "single_func", call_obj);
 }
+
 
 /* General command routine for "verb %i %s %i" (typical : get from )
 
@@ -287,39 +316,46 @@ do_verb_1obj(string cmd, string single_func, string acsfunc, object cobj,
    upon. Returns array of these objects for which 'single_func' returned 1,
 */
 
-varargs object *
-do_verb_inside(string cmd, string prep_func, string single_func,
-	       string afunc, mixed cobj)
+varargs object *do_verb_inside(
+    string cmd,
+    string prep_func,
+    string single_func,
+    string afunc,
+    mixed cobj)
 {
     mixed *itema1, *itema2;
     object call_obj;
     string str2;
 
     if (!cmd)
-	return 0;
+    	return 0;
+
     if (!cobj)
-	call_obj = previous_object();
+    	call_obj = previous_object();
     else
-	call_obj = cobj;
+	    call_obj = cobj;
 
     if (!parse_command(cmd, PARSE_ENV, "[the] %i %w [the] %i", itema1, str2, itema2))
-	return 0;
+    	return 0;
 
     if (!call_other(call_obj, prep_func, str2))
-	return 0;
+    	return 0;
 
     itema2 = normal_access(itema2, afunc, cobj);
+    
     if (!itema2)
-	return 0;
+    	return 0;
 
     gContainers = itema2;
 
     itema1 = normal_access(itema1, "in_containers", this_object());
+    
     if (!itema1)
-	return 0;
+	    return 0;
 
-    return filter(itema1, single_func, call_obj);
+    return filter(itema1, "single_func", call_obj);
 }
+
 
 /*
  * Function name: in_containers
@@ -329,16 +365,17 @@ do_verb_inside(string cmd, string prep_func, string single_func,
                   0: not in any of the containers
  * globals        gContainers: the array of containers
  */
-int
-in_containers(object ob)
+int in_containers(object ob)
 {
     if (!objectp(ob))
-	return 0;
+    	return 0;
+ 
     if (!environment(ob))
-	return 0;
+    	return 0;
 
     return (environment(ob) in gContainers);
 }
+
 
 /* General command routine for "verb %i %w %i" (typical hit xx with yy )
 
@@ -350,6 +387,7 @@ in_containers(object ob)
    upon. Returns an array of these objects for which 'single_func' returned 1.
 */
 
+
 do_verb_with(string cmd, string check_func, string single_func,
 	     string acsfunc1, string acsfunc2, mixed cobj)
 {
@@ -358,30 +396,34 @@ do_verb_with(string cmd, string check_func, string single_func,
     string str2;
 
     if (!cmd)
-	return 0;
+    	return 0;
+
     if (!cobj)
-	call_obj = previous_object();
+    	call_obj = previous_object();
     else
-	call_obj = cobj;
+	    call_obj = cobj;
 
     if (!parse_command(cmd, PARSE_ENV, "[the] %i %w [the] %i", itema1, str2, itema2))
-	return 0;
+    	return 0;
 
     itema2 = normal_access(itema2, acsfunc2, cobj);
+    
     if (!itema2)
-	return 0;
+	    return 0;
 
     gContainers = itema2;
 
     itema1 = normal_access(itema1, acsfunc1, cobj);
+
     if (!itema1)
-	return 0;
+    	return 0;
 
     if (!call_other(call_obj, check_func, str2, itema2))
-	return 0;
+    	return 0;
 
-    return filter(itema1, single_func, call_obj);
+    return filter(itema1, "single_func", call_obj);
 }
+
 
 /*
  * Function name: find_str_in_arr
@@ -391,43 +433,45 @@ do_verb_with(string cmd, string check_func, string single_func,
  *		  ob  - An array with objects to look through
  * Returns:	  the object array.
  */
-object *
-find_str_in_arr(string str, object *ob)
+object *find_str_in_arr(string str, object *ob)
 {
     int num;
     object *items;
     mixed *arr;
 
     if (!str)
-	return ({});
+    	return ({});
 
     if (parse_command(str, ob, "[the] %i", arr))
     {
         /* Numeric designation */
-	num = arr[0];
+    	num = arr[0];
 
         items = COMPOSITE_SORT(arr[1..], "short");
- 	items = filter(items, &->check_seen(this_player()));
+ 	    items = filter(items, (: $1->check_seen(this_player()) :));
 
-	if (sizeof(items))
-	{
-            /* Select all items */
-	    if (num == 0)
-		return items;
+        if (sizeof(items))
+        {
+                /* Select all items */
+            if (num == 0)
+            {
+                return items;
+            }   
 
-	    /* Select a certain item, eg. first or third */
-	    if (num < 0)
-		return order_num(items, -num);
+            /* Select a certain item, eg. first or third */
+            if (num < 0)
+                return order_num(items, -num);
 
-	    /* Select a number of items, eg. one or three */
-	    /* Get the first so many we want */
-	    gNum = num;
-	    return filter(items, filter_first);
-	}
+            /* Select a number of items, eg. one or three */
+            /* Get the first so many we want */
+            gNum = num;
+            return filter(items, #'filter_first);
+        }
     }
 
     return ({});
 }
+
 
 /*
  * Function name: find_str_in_object
@@ -437,8 +481,7 @@ find_str_in_arr(string str, object *ob)
  *		  ob  - The object to look in
  * Returns:	  An array with corresponding objects, empty if no match
  */
-object *
-find_str_in_object(string str, object ob)
+object *find_str_in_object(string str, object ob)
 {
     object *arr, obj;
 
@@ -446,10 +489,11 @@ find_str_in_object(string str, object ob)
 
     /* Fall back if we cannot find it the official way. */
     if (!sizeof(arr) && (obj = present(str, ob)) && CAN_SEE(this_player(), obj))
-	return ({ obj });
+    	return ({ obj });
 
-    return filter(arr, objectp);
+    return filter(arr, #'objectp);
 }
+
 
 /*
  * Parses a string on the form:
@@ -467,8 +511,7 @@ find_str_in_object(string str, object ob)
  * ret[3]		 True if no normal objects
  *
  */
-mixed *
-parse_itemlist(string str)
+mixed *parse_itemlist(string str)
 {
     string    	*preps, *trypreps, itemstr, nrest, rest;
     mixed	*itemlists, *itemlist;
@@ -480,54 +523,56 @@ parse_itemlist(string str)
     only_sub = 1;
     rest = str;
 
-    trypreps = SECURITY->parse_command_prepos_list();
+    trypreps = ({string *}) SECURITY->parse_command_prepos_list();
 
     trypreps += ({ "at", "of", "prp_examine" });
 
     while (sizeof(rest))
     {
-	notify_fail(break_string("Sorry, In '" + str + "'. The ending: '" +
-				 rest + "', not understood.\n", 76));
-	if (!parse_command(rest, ({}), "%p %s", trypreps, nrest))
-	    return 0;
-	if (!sizeof(nrest))
-	    return 0;
+    	notify_fail("Sorry, In '" + str + "'. The ending: '" +
+				 rest + "', not understood.\n");
 
-	preps += ({ trypreps[0] });
+        if (!parse_command(rest, ({}), "%p %s", trypreps, nrest))
+            return 0;
 
-	if (!parse_command(nrest, PARSE_ENV, "[the] %i %s", itemlist, rest))
-	{
-	    if (!parse_command(nrest, ({}), "%s %p %s", itemstr,
-			       trypreps, rest))
-	    {
-		/* Subitem or sublocation in the room */
-		itemlists += ({ nrest });
-		last_sub = 1;
-		break;
-	    }
-	    else /* subitem or sublocation with preposition after */
-	    {
-		itemlists += ({ itemstr });
-		rest = trypreps[0] + (sizeof(rest) ? " " + rest : "");
-		last_sub = 1;
-	    }
-	    bef = sizeof(itemlists) - 2;
+        if (!sizeof(nrest))
+            return 0;
 
-	    /* Two following subitem/sublocations are combined to one */
-	    if (bef >= 0 && stringp(itemlists[bef]))
-	    {
-		itemlists[bef] += " " + preps[bef + 1] + " " +
-		    itemlists[bef + 1];
-		preps = preps[0..bef];
-		itemlists = itemlists[0..bef];
-	    }
-	}
-	else /* Normal item */
-	{
-	    itemlists += ({ itemlist });
-	    last_sub = 0;
-	    only_sub = 0;
-	}
+        preps += ({ trypreps[0] });
+
+        if (!parse_command(nrest, PARSE_ENV, "[the] %i %s", itemlist, rest))
+        {
+            if (!parse_command(nrest, ({}), "%s %p %s", itemstr, trypreps, rest))
+            {
+
+                /* Subitem or sublocation in the room */
+                itemlists += ({ nrest });
+                last_sub = 1;
+                break;
+            }
+            else /* subitem or sublocation with preposition after */
+            {
+                itemlists += ({ itemstr });
+                rest = trypreps[0] + (sizeof(rest) ? " " + rest : "");
+                last_sub = 1;
+            }
+
+            bef = sizeof(itemlists) - 2;
+
+            /* Two following subitem/sublocations are combined to one */
+            if (bef >= 0 && stringp(itemlists[bef]))
+            {
+                itemlists[bef] += " " + preps[bef + 1] + " " + itemlists[bef + 1];
+                preps = preps[0..bef];
+                itemlists = itemlists[0..bef];
+            }
+        }
+        else /* Normal item */
+        {
+            itemlists += ({ itemlist });
+            last_sub = 0;
+            only_sub = 0;
+        }
     }
     return ({ preps, itemlists, last_sub, only_sub });
 }

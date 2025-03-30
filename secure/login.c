@@ -25,6 +25,18 @@
 // Constants
 #define MAX_ATTEMPTS    3
 #define IDLE_TIMEOUT    300
+#define ATTEMPT_LOG  "/open/attempt"
+#define GUEST_LOGIN  "guest"
+#define CLEANUP_TIME 120.0 /* two minutes  */
+#define TIMEOUT_TIME 120.0 /* two minutes  */
+#define PASS_QUEUE   600   /* ten minutes */
+#define PASS_ARMAGEDDON 300 /* 5 minutes*/
+#define ONE_DAY      86400 /* one day in seconds */
+
+#define ENTER_ENTER  0 /* notify that someone logged in              */
+#define ENTER_REVIVE 3 /* notify that someone revived from linkdeath */
+#define ENTER_SWITCH 4 /* notify that someone switched terminals     */
+
 
 // Function prototypes
 public void create();    // Must be public for object creation
@@ -45,6 +57,24 @@ public void new_player(string name);
 public void new_password(string input);
 private int check_password_rules(string password);
 
+/*
+ * Prototypes.
+ */
+static void check_password(string p);
+static void tell_password();
+static void try_throw_out(string str);
+static void queue(string str);
+static void waitfun(string str);
+static void get_name(string str);
+
+/*
+ * Global valiables that aren't in the save-file.
+ */
+static int login_flag = 0; /* True if the player passed the queue.      */
+static int login_type = ENTER_ENTER; /* Login/revive LD/switch terminal */
+static int password_set = 0; /* New password set or not.                */
+static string old_password; /* The old password of the player.          */
+
 // Variables
 private string name;
 private int time_of_login;
@@ -55,8 +85,8 @@ private int login_attempts;
  */
 private string  password;        /* The password of the player         */
 private string  player_file;     /* The racefile to use for the player */
-private mapping m_remember_name; /* The players we have remembered.    */
 private int     restricted;      /* Are we restricted?                 */
+
 
 public void create() {
     log_info("=== Login Object Created ===");
@@ -64,6 +94,7 @@ public void create() {
     time_of_login = time();
     call_out("check_idle", IDLE_TIMEOUT);
 }
+
 
 public void logon() {
     log_info("New login session started");
@@ -74,16 +105,19 @@ public void logon() {
     show_menu();
 }
 
+
 public void check_idle() {
     log_info("Checking idle status - Timeout occurred");
     write("\nTimeout - disconnecting.\n");
     destruct(this_object());
 }
 
+
 private void show_banner() {
     write("\n=== Welcome to SBLib MUD ===\n");
     write("Your journey begins here...\n\n");
 }
+
 
 private void show_menu() {
     write("Please select an option:\n");
@@ -93,6 +127,7 @@ private void show_menu() {
     write("\nYour choice (1-3): ");
     input_to(#'handle_menu);
 }
+
 
 public void handle_menu(string input) {
     log_info("=== Handling Menu Input ===\n");
@@ -117,6 +152,7 @@ public void handle_menu(string input) {
     }
 }
 
+
 public void handle_intro(string input)
 {
     
@@ -128,6 +164,7 @@ public void handle_intro(string input)
             break;
         case "n":
             write("You have chosen to skip the intro.\n");
+            
             break;
         case "q":
             write("Goodbye! Come back soon!\n");
@@ -138,6 +175,75 @@ public void handle_intro(string input)
             input_to(#'handle_intro);
             break;
     }
+}
+
+
+private void intro()
+{
+    write("You wake up from the darkness...\n");
+    write("How long have you been asleep?\n");
+    write("You open your eyes and see nothing but bright light.\n");
+    write("You feel a sense of confusion as you try to remember your past.\n");
+    write("How did you get here?\n");
+    write("Who are you?\n");
+    write("Where were you before you got here?\n");
+    write("What are you?\n");
+    write("- I am...\n");
+    write("- I am ... " + capitalize(name) + "\n");
+    write("- ... " + capitalize(name) + "... ?\n");
+    write("How did you know that?\n");
+    write("You look down at your hands but see nothing but a translucent blur.\n");
+    write("Suddenly you hear an overbearing voice in your head.\n");
+    write("- So... You have finally arrived, the voice booms.\n");
+    write("You think you hear papers shuffling.\n");
+    write("- I have been waiting for you...erm..\n");
+    write("More papers shuffling.\n");
+    write("- " + capitalize(name) + "?\n");
+    write("You nod silently, or at least you think you do.\n");
+    write("- Oh, sorry. I'll release you.\n");
+    write("You hear the snapping of fingers.\n");
+    write("You feel a sudden rush of clarity as the world around you comes into focus.\n");
+    write("Your muddled senses clear and you can see you are standing on a flat surface that seems to stretch endlessly before you.\n");
+    write("Above you is a vast expanse of blue sky, without a cloud in sight.\n");
+    write("In front of you sits a scrawny old man at a desk, sifting through a pile of papers.\n");
+    write("He looks up at you and smiles.\n");
+    write("- Better now? he says in a crackling voice.\n");
+    write("You nod again, this time more confidently.\n");
+    write("- Good, good. No need to be afraid. Have a seat.\n");
+    write("He says, pointing at a chair in front of the desk.\n");
+    write("- I am god... or A god would be more correct.\n");
+    write("- Your soul has been assigned for relocation.\n");
+    write("He says, looking at the papers on his desk.\n");
+    write("- As you might have guessed, you are dead.\n");
+    write("He says, looking at you with a twinkle in his eye.\n");
+    write("- But don't worry, you will be assigned a new body.\n");
+    write("- You will not be reborn, per se, but you will still be able to explore your new existence.\n");
+    write("He looks down on the papers again.\n");
+    write("- Your new world is for some reason called Silver Bucket.\n");
+    write("- I don't know why, but it seems to be a popular name.\n");
+    write("- The rules of this world are a bit different from the one you come from.\n");
+    write("- As if you could remember anything from your previous life, but still...\n");
+    write("- Some concepts from your previous life still reside in your soul.\n");
+    write("- Now to the important part.\n");
+    write("- You have to choose a new body.\n");
+    write("- You can choose between a human, a human, a human or a human.\n");
+    write("He adjusts his glasses and looks at the paper in his hand.\n");
+    write("- I am not sure why, but it seems to be the only option.\n");
+    write("- I guess you will have to make do with what you have.\n");
+    write("- The world is still in early access after all.\n");
+    write("- There should be a choice of classes available too...\n");
+    write("- Buuut.... Early access.\n");
+    write("- You might encounter some bugs along the way.\n");
+    write("- But don't worry, that's part of the adventure!\n");
+    write("- I guess that's it for now.\n");
+    write("- You will be able to acquire the new body from the church.\n");
+    write("- I will send you on your way now, No reason to keep you here.\n");
+    write("- Have fun!\n");
+    write("He snaps his fingers again and you feel a sudden rush of energy.\n");
+    write("You feel your body being pulled in all directions at once as you brace yourself.\n");
+    write("A sudden rush of energy flows through your body as you are pulled into the new world.\n");
+    write("ZZZZZzzzzzzzappppppp!\n");
+    write(read_file(LOGIN_FILE_WELCOME));
 }
 
 
@@ -152,73 +258,6 @@ private void create_player()
         write("Do you want the newbie intro?\n");
         write("y[es], n[o] or q[uit]? ");
         input_to(#'handle_intro);
-
-        write("You wake up from the darkness...\n");
-        write("How long have you been asleep?\n");
-        write("You open your eyes and see nothing but bright light.\n");
-        write("You feel a sense of confusion as you try to remember your past.\n");
-        write("How did you get here?\n");
-        write("Who are you?\n");
-        write("Where were you before you got here?\n");
-        write("What are you?\n");
-        write("- I am...\n");
-        write("- I am ... " + capitalize(name) + "\n");
-        write("- ... " + capitalize(name) + "... ?\n");
-        write("How did you know that?\n");
-        write("You look down at your hands but see nothing but a translucent blur.\n");
-        write("Suddenly you hear an overbearing voice in your head.\n");
-        write("- So... You have finally arrived, the voice booms.\n");
-        write("You think you hear papers shuffling.\n");
-        write("- I have been waiting for you...erm..\n");
-        write("More papers shuffling.\n");
-        write("- " + capitalize(name) + "?\n");
-        write("You nod silently, or at least you think you do.\n");
-        write("- Oh, sorry. I'll release you.\n");
-        write("You hear the snapping of fingers.\n");
-        write("You feel a sudden rush of clarity as the world around you comes into focus.\n");
-        write("Your muddled senses clear and you can see you are standing on a flat surface that seems to stretch endlessly before you.\n");
-        write("Above you is a vast expanse of blue sky, without a cloud in sight.\n");
-        write("In front of you sits a scrawny old man at a desk, sifting through a pile of papers.\n");
-        write("He looks up at you and smiles.\n");
-        write("- Better now? he says in a crackling voice.\n");
-        write("You nod again, this time more confidently.\n");
-        write("- Good, good. No need to be afraid. Have a seat.\n");
-        write("He says, pointing at a chair in front of the desk.\n");
-        write("- I am god... or A god would be more correct.\n");
-        write("- Your soul has been assigned for relocation.\n");
-        write("He says, looking at the papers on his desk.\n");
-        write("- As you might have guessed, you are dead.\n");
-        write("He says, looking at you with a twinkle in his eye.\n");
-        write("- But don't worry, you will be assigned a new body.\n");
-        write("- You will not be reborn, per se, but you will still be able to explore your new existence.\n");
-        write("He looks down on the papers again.\n");
-        write("- Your new world is for some reason called Silver Bucket.\n");
-        write("- I don't know why, but it seems to be a popular name.\n");
-        write("- The rules of this world are a bit different from the one you come from.\n");
-        write("- As if you could remember anything from your previous life, but still...\n");
-        write("- Some concepts from your previous life still reside in your soul.\n");
-        write("- Now to the important part.\n");
-        write("- You have to choose a new body.\n");
-        write("- You can choose between a human, a human, a human or a human.\n");
-        write("He adjusts his glasses and looks at the paper in his hand.\n");
-        write("- I am not sure why, but it seems to be the only option.\n");
-        write("- I guess you will have to make do with what you have.\n");
-        write("- The world is still in early access after all.\n");
-        write("- There should be a choice of classes available too...\n");
-        write("- Buuut.... Early access.\n");
-        write("- You might encounter some bugs along the way.\n");
-        write("- But don't worry, that's part of the adventure!\n");
-        write("- I guess that's it for now.\n");
-        write("- You will be able to acquire the new body from the church.\n");
-        write("- I will send you on your way now, No reason to keep you here.\n");
-        write("- Have fun!\n");
-        write("He snaps his fingers again and you feel a sudden rush of energy.\n");
-        write("You feel your body being pulled in all directions at once as you brace yourself.\n");
-        write("A sudden rush of energy flows through your body as you are pulled into the new world.\n");
-        write("ZZZZZzzzzzzzappppppp!\n");
-        write(read_file(LOGIN_FILE_WELCOME));
-
-
     }
     else
     {
@@ -232,11 +271,15 @@ private void create_player()
 public void confirm_password(string input) {
     log_info("=== Confirming Password ===\n");
     log_debug("Input: %s", input);
-    if (input == password) {
+
+    if (input == password)
+    {
         write("\nCreating new character...\n");
         cat(LOGIN_FILE_NEW_PLAYER_INFO);
         input_to(#'create_player, INPUT_PROMPT, "Press ENTER to continue...");
-    } else {
+    } 
+    else 
+    {
         write("\nPasswords do not match. Please try again: ");
         password = "";
         input_to(#'new_password, INPUT_NOECHO);
@@ -247,11 +290,15 @@ public void confirm_password(string input) {
 public void new_password(string input) {
     log_info("=== New Password ===\n");
     log_debug("Input: %s", input);
-    if (check_password_rules(input)) {
+
+    if (check_password_rules(input))
+    {
         password = input;
         write("\nPlease confirm your password: ");
         input_to(#'confirm_password, INPUT_NOECHO);
-    } else {
+    } 
+    else 
+    {
         write("\nInvalid password. Please try again: ");
         input_to(#'new_password, INPUT_NOECHO);
     }
@@ -261,20 +308,28 @@ public void confirm_name(string input) {
     log_info("=== Confirming Name ===\n");
     log_debug("Input: %s", input);
     input = lower_case(input);
-    if (input[0] == 'y') {
+
+    if (input[0] == 'y')
+    {
         log_debug("Confirmed name: %s", name);
         write("\nPlease enter your password: ");
         input_to(#'new_password, INPUT_NOECHO);
-    } else if (input[0] == 'n') {
+    }
+    else if (input[0] == 'n')
+    {
         name = "";
         log_debug("User chose to enter a new name.");
         write("\nPlease enter your character's name: ");
         input_to(#'new_player);
-    } else if (input[0] == 'q') {
+    }
+    else if (input[0] == 'q')
+    {
         name="";
         write("\nGoodbye! Come back soon!\n");
         destruct(this_object());
-    } else {
+    }
+    else
+    {
         write("\nInvalid choice. Please enter y[es], n[o], or q[uit]: ");
         input_to(#'confirm_name);
     }
@@ -313,7 +368,8 @@ public void new_player(string input)
 }
 
 
-public void handle_name(string name) {
+public void handle_name(string name)
+{
     log_info("=== Handling Name Input ===\n");
     log_debug("Object name: %s", object_name(this_object()));
     log_debug("Processing name input: %s", name);
@@ -322,18 +378,22 @@ public void handle_name(string name) {
     
     log_debug("Player file: %s", PLAYER_FILE(name)[..<3]);
 
-    if (restore_object(PLAYER_FILE(name)[..<3])) {
+    if (restore_object(PLAYER_FILE(name)[..<3]))
+    {
         write("\nPassword: ");
         input_to(#'handle_password, INPUT_NOECHO);    
     }
-    else {
+    else
+    {
         write("User not found. Try 'new' to create a character.\n");
         show_menu();
         return;
     }
 }
 
-public void handle_password(string pass) {
+
+public void handle_password(string pass)
+{
     if (++login_attempts >= MAX_ATTEMPTS) {
         write("\nToo many failed attempts. Disconnecting.\n");
         destruct(this_object());
@@ -346,9 +406,10 @@ public void handle_password(string pass) {
         input_to(#'handle_password, INPUT_NOECHO);
         return;
     }
+
     start_player();
-//    login_success();
 }
+
 
 private void login_success() {
     object player;
@@ -393,6 +454,7 @@ private void login_success() {
     destruct(this_object());
 }
 
+
 // Utility functions
 private int valid_name(string str)
 {
@@ -414,6 +476,7 @@ private int valid_name(string str)
     return 0;
 }
 
+
 private int user_exists(string name)
 {
     log_debug("Checking user existence for: %s", name);
@@ -422,6 +485,7 @@ private int user_exists(string name)
     // TODO: Implement user checking
     return file_size(PLAYER_FILE(name) + ".o") > 0;
 }
+
 
 private int check_password_rules(string password)
 {
@@ -459,11 +523,13 @@ private int check_password_rules(string password)
     return 1;
 }
 
+
 private int verify_password(string name, string pass) {
     // TODO: Implement password verification
     write("Verifying password for user: " + name + "\n");
     return 1;
 }
+
 
 private void start_character_creation() {
     write("\nCharacter creation not implemented yet.\n");
@@ -471,36 +537,9 @@ private void start_character_creation() {
 }
 
 
-#define ATTEMPT_LOG  "/open/attempt"
-#define GUEST_LOGIN  "guest"
-#define CLEANUP_TIME 120.0 /* two minutes  */
-#define TIMEOUT_TIME 120.0 /* two minutes  */
-#define PASS_QUEUE   600   /* ten minutes */
-#define PASS_ARMAGEDDON 300 /* 5 minutes*/
-#define ONE_DAY      86400 /* one day in seconds */
 
-#define ENTER_ENTER  0 /* notify that someone logged in              */
-#define ENTER_REVIVE 3 /* notify that someone revived from linkdeath */
-#define ENTER_SWITCH 4 /* notify that someone switched terminals     */
 
-/*
- * Global valiables that aren't in the save-file.
- */
-static int time_out_alarm; /* The id of the alarm used for timeout.     */
-static int login_flag = 0; /* True if the player passed the queue.      */
-static int login_type = ENTER_ENTER; /* Login/revive LD/switch terminal */
-static int password_set = 0; /* New password set or not.                */
-static string old_password; /* The old password of the player.          */
 
-/*
- * Prototypes.
- */
-static void check_password(string p);
-static void tell_password();
-static void try_throw_out(string str);
-static void queue(string str);
-static void waitfun(string str);
-static void get_name(string str);
 
 /*
  * Function name: create_object
@@ -544,51 +583,6 @@ string query_real_name()
 }
 
 
-
-
-/*
- * Function name: login
- * Description  : This function is called when a player wants to login.
- *                A lot of checks are made.
- * Returns      : int 1/0 - true if login is allowed.
- */
-public int logon1()
-{
-//  set_screen_width(80);
-
-    if (!interactive(this_object()))
-    {
-        destruct(this_object());
-        return 0;
-    }
-
-    /* No players from this site whatsoever. */
-    if (({int}) SECURITY->check_newplayer(interactive_info(this_object(), II_IP_NUMBER)) == 1)
-    {
-        write("\nYour site is blocked due to repeated offensive " +
-            "behaviour by users from your site.\n\n");
-        destruct(this_object());
-        return 0;
-    }
-
-    player_file = 0;
-
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
-    cat(LOGIN_FILE_WELCOME);
-
-    write("Gamedriver version:  " + ({string}) SECURITY->do_debug("version") +
-        "\nMudlib version    :  " + MUDLIB_VERSION +
-        "\n\nPlease enter your name: ");
-
-
-    input_to(#'get_name);
-
-    return 1;
-}
-
-
-
-
 /*
  * Function name: start_player2
  * Description  : Swapsocket to player object and if we are not already
@@ -598,9 +592,7 @@ public int logon1()
 static void start_player2(object ob)
 {
     object dump;
-
-    int old_was_live;
-    old_was_live = 0;
+    int old_was_live = 0;
 
     /* Print possible news to the player before we alter his/her euid.
      * Since cat() doesn't seem to work, even when setting this_player to
@@ -630,12 +622,18 @@ static void start_player2(object ob)
 
         tell_object(ob,
             "New interactive link to your body. Closing this connection.\n");
+
         dump = clone_object(LOGIN_NEW_PLAYER);
         /* Swap old socket to dummy player. */
         exec(dump, ob);
         dump->remove_object();
         old_was_live = 1;
     }
+
+    
+    log_debug("Swapping to the player object.");
+    log_debug("This object: " + to_string(this_object()) + "\n");
+    log_debug("Ob object: " + to_string(ob) + "\n");
 
     /* Swap to the playerobject. */
     exec(ob, this_object());
@@ -674,16 +672,15 @@ static void start_player2(object ob)
 static void start_player1()
 {
     object ob;
-
     
     log_debug("Running start player 1");
 
     /* Now we can enter the game, find the player file */
     if (player_file)
     {
-        
         log_debug("Attempting to clone player file.");
         ob = clone_object(player_file);
+
         if (function_exists("enter_game", ob) != PLAYER_SEC_OBJECT)
         {
             log_debug("Player file does not have the required function.");
@@ -693,8 +690,10 @@ static void start_player1()
         if (!objectp(ob))
         {
             write("Your body cannot be found.\n" +
-                "Therefore you must choose a new.\n");
+                "Therefore you must choose a new.\n\n");
             player_file = 0;
+            show_menu();
+            return;
         }
     }
 
@@ -709,8 +708,7 @@ static void start_player1()
      *        must be choosen.
      */
     if (!player_file ||
-        (player_file == LOGIN_NEW_PLAYER) ||
-        (player_file == LOGIN_TEST_PLAYER))
+        (player_file == LOGIN_NEW_PLAYER))
     {
         /* Only clone if we have not done so yet. */
         if (!objectp(ob))
@@ -737,14 +735,13 @@ static void start_player1()
     ob->open_player();
 
     if (({int}) SECURITY->query_wiz_rank(name))
-        configure_object(this_object(), OC_EUID, name);
+        configure_object(ob, OC_EUID, name);
     else
-        configure_object(this_object(), OC_EUID, BACKBONE_UID);
+        configure_object(ob, OC_EUID, BACKBONE_UID);
 
     ob->set_trusted(1);
     start_player2(ob);
 }
-
 
 
 /*
@@ -762,6 +759,7 @@ static void start_player()
      * log in immediately if the player doesn't have to queue.
      */
     other_copy = find_player(name);
+
     if (!objectp(other_copy))
     {
         log_debug("No other copy found, starting player.");
@@ -813,45 +811,6 @@ static void start_player()
     start_player2(other_copy);
     return;
 }
-
-
-/*
- * Function name: valid_name
- * Description  : Check that a player name is valid. The name must be at
- *                least two characters long and at most eleven characters.
- *                We only allow lowercase letters. Also, generally offensive
- *                names are not allowed.
- * Arguments    : string str - the name to check.
- * Returns      : int 1/0 - true if the name is allowed.
- */
-int ovalid_name(string str)
-{
-    int index = -1;
-    int length = sizeof(str);
-
-    if (length < 2)
-    {
-        write("\nThe name is too short. The minimum is 2 characters.\n");
-        return 0;
-    }
-
-
-    while (++index < length)
-    {
-        if ((str[index] < 'a') ||
-            (str[index] > 'z'))
-        {
-            write("\nInvalid characters in name \"" + str + "\".\n");
-            write("Only letters (a through z) are allowed.\n");
-            write("Character number was " + (index + 1) + ".\n");
-            return 0;
-        }
-    }
-
-    return 1;
-}
-
-
 
 
 /*
@@ -1070,6 +1029,150 @@ static void get_name(string str)
 
 
 /*
+ * Function name: check_password
+ * Description  : If an existing player tries to login, this function checks
+ *                for the password. If you fail, you are a granted a second
+ *                try.
+ * Arguments    : string p - the intended password.
+ */
+static void check_password(string p)
+{
+    object *players;
+    int     size;
+    int     index;
+    object  player;
+    string *names;
+
+    write("\n");
+
+
+    /* Player has no password, force him/her to set a new one. */
+    if (password == 0)
+    {
+
+        write("You have no password!\n" +
+            "Set a password before you are allowed to continue.\n\n");
+        password_set = 1;
+        old_password = password;
+        password = 0;
+        tell_password();
+        return;
+    }
+
+    /* Password doesn't match */
+    if (crypt(p, password) != password)
+    {
+        write("Wrong password!\n");
+
+        /* Player already had a second chance. Kick him/her out. */
+        if (login_flag)
+        {
+            destruct(this_object());
+            return;
+        }
+
+        login_flag = 1;
+        write("Password (second and last try): ");
+        input_to(#'check_password, 1);
+        return;
+    }
+
+
+    /* Reset the login flag so people won't skip the queue. */
+    login_flag = 0;
+
+    start_player();
+    return;
+}
+
+
+/*
+ * Function name: query_race_name
+ * Description  : Return the race name of this object.
+ * Returns      : string - "logon".
+ */
+public string query_race_name()
+{
+    return "logon";
+}
+
+
+/*
+ * Function name: catch_tell
+ * Description  : This function can be called externally to print a text to
+ *                the logon-player.
+ * Arugments    : string msg - the text to print.
+ */
+public void catch_tell(string msg)
+{
+    write(msg);
+}
+
+
+/*
+ * Function name: query_login_flag
+ * Description  : Returns the current login flag.
+ * Returns      : int - the login flag.
+ */
+public int query_login_flag()
+{
+    return login_flag;
+}
+
+
+/*
+ * Function name: query_prevent_shadow
+ * Description  : This function prevents shadowing of this object.
+ * Returns      : int 1 - always.
+ */
+nomask public int query_prevent_shadow()
+{
+    return 1;
+}
+
+
+/*
+ * Function name: login
+ * Description  : This function is called when a player wants to login.
+ *                A lot of checks are made.
+ * Returns      : int 1/0 - true if login is allowed.
+ */
+public int logon1()
+{
+//  set_screen_width(80);
+
+    if (!interactive(this_object()))
+    {
+        destruct(this_object());
+        return 0;
+    }
+
+    /* No players from this site whatsoever. */
+    if (({int}) SECURITY->check_newplayer(interactive_info(this_object(), II_IP_NUMBER)) == 1)
+    {
+        write("\nYour site is blocked due to repeated offensive " +
+            "behaviour by users from your site.\n\n");
+        destruct(this_object());
+        return 0;
+    }
+
+    player_file = 0;
+
+    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    cat(LOGIN_FILE_WELCOME);
+
+    write("Gamedriver version:  " + ({string}) SECURITY->do_debug("version") +
+        "\nMudlib version    :  " + MUDLIB_VERSION +
+        "\n\nPlease enter your name: ");
+
+
+    input_to(#'get_name);
+
+    return 1;
+}
+
+
+/*
  * Function name: new_password
  * Description  : This function is used to let a new character set his
  *                password.
@@ -1176,105 +1279,37 @@ static void tell_password()
 
 
 /*
- * Function name: check_password
- * Description  : If an existing player tries to login, this function checks
- *                for the password. If you fail, you are a granted a second
- *                try.
- * Arguments    : string p - the intended password.
+ * Function name: valid_name
+ * Description  : Check that a player name is valid. The name must be at
+ *                least two characters long and at most eleven characters.
+ *                We only allow lowercase letters. Also, generally offensive
+ *                names are not allowed.
+ * Arguments    : string str - the name to check.
+ * Returns      : int 1/0 - true if the name is allowed.
  */
-static void check_password(string p)
+int ovalid_name(string str)
 {
-    object *players;
-    int     size;
-    int     index;
-    object  player;
-    string *names;
+    int index = -1;
+    int length = sizeof(str);
 
-    write("\n");
-
-
-    /* Player has no password, force him/her to set a new one. */
-    if (password == 0)
+    if (length < 2)
     {
-
-        write("You have no password!\n" +
-            "Set a password before you are allowed to continue.\n\n");
-        password_set = 1;
-        old_password = password;
-        password = 0;
-        tell_password();
-        return;
+        write("\nThe name is too short. The minimum is 2 characters.\n");
+        return 0;
     }
 
-    /* Password doesn't match */
-    if (crypt(p, password) != password)
-    {
-        write("Wrong password!\n");
 
-        /* Player already had a second chance. Kick him/her out. */
-        if (login_flag)
+    while (++index < length)
+    {
+        if ((str[index] < 'a') ||
+            (str[index] > 'z'))
         {
-            destruct(this_object());
-            return;
+            write("\nInvalid characters in name \"" + str + "\".\n");
+            write("Only letters (a through z) are allowed.\n");
+            write("Character number was " + (index + 1) + ".\n");
+            return 0;
         }
-
-        login_flag = 1;
-        write("Password (second and last try): ");
-        input_to(#'check_password, 1);
-        return;
     }
 
-
-    /* Reset the login flag so people won't skip the queue. */
-    login_flag = 0;
-
-    start_player();
-    return;
-}
-
-
-
-/*
- * Function name: query_race_name
- * Description  : Return the race name of this object.
- * Returns      : string - "logon".
- */
-public string query_race_name()
-{
-    return "logon";
-}
-
-
-/*
- * Function name: catch_tell
- * Description  : This function can be called externally to print a text to
- *                the logon-player.
- * Arugments    : string msg - the text to print.
- */
-public void catch_tell(string msg)
-{
-    write(msg);
-}
-
-
-/*
- * Function name: query_login_flag
- * Description  : Returns the current login flag.
- * Returns      : int - the login flag.
- */
-public int query_login_flag()
-{
-    return login_flag;
-}
-
-
-/*
- * Function name: query_prevent_shadow
- * Description  : This function prevents shadowing of this object.
- * Returns      : int 1 - always.
- */
-nomask public int query_prevent_shadow()
-{
     return 1;
 }
-

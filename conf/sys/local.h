@@ -373,7 +373,7 @@
  *
  * If defined, this object manages udp messages.
  */
-#define UDP_MANAGER "/sys/global/udp"
+#define UDP_MANAGER "/lib/language/udp"
 
 /*
  * DECAY_XP

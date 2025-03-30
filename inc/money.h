@@ -10,7 +10,7 @@
 /*
  * Documentation for functions can be found in this file:
  */
-#define MONEY_FN ("/sys/global/money.c")
+#define MONEY_FN ("/lib/language/money.c")
 
 /*
  * MONEY_COINS return an array with the number of coins for each type.

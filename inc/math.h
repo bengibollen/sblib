@@ -8,7 +8,7 @@
 #define MATH_DEF
 
 #ifndef MATH_FILE
-#define MATH_FILE "/sys/global/math"
+#define MATH_FILE "/lib/language/math"
 #endif
 
 /*

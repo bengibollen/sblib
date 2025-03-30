@@ -2484,7 +2484,7 @@ string modify_command(string cmd, object ob)
     if (!no_subst)
     {
         logger->debug("Modifying command for object: %s", to_string(ob));
-        cmd = ({string})ob->modify_command(cmd);
+        cmd = ({string}) ob->modify_command(cmd);
     }
 
     logger->debug("(after no_subst) cmd is now: %s", to_string(cmd));
@@ -3270,7 +3270,9 @@ int load_player()
         return 0;
     else
     {
+        configure_object(pobj, OC_EUID, "root");
         res = ({int}) pobj->load_player(pobj->query_real_name());
+        configure_object(pobj, OC_EUID, to_string(pobj));
         return res;
     }
 }

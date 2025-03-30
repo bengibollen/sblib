@@ -59,56 +59,57 @@ nomask public string modify_command(string str)
     string *subst_words;
 
     if (!sizeof(str))
-	return str;
+    return str;
 
     log_debug("Modifying command (quicktyper) for: %s", to_string(this_object()));
 
     /* Player wants to repeat the last command. */
     if (str == "%%")
     {
- 	if (({int}) this_player()->query_option(OPT_ECHO))
-	    write("Doing: " + last_command + "\n");
+        if (({int}) this_player()->query_option(OPT_ECHO))
+            write("Doing: " + last_command + "\n");
 
-	return last_command;
+        return last_command;
     }
 
     words = explode(str, " ");
 
     /* Resolve for aliases. */
-    if (m_alias_list[words[0]])
+    if (pointerp(m_alias_list) && m_alias_list[words[0]])
     {
-	/* Replace the first word with the aliased string. */
-	words[0] = m_alias_list[words[0]];
+        /* Replace the first word with the aliased string. */
+        words[0] = m_alias_list[words[0]];
 
-	/* If the aliased string containts the text '%%', this means to
-	 * replace that '%%' with the remaining words of the command line.
-	 */
-	if (strstr(words[0][..<1], "%%") != -1)
-	    subst_words = explode(words[0], "%%");
+        /* If the aliased string contains the text '%%', this means to
+        * replace that '%%' with the remaining words of the command line.
+        */
+        if (strstr(words[0][..<1], "%%") != -1)
+        {
+            subst_words = explode(words[0], "%%");
+        }
     }
 
     /* Resolve nicknames. */
-    if (sizeof(m_nick_list) &&
-        (words[0] != "unnick") && (words[0] != "nick"))
+    if (sizeof(m_nick_list) && (words[0] != "unnick") && (words[0] != "nick"))
     {
-	int size = sizeof(words);
+        int size = sizeof(words);
 
-	while(size--)
-	{
-	    if (m_nick_list[words[size]])
-		words[size] = m_nick_list[words[size]];
-	}
+        while(size--)
+        {
+            if (m_nick_list[words[size]])
+                words[size] = m_nick_list[words[size]];
+        }
     }
 
     /* Reconstruct the command. */
     if (subst_words)
     {
-	str = subst_words[0] + implode(words[1..], " ") +
-	    implode(subst_words[1..], "");
+        str = subst_words[0] + implode(words[1..], " ") +
+        implode(subst_words[1..], "");
     }
     else
     {
-	str = implode(words, " ");
+        str = implode(words, " ");
     }
 
     /* Save the last command given to be retrieved with %%. */

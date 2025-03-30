@@ -16,7 +16,7 @@
  *
  * This defines the object holding much of the cmdparse.h code.
  */
-#define CMDPARSE_STD "/sys/global/cmdparse"
+#define CMDPARSE_STD "/lib/language/cmdparse"
 
 /*
  * CMDPARSE_ONE_ITEM
@@ -143,7 +143,7 @@
  * When PARSE_COMMAND_ONE is used and fails, use this macro to find out how
  * many items were found. It could be 0, but could also be > 1.
  */
-#define PARSE_COMMAND_SIZE ((int)CMDPARSE_STD->parse_command_size())
+#define PARSE_COMMAND_SIZE (({int}) CMDPARSE_STD->parse_command_size())
 
 /*
  * NORMAL_ACCESS

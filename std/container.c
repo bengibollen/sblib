@@ -157,7 +157,13 @@ public int volume_left()
  * Description:   Returns the lightvalue of object internal to this container
  * Returns:       Lightvalue
  */
-public int query_internal_light() { return cont_cur_light; }
+public int query_internal_light()
+{
+    
+    log_debug("Querying internal light");
+    log_debug("Internal light value: " + cont_cur_light);
+    return cont_cur_light;
+}
 
 /*
  * Function name: light
@@ -376,6 +382,9 @@ void leave_env(object from, object to)
 public void update_internal(int l, int w, int v)
 {
     object ob, env;
+
+    
+    log_debug("Updating internal values for: %O", this_object());
 
     cont_cur_light += l;
     cont_cur_weight += w;

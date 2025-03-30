@@ -85,7 +85,7 @@
  *
 */
 #define COMPOSITE_SORT(arr, sepfnc) \
-    ((object *)COMPOSITE_FILE->sort_similar(arr, sepfnc))
+    (({object *})COMPOSITE_FILE->sort_similar(arr, sepfnc))
 
 /*
  * A VBFC to FO_COMPOSITE_LIVE and _DEAD would be nice :)

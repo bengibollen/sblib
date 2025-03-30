@@ -244,57 +244,60 @@ int ls_sort_t(mixed *item1, mixed *item2)
 
 int list_files(string path)
 {
-    int     i;
-    int     j;
-    int     ml, mf;
-    int     size;
-    mixed   tmp;
-    string  mode;
-    string *files;
-    string *items;
+    int     index;
+    int     arg_count;
+    int     show_long_format, mark_files;
+    int     file_count;
+    mixed   arg_array;
+    string  options;
+    string *file_list;
+    string *display_list;
 
     CHECK_SO_WIZ;
 
-    mode = "";
+    options = "";
 
     if (!stringp(path))
     {
-	path = ".";
+        path = ".";
     }
     else
     {
-	tmp  = explode(path, " ");
-	j    = sizeof(tmp);
-	i    = -1;
-	path = "";
+        arg_array = explode(path, " ");
+        arg_count = sizeof(arg_array);
+        index = -1;
+        path = "";
 
-	while (++i < j)
-	{
-	    if (tmp[i][0] == '-')
-	    {
-		mode += tmp[i][1..];
-	    }
-	    else
-	    {
-		path  = tmp[i];
-	    }
-	}
+        while (++index < arg_count)
+        {
+            if (arg_array[index][0] == '-')
+            {
+                options += arg_array[index][1..];
+            }
+            else
+            {
+                path = arg_array[index];
+            }
+        }
 
-	if (!sizeof(path))
-	{
-	    path = ".";
-	}
+        if (!sizeof(path))
+        {
+            path = ".";
+        }
     }
 
-    path = FTPATH(({string})this_interactive()->query_path() + "/", path);
+    path = FTPATH(({string}) this_interactive()->query_path() + "/", path);
 
     /* List a single file. */
     if (file_size(path) > 0)
     {
-        files = explode(path, "/")[-1..];
+        log_debug("Single file.");
+        file_list = explode(path, "/")[<1..];
+        log_debug("File list: %O", file_list);
+
     }
     /* See if there is no asterisk in the path. */
-    else if (!(strstr(path, "*")))
+    else if (strstr(path, "*") == -1)
     {
         /* Add a trailing / if necessary. */
         if (!(path[<1] == '/') )
@@ -307,147 +310,157 @@ int list_files(string path)
         }
     }
 
-    if (!sizeof(files))
+
+    if (!sizeof(file_list))
     {
-        if (!sizeof(files = get_dir(path)))
+        if (!sizeof(file_list = get_dir(path)))
         {
+            
             notify_fail("No files in: " + path + "\n");
             return 0;
         }
     }
 
-    files -= ({ ".", ".." });
-    size   = sizeof(files);
-    items  = ({});
-    path   = implode(explode(path + "/", "/")[..-2], "/") + "/";
+    file_list -= ({ ".", ".." });
+    file_count = sizeof(file_list);
+    display_list = ({});
+    path = implode(explode(path + "/", "/")[..<2], "/") + "/";
 
     /* Do we dump files with a leading period? */
-    if (!(strstr(mode, "a")))
+    if (strstr(options, "a") == -1)
     {
-        files = filter(files, (: !($1[0] == '.') :) );
-        size  = sizeof(files);
+        file_list = filter(file_list, (: !($1[0] == '.') :) );
+        file_count = sizeof(file_list);
     }
 
     /* Do we do sorting on time/date? Note, order is: recent-oldest */
-    if (strstr(mode, "t"))
+    if (strstr(options, "t") != -1)
     {
-	i   = -1;
-	tmp = ({});
+        index = -1;
+        mixed *time_sort_array = ({});
 
-	while (++i < size)
-	{
-	    tmp += ({ ({ files[i], file_time(path + files[i]) }) });
-	}
+        while (++index < file_count)
+        {
+            time_sort_array += ({ ({ file_list[index], file_time(path + file_list[index]) }) });
+        }
 
-	tmp   = sort_array(tmp, #'ls_sort_t);
-	files = ({});
-	i     = -1;
+        time_sort_array = sort_array(time_sort_array, #'ls_sort_t);
+        file_list = ({});
+        index = -1;
 
-	while (++i < size)
-	{
-	    files += ({ tmp[i][0] });
-	}
+        while (++index < file_count)
+        {
+            file_list += ({ time_sort_array[index][0] });
+        }
     }
 
     /* Directories on top. Tintin finds 'O' more logical for that than 'd'. */
-    if (strstr(mode, "O"))
+    if (strstr(options, "O") != -1)
     {
-        tmp = filter(files, (: file_size(path + $1) == FSIZE_DIR :));
-        files = tmp + (files - tmp);
+        string *dir_list = filter(file_list, (: file_size(path + $1) == FSIZE_DIR :));
+        file_list = dir_list + (file_list - dir_list);
     }
 
     /* Do we do a long display? */
-    if (strstr(mode, "l"))
+    if (strstr(options, "l") != -1)
     {
-        mf    = !strstr(mode, "f");
-        ml    = 1;
-	i     = -1;
-	items = files + ({});
-	files = ({});
+        mark_files = !strstr(options, "f");
+        show_long_format = 1;
+        index = -1;
+        display_list = file_list + ({});
+        file_list = ({});
 
-	while (++i < size)
-	{
-	    if ((j = file_size(path + items[i])) == -2)
-	    {
-		if (mf)
-		{
-		    items[i] = items[i] + "/";
-		}
-		files += ({ "d " });
-		j      = 512;
-	    }
-	    else if (find_object(path + items[i]))
-	    {
-		files += ({ "* " });
-	    }
-	    else
-	    {
-		files += ({ "- " });
-	    }
+        while (++index < file_count)
+        {
+            int file_type_size = file_size(path + display_list[index]);
+            string date_string;
 
-	    tmp = ctime(file_time(path + items[i]));
-	    tmp = tmp[4..9] + tmp[19..23] + tmp[10..15];
+            if (file_type_size == -2)
+            {
+                if (mark_files)
+                {
+                    display_list[index] = display_list[index] + "/";
+                }
+                file_list += ({ "d " });
+                file_type_size = 512;
+            }
+            else if (find_object(path + display_list[index]))
+            {
+                file_list += ({ "* " });
+            }
+            else
+            {
+                file_list += ({ "- " });
+            }
 
-	    files[i] += sprintf("%-20s%10d  %s", items[i], j, tmp);
-	}
+            date_string = ctime(file_time(path + display_list[index]));
+            date_string = date_string[4..9] + date_string[19..23] + date_string[10..15];
+
+            file_list[index] += sprintf("%-20s%10d  %s", 
+                display_list[index], file_type_size, date_string);
+        }
     }
 
     /* Distinguish dirs and loaded files?
      * Used to be a -F check, but I reversed that to a negative -f check.
      */
-    if (!ml && (strstr(mode, "f") == -1 ))
+    if (!show_long_format && (strstr(options, "f") == -1 ))
     {
-	i = -1;
-	while (++i < size)
-	{
-	    if (file_size(path + files[i]) == -2)
-	    {
-		files[i] += "/";
-	    }
-	    else if (objectp(find_object(path + files[i])))
-	    {
-		files[i] += "*";
-	    }
-	}
+        index = -1;
+
+        while (++index < file_count)
+        {
+            if (file_size(path + file_list[index]) == -2)
+            {
+                file_list[index] += "/";
+            }
+            else if (objectp(find_object(path + file_list[index])))
+            {
+                file_list[index] += "*";
+            }
+        }
     }
 
     /* Do we reverse sort? */
-    if (strstr(mode, "r") != -1)
+    if (strstr(options, "r") != -1)
     {
-	items = files + ({});
-	i     = sizeof(items);
-	files = ({});
+        display_list = file_list + ({});
+        index     = sizeof(display_list);
+        file_list = ({});
 
-	while (i--)
-	{
-	    files += ({ items[i] });
-	}
+        while (index--)
+        {
+            file_list += ({ display_list[index] });
+        }
     }
 
-    if (ml)
+    if (show_long_format)
     {
-	/* If long option chosen, display one line at a time. */
-	i = -1;
-	while (++i < size)
-	{
-	    write(files[i] + "\n");
-	}
+        /* If long option chosen, display one line at a time. */
+        index = -1;
+
+        while (++index < file_count)
+        {
+            write(file_list[index] + "\n");
+        }
     }
     else
     {
-	tmp = sprintf("%-*#s\n", 76, implode(files, "\n"));
-	if (sizeof(tmp) > 5000)
-	{
-	    this_player()->more(tmp);
-	}
-	else
-	{
-	    write(tmp + "\n");
-	}
+        arg_array = sprintf("%-*#s\n", 76, implode(file_list, "\n"));
+
+        if (sizeof(arg_array) > 5000)
+        {
+            this_player()->more(arg_array);
+        }
+        else
+        {
+            write(arg_array + "\n");
+        }
     }
 
     return 1;
 }
+
 
 /* **************************************************************************
  * more - display the contents of a file

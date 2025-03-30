@@ -185,22 +185,25 @@ add_accepted_here(object ob)
  *                This function is called from query_prop() only.
  * Returns:	  Light value
  */
-nomask int
-light()
+nomask int light()
 {
+    log_debug("Light function called");
     int li;
 
     li = query_prop(ROOM_I_LIGHT);
+
     if (objectp(room_link_cont))
     {
-	if ((environment(room_link_cont)) &&
-	    (({int}) room_link_cont->query_prop(CONT_I_TRANSP) ||
-	     ({int}) room_link_cont->query_prop(CONT_I_ATTACH) ||
-	    !({int}) room_link_cont->query_prop(CONT_I_CLOSED)))
-	{
-	    li += ({int}) (environment(room_link_cont))->query_prop(OBJ_I_LIGHT);
-	}
+        if ((environment(room_link_cont)) &&
+            (({int}) room_link_cont->query_prop(CONT_I_TRANSP) ||
+            ({int}) room_link_cont->query_prop(CONT_I_ATTACH) ||
+            !({int}) room_link_cont->query_prop(CONT_I_CLOSED)))
+        {
+            log_debug("Adding light from linked container");
+            li += ({int}) (environment(room_link_cont))->query_prop(OBJ_I_LIGHT);
+        }
     }
+    log_debug("Light added: %d", li);
     return query_internal_light() + li;
 }
 
@@ -235,13 +238,12 @@ set_room(mixed room)
  *		  w: Weight diff. (Ignored)
  *		  v: Volume diff. (Ignored)
  */
-public void
-update_internal(int l, int w, int v)
+public void update_internal(int l, int w, int v)
 {
     ::update_internal(l, w, v);
 
     if (room_link_cont)
-	room_link_cont->update_internal(l, w, v);
+	    room_link_cont->update_internal(l, w, v);
 }
 
 /*

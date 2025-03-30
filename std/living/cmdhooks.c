@@ -37,6 +37,7 @@ private object logger;
 //                                "tail_input_player" : WIZ_CMD_APPRENTICE ])
 #define REOPEN_SOUL_RELOAD  "_reloaded"
 
+
 /*
  * Function name: cmdhooks_reset
  * Description  : Start the command parsing. The last added action is
@@ -64,6 +65,7 @@ static void cmdhooks_reset()
     }
 }
 
+
 /*
  * Function name: communicate
  * Description  : This function is called whenever the player wants to say
@@ -76,6 +78,7 @@ public varargs int communicate(string str)
     return ({int}) CMD_LIVE_SPEECH->say_text(str);
 }
 
+
 /*
  * Function name: acommunicate
  * Description  : This function is called whenever the player wants to say
@@ -87,6 +90,7 @@ public varargs int acommunicate(string str)
 {
     return ({int}) CMD_LIVE_SPEECH->asay(str);
 }
+
 
 /*
  * Function name: query_say_string
@@ -105,6 +109,7 @@ public nomask string query_say_string()
     return say_string;
 }
 
+
 /*
  * Function name: set_say_string
  * Description  : We store the text the player says to allow guilds to modify
@@ -120,6 +125,7 @@ public nomask void set_say_string(string str)
         say_string = str;
     }
 }
+
 
 /*
  * Function name: race_sound
@@ -143,6 +149,7 @@ public string race_sound()
     return com_sounds[raceto];
 }
 
+
 /*
  * Function name: actor_race_sound
  * Description  : This function returns the sound this_player() makes when
@@ -154,6 +161,7 @@ public string actor_race_sound()
     return "say";
 }
 
+
 /*
  * Function name: query_com_sounds
  * Description  : Returns the mapping with the sounds the way people
@@ -164,6 +172,7 @@ public mapping query_com_sounds()
 {
     return secure_var(com_sounds);
 }
+
 
 /*
  * Function name:   start_souls
@@ -183,8 +192,6 @@ nomask public string *start_souls(string *souls)
     used_souls = ({});
     replaced = ([]);
 
-    log_debug("Start_souls: %O", souls);
-
     do
     {
         rflag = 0;
@@ -192,23 +199,19 @@ nomask public string *start_souls(string *souls)
         {
 
             ob = souls[il];
-            log_debug("Start_soul: %s", ob);
             
             catch(ob->teleledningsanka());
 
-            log_debug("Teleledningsanka executed for: %s", ob);
             ob = find_object(ob);
+
             if (ob)
             {
-                log_debug("Found object: %s", to_string(ob));
                 if (replaced[ob]) /* Dont replace twice */
                 {
-                    log_debug("Object already replaced: %s", to_string(ob));
                     continue;
                 }
                 else
                 {
-                    log_debug("Replace object: %s", to_string(ob));
                     tmp = ({string *}) ob->replace_soul();
                     replaced[ob] = 1;
                 }
@@ -216,13 +219,11 @@ nomask public string *start_souls(string *souls)
                 if (stringp(tmp))
                 {
                     
-                    log_debug("Replacing soul with single string: %s", tmp);
                     replace_souls += ({ (string) tmp });
                     rflag = 1;
                 }
                 else if (pointerp(tmp))
                 {
-                    log_debug("Replacing soul with multiple strings: %O", tmp);
                     replace_souls += tmp;
                     rflag = 1;
                     if (souls[il] in tmp)
@@ -231,29 +232,24 @@ nomask public string *start_souls(string *souls)
 
                 if ((tmp == 0) && !(souls[il] in used_souls))
                 {
-                    
-                    log_debug("Using soul for: %s", souls[il]);
                     ob->using_soul(this_object());
                     used_souls += ({ souls[il] });
                 }
             }
             else
-            
-                log_debug("Adding soul to used souls: %s", souls[il]);
+            {
                 used_souls += ({ souls[il] });
+            }
         }
         if (rflag)
         {
-            
-            log_debug("Clearing souls for next iteration");
             souls = replace_souls + ({});
         }
     } while (rflag);
 
-    log_debug("Used souls: %O", used_souls);
-
     return used_souls;
 }
+
 
 /*
  * Function name: query_wizsoul_list
@@ -265,6 +261,7 @@ nomask public string *query_wizsoul_list()
     return secure_var(wiz_souls);
 }
 
+
 /*
  * Function name:   load_wiz_souls
  * Description:     Load the wizard souls into the player.
@@ -274,7 +271,8 @@ static nomask int load_wiz_souls()
 {
     int rank;
 
-    log_debug("Loading wizard souls for player: %s", to_string(this_object()));
+    log_debug("\n === Loading wizard souls for player: %s", to_string(this_object()));
+
     if (!sizeof(geteuid(this_object())))
     {
         write("PANIC! Player has no euid!\n");
@@ -286,8 +284,8 @@ static nomask int load_wiz_souls()
 
     
     log_debug("Checking wizard rank for euid: %s", geteuid(this_object()));
-    log_debug("SECURITY: %s", SECURITY);
-    log_debug("Function: %s", to_string(function_exists("query_wiz_rank", FEXISTS_LINENO)));
+    log_debug("Function exists: %s", function_exists("query_wiz_rank", FEXISTS_LINENO) ? "true" : "false" );
+
     if (rank = ({int}) SECURITY->query_wiz_rank(geteuid(this_object())))
     {
         log_debug("Wizard rank found: %d", rank);
@@ -297,7 +295,6 @@ static nomask int load_wiz_souls()
     else
     {
         wiz_souls = ({ });
-        log_debug("No wizard rank found for euid: %s", geteuid(this_object()));
         return 1;
     }
 
@@ -313,6 +310,7 @@ static nomask int load_wiz_souls()
     return 1;
 }
 
+
 /*
  * Function name: load_command_souls
  * Description  : Load the command souls into the player.
@@ -320,9 +318,10 @@ static nomask int load_wiz_souls()
  */
 nomask public int load_command_souls()
 {
-    log_debug("Loading command souls for player: %s", to_string(this_object()));
+    log_debug("\n === Loading command souls for player: %s", to_string(this_object()));
     
     soul_souls = query_cmdsoul_list();
+
     if (!sizeof(soul_souls))
     {
         soul_souls = NPC_SOULS;
@@ -334,6 +333,7 @@ nomask public int load_command_souls()
     return 1;
 }
 
+
 /*
  * Function name:   load_tool_souls
  * Description:     Load the tool souls into the player.
@@ -341,7 +341,8 @@ nomask public int load_command_souls()
  */
 nomask public int load_tool_souls()
 {
-    log_debug("Loading tool souls for player: %s", to_string(this_object()));
+    log_debug("\n === Loading tool souls for player: %s", to_string(this_object()));
+
     if ((({int}) SECURITY->query_wiz_rank(geteuid()) < WIZ_NORMAL) ||
         !interactive(this_object()))
     {
@@ -350,6 +351,7 @@ nomask public int load_tool_souls()
     }
 
     tool_souls = query_tool_list();
+
     if (!sizeof(tool_souls))
     {
         /* This must be this_object()-> so don't touch! */
@@ -362,6 +364,7 @@ nomask public int load_tool_souls()
     log_debug("Successfully loaded tool souls for player: %s", to_string(this_object()));
     return 1;
 }
+
 
 /*
  * Function name:   my_commands
@@ -376,10 +379,14 @@ static int my_commands(string str)
     string verb = query_verb();
     int    size;
 
+    log_debug("=== Executing command: %s", to_string(str));
+
     /* Don't waste the wiz-souls and toolsouls on mortals.
      */
     if (query_wiz_level())
     {
+        
+        log_debug("Is wizard.");
         /* This construct with while is faster than any for-loop, so keep
          * it this way.
          */
@@ -403,6 +410,8 @@ static int my_commands(string str)
 
             if (({int}) ob->exist_command(verb))
             {
+                log_debug("Executing command on soul: %s", to_string(ob));
+
                 ob->open_soul(0);
 //                export_uid(ob);
                 ob->open_soul(1);
@@ -491,6 +500,7 @@ static int my_commands(string str)
     return 0;
 }
 
+
 /*
  * Function name: reopen_soul
  * Description  : This function allows for the euid of this player to be
@@ -523,10 +533,13 @@ static int my_commands(string str)
  */
 nomask public void update_hooks()
 {
+    log_debug("Updating hooks for player.");
     load_wiz_souls();
     load_tool_souls();
     load_command_souls();
+    log_debug("Hooks updated successfully.");
 }
+
 
 /*
  * Function name:   cmdhooks_break_spell

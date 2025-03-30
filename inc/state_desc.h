@@ -14,7 +14,7 @@
 #ifndef SD_DEFINED
 #define SD_DEFINED
 
-#define SD_LANG_FILE "/sys/global/language"
+#define SD_LANG_FILE "/lib/language/language"
 
 #ifndef SD_AV_TITLES
 #define SD_AV_TITLES    ({ "novice", "beginner", "apprentice", "master" })

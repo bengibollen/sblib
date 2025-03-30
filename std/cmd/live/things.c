@@ -1640,6 +1640,12 @@ varargs int look(string str, int brief)
                     enemy;
     mixed           long_desc;
 
+    mixed *tmp_prp = 0;
+    mixed *tmp_arr = 0;
+    int parse_ok;
+
+    log_debug("Entering look function with str: " + str + " and brief: " + brief + "\n");
+
     if (!sizeof(str))
     {
         return ({int}) this_player()->do_glance(brief);
@@ -1685,15 +1691,18 @@ varargs int look(string str, int brief)
     }
     */
 
-    /* test for preposition */
+   log_debug("Testing preposition with str: " + str + "\n");
+   /* test for preposition */
     if (sscanf(str, "%s %s", prp, name) < 2)
     {
+        log_debug("Preposition test failed for str: " + str + "\n");
         str = capitalize((query_verb() == "l") ? "look" : query_verb());
         notify_fail(str + " needs a preposition with an object.\n");
         return 0;
     }
 
     prplc = lower_case(prp);
+
     if (prplc != "at" && prplc != "in" && prplc != "inside" &&
         prplc != "prp_examine")
     {
@@ -1704,15 +1713,29 @@ varargs int look(string str, int brief)
     /* through, under, behind, .. ? */
 
     gItem = lower_case(name);
+    log_debug("Processing item: " + gItem + "\n");
+    log_debug("Objects: %O", obarr);
+    log_debug("About to parse: %s, at: %s, using prep: %s", str, to_string(ENV), prp);
+    
+//ldmud: interpret.c:16339: eval_instruction: Assertion `sp[-1].type == T_ARG_FRAME' failed.
 
-    if (!parse_command(str, ENV, "%w %i", prp, obarr) ||
-        !sizeof(obarr = NORMAL_ACCESS(obarr, "visible", this_object())))
+// First parse with variables that won't be used elsewhere in the same expression
+    parse_ok = efun::parse_command(str, this_object(), "in [me]");
+    if (parse_ok)
     {
-        /* No objects found */
+        // Successfully parsed - now use the results
+        obarr = NORMAL_ACCESS(tmp_arr, "visible", this_object());
+    }
+
+    if (!parse_ok || !sizeof(obarr))
+    {
+        log_debug("No objects found for str: " + str + "\n");
+        // No objects found
         /* Test for pseudo item in the environment */
         if (CAN_SEE(this_player(), ENV) &&
             stringp(long_desc = ({string}) environment(this_player())->long(gItem)))
         {
+            log_debug("Long description found: " + long_desc + "\n");
             write(long_desc);
             return 1;
         }
@@ -1730,11 +1753,14 @@ varargs int look(string str, int brief)
             {
                 if ((name == "me") || (name == "myself"))
                 {
-		    write(brief ? glance_desc(this_player()) :
+                    
+                    log_debug("Looking at self: " + ({string}) this_player()->query_name() + "\n");
+        		    write(brief ? glance_desc(this_player()) :
                         ({string}) this_player()->long(this_player()));
                     return 1;
                 }
 
+                log_debug("Processing item: " + gItem + "\n");
                 if (name == "enemy" && (enemy = ({object}) this_player()->query_attack()))
                 {
                     write(brief ? glance_desc(enemy) :
