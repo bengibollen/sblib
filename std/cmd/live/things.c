@@ -48,6 +48,7 @@ inherit "/std/command_driver";
 #include <stdproperties.h>
 #include <subloc.h>
 #include <configuration.h>
+#include <driver_info.h>
 
 #define ENV (environment(this_player()))
 #define PREV_LIGHT CAN_SEE_IN_ROOM(this_player())
@@ -1720,7 +1721,19 @@ varargs int look(string str, int brief)
 //ldmud: interpret.c:16339: eval_instruction: Assertion `sp[-1].type == T_ARG_FRAME' failed.
 
 // First parse with variables that won't be used elsewhere in the same expression
-    parse_ok = efun::parse_command(str, this_object(), "in [me]");
+
+
+string q_com = query_command();
+string t_prp = "";
+object this_obj = this_object();
+dump_driver_info(DDI_OBJECTS, "/log/objects_before.txt");
+dump_driver_info(DDI_MEMORY, "/log/memory_before.txt");
+    parse_ok = efun::parse_command(q_com, this_obj, "'look' %p [me]", t_prp);
+
+dump_driver_info(DDI_OBJECTS, "/log/objects_after.txt");
+dump_driver_info(DDI_MEMORY, "/log/memory_after.txt");
+
+
     if (parse_ok)
     {
         // Successfully parsed - now use the results
