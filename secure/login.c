@@ -153,6 +153,27 @@ public void handle_menu(string input) {
 }
 
 
+public void new_player_entry()
+{
+    object player_obj;
+    log_info("=== New Player Entry ===\n");
+    log_debug("Object name: %s", object_name(this_object()));
+    write("\nWelcome to SBLib MUD!\n");
+    write("You are now entering the world of Silver Bucket.\n");
+    write("Please wait while we set up your character...\n");
+    player_obj = clone_object(LOGIN_NEW_PLAYER);
+    player_obj->open_player();
+
+    configure_object(player_obj, OC_EUID, BACKBONE_UID);
+
+    player_obj->set_trusted(1);
+    exec(player_obj, this_object());
+    player_obj->enter_new_player(name, password);
+    destruct(this_object());
+    return;
+}
+
+
 public void handle_intro(string input)
 {
     
@@ -164,6 +185,7 @@ public void handle_intro(string input)
             break;
         case "n":
             write("You have chosen to skip the intro.\n");
+            new_player_entry();
             
             break;
         case "q":
@@ -249,12 +271,12 @@ private void intro()
 
 private void create_player()
 {
-    object player_obj;
+    // object player_obj;
 
-    player_obj = clone_object(LOGIN_NEW_PLAYER);
-    if (objectp(player_obj))
+    // player_obj = clone_object(LOGIN_NEW_PLAYER);
+    if (1) //(objectp(player_obj))
     {
-        exec(player_obj, this_object());
+        // exec(player_obj, this_object());
         write("Do you want the newbie intro?\n");
         write("y[es], n[o] or q[uit]? ");
         input_to(#'handle_intro);
@@ -489,7 +511,7 @@ private int user_exists(string name)
 
 private int check_password_rules(string password)
 {
-
+    return 1;
 
     if (sizeof(password) < 8) {
         write("Password must be at least 8 characters long.\n");

@@ -64,11 +64,10 @@ public void seq_heartbeat(int steps)
     int il, newstep, stopseq, stopped;
     mixed cmd;
     mixed cmdres;
-    mixed *calls;
 
-    call_out(#'seq_heartbeat, (int) random(10000)/10000 * SEQ_SLOW + SEQ_SLOW / 2.0, 1);
+    call_out(#'seq_heartbeat, to_int(random(10000)/10000 * SEQ_SLOW + SEQ_SLOW / 2.0), 1);
 
-    stopseq = ((time() - this_object()->query_last_met_interactive()) > SEQ_STAY_AWAKE);
+    stopseq = ((time() - ({int}) this_object()->query_last_met_interactive()) > SEQ_STAY_AWAKE);
 
     newstep = 0;
     stopped = 0;
@@ -88,8 +87,8 @@ public void seq_heartbeat(int steps)
             cmd = seq_commands[il][seq_cpos[il]];
             seq_cpos[il]++;
 
-            if (stringp(cmd) || functionp(cmd))
-                cmdres = this_object()->check_call(cmd);
+            if (stringp(cmd) || closurep(cmd))
+                cmdres = ({mixed}) this_object()->check_call(cmd);
             else if (intp(cmd))
                 cmdres = cmd - steps;
             else
@@ -121,25 +120,30 @@ public void seq_heartbeat(int steps)
         }
     }
 
-    calls = get_all_alarms();
+
     if (stopped)
     {
-        for (il = 0 ; il < sizeof(calls) ; il++)
-            if (calls[il][1] == "seq_heartbeat")
-                remove_alarm(calls[il][0]);
+        if (find_call_out("seq_heartbeat") != -1)
+        {
+            remove_call_out("seq_heartbeat");
+        }
+
         this_object()->add_notify_meet_interactive("seq_restart");
+
         if (!newstep)
         {
             seq_active = 0;
         }
     }
+
     if (newstep > 1)
     {
-        for (il = 0 ; il < sizeof(calls) ; il++)
-            if (calls[il][1] == "seq_heartbeat")
-                remove_alarm(calls[il][0]);
-        set_alarm(to_float(newstep) * (SEQ_SLOW / 2.0 + rnd() * SEQ_SLOW), 0.0,
-                  &seq_heartbeat(newstep));
+        if (find_call_out("seq_heartbeat") != -1)
+        {
+            remove_call_out("seq_heartbeat");
+        }
+        
+        call_out(#'seq_heartbeat, to_int(newstep * (SEQ_SLOW / 2 + random(10000) / 10000 * SEQ_SLOW)), newstep);
     }
 }
 
@@ -150,14 +154,15 @@ public void seq_heartbeat(int steps)
 public void
 seq_restart()
 {
-    mixed *calls = get_all_alarms();
     int il;
 
     seq_active = 1;
-    for (il=0 ; il<sizeof(calls) ; il++)
-        if (calls[il][1] == "seq_heartbeat")
-            remove_alarm(calls[il][0]);
-    set_alarm(1.0, 0.0, &seq_heartbeat(1));
+    if (find_call_out("seq_heartbeat") != -1)
+    {
+        remove_call_out("seq_heartbeat");
+    }
+
+    call_out(#'seq_heartbeat, 1, 1);
     this_object()->remove_notify_meet_interactive("seq_restart");
 }
 
@@ -192,13 +197,13 @@ seq_delete(string name)
 {
     int pos;
 
-    if ((pos = member(name, seq_names)) < 0)
+    if ((pos = member(seq_names, name)) < 0)
         return 0;
 
-    seq_names = exclude_array(seq_names, pos, pos);
-    seq_commands = exclude_array(seq_commands, pos, pos);
-    seq_cpos = exclude_array(seq_cpos, pos, pos);
-    seq_flags = exclude_array(seq_flags, pos, pos);
+    seq_names[pos..pos] = ({});
+    seq_commands[pos..pos] = ({});
+    seq_cpos[pos..pos] = ({});
+    seq_flags[pos..pos] = ({});
 }
 
 /*
@@ -284,8 +289,7 @@ seq_query(string name)
     if ((pos = member(name, seq_names)) < 0)
         return 0;
 
-    return slice_array(seq_commands[pos],
-                       seq_cpos[pos], sizeof(seq_commands[pos]));
+    return seq_commands[pos][seq_cpos[pos]..];
 }
 
 /*
@@ -297,7 +301,7 @@ seq_query_flags(string name)
 {
     int pos;
 
-    if ((pos = member(name, seq_names)) < 0)
+    if ((pos = member(seq_names, name)) < 0)
         return 0;
 
     return seq_flags[pos];
@@ -317,7 +321,7 @@ seq_clear(string name)
 {
     int pos;
 
-    if ((pos = member(name, seq_names)) < 0)
+    if ((pos = member(seq_names, name)) < 0)
         return;
 
     seq_commands[pos] = ({});

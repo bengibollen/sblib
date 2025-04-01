@@ -176,7 +176,7 @@ public string show_subloc_size(object on, object for_obj)
 
     race = ({string}) on->query_race();
 
-    if (member(race, RACES) >= 0)
+    if (race in RACES)
     {
         val = ({int}) on->query_prop(CONT_I_HEIGHT);
         rval = RACEATTR[race][0];

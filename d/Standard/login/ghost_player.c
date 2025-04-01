@@ -285,7 +285,7 @@ static string   *new_queries;
  */
 static void ask_player()
 {
-    new_queries = ({ "dummy", "q_mail" });
+    new_queries = ({ "dummy" });
     next_query();
     return;
 }

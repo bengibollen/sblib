@@ -91,7 +91,7 @@ catch_tell(string str)
 
     if (interactive(this_object())) // Monster is possessed
     {
-	write_socket(str);
+	write(str);
 	return;
     }
 
