@@ -49,7 +49,7 @@ nomask void create_living()
 {
     set_skill(SS_BLIND_COMBAT, 40); /* Default skill for NPC's. */
     add_prop(CONT_I_HEIGHT, 160); /* Default height for monsters, 160 cm */
-    add_prop(LIVE_M_NO_ACCEPT_GIVE, mobile_deny_objects());
+    add_prop(LIVE_M_NO_ACCEPT_GIVE, #'mobile_deny_objects);
     mobile_exp_factor = 100;
     this_object()->seq_reset();
     default_config_mobile();
