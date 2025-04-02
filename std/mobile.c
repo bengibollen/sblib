@@ -17,6 +17,7 @@ inherit "/std/act/trigaction";
 #include <macros.h>
 #include <std.h>
 #include <options.h>
+#include <libfiles.h>
 
 /* Private static global reactions.
  */
@@ -48,7 +49,7 @@ create_living()
 {
     set_skill(SS_BLIND_COMBAT, 40); /* Default skill for NPC's. */
     add_prop(CONT_I_HEIGHT, 160); /* Default height for monsters, 160 cm */
-    add_prop(LIVE_M_NO_ACCEPT_GIVE, mobile_deny_objects);
+    add_prop(LIVE_M_NO_ACCEPT_GIVE, #'mobile_deny_objects);
     mobile_exp_factor = 100;
     this_object()->seq_reset();
     default_config_mobile();
@@ -194,7 +195,7 @@ void
 catch_tell(string str)
 {
     if (mobile_link)
-	mobile_link->link_intext(str);
+    	mobile_link->link_intext(str);
     ::catch_tell(str);
 }
 
@@ -228,7 +229,7 @@ catch_vbfc(mixed str, object from_player = 0)
         {
             catch_tell(str[2]);
         }
-        else if (this_object()->query_met(from_player))
+        else if (({int}) this_object()->query_met(from_player))
         {
             catch_tell(str[0]);
         }
@@ -239,7 +240,7 @@ catch_vbfc(mixed str, object from_player = 0)
     }
     else
     {
-        catch_tell(process_string(str, 1));
+        catch_tell(process_string(str));
     }
 }
 

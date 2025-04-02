@@ -104,7 +104,7 @@ catch_tell(string str)
     {
 	if (stringp(trig_patterns[il]))
 	{
-	    pattern = process_string(trig_patterns[il], 1);
+	    pattern = process_string(trig_patterns[il]);
 	    if (trig_check(str, pattern, trig_functions[il]))
 		return;
 	}
@@ -121,7 +121,7 @@ trig_query_args()
 
     arr = ({ a1, a2, a3, a4, a5, a6, a7, a8, a9, a10 });
 
-    return slice_array(arr, 0, num_arg - 1);
+    return arr[..<1];
 }
 
 /*
@@ -193,7 +193,7 @@ trig_check(string str, string pat, string func)
 
     num_arg = sizeof(split) - 1;
 
-    func = process_string(func, 1);
+    func = process_string(func);
 
     if (!stringp(func))
 	return func;
@@ -201,34 +201,34 @@ trig_check(string str, string pat, string func)
     switch (sizeof(split) - 1)
     {
     case 1:
-	return call_other(this_object(), func, a1);
+	return ({mixed}) call_other(this_object(), func, a1);
 	break;
     case 2:
-	return call_other(this_object(), func, a1,a2);
+	return ({mixed}) call_other(this_object(), func, a1,a2);
 	break;
     case 3:
-	return call_other(this_object(), func, a1,a2,a3);
+	return ({mixed}) call_other(this_object(), func, a1,a2,a3);
 	break;
     case 4:
-	return call_other(this_object(), func, a1,a2,a3,a4);
+	return ({mixed}) call_other(this_object(), func, a1,a2,a3,a4);
 	break;
     case 5:
-	return call_other(this_object(), func, a1,a2,a3,a4,a5);
+	return ({mixed}) call_other(this_object(), func, a1,a2,a3,a4,a5);
 	break;
     case 6:
-	return call_other(this_object(), func, a1,a2,a3,a4,a5,a6);
+	return ({mixed}) call_other(this_object(), func, a1,a2,a3,a4,a5,a6);
 	break;
     case 7:
-	return call_other(this_object(), func, a1,a2,a3,a4,a5,a6,a7);
+	return ({mixed}) call_other(this_object(), func, a1,a2,a3,a4,a5,a6,a7);
 	break;
     case 8:
-	return call_other(this_object(), func, a1,a2,a3,a4,a5,a6,a7,a8);
+	return ({mixed}) call_other(this_object(), func, a1,a2,a3,a4,a5,a6,a7,a8);
 	break;
     case 9:
-	return call_other(this_object(), func, a1,a2,a3,a4,a5,a6,a7,a8,a9);
+	return ({mixed}) call_other(this_object(), func, a1,a2,a3,a4,a5,a6,a7,a8,a9);
 	break;
     case 10:
-	return call_other(this_object(), func, a1,a2,a3,a4,a5,a6,a7,a8,a9,a10);
+	return ({mixed}) call_other(this_object(), func, a1,a2,a3,a4,a5,a6,a7,a8,a9,a10);
 	break;
     }
     return 1;

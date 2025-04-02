@@ -40,58 +40,53 @@ inherit "/std/command_driver";
 #define PLAYER_I_LOG_TYPE   "_player_i_log_type"
 #define PLAYER_O_LOG_OBJECT "_player_o_log_object"
 
+
 /* **************************************************************************
  * The constructor.
  */
-void
-create()
+void create()
 {
     configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
 
+
 /* **************************************************************************
  * Return a proper name of the soul in order to get a nice printout.
  */
-string
-get_soul_id()
+string get_soul_id()
 {
     return "info";
 }
 
+
 /* **************************************************************************
  * This is a command soul.
  */
-int
-query_cmd_soul()
+int query_cmd_soul()
 {
     return 1;
 }
 
+
 /* **************************************************************************
  * The list of verbs and functions. Please add new in alfabetical order.
  */
-mapping
-query_cmdlist()
+mapping query_cmdlist()
 {
     return ([
 	"bug"      : "report",
-
 	"date"     : "date",
 	"done"     : "report_done",
-
 	"help"     : "help",
-
 	"idea"     : "report",
-
 	"praise"   : "report",
-
 	"sysbug"   : "report",
 	"sysidea"  : "report",
 	"syspraise": "report",
 	"systypo"  : "report",
-
 	"typo"     : "report" ]);
 }
+
 
 /*
  * Function name: using_soul
@@ -99,10 +94,10 @@ query_cmdlist()
  *		  sublocations responsible for extra descriptions of the
  *		  living object.
  */
-public void
-using_soul(object live)
+public void using_soul(object live)
 {
 }
+
 
 /* **************************************************************************
  * Here follow some support functions.
@@ -115,15 +110,14 @@ using_soul(object live)
  *                text was entered it is logged and the player is thanked.
  * Arguments    : string str - the text entered into the editor.
  */
-public void
-done_reporting(string str)
+public void done_reporting(string str)
 {
     int type = ({int}) this_player()->query_prop(PLAYER_I_LOG_TYPE);
 
     if (!sizeof(str))
     {
-	write(LOG_ABORT_MSG(LOG_MSG(type)));
-	return;
+        write(LOG_ABORT_MSG(LOG_MSG(type)));
+        return;
     }
 
     /* Log the note, thank the player and then clean up after ourselves. */
@@ -134,6 +128,7 @@ done_reporting(string str)
     this_player()->remove_prop(PLAYER_O_LOG_OBJECT);
 }
 
+
 /* **************************************************************************
  * Now the actual commands. Please add new in the alphabetical order.
  * **************************************************************************/
@@ -141,8 +136,7 @@ done_reporting(string str)
 /*
  * date - get local time & date + uptime information
  */
-int
-date()
+int date()
 {
     int runlevel;
     int delay, interval;
@@ -164,11 +158,11 @@ date()
     /* Information about the reboot status. */
     if (({int}) ARMAGEDDON->shutdown_active())
     {
-	write("Armageddon    : Shutdown in " +
-	     CONVTIME(({int}) ARMAGEDDON->shutdown_time()) + ".\n");
-	write("Shutdown by   : " + capitalize(({string}) ARMAGEDDON->query_shutter()) +
-	     ".\n");
-	write("Reason        : " + ({string}) ARMAGEDDON->query_reason() + "\n");
+        write("Armageddon    : Shutdown in " +
+            CONVTIME(({int}) ARMAGEDDON->shutdown_time()) + ".\n");
+        write("Shutdown by   : " + capitalize(({string}) ARMAGEDDON->query_shutter()) +
+            ".\n");
+        write("Reason        : " + ({string}) ARMAGEDDON->query_reason() + "\n");
     }
 #ifdef REGULAR_UPTIME
     else if (delay <= 0)
@@ -222,11 +216,11 @@ date()
     return 1;
 }
 
+
 /*
  * help - Get help on a subject
  */
-int
-help(string what)
+int help(string what)
 {
     string dir = "general/";
 
@@ -239,15 +233,15 @@ help(string what)
     if ((({int}) this_player()->query_wiz_level()) &&
     	(this_player() == this_interactive()))
     {
-	/* ... unless they want to see the general page. */
-	if (what[..1] == "g ")
-	{
-	    what = what[..2];
-	}
-	else if (file_size("/doc/help/wizard/" + what) > 0)
-	{
-	    dir = "wizard/";
-	}
+        /* ... unless they want to see the general page. */
+        if (what[..1] == "g ")
+        {
+            what = what[..2];
+        }
+        else if (file_size("/doc/help/wizard/" + what) > 0)
+        {
+            dir = "wizard/";
+        }
     }
 
     if (file_size("/doc/help/" + dir + what) > 0)
@@ -262,11 +256,11 @@ help(string what)
     return 0;
 }
 
+
 /*
  * Report - make a report of some kind.
  */
-int
-report(string str)
+int report(string str)
 {
     object *oblist;
     object target;
@@ -277,52 +271,47 @@ report(string str)
      */
     if (!type)
     {
-	notify_fail("Illegal log type \"" + query_verb() +
-	    "\". Please report this to an archwizard.\n");
-	return 0;
+        notify_fail("Illegal log type \"" + query_verb() +
+            "\". Please report this to an archwizard.\n");
+        return 0;
     }
 
     /* Player may describe the object to make a report about. */
     if (stringp(str))
     {
-	/* If there is an argument to the 'done' or 'sys..' commands, take
-         * it as the message.
-         */
-	if ((type >= LOG_SYSBUG_ID) ||
-	    (type == LOG_DONE_ID))
-	{
-	    this_player()->add_prop(PLAYER_I_LOG_TYPE, type);
-            this_player()->add_prop(PLAYER_O_LOG_OBJECT,
-                environment(this_player()));
+        /* If there is an argument to the 'done' or 'sys..' commands, take
+            * it as the message.
+            */
+        if ((type >= LOG_SYSBUG_ID) || (type == LOG_DONE_ID))
+        {
+            this_player()->add_prop(PLAYER_I_LOG_TYPE, type);
+            this_player()->add_prop(PLAYER_O_LOG_OBJECT, environment(this_player()));
 
-	    done_reporting(str + "\n");
-	    return 1;
-	}
+            done_reporting(str + "\n");
+            return 1;
+        }
 
-	/* Find the target. */
-	if (!parse_command(str, environment(this_player()), "[the] %i",
-			   oblist) ||
-	    (!sizeof(oblist = NORMAL_ACCESS(oblist, 0, 0))))
-	{
-	    notify_fail("Make a " + query_verb() + " report about what?\n");
-	    return 0;
-	}
+        /* Find the target. */
+        if (!parse_command(str, environment(this_player()), "[the] %i", oblist) ||
+            (!sizeof(oblist = NORMAL_ACCESS(oblist, 0, 0))))
+        {
+            notify_fail("Make a " + query_verb() + " report about what?\n");
+            return 0;
+        }
 
-	/* One target at a time. */
-	if (sizeof(oblist) > 1)
-	{
-	    notify_fail("Select only one target to make a " + query_verb() +
-		" report about.\n");
-	    return 0;
-	}
+        /* One target at a time. */
+        if (sizeof(oblist) > 1)
+        {
+            notify_fail("Select only one target to make a " + query_verb() + " report about.\n");
+            return 0;
+        }
 
-	target = oblist[0];
-	write("Making a " + query_verb() + " report about " +
-	    LANG_THESHORT(target)+ ".\n");
+        target = oblist[0];
+        write("Making a " + query_verb() + " report about " + LANG_THESHORT(target) + ".\n");
     }
     else
     {
-	target = environment(this_player());
+    	target = environment(this_player());
     }
 
     /* Add the relevant data to the player. */
@@ -335,11 +324,11 @@ report(string str)
     return 1;
 }
 
+
 /*
  * report_done - Report something as done (wizards only)
  */
-int
-report_done(string str)
+int report_done(string str)
 {
     /* To mortal players, the command done does not exist so we do not
      * have to give a notify_fail message. Apprentices, pilgrims and
@@ -347,7 +336,7 @@ report_done(string str)
      */
     if (WIZ_CHECK < WIZ_NORMAL)
     {
-	return 0;
+    	return 0;
     }
 
     return report(str);
