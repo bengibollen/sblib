@@ -8,10 +8,9 @@ inherit "/std/room";
 #define MAILREADER	"/secure/mail_reader"
 #define MAILCHECKER	"/secure/mail_checker"
 
-void
-create_room()
-{
 
+void create_room()
+{
     set_short("The main post office");
     add_prop(ROOM_I_INSIDE,1); // this room is always lit
 
@@ -26,51 +25,63 @@ create_room()
     add_exit("/d/Standard/start/church","north","@@wblock");
 }
 
-int
-wblock()
+
+int wblock()
 {
     return 0;
 }
 
-void
-init()
+
+void init()
 {
     object reader;
     ::init();
 
     reader = clone_object(MAILREADER);
-    if (!reader) {
-	write("No mailreader is available at this time.\n");
-	return;
+
+    if (!reader)
+    {
+    	write("No mailreader is available at this time.\n");
+	    return;
     }
+
     reader->move(this_player());
 }
 
-void
-leave_inv(object ob, mixed to)
+
+void leave_inv(object ob, mixed to)
 {
     object reader;
     ::leave_inv(ob, to);
 
     reader = present("mailread", ob);
+
     if (reader)
-	reader->remove_object();
+    {
+    	reader->remove_object();
+    }
 }
 
-int
-query_mail(int silent)
+
+int query_mail(int silent)
 {
     string new;
     int mail;
 
     mail = ({int}) MAILCHECKER->query_mail(this_player());
+
     if (!mail)
-	return 0;
-    new = "";
-    if (mail > 1)
     {
-	new = " NEW";
+        return 0;
     }
+    
+	new = "";
+
+    if (mail > 1)
+	{
+	    new = " NEW";
+	}
+
     write("There is" + new + " mail for you in post office.\n");
-    return 1;
+	return 1;
 }

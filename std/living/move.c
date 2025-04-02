@@ -20,12 +20,12 @@
  */
 static private mapping move_opposites = ({mapping}) SECURITY->query_move_opposites();
 
+
 /*
  * Function name: move_reset
  * Description  : Reset the move module of the living object.
  */
-static nomask void
-move_reset()
+static nomask void move_reset()
 {
     set_m_in(LD_ALIVE_MSGIN);
     set_m_out(LD_ALIVE_MSGOUT);
@@ -33,6 +33,7 @@ move_reset()
     set_mm_in(LD_ALIVE_TELEIN);
     set_mm_out(LD_ALIVE_TELEOUT);
 }
+
 
 /*
  * Function name: move_living
@@ -56,15 +57,17 @@ move_reset()
  *                      5: The destination doesn't allow insertions of objects.
  *                      7: Other (Error message printed inside move() func)
  */
-public varargs int
-move_living(string how, mixed to_dest, int dont_follow, int no_glance)
+public varargs int move_living(string how, mixed to_dest, int dont_follow, int no_glance)
 {
     int    index, size, invis;
     object *team, *dragged, env, oldtp;
-    string vb = query_verb();
+    string verb = query_verb();
     string com, msgout, msgin;
     mixed msg;
     string from_desc;
+
+    log_debug(" === Verb: %s ===", to_string(verb));
+    log_debug("Move opposites: %O", move_opposites);
 
     oldtp = this_player();
 
@@ -132,7 +135,7 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
         {
             msgin += " " + from_desc;
         }
-        else if (sizeof(from_desc = move_opposites[vb]))
+        else if (sizeof(from_desc = move_opposites[verb]))
         {
             msgin += " from " + from_desc + ".";
         }
@@ -155,7 +158,7 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
     {
         /* Update the last room settings. */
         add_prop(LIVE_O_LAST_ROOM, env);
-        add_prop(LIVE_S_LAST_MOVE, vb);
+        add_prop(LIVE_S_LAST_MOVE, verb);
 
         /* Update the hunting status */
         this_object()->adjust_combat_on_move(1);
@@ -230,13 +233,15 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
     this_object()->adjust_combat_on_move(0);
 
     dragged = query_prop(TEMP_DRAGGED_ENEMIES);
+
     if (pointerp(dragged))
         dragged = filter(dragged, #'objectp);
     else
         dragged = ({});
+
     if (sizeof(dragged))
     {
-	foreach(object dragee: dragged)
+    	foreach(object dragee: dragged)
         {
             tell_room(environment(dragee), QCTNAME(dragee) +
                 " leaves following " + QTNAME(this_object()) + ".\n", ({dragee}));
@@ -255,7 +260,7 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
         (size = sizeof(team = query_team())))
     {
         /* Command for the followers if this is a leader. */
-        if (!sizeof(vb))
+        if (!sizeof(verb))
         {
             if (sizeof(explode(how, " ")) == 1)
             {
@@ -268,15 +273,16 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
         }
         else if (com = ({string}) env->query_dircmd())
         {
-            com = vb + " " + com;
+            com = verb + " " + com;
         }
         else
         {
-            com = vb;
+            com = verb;
         }
 
         /* Move the present team members. */
         index = -1;
+
         while(++index < size)
         {
             if ((environment(team[index]) == env) &&
@@ -296,6 +302,7 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
     return 0;
 }
 
+
 /*
  * Function name: follow_leader
  * Description  : If the leader of the team moved, follow him/her.
@@ -306,8 +313,7 @@ move_living(string how, mixed to_dest, int dont_follow, int no_glance)
  *                force the wizard to perform non-protected commands. Wizard
  *                commands cannot be forced as they are protected.
  */
-public void
-follow_leader(string com)
+public void follow_leader(string com)
 {
     /* Only accept this call if we are called from our team-leader. */
     if (previous_object() != query_leader())
@@ -323,14 +329,14 @@ follow_leader(string com)
     this_object()->command("$" + com);
 }
 
+
 /*
  * Function name: reveal_me
  * Description  : Reveal me unintentionally.
  * Arguments    : int tellme - true if we should tell the player.
  * Returns      : int - 1 : He was hidden, 0: He was already visible.
  */
-public nomask int
-reveal_me(int tellme)
+public nomask int reveal_me(int tellme)
 {
     object *list, tp;
     int index, size;
@@ -353,6 +359,7 @@ reveal_me(int tellme)
 
     index = -1;
     size = sizeof(list);
+
     while(++index < size)
     {
         list[index]->combat_init();

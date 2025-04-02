@@ -11,37 +11,50 @@ inherit "/std/mobile";
 
 #define QEXC query_combat_object()
 
-void
-create_creature() { ::create_mobile(); }
 
-nomask void
-create_mobile()
+void create_creature()
+{
+    ::create_mobile();
+}
+
+
+nomask void create_mobile()
 {
     create_creature();
 }
 
-void
-reset_creature() {  ::reset_mobile(); }
 
-nomask void
-reset_mobile() { reset_creature(); }
+void reset_creature()
+{
+    ::reset_mobile();
+}
+
+
+nomask void reset_mobile()
+{
+    reset_creature();
+}
+
 
 /*
  * Description:  Use the plain (no tools) combat file
  */
-public string
-query_combat_file() { return "/std/combat/cplain"; }
+public string query_combat_file()
+{
+    return "/std/combat/cplain";
+}
+
 
 /*
  * Function name:  default_config_npc
  * Description:    Sets some necessary values for this creature to function
  *                 This is basically stats and skill defaults.
  */
-varargs public void
-default_config_creature(int lvl)
+varargs public void default_config_creature(int lvl)
 {
     default_config_mobile(lvl);
 }
+
 
 /*
  * Function name: add_attack
@@ -55,13 +68,14 @@ default_config_creature(int lvl)
  *
  * Returns:       True if added.
  */
-public int
-add_attack(int wchit, int wcpen, int damtype, int prcuse, int id)
+public int add_attack(int wchit, int wcpen, int damtype, int prcuse, int id)
 {
     if (!QEXC)
-	return 0;
-    return (int)QEXC->cb_add_attack(wchit, wcpen, damtype, prcuse, id);
+    	return 0;
+
+    return ({int}) QEXC->cb_add_attack(wchit, wcpen, damtype, prcuse, id);
 }
+
 
 /*
  * Function name: remove_attack
@@ -69,13 +83,14 @@ add_attack(int wchit, int wcpen, int damtype, int prcuse, int id)
  * Arguments:     id: The attack id
  * Returns:       True if removed
  */
-public int
-remove_attack(int id)
+public int remove_attack(int id)
 {
     if (!QEXC)
-	return 0;
-    return (int)QEXC->cb_remove_attack(id);
+    	return 0;
+
+    return ({int}) QEXC->cb_remove_attack(id);
 }
+
 
 /*
  * Function name: add_hitloc
@@ -88,13 +103,14 @@ remove_attack(int id)
  *
  * Returns:       True if added.
  */
-public int
-add_hitloc(int *ac, int prchit, string desc, int id)
+public int add_hitloc(int *ac, int prchit, string desc, int id)
 {
     if (!QEXC)
-	return 0;
-    return (int)QEXC->cb_add_hitloc(ac, prchit, desc, id);
+    	return 0;
+
+    return ({int}) QEXC->cb_add_hitloc(ac, prchit, desc, id);
 }
+
 
 /*
  * Function name: remove_hitloc
@@ -102,13 +118,14 @@ add_hitloc(int *ac, int prchit, string desc, int id)
  * Arguments:     id: The hitloc id
  * Returns:       True if removed
  */
-public int
-remove_hitloc(int id)
+public int remove_hitloc(int id)
 {
     if (!QEXC)
-	return 0;
-    return (int)QEXC->cb_remove_hitloc(id);
+    	return 0;
+
+    return ({int}) QEXC->cb_remove_hitloc(id);
 }
+
 
 /*
  * Function name: query_humanoid
@@ -116,8 +133,7 @@ remove_hitloc(int id)
  *                that it returns 0.
  * Returns      : int - 0.
  */
-public int
-query_humanoid()
+public int query_humanoid()
 {
     return 0;
 }

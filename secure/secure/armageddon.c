@@ -15,11 +15,11 @@
 
 inherit "/std/creature";
 
-#include <files.h>
+#include <libfiles.h>
 #include <macros.h>
 #include <std.h>
 #include <stdproperties.h>
-#include <time.h>
+#include <libtime.h>
 
 #define PASS_ARMAGEDDON 300 /* 5 minutes*/
 
@@ -34,22 +34,22 @@ static private int    shutdown_manual;
 
 #define TELLALL(x) WIZ_CMD_NORMAL->tellall(x)
 
+
 /*
  * Function name: query_init_master
  * Description:   Makes sure that the master object is initialized properly.
  */
-public nomask int
-query_init_master()
+public nomask int query_init_master()
 {
     return 1;
 }
+
 
 /*
  * Function name: create_creature
  * Description  : Called to create the statuette.
  */
-public void
-create_creature()
+public void create_creature()
 {
     set_name("armageddon");
     add_name("statuette");
@@ -70,18 +70,18 @@ create_creature()
     shutdown_manual  = 0;
 }
 
+
 /*
  * Function name: shutdown_info_domain_link
  * Description  : Inform the domain links of the shutdown status.
  * Arguments    : int level - one of the definitions as per <const.h>
  */
-static void
-shutdown_info_domain_link(int level)
+static void shutdown_info_domain_link(int level)
 {
     string *links;
     int index;
 
-    links = SECURITY->query_domain_links();
+    links = ({string *}) SECURITY->query_domain_links();
     index = sizeof(links);
     while(--index)
     {
@@ -92,13 +92,13 @@ shutdown_info_domain_link(int level)
     }
 }
 
+
 /*
  * Function name: shutdown_now
  * Description  : When the game finally goes down, this is the function
  *                that tells the master to do so.
  */
-private nomask void
-shutdown_now()
+private nomask void shutdown_now()
 {
     set_this_player(this_object());
     TELLALL("I am shutting the game down now!");
@@ -116,14 +116,14 @@ shutdown_now()
     }
 }
 
+
 /*
  * Function name: shutdown_dodelay
  * Description  : This function counts down the minutes until the game
  *                is finally shut down.
  * Arguments    : int delay - the minutes left on the clock.
  */
-private nomask void
-shutdown_dodelay()
+private nomask void shutdown_dodelay()
 {
     int period;
 
@@ -180,16 +180,17 @@ shutdown_dodelay()
     shutdown_delay -= period;
 }
 
+
 /*
  * Function name: shutdown_started
  * Description  : This function is called when the game is shut down. It
  *                can be redefined by the local armageddon object at your
  *                mud.
  */
-public void
-shutdown_started()
+public void shutdown_started()
 {
 }
+
 
 /*
  * Function name: start_shutdown
@@ -201,8 +202,7 @@ shutdown_started()
  *                int    delay   - the delay in minutes.
  *                string shutter - who is shutting down the game.
  */
-public nomask void
-start_shutdown(string reason, int delay, string shutter)
+public nomask void start_shutdown(string reason, int delay, string shutter)
 {
     if (previous_object() != find_object(SECURITY))
     {
@@ -252,6 +252,7 @@ start_shutdown(string reason, int delay, string shutter)
     shutdown_info_domain_link(ARMAGEDDON_ANNOUNCE);
 }
 
+
 /*
  * Function name: shutdown_stopped
  * Description  : This function is called when the shutdown process is
@@ -259,10 +260,10 @@ start_shutdown(string reason, int delay, string shutter)
  *                object at your mud.
  * Arguments    : string stopper - the one who decided not to stop.
  */
-public void
-shutdown_stopped(string stopper)
+public void shutdown_stopped(string stopper)
 {
 }
+
 
 /*
  * Function name: cancel_shutdown
@@ -271,12 +272,11 @@ shutdown_stopped(string stopper)
  *                function directly, though use: 'shutdown abort'
  * Arguments    : string shutter - the person canceling the shutdown.
  */
-public nomask void
-cancel_shutdown(string shutter)
+public nomask void cancel_shutdown(string shutter)
 {
     if (previous_object() != find_object(SECURITY))
     {
-	return;
+    	return;
     }
 
     set_this_player(this_object());
@@ -296,14 +296,14 @@ cancel_shutdown(string shutter)
     shutdown_info_domain_link(ARMAGEDDON_CANCEL);
 }
 
+
 /*
  * Function name: execute_shutdown
  * Description  : Called by SECURITY when the game actually shuts down,
  *                whether so desired through Armageddon, or by other means.
  *                We use it to inform the domain links with our last breath.
  */
-public nomask void
-execute_shutdown()
+public nomask void execute_shutdown()
 {
     if (previous_object() != find_object(SECURITY))
     {
@@ -313,14 +313,14 @@ execute_shutdown()
     shutdown_info_domain_link(ARMAGEDDON_SHUTDOWN);
 }
 
+
 /*
  * Function name: query_delay
  * Description  : Returns the time we have left in seconds.
  * Returns      : int - the time in seconds, or -1 if we are not shutting
  *                    down at all.
  */
-public nomask int
-query_delay()
+public nomask int query_delay()
 {
     mixed *call;
 
@@ -330,6 +330,7 @@ query_delay()
     }
 
     call = get_alarm(shutdown_alarm);
+
     if (sizeof(call) < 3)
     {
         return -1;
@@ -338,16 +339,17 @@ query_delay()
     return to_int(call[2]) + (shutdown_delay * 60);
 }
 
+
 /*
  * Function name: query_shutter
  * Description  : Return the name of the person shutting us down.
  * Returns      : string - the name.
  */
-public nomask string
-query_shutter()
+public nomask string query_shutter()
 {
     return shutdown_shutter;
 }
+
 
 /*
  * Function name: query_manual_reboot
@@ -356,33 +358,33 @@ query_shutter()
  *                glow.
  * Returns      : int 1/0 - if true, then a wizard manually rebooted the game.
  */
-public nomask int
-query_manual_reboot()
+public nomask int query_manual_reboot()
 {
     return shutdown_manual;
 }
+
 
 /*
  * Function name: query_reason
  * Description  : Return the reason for the shutdown.
  * Returns      : string - the reason.
  */
-public nomask string
-query_reason()
+public nomask string query_reason()
 {
     return shutdown_reason;
 }
+
 
 /*
  * Function name: shutdown_active
  * Description  : Returns true if Armageddon is active.
  * Returns      : int 1/0 - true if Armageddon is active.
  */
-public nomask int
-shutdown_active()
+public nomask int shutdown_active()
 {
     return (shutdown_alarm != 0);
 }
+
 
 /*
  * Function name: shutdown_time
@@ -390,12 +392,11 @@ shutdown_active()
  *                game is shut down.
  * Returns      : int - the remaining time in minutes.
  */
-public nomask int
-shutdown_time()
+public nomask int shutdown_time()
 {
     if (!shutdown_active())
     {
-	return 0;
+    	return 0;
     }
 
     /* Get the remaining time until the next alarm and the time needed
@@ -404,45 +405,47 @@ shutdown_time()
     return to_int(get_alarm(shutdown_alarm)[2]) + (shutdown_delay * 60);
 }
 
+
 /*
  * Function name: catch_tell
  * Description  : Everything "printed" to us is parsed by this function.
  * Arguments    : string str - the text being sent to us.
  */
-public void
-catch_tell(string str)
+public void catch_tell(string str)
 {
     string home;
     object old;
 
     /* Don't catch on the things we say ourselves. */
     if (this_player() == this_object())
-	return;
+    	return;
 
     if (!shutdown_active())
     {
-	tell_object(this_player(), "Armageddon tells you: No reason to " +
-	    "teleport you home since I am not shutting the game down.\n");
-	return;
+        tell_object(this_player(), "Armageddon tells you: No reason to " +
+            "teleport you home since I am not shutting the game down.\n");
+        return;
     }
 
     if (sizeof(explode(str, "home")) <= 1)
     {
-	tell_object(this_player(), "Armageddon tells you: " +
-	    "Tell me 'home' and I will send you there.\n");
-	return;
+        tell_object(this_player(), "Armageddon tells you: " +
+            "Tell me 'home' and I will send you there.\n");
+        return;
     }
 
     home = this_player()->query_temp_start_location();
+
     if (!stringp(home))
     {
-	home = this_player()->query_default_start_location();
+    	home = this_player()->query_default_start_location();
     }
+
     if (!stringp(home))
     {
-	tell_object(this_player(),
-	    "Armageddon tells you: You have no home, sorry!\n");
-	return;
+        tell_object(this_player(),
+            "Armageddon tells you: You have no home, sorry!\n");
+        return;
     }
 
     old = environment(this_player());
@@ -453,20 +456,21 @@ catch_tell(string str)
      * player.
      */
     this_player()->move_living("X", home, 1);
+
     if (old == environment(this_player()))
     {
-	tell_object(this_player(), "Armageddon tells you: " +
-	    "My magic seems not to work too well at teleporting you.\n");
+        tell_object(this_player(), "Armageddon tells you: " +
+            "My magic seems not to work too well at teleporting you.\n");
     }
 }
+
 
 /*
  * Function name: query_prevent_shadow
  * Description  : This function prevents anyone from shadowing us.
  * Returns      : int 1 - always.
  */
-nomask int
-query_prevent_shadow()
+nomask int query_prevent_shadow()
 {
     return 1;
 }

@@ -27,6 +27,7 @@ string load_uid(string file);
 string clone_uid(object obj, string name);
 string create_super(string file);
 string create_object(string file);
+void create();
 static void save_master();
 mixed valid_write(string file, string uid, string func, object|lwobject writer);
 string modify_command(string cmd, object ob);
@@ -66,6 +67,7 @@ void inaugurate_master(int arg)
     debug_message("A password: " + crypt("kleggboll") + "\n");
     
     setup_all();
+    create();
     
     // Now it's safe to initialize the logger
     string err;
@@ -660,7 +662,8 @@ private static int     irregular_uptime;
  */
 void create()
 {
-    load_simul_efun();
+    "/lib/log.c"->debug("Creating master object.");
+//    load_simul_efun();
 
     /* Using a global variable for this is exactly TWICE as fast as using a
      * defined mapping. At this point we only have the default direction
@@ -2431,7 +2434,6 @@ void cloned_object(object cob, object ob)
  */
 string modify_command(string cmd, object ob)
 {
-    string str;
     string domain;
     int no_subst;
 
@@ -2506,6 +2508,9 @@ string modify_command(string cmd, object ob)
  */
 mapping query_move_opposites()
 {
+    logger->debug("Querying move opposites.");
+    
+    logger->debug("Move opposites: %O", move_opposites);
     /* We intentionally return the unmodified mapping! */
     return move_opposites;
 }
