@@ -68,6 +68,7 @@ public  nomask varargs int check_recoverable(int flag);
  */
 public string *parse_command_id_list()
 {
+    log_debug("parse_command_id_list: %O", obj_names);
     return obj_names;
 }
 
@@ -268,6 +269,7 @@ public void update_actions()
  */
 public int id(string str)
 {
+    log_debug("id: %s", str);
     return (member(obj_names, str) >= 0);
 }
 

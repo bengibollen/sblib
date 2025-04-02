@@ -1641,8 +1641,6 @@ varargs int look(string str, int brief)
                     enemy;
     mixed           long_desc;
 
-    mixed *tmp_prp = 0;
-    mixed *tmp_arr = 0;
     int parse_ok;
 
     log_debug("Entering look function with str: " + str + " and brief: " + brief + "\n");
@@ -1714,36 +1712,13 @@ varargs int look(string str, int brief)
     /* through, under, behind, .. ? */
 
     gItem = lower_case(name);
-    log_debug("Processing item: " + gItem + "\n");
-    log_debug("Objects: %O", obarr);
-    log_debug("About to parse: %s, at: %s, using prep: %s", str, to_string(ENV), prp);
     
 //ldmud: interpret.c:16339: eval_instruction: Assertion `sp[-1].type == T_ARG_FRAME' failed.
 
-// First parse with variables that won't be used elsewhere in the same expression
-
-
-string q_com = query_command();
-string t_prp = "";
-object this_obj = this_object();
-dump_driver_info(DDI_OBJECTS, "/log/objects_before.txt");
-dump_driver_info(DDI_MEMORY, "/log/memory_before.txt");
-    parse_ok = efun::parse_command(q_com, this_obj, "'look' %p [me]", t_prp);
-
-dump_driver_info(DDI_OBJECTS, "/log/objects_after.txt");
-dump_driver_info(DDI_MEMORY, "/log/memory_after.txt");
-
-
-    if (parse_ok)
-    {
-        // Successfully parsed - now use the results
-        obarr = NORMAL_ACCESS(tmp_arr, "visible", this_object());
-    }
-
-    if (!parse_ok || !sizeof(obarr))
+    if (!parse_command(str, ENV, "%p %i", prp, obarr) || !sizeof(obarr = NORMAL_ACCESS(obarr, "visible", this_object())))
     {
         log_debug("No objects found for str: " + str + "\n");
-        // No objects found
+        /* No objects found */
         /* Test for pseudo item in the environment */
         if (CAN_SEE(this_player(), ENV) &&
             stringp(long_desc = ({string}) environment(this_player())->long(gItem)))
