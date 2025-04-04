@@ -45,13 +45,13 @@ add_act(mixed str, int flag)
     if (!IS_CLONE)
 	return;
 
-    if (!this_object()->seq_query(SEQ_ACT))
+    if (!({int}) this_object()->seq_query(SEQ_ACT))
     {
         this_object()->seq_new(SEQ_ACT, flag);
     }
 
     this_object()->seq_clear(SEQ_ACT);
-    this_object()->seq_addfirst(SEQ_ACT, monster_do_act);
+    this_object()->seq_addfirst(SEQ_ACT, #'monster_do_act);
 
     if (!str)
         return;
@@ -140,9 +140,9 @@ monster_do_act(int waited = 0)
     string act;
 
     this_object()->seq_clear(SEQ_ACT);
-    this_object()->seq_addfirst(SEQ_ACT, &monster_do_act(waited + 1));
+    this_object()->seq_addfirst(SEQ_ACT, (: monster_do_act(waited + 1) :));
 
-    if (!this_object()->query_attack())
+    if (!({int}) this_object()->query_attack())
     {
 
         if (waited < monster_act_time)
@@ -175,9 +175,9 @@ monster_do_act(int waited = 0)
     }
 
     this_object()->seq_clear(SEQ_ACT);
-    this_object()->seq_addfirst(SEQ_ACT, &monster_do_act(0));
+    this_object()->seq_addfirst(SEQ_ACT, (: monster_do_act(0) :));
 
-    act = this_object()->check_call(act);
+    act = ({string}) this_object()->check_call(act);
     if (!stringp(act))
         return "";
     return act;

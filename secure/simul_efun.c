@@ -839,18 +839,22 @@ public varargs void log_file(string file, string text, int csize)
      mixed *a, r;
      int i;
  
-     if (pointerp(r=name_living_m[name])) {
-     if ( !(r=(a=r)[0]) || !object_info(r, OI_ONCE_INTERACTIVE)) {
-         for (i=sizeof(a); --i;) {
-         if (a[<i] && object_info(a[<i], OI_ONCE_INTERACTIVE)) {
-             r=a[<i];
-             a[<i]=a[0];
-             return a[0]=r;
-         }
-         }
-         return 0;
-     }
-     return r;
+     if (pointerp(r = name_living_m[name]))
+    {
+        if ( !(r = (a = r)[0]) || !object_info(r, OI_ONCE_INTERACTIVE))
+        {
+            for (i = sizeof(a); --i;)
+            {
+                if (a[<i] && object_info(a[<i], OI_ONCE_INTERACTIVE))
+                {
+                    r = a[<i];
+                    a[<i] = a[0];
+                    return a[0] = r;
+                }
+            }
+            return 0;
+        }
+        return r;
      }
      return r && object_info(r, OI_ONCE_INTERACTIVE) && r;
  }

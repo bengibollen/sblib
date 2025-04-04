@@ -8,6 +8,8 @@
 #pragma strict_types
 
 inherit "/std/mobile";
+inherit "/std/act/chat";
+inherit "/std/act/action";
 
 #define QEXC query_combat_object()
 

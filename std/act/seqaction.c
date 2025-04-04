@@ -33,6 +33,7 @@
 
 #include <macros.h>
 #include <seqaction.h>
+#include <configuration.h>
 
 static  mixed   *seq_commands;          /* Array of arrays holding actions
                                            to do each heart_beat */
@@ -40,8 +41,11 @@ static  string  *seq_names;             /* id of a sequence */
 static  int     *seq_flags;             /* flags of a sequence */
 static  int     seq_active,
                 *seq_cpos;              /* Current position in array */
+static  int     seq_delay;              /* Counter for delayed execution */
+static  int     seq_next_step;          /* Steps to take in next heart_beat */
 
 public void seq_restart();
+private int seq_process_commands(int steps);
 
 /*
  *  Description: Called from living to initialize
@@ -54,18 +58,65 @@ seq_reset()
     seq_flags = ({});
     seq_cpos = ({});
     seq_active = 0;
+    seq_delay = 0;
+    seq_next_step = 0;
+    configure_object(this_object(), OC_HEART_BEAT, 0);
 }
 
 /*
- *   Description: The core function that actually runs the commands
+ * The heart_beat function is called by the driver every 2 seconds
+ * if heart_beat is enabled for this object
  */
-public void seq_heartbeat(int steps)
+public void heart_beat()
+{
+    int stopseq, stepped;
+    
+    stopseq = ((time() - ({int}) this_object()->query_last_met_interactive()) > SEQ_STAY_AWAKE);
+    
+    if (stopseq && !seq_active)
+        return;
+        
+    // Handle delayed execution
+    if (seq_delay > 0) {
+        seq_delay--;
+        return;
+    }
+    
+    // Process commands
+    if (seq_next_step == 0)
+        seq_next_step = 1;
+        
+    stepped = seq_process_commands(seq_next_step);
+    
+    // Check if we should disable heart_beat
+    if (stopseq) {
+        seq_active = 0;
+        configure_object(this_object(), OC_HEART_BEAT, 0);
+        this_object()->add_notify_meet_interactive("seq_restart");
+    }
+    
+    // Set up a delay if needed
+    if (stepped > 1) {
+        // Convert old delay to heart_beat delay
+        // Original: call_out between 7.5s and 22.5s for step=1
+        // Now: heart_beat every 2s
+        // So divide by 2 to get approximately same timing
+        seq_delay = to_int(stepped * (SEQ_SLOW / 4.0));
+        seq_next_step = stepped;
+    } else {
+        seq_next_step = 0;
+    }
+}
+
+/*
+ *   Description: Processes command sequences
+ *   Returns: The next delay step or 0 if no delay
+ */
+private int seq_process_commands(int steps)
 {
     int il, newstep, stopseq, stopped;
     mixed cmd;
     mixed cmdres;
-
-    call_out(#'seq_heartbeat, to_int(random(10000)/10000 * SEQ_SLOW + SEQ_SLOW / 2.0), 1);
 
     stopseq = ((time() - ({int}) this_object()->query_last_met_interactive()) > SEQ_STAY_AWAKE);
 
@@ -88,22 +139,31 @@ public void seq_heartbeat(int steps)
             seq_cpos[il]++;
 
             if (stringp(cmd) || closurep(cmd))
+            {
+                log_debug("Running command: %O", cmd);
                 cmdres = ({mixed}) this_object()->check_call(cmd);
+            }
             else if (intp(cmd))
+            {
                 cmdres = cmd - steps;
+            }
             else
             {
                 newstep = 1;
                 continue;
             }
 
+            log_debug("Running command: %O", cmdres);
+
             if (stringp(cmdres))
             {
+                log_debug("Command result: %s", cmdres);
                 command(cmdres);
                 newstep = 1;
             }
             else if (intp(cmdres) && cmdres > 0)
             {
+                log_debug("Command result: %d", cmdres);
                 newstep = ((newstep) && (cmdres > newstep) ? newstep : cmdres);
                 seq_cpos[il]--;
                 seq_commands[il][seq_cpos[il]] = cmdres;
@@ -120,31 +180,7 @@ public void seq_heartbeat(int steps)
         }
     }
 
-
-    if (stopped)
-    {
-        if (find_call_out("seq_heartbeat") != -1)
-        {
-            remove_call_out("seq_heartbeat");
-        }
-
-        this_object()->add_notify_meet_interactive("seq_restart");
-
-        if (!newstep)
-        {
-            seq_active = 0;
-        }
-    }
-
-    if (newstep > 1)
-    {
-        if (find_call_out("seq_heartbeat") != -1)
-        {
-            remove_call_out("seq_heartbeat");
-        }
-        
-        call_out(#'seq_heartbeat, to_int(newstep * (SEQ_SLOW / 2 + random(10000) / 10000 * SEQ_SLOW)), newstep);
-    }
+    return newstep;
 }
 
 /*
@@ -154,15 +190,10 @@ public void seq_heartbeat(int steps)
 public void
 seq_restart()
 {
-    int il;
-
     seq_active = 1;
-    if (find_call_out("seq_heartbeat") != -1)
-    {
-        remove_call_out("seq_heartbeat");
-    }
-
-    call_out(#'seq_heartbeat, 1, 1);
+    seq_delay = 0;
+    seq_next_step = 1;
+    configure_object(this_object(), OC_HEART_BEAT, 1);
     this_object()->remove_notify_meet_interactive("seq_restart");
 }
 
@@ -176,7 +207,7 @@ seq_new(string name, int flags)
     if (!IS_CLONE)
         return 0;
 
-    if (member(name, seq_names) >= 0)
+    if (member(seq_names, name) >= 0)
         return 0;
 
     if (sizeof(seq_names) >= SEQ_MAX)
@@ -222,7 +253,7 @@ seq_addfirst(string name, mixed cmd)
 {
     int pos;
 
-    if ((pos = member(name, seq_names)) < 0)
+    if ((pos = member(seq_names, name)) < 0)
     {
         return 0;
     }
@@ -254,7 +285,7 @@ seq_addlast(string name, mixed cmd)
 {
     int pos;
 
-    if ((pos = member(name, seq_names)) < 0)
+    if ((pos = member(seq_names, name)) < 0)
     {
         return 0;
     }
@@ -286,7 +317,7 @@ seq_query(string name)
 {
     int pos;
 
-    if ((pos = member(name, seq_names)) < 0)
+    if ((pos = member(seq_names, name)) < 0)
         return 0;
 
     return seq_commands[pos][seq_cpos[pos]..];

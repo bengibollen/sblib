@@ -94,6 +94,7 @@ public void done_writing(string title, string summary, string input);
 public int library_approve_access();
 public string get_book_name(string dir);
 
+
 /*
  * Configuration functions
  */
@@ -103,11 +104,11 @@ public string get_book_name(string dir);
  * Description:   Set the directory where books will be stored
  * Arguments:     string dir - the directory name with trailing slash
  */
-public void
-set_book_directory(string dir)
+public void set_book_directory(string dir)
 {
     book_dir = dir;
 }
+
 
 /*
  * Function name: set_book_approval_directory
@@ -115,11 +116,11 @@ set_book_directory(string dir)
  *                If this is not set, new books will not need approval.
  * Arguments:     string dir - the directory name with trailing slash.
  */
-public void
-set_book_approval_directory(string dir)
+public void set_book_approval_directory(string dir)
 {
     appr_dir = dir;
 }
+
 
 /*
  * Function name: set_book_removal_directory
@@ -128,22 +129,22 @@ set_book_approval_directory(string dir)
  *                deleted.
  * Arguments:     string dir - the directory name with trailing slash.
  */
-public void
-set_book_removal_directory(string dir)
+public void set_book_removal_directory(string dir)
 {
     removal_dir = dir;
 }
+
 
 /*
  * Function name: set_text_object_name
  * Description:   Set the prefix for the filenames of the books.
  * Arguments:     string name - the filename prefix
  */
-public void
-set_text_object_name(string name)
+public void set_text_object_name(string name)
 {
     text_object_name = name;
 }
+
 
 /*
  * Function name: set_book_type
@@ -152,8 +153,7 @@ set_text_object_name(string name)
  *                the set_name() function on each book instance.
  * Arguments:     mixed types - a string name or array of string names
  */
-public void
-set_book_type(mixed types)
+public void set_book_type(mixed types)
 {
     if (stringp(types))
     {
@@ -165,6 +165,7 @@ set_book_type(mixed types)
     }
 }
 
+
 /*
  * Function name: set_plural_book_type
  * Description:   Set the names to be used to identify multiple books.
@@ -172,8 +173,7 @@ set_book_type(mixed types)
  *                the set_pname function on each book instance.
  * Arguments:     mixed types - a string name or array of string names
  */
-public void
-set_plural_book_type(mixed types)
+public void set_plural_book_type(mixed types)
 {
     if (stringp(types))
     {
@@ -185,17 +185,18 @@ set_plural_book_type(mixed types)
     }
 }
 
+
 /*
  * Function name: set_borrow_required
  * Description:   Indicate that that books must be borrowed from
  *                the library in order to be read.
  * Arguments:     int i - if true, books must be borrowed
  */
-public void
-set_borrow_required(int i)
+public void set_borrow_required(int i)
 {
         borrow_required = i;
 }
+
 
 /*
  * Function name: add_book_shelf
@@ -208,8 +209,7 @@ set_borrow_required(int i)
  *                              set_book_directory()) in which the book files
  *                              for each shelf will be stored.
  */
-public void
-add_book_shelf(mixed shelf)
+public void add_book_shelf(mixed shelf)
 {
     int i;
 
@@ -229,6 +229,7 @@ add_book_shelf(mixed shelf)
     }
 }
 
+
 /*
  * Function name: set_default_shelf
  * Description:   Set the default shelf to be used when none is specified
@@ -236,11 +237,11 @@ add_book_shelf(mixed shelf)
  * Arguments:     string shelf - the name of the shelf to use (one of the
  *                               shelf names given in add_book_shelf())
  */
-public void
-set_default_shelf(string shelf)
+public void set_default_shelf(string shelf)
 {
     default_shelf = shelf;
 }
+
 
 /*
  * Function name: set_shelf_type
@@ -248,8 +249,7 @@ set_default_shelf(string shelf)
  *                "shelf" is not appropriate.
  * Arguments:     mixed types - a string name or array of string names
  */
-public void
-set_shelf_type(mixed types)
+public void set_shelf_type(mixed types)
 {
     if (stringp(types))
     {
@@ -261,14 +261,14 @@ set_shelf_type(mixed types)
     }
 }
 
+
 /*
  * Function name: set_plural_shelf_type
  * Description:   Set the names by which multiple shelves can be identified
  *                in case "shelves" is not appropriate.
  * Arguments:     mixed types - a string name or array of string names
  */
-public void
-set_plural_shelf_type(mixed types)
+public void set_plural_shelf_type(mixed types)
 {
     if (stringp(types))
     {
@@ -280,6 +280,7 @@ set_plural_shelf_type(mixed types)
     }
 }
 
+
 /*
  * Hooks for altering default messages
  */
@@ -290,12 +291,12 @@ set_plural_shelf_type(mixed types)
  *                fail because the library is empty.
  * Returns:       1/0
  */
-public int
-library_no_books_hook()
+public int library_no_books_hook()
 {
     write("There are no books available.\n");
     return 1;
 }
+
 
 /*
  * Function name: library_no_approval_books_hook
@@ -303,56 +304,56 @@ library_no_books_hook()
  *                fail because there are no books needing approval
  * Returns:       1/0
  */
-public int
-library_no_approval_books_hook()
+public int library_no_approval_books_hook()
 {
     write("There are no books needing approval.\n");
     return 1;
 }
+
 
 /*
  * Function name: library_list_short_hook
  * Description:   Redefine this to alter how the short listing of books
  *                is presented
  */
-public void
-library_list_short_hook()
+public void library_list_short_hook()
 {
     write(book_list_short);
 }
+
 
 /*
  * Function name: library_list_long_hook
  * Description:   Redefine this to alter how the long listing of books is
  *                presented
  */
-public void
-library_list_long_hook()
+public void library_list_long_hook()
 {
     write(book_list);
 }
+
 
 /*
  * Function name: library_list_approval_long_hook
  * Description:   Redefine this to alter how the long listing of books
  *                needing approval is presented
  */
-public void
-library_list_approval_long_hook()
+public void library_list_approval_long_hook()
 {
     write(appr_list);
 }
+
 
 /*
  * Function name: library_list_approval_short_hook
  * Description:   Redefine this to alter how the short listing of books
  *                needing approval is presented
  */
-public void
-library_list_approval_short_hook()
+public void library_list_approval_short_hook()
 {
     write(appr_list_short);
 }
+
 
 /*
  * Function name: library_no_shelves_hook
@@ -360,23 +361,23 @@ library_list_approval_short_hook()
  *                fails because no shelves exist
  * Returns:       1/0
  */
-public int
-library_no_shelves_hook()
+public int library_no_shelves_hook()
 {
     notify_fail("There are no different " + SHELF_TYPE + ".\n");
     return 0;
 }
+
 
 /*
  * Function name: library_list_shelves_hook
  * Description:   Redefine this to alter how the listing of shelves is
  *                presented
  */
-public void
-library_list_shelves_hook()
+public void library_list_shelves_hook()
 {
     write(implode(map(m_indices(book_shelves), capitalize), "\n") + "\n");
 }
+
 
 /*
  * Function name: library_list_shelf_long_hook
@@ -384,11 +385,11 @@ library_list_shelves_hook()
  *                on a given shelf is presented
  * Arguments:     string shelf - the name of the shelf
  */
-public void
-library_list_shelf_long_hook(string shelf)
+public void library_list_shelf_long_hook(string shelf)
 {
     write(book_shelves[shelf][0]);
 }
+
 
 /*
  * Function name: library_list_shelf_short_hook
@@ -396,11 +397,11 @@ library_list_shelf_long_hook(string shelf)
  *                on a given shelf is presented
  * Arguments:     string shelf - the name of the shelf
  */
-public void
-library_list_shelf_short_hook(string shelf)
+public void library_list_shelf_short_hook(string shelf)
 {
     write(book_shelves[shelf][1]);
 }
+
 
 /*
  * Function name: library_list_syntax_failure_hook
@@ -409,13 +410,13 @@ library_list_shelf_short_hook(string shelf)
  * Arguments:     string str - the arguments to the "list" command
  * Returns:       1/0
  */
-public int
-library_list_syntax_failure_hook(string str)
+public int library_list_syntax_failure_hook(string str)
 {
     notify_fail("Usage: " + query_verb() +
         (sizeof(appr_dir) ? " [approval]" : "") + " [titles]\n");
     return 0;
 }
+
 
 /*
  * Function name: library_borrow_syntax_failure_hook
@@ -425,12 +426,12 @@ library_list_syntax_failure_hook(string str)
  * Arguments:     string str - the arguments to the "borrow" command
  * Returns:       1/0
  */
-public int
-library_borrow_syntax_failure_hook()
+public int library_borrow_syntax_failure_hook()
 {
     notify_fail("Usage: " + query_verb() + " <title>\n");
     return 0;
 }
+
 
 /*
  * Function name: library_borrow_unavailable_approval_book_hook
@@ -440,12 +441,12 @@ library_borrow_syntax_failure_hook()
  * Arguments:     string title - the title of the book
  * Returns:       1/0
  */
-public int
-library_borrow_unavailable_approval_book_hook(string title)
+public int library_borrow_unavailable_approval_book_hook(string title)
 {
     write("There is no such " + BOOK_TYPE + " available for approval.\n");
     return 1;
 }
+
 
 /*
  * Function name: library_borrow_unavailable_book_hook
@@ -454,12 +455,12 @@ library_borrow_unavailable_approval_book_hook(string title)
  * Arguments:     string title - the title of the book
  * Returns:       1/0
  */
-public int
-library_borrow_unavailable_book_hook(string title)
+public int library_borrow_unavailable_book_hook(string title)
 {
     write("There is no such " + BOOK_TYPE + " available.\n");
     return 1;
 }
+
 
 /*
  * Function name: library_borrow_hook
@@ -468,13 +469,13 @@ library_borrow_unavailable_book_hook(string title)
  * Arguments:     object book  - the book borrowed
  *                string title - the title of the book
  */
-public void
-library_borrow_hook(object book, string title)
+public void library_borrow_hook(object book, string title)
 {
     write("You borrow " + LANG_ADDART(book->short()) + ".\n");
     say(QCTNAME(this_player()) + " borrows " + LANG_ADDART(book->short()) +
         ".\n");
 }
+
 
 /*
  * Function name: library_return_syntax_failure_hook
@@ -483,12 +484,12 @@ library_borrow_hook(object book, string title)
  * Arguments:     string str - the arguments to the "return" command
  * Returns:       1/0
  */
-public int
-library_return_syntax_failure_hook(string str)
+public int library_return_syntax_failure_hook(string str)
 {
     notify_fail(capitalize(query_verb()) + " what?\n");
     return 0;
 }
+
 
 /*
  * Function name: library_return_hook
@@ -496,58 +497,58 @@ library_return_syntax_failure_hook(string str)
  *                user returns a book
  * Arguments:     object book - the book being returned
  */
-public void
-library_return_hook(object book)
+public void library_return_hook(object book)
 {
     write("You return the " + book->short() + ".\n");
     say(QCTNAME(this_player()) + " returns " + LANG_ADDART(book->short()) +
         ".\n");
 }
 
+
 /*
  * Function name: library_write_abort_hook
  * Description:   Redefine this to alter the message given when the
  *                user aborts writing a book
  */
-public void
-library_write_abort_hook()
+public void library_write_abort_hook()
 {
     write("You stop writing.\n");
 }
+
 
 /*
  * Function name: library_write_prompt_title_input_hook
  * Description:   Redefine this to alter the message given to prompt
  *                the user to input a book title
  */
-public void
-library_write_prompt_title_input_hook()
+public void library_write_prompt_title_input_hook()
 {
     write("What is the name of the book? (fewer than " + MAX_TITLE_SIZE +
         " characters).  (~q to quit)\n> ");
 }
+
 
 /*
  * Function name: library_write_prompt_summary_input_hook
  * Description:   Redefine this to alter the message given to prompt
  *                the user to input a book summary
  */
-public void
-library_write_prompt_summary_input_hook()
+public void library_write_prompt_summary_input_hook()
 {
     write("\nEnter a short summary of the book. (~q to quit)\n> ");
 }
+
 
 /*
  * Function name: library_write_failed_hook
  * Description:   Redefine this to alter the message given when a book
  *                cannot be saved for some reason.
  */
-public void
-library_write_failed_hook()
+public void library_write_failed_hook()
 {
     write("Failed to write book.\n");
 }
+
 
 /*
  * Function name: library_approve_syntax_failure_hook
@@ -556,12 +557,12 @@ library_write_failed_hook()
  * Arguments:     string str - the arguments to the "approve" command
  * Returns:       1/0
  */
-public int
-library_approve_syntax_failure_hook(string str)
+public int library_approve_syntax_failure_hook(string str)
 {
     notify_fail("Usage: " + query_verb() + " <title>\n");
     return 0;
 }
+
 
 /*
  * Function name: library_approve_unavailable_book_hook
@@ -570,12 +571,12 @@ library_approve_syntax_failure_hook(string str)
  * Arguments:     string title - the book's title
  * Returns:       1/0
  */
-public int
-library_approve_unavailable_book_hook(string title)
+public int library_approve_unavailable_book_hook(string title)
 {
     write("There is no book by that title that needs approval.\n");
     return 1;
 }
+
 
 /*
  * Function name: library_approve_hook
@@ -583,11 +584,11 @@ library_approve_unavailable_book_hook(string title)
  *                user approves a book
  * Arguments:     string title - the book's title
  */
-public void
-library_approve_hook(string title)
+public void library_approve_hook(string title)
 {
     write("Ok.\n");
 }
+
 
 /*
  * Function name: library_classify_syntax_failure_hook
@@ -596,12 +597,12 @@ library_approve_hook(string title)
  * Arguments:     string str - the arguments to the "classify" command
  * Returns:       1/0
  */
-public int
-library_classify_syntax_failure_hook(string str)
+public int library_classify_syntax_failure_hook(string str)
 {
     notify_fail("Usage: " + query_verb() + " <title>.\n");
     return 0;
 }
+
 
 /*
  * Function name: library_classify_unavailable_book_hook
@@ -610,12 +611,12 @@ library_classify_syntax_failure_hook(string str)
  * Arguments:     string title - the book's title
  * Returns:       1/0
  */
-public int
-library_classify_unavailable_book_hook(string title)
+public int library_classify_unavailable_book_hook(string title)
 {
     notify_fail("There is no such " + BOOK_TYPE + " to classify.\n");
     return 0;
 }
+
 
 /*
  * Function name: library_classify_unavailable_shelf_hook
@@ -624,11 +625,11 @@ library_classify_unavailable_book_hook(string title)
  *                shelf
  * Arguments:     string shelf - the shelf name
  */
-public void
-library_classify_unavailable_shelf_hook(string shelf)
+public void library_classify_unavailable_shelf_hook(string shelf)
 {
     write("There is no such " + SHELF_TYPE + ".\n");
 }
+
 
 /*
  * Function name: library_classify_hook
@@ -637,11 +638,11 @@ library_classify_unavailable_shelf_hook(string shelf)
  * Arguments:     string title - the book's title
  *                string shelf - the shelf
  */
-public void
-library_classify_hook(string title, string shelf)
+public void library_classify_hook(string title, string shelf)
 {
     write("Ok.\n");
 }
+
 
 /*
  * Function name: library_classify_prompt_shelf_input_hook
@@ -649,12 +650,12 @@ library_classify_hook(string title, string shelf)
  *                the user to input a shelf name
  * Arguments:     string title - the title of the book being classified
  */
-public void
-library_classify_prompt_shelf_input_hook(string title)
+public void library_classify_prompt_shelf_input_hook(string title)
 {
     write("Which " + SHELF_TYPE + " do you wish to place " + title +
         " in?\n> ");
 }
+
 
 /*
  * Function name: library_deny_syntax_failure_hook
@@ -663,12 +664,12 @@ library_classify_prompt_shelf_input_hook(string title)
  * Arguments:     string str - the arguments to the "deny" command
  * Returns:       1/0
  */
-public int
-library_deny_syntax_failure_hook(string str)
+public int library_deny_syntax_failure_hook(string str)
 {
     notify_fail("Usage: " + query_verb() + " <title>\n");
     return 0;
 }
+
 
 /*
  * Function name: library_deny_unavailable_book_hook
@@ -677,12 +678,12 @@ library_deny_syntax_failure_hook(string str)
  * Arguments:     string title - the book's title
  * Returns:       1/0
  */
-public int
-library_deny_unavailable_book_hook(string title)
+public int library_deny_unavailable_book_hook(string title)
 {
     write("There is no book by that title that needs approval.\n");
     return 1;
 }
+
 
 /*
  * Function name: library_deny_hook
@@ -690,11 +691,11 @@ library_deny_unavailable_book_hook(string title)
  *                user denies a book
  * Arguments:     string title - the book's file
  */
-public void
-library_deny_hook(string title)
+public void library_deny_hook(string title)
 {
     write("Ok.\n");
 }
+
 
 /*
  * Function name: library_discard_syntax_failure_hook
@@ -703,12 +704,12 @@ library_deny_hook(string title)
  * Arguments:     string str - the arguments to the "discard" command
  * Returns:       1/0
  */
-public int
-library_discard_syntax_failure_hook(string str)
+public int library_discard_syntax_failure_hook(string str)
 {
     notify_fail("Usage: " + query_verb() + " <title>\n");
     return 0;
 }
+
 
 /*
  * Function name: library_discard_unavailable_book_hook
@@ -717,12 +718,12 @@ library_discard_syntax_failure_hook(string str)
  * Arguments:     string title - the book's title
  * Returns:       1/0
  */
-public int
-library_discard_unavailable_book_hook(string title)
+public int library_discard_unavailable_book_hook(string title)
 {
     write("There is no " + BOOK_TYPE + " by that title.\n");
     return 1;
 }
+
 
 /*
  * Function name: library_discard_hook
@@ -730,11 +731,11 @@ library_discard_unavailable_book_hook(string title)
  *                user discards a book
  * Arguments:     string title - the book discarded
  */
-public void
-library_discard_hook(string title)
+public void library_discard_hook(string title)
 {
     write("Ok.\n");
 }
+
 
 /*
  * Library routines
@@ -747,8 +748,7 @@ library_discard_hook(string title)
  *                it is deleted.
  * Arguments:     string filename - the filename of the book file
  */
-public void
-library_remove_book(string filename)
+public void library_remove_book(string filename)
 {
     setuid();
     seteuid(getuid());
@@ -763,6 +763,7 @@ library_remove_book(string filename)
     }
 }
 
+
 /*
  * Function name: library_move_book
  * Description:   Move a book file to another directory.
@@ -770,8 +771,7 @@ library_remove_book(string filename)
  *                string new_dir   - the destination directory
  * Returns:       1/0 - move successful/unsuccessful
  */
-public int
-library_move_book(string book_file, string new_dir)
+public int library_move_book(string book_file, string new_dir)
 {
     setuid();
     seteuid(getuid());
@@ -779,14 +779,14 @@ library_move_book(string book_file, string new_dir)
     return rename(book_file, get_book_name(new_dir));
 }
 
+
 /*
  * Function name: query_book_title
  * Description:   Given a book file, return the book's title
  * Arguments:     string file - The filename for the desired book
  * Returns:       The book's title
  */
-public string
-query_book_title(string file)
+public string query_book_title(string file)
 {
     string str = read_file(file, TITLE_LINE, 1);
 
@@ -800,14 +800,14 @@ query_book_title(string file)
     return implode(explode(str, " ") - ({ "" }), " ");
 }
 
+
 /*
  * Function name: query_book_author
  * Description:   Given a book file, return the book's author
  * Arguments:     string file - the filename for the desired book
  * Returns:       The book's author
  */
-public string
-query_book_author(string file)
+public string query_book_author(string file)
 {
     string str = read_file(file, AUTHOR_LINE, 1);
 
@@ -821,14 +821,14 @@ query_book_author(string file)
     return implode(explode(str, " ") - ({ "" }), " ");
 }
 
+
 /*
  * Function name: query_book_summary
  * Description:   Given a book file, return the book's summary
  * Arguments:     string file - the filename for the desired book
  * Returns:       The book's author
  */
-public string
-query_book_summary(string file)
+public string query_book_summary(string file)
 {
     string str = read_file(file, SUMMARY_LINE, 1);
 
@@ -842,17 +842,18 @@ query_book_summary(string file)
     return implode(explode(str, " ") - ({ "" }), " ");
 }
 
+
 /*
  * Function name: query_book_text
  * Description:   Given a book file, return the book's text
  * Arguments:     string file - the filename for the desired book
  * Returns:       the book's text
  */
-public string
-query_book_text(string file)
+public string query_book_text(string file)
 {
     return read_file(file, TEXT_LINE);
 }
+
 
 /*
  * Function name: get_books
@@ -860,21 +861,21 @@ query_book_text(string file)
  * Arguments:     string dir - the directory to search
  * Returns:       An array of pathname strings
  */
-public string *
-get_books(string dir)
+public string *get_books(string dir)
 {
     string *books;
 
     setuid();
     seteuid(getuid());
 
-    books = map(get_dir(dir), &operator(+)(dir));
+    books = map(get_dir(dir), (: $1 + dir :));
 
     /* Any non-empty file is counted as a book */
-    books = filter(books, &operator(>)(,0) @ file_size);
+    books = filter(books, (: file_size($1) > 0 :));
 
     return books;
 }
+
 
 /*
  * Function name: get_book_info
@@ -885,8 +886,7 @@ get_books(string dir)
  *                mapping m     - A mapping in which to store the above
  *                                mentioned information.
  */
-public void
-get_book_info(string *books, mapping m)
+public void get_book_info(string *books, mapping m)
 {
     int i;
 
@@ -896,6 +896,7 @@ get_book_info(string *books, mapping m)
     }
 }
 
+
 /*
  * Function name: format_book_list
  * Description:   Given an array of book files, return a nicely formatted
@@ -903,8 +904,7 @@ get_book_info(string *books, mapping m)
  * Arguments:     string *books - an array of book filename strings
  * Returns:       A string description of the given books
  */
-public string
-format_book_list(string *books)
+public string format_book_list(string *books)
 {
     int i;
     string str = "";
@@ -919,6 +919,7 @@ format_book_list(string *books)
     return str;
 }
 
+
 /*
  * Function name: format_book_list_short
  * Description:   Return a short version of the book listing (See documentation
@@ -926,20 +927,19 @@ format_book_list(string *books)
  * Arguments:     string *books - an array of book filename strings
  * Returns:       A string description of the given books
  */
-public string
-format_book_list_short(string *books)
+public string format_book_list_short(string *books)
 {
     string *titles = map(books, query_book_title);
     return sprintf("%-#70.2s\n", implode(titles, "\n"));
 }
+
 
 /*
  * Function name: update_books
  * Description:   Update the in-memory book information when something
  *                has changed.
  */
-public void
-update_books()
+public void update_books()
 {
     string *books, *shelves, shelf_list, shelf_list_short;
     int i;
@@ -987,16 +987,17 @@ update_books()
     }
 }
 
+
 /*
  * Function name: create_library
  * Description:   Initialize the library.  This should be called when the
  *                library object is created, AFTER it has been configured.
  */
-public void
-create_library()
+public void create_library()
 {
     update_books();
 }
+
 
 /*
  * Function name: library_configure_book
@@ -1006,8 +1007,7 @@ create_library()
  *                string text_filename - the file name of the book file to use
  *                string book_name     - the name of the book
  */
-public void
-library_configure_book(object book, string text_filename, string book_name)
+public void library_configure_book(object book, string text_filename, string book_name)
 {
     book->set_long("A " + BOOK_TYPE + " entitled \"" + book_name + "\".\n");
     book->set_name(book_types);
@@ -1022,6 +1022,7 @@ library_configure_book(object book, string text_filename, string book_name)
     book->set_file(text_filename);
 }
 
+
 /*
  * Function name: library_make_book
  * Description:   Create a book object for use in the library.  Override this
@@ -1030,14 +1031,14 @@ library_configure_book(object book, string text_filename, string book_name)
  * Arguments:     string book_name - the name of the book we are creating
  * Returns:       A book object
 */
-public object
-library_make_book(string book_name)
+public object library_make_book(string book_name)
 {
     setuid();
     seteuid(getuid());
 
     return clone_object(SCROLL_OBJECT);
 }
+
 
 /*
  * Function name: library_give_book
@@ -1046,8 +1047,7 @@ library_make_book(string book_name)
  *                string book_name     - The title of the book
  * Returns:       A configured book
  */
-public object
-library_give_book(string text_filename, string book_name)
+public object library_give_book(string text_filename, string book_name)
 {
     object book;
 
@@ -1061,14 +1061,14 @@ library_give_book(string text_filename, string book_name)
     return book;
 }
 
+
 /*
  * Function name: library_admin_access
  * Description:   Redefine this function to limit permission to admin commands
  * Returns:       1 - this_player() is permitted to perform admin commands
  *                0 - this_player() is not permitted to perform admin commands
  */
-public int
-library_admin_access()
+public int library_admin_access()
 {
     if (!this_player()->query_wiz_level())
     {
@@ -1079,17 +1079,18 @@ library_admin_access()
     return 1;
 }
 
+
 /*
  * Function name: library_borrow_access
  * Description:   Redefine this function to limit permission to borrow books
  * Returns:       1 - this_player() is permitted to borrow a book
  *                0 - this_player() is not permitted to borrow a book
  */
-public int
-library_borrow_access()
+public int library_borrow_access()
 {
     return 1;
 }
+
 
 /*
  * Function name: library_borrow
@@ -1097,8 +1098,7 @@ library_borrow_access()
  * Arguments:     string str - any arguments to the command
  * Returns:       1/0 - Command success/failure
  */
-public int
-library_borrow(string str)
+public int library_borrow(string str)
 {
     string book_file;
     object book;
@@ -1142,6 +1142,7 @@ library_borrow(string str)
     return 1;
 }
 
+
 /*
  * Function name: library_read_book
  * Description:   Display the text of a book to the reader
@@ -1150,8 +1151,7 @@ library_borrow(string str)
  *                int mread            - true if more should be used
  * Returns:       A configured book
  */
-public void
-library_read_book(string text_filename, string book_name, int mread)
+public void library_read_book(string text_filename, string book_name, int mread)
 {
     setuid();
     seteuid(getuid());
@@ -1166,14 +1166,14 @@ library_read_book(string text_filename, string book_name, int mread)
     }
 }
 
+
 /*
  * Function name: library_read
  * Description:   Try to read a book from the library.
  * Arguments:     string str - any arguments to the command
  * Returns:       1/0 - Command success/failure
  */
-public int
-library_read(string str)
+public int library_read(string str)
 {
     string book_file;
 
@@ -1215,17 +1215,18 @@ library_read(string str)
     return 1;
 }
 
+
 /*
  * Function name: library_return_access
  * Description:   Redefine this to limit permission to return books
  * Returns:       1 - this_player() is permitted to return a book
  *                0 - this_player() is not permitted to return a book
  */
-public int
-library_return_access()
+public int library_return_access()
 {
     return 1;
 }
+
 
 /*
  * Function name: library_return
@@ -1233,8 +1234,7 @@ library_return_access()
  * Arguments:     string str - any arguments to the command
  * Returns:       1/0 - Command success/failure
  */
-public int
-library_return(string str)
+public int library_return(string str)
 {
     if (!library_return_access())
     {
@@ -1249,6 +1249,7 @@ library_return(string str)
     return 1;
 }
 
+
 /*
  * Function name: return_access
  * Description:   Check to see if the given object is a book that can be
@@ -1257,11 +1258,11 @@ library_return(string str)
  * Returns:       1 - the object can be returned to this library
  *                0 - the object cannot be returned to this library
  */
-public int
-return_access(object ob)
+public int return_access(object ob)
 {
     return ((environment(ob) == this_player()) && ob->id(BOOK_ID));
 }
+
 
 /*
  * Function name: return_it
@@ -1270,13 +1271,13 @@ return_access(object ob)
  * Returns:       1 - the book was returned
  *                0 - the book was not returned
  */
-public int
-return_it(object ob)
+public int return_it(object ob)
 {
     library_return_hook(ob);
     ob->remove_object();
     return 1;
 }
+
 
 /*
  * Function name: library_list_access
@@ -1284,11 +1285,11 @@ return_it(object ob)
  * Returns:       1 - this_player() is permitted to list books
  *                0 - this_player() is not permitted to list books
  */
-public int
-library_list_access()
+public int library_list_access()
 {
     return 1;
 }
+
 
 /*
  * Function name: library_list
@@ -1296,8 +1297,7 @@ library_list_access()
  * Arguments:     string str - arguments given to the "list" command
  * Returns:       1/0 - syntax success/failure
  */
-public int
-library_list(string str)
+public int library_list(string str)
 {
     string shelf;
 
@@ -1394,14 +1394,14 @@ library_list(string str)
     return 1;
 }
 
+
 /*
  * Function name: library_validate_summary
  * Description:   Determine if a string is a valid book summary
  * Arguments:     string summary - the summary string
  * Returns:       1/0 - valid/invalid
  */
-public int
-library_validate_summary(string summary)
+public int library_validate_summary(string summary)
 {
     if (!wildmatch("*[a-zA-Z0-9]*", summary))
     {
@@ -1413,6 +1413,7 @@ library_validate_summary(string summary)
     return 1;
 }
 
+
 /*
  * Function name: library_write_get_summary
  * Description:   Catch input from the user to be used as the new
@@ -1422,8 +1423,7 @@ library_validate_summary(string summary)
  *                string input - the user's input
  * Returns:       1/0 - summary set/not set
  */
-public int
-library_write_get_summary(object who, string title, string input)
+public int library_write_get_summary(object who, string title, string input)
 {
     if (input == "~q")
     {
@@ -1446,14 +1446,14 @@ library_write_get_summary(object who, string title, string input)
     return 1;
 }
 
+
 /*
  * Function name: get_book_name
  * Description:   Get a filename for a new book in a specified directory
  * Arguments:     string dir - a directory
  * Returns:       the filename
  */
-public string
-get_book_name(string dir)
+public string get_book_name(string dir)
 {
     string *files;
     int i, tmp, last = -1;
@@ -1478,6 +1478,7 @@ get_book_name(string dir)
     return dir + text_object_name + (last + 1);
 }
 
+
 /*
  * Function name: library_hook_get_approval_names
  * Description  : This routine can be redefined in the library code to provide
@@ -1487,11 +1488,11 @@ get_book_name(string dir)
  *                that a new book has been submitted.
  * Returns      : string * - the list of names (in lower case).
  */
-public mixed
-library_hook_get_approval_names()
+public mixed library_hook_get_approval_names()
 {
     return ({ });
 }
+
 
 /*
  * Function name: add_book
@@ -1503,8 +1504,7 @@ library_hook_get_approval_names()
  *                int approval   - true if the book needs approval
  * Returns:       1/0 - book added/not added
  */
-public int
-add_book(string title, string summary, string author,
+public int add_book(string title, string summary, string author,
          string text, int approval)
 {
     string dir = (approval ? appr_dir : book_dir);
@@ -1536,6 +1536,7 @@ add_book(string title, string summary, string author,
     return 1;
 }
 
+
 /*
  * Function name: done_writing
  * Description:   Catch input from the user to be used as the new
@@ -1545,8 +1546,7 @@ add_book(string title, string summary, string author,
  *                string input   - the book's text
  * Returns:       1/0 - text set/not set
  */
-public int
-done_writing(string title, string summary, string input)
+public int done_writing(string title, string summary, string input)
 {
     if (!sizeof(input))
     {
@@ -1567,14 +1567,14 @@ done_writing(string title, string summary, string input)
     return 1;
 }
 
+
 /*
  * Function name: library_validate_title
  * Description:   Determine if a string is a valid book title
  * Arguments:     string title - the title string
  * Returns:       1/0 - valid/invalid
  */
-public int
-library_validate_title(string title)
+public int library_validate_title(string title)
 {
     if (sizeof(title) > MAX_TITLE_SIZE)
     {
@@ -1602,6 +1602,7 @@ library_validate_title(string title)
     return 1;
 }
 
+
 /*
  * Function name: library_write_get_title
  * Description:   Catch user input to be used as the new book's title
@@ -1609,8 +1610,7 @@ library_validate_title(string title)
  *                string input - the title
  * Returns:       1/0 - title set/not set
  */
-public int
-library_write_get_title(object who, string input)
+public int library_write_get_title(object who, string input)
 {
     if (input == "~q")
     {
@@ -1630,18 +1630,19 @@ library_write_get_title(object who, string input)
     return 1;
 }
 
+
 /*
  * Function name: library_write_access
  * Description:   Redefine this function to limit permission to write books
  * Returns:       1 - this_player() is permitted to write a book
  *                0 - this_player() is not permitted to write a book
  */
-public int
-library_write_access()
+public int library_write_access()
 {
     write("You don't have permission to do that.\n");
     return 0;
 }
+
 
 /*
  * Function name: library_write
@@ -1649,8 +1650,7 @@ library_write_access()
  * Arguments:     string str - arguments to the "write" command
  * Returns:       1/0 - syntax success/failure
  */
-public int
-library_write(string str)
+public int library_write(string str)
 {
     if (!library_write_access())
     {
@@ -1663,17 +1663,18 @@ library_write(string str)
     return 1;
 }
 
+
 /*
  * Function name: library_approve_access
  * Description:   Redefine this function to limit permission to approve books
  * Returns:       1 - this_player() is permitted to approve a book
  *                0 - this_player() is not permitted to approve a book
  */
-public int
-library_approve_access()
+public int library_approve_access()
 {
     return 1;
 }
+
 
 /*
  * Function name: library_approve
@@ -1681,8 +1682,7 @@ library_approve_access()
  * Arguments:     string str - arguments to the "approve" command
  * Returns:       1/0 - syntax success/failure
  */
-public int
-library_approve(string str)
+public int library_approve(string str)
 {
     string book_file;
 

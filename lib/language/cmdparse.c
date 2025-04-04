@@ -62,6 +62,8 @@ varargs mixed *visible_access(
 
     log_debug("=== Handling visible access ===");
 
+    log_debug("arr: %O", arr);
+
     /* Access failure. */
     if (!pointerp(arr) || !sizeof(arr) || !this_player())
     {
@@ -82,7 +84,7 @@ varargs mixed *visible_access(
 
     if (acsfunc)
     {
-    	items = filter(items, "acsfunc", acsobj);
+    	items = filter(items, acsfunc, acsobj);
     }
     else
     {

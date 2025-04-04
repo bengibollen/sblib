@@ -2441,17 +2441,21 @@ string modify_command(string cmd, object ob)
 
     if (!sizeof(cmd))
     {
-	return cmd;
+        logger->debug("Command is empty.");
+        return cmd;
     }
 
     while(cmd[0] == '$')
     {
+        logger->debug("Removing leading $ from command.");
         cmd = cmd[1..];
         no_subst = 1;
     }
 
     while(cmd[0] == ' ')
     {
+        
+        logger->debug("Removing leading space from command.");
         cmd = cmd[1..];
     }
 
@@ -2459,9 +2463,11 @@ string modify_command(string cmd, object ob)
 
     if (cmd in command_substitute)
     {
+        logger->debug("Command is in command_substitute: %s", cmd);
         if (interactive(ob) && !ob->query_wiz_level() &&
             pointerp(m_domains[domain = environment(ob)->query_domain()]))
         {
+            logger->debug("Incrementing command count for domain: %s", domain);
             m_domains[domain][FOB_DOM_CMNDS]++;
         }
         return command_substitute[cmd];
@@ -2470,6 +2476,7 @@ string modify_command(string cmd, object ob)
     /* No modification for NPC's */
     if (!interactive(ob))
     {
+        logger->debug("No modification for NPC's.");
         return cmd;
     }
 
@@ -2496,6 +2503,9 @@ string modify_command(string cmd, object ob)
     {
         cmd = implode(explode(cmd, "@@"), "#");
     }
+    
+
+    logger->debug("Final modified command: %s", to_string(cmd));
 
     return cmd;
 }

@@ -78,6 +78,7 @@ public string *parse_command_id_list()
  */
 public string *parse_command_plural_id_list()
 {
+    log_debug("parse_command_plural_id_list: %O", obj_pnames);
     return obj_pnames;
 }
 
@@ -87,6 +88,7 @@ public string *parse_command_plural_id_list()
  */
 public string *parse_command_adjectiv_id_list()
 {
+    log_debug("parse_command_adjectiv_id_list: %O", obj_adjs);
     return (sizeof(obj_adjs) ? obj_adjs : (stringp(obj_adjs) ?
                                            ({ obj_adjs }) : 0));
 }
@@ -1046,9 +1048,11 @@ public nomask varargs mixed check_call(mixed retval, object for_obj = previous_o
 
     if (!stringp(retval))
     {
+        log_debug("Not a string: %O", retval);
         return retval;
     }
 
+    log_debug("Check_call: %s", retval);
     obj_previous = for_obj;
 
     more = sscanf(retval, "@@%s@@%s", a, b);
@@ -1060,6 +1064,8 @@ public nomask varargs mixed check_call(mixed retval, object for_obj = previous_o
     else
         proc_ret = process_string(retval);
 
+
+    log_debug("VBFC: %s", proc_ret);
     obj_previous = 0;
     return proc_ret;
 }

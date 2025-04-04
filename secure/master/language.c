@@ -13,9 +13,9 @@
  *                one particular object, i.e. a singular 'id'.
  * Returns      : string * - the list.
  */
-string *
-parse_command_id_list()
+string *parse_command_id_list()
 {
+    logger->debug("parse_command_id_list");
     return ({ "one", "it", "thing", "item" });
 }
 
@@ -25,9 +25,9 @@ parse_command_id_list()
  *                a particular group of objects, i.e. a plural 'id'.
  * Returns      : string * - the list.
  */
-string *
-parse_command_plural_id_list()
+string *parse_command_plural_id_list()
 {
+    logger->debug("parse_command_plural_id_list");
     return ({ "ones", "them", "things", "items" });
 }
 
@@ -40,6 +40,7 @@ parse_command_plural_id_list()
  */
 string *parse_command_adjectiv_id_list()
 {
+    logger->debug("parse_command_adjectiv_id_list");
     return ({ "present", "that" });
 }
 
@@ -50,7 +51,8 @@ string *parse_command_adjectiv_id_list()
  */
 string *parse_command_prepos_list()
 {
-    return ({ "on", "in", "under", "beneeth", "behind", "beside", "inside",
+    logger->debug("parse_command_prepos_list");
+    return ({ "on", "in", "at", "under", "beneath", "behind", "beside", "inside",
 	      "in front of", "above", "left of", "right of", "on top of" });
 }
 
@@ -59,9 +61,9 @@ string *parse_command_prepos_list()
  * Description  : This will return the word meaning 'all' in English.
  * Returns      : string - the word.
  */
-string
-parse_command_all_word()
+string parse_command_all_word()
 {
+    logger->debug("parse_command_all_word");
     return "all";
 }
 
@@ -70,8 +72,8 @@ parse_command_all_word()
  * Description  : This will return the word meaning 'of' in English.
  * Returns      : string - the word.
  */
-string
-parse_command_of_word()
+string parse_command_of_word()
 {
+    logger->debug("parse_command_of_word");
     return "of";
 }

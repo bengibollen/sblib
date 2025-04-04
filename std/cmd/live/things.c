@@ -1715,9 +1715,10 @@ varargs int look(string str, int brief)
     
 //ldmud: interpret.c:16339: eval_instruction: Assertion `sp[-1].type == T_ARG_FRAME' failed.
 
-    if (!parse_command(str, ENV, "%p %i", prp, obarr) || !sizeof(obarr = NORMAL_ACCESS(obarr, "visible", this_object())))
+    if (!parse_command(str, ENV, "%p %i", prp, obarr) || !sizeof(obarr = NORMAL_ACCESS(obarr, "is_visible", this_object())))
     {
         log_debug("No objects found for str: " + str + "\n");
+        log_debug("obarr: %O", obarr);
         /* No objects found */
         /* Test for pseudo item in the environment */
         if (CAN_SEE(this_player(), ENV) &&
