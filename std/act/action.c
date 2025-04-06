@@ -27,7 +27,7 @@ static  string  *monster_act,          /* Action strings */
 
 #define SEQ_ACT   "_mon_ran_act"
 
-varargs string monster_do_act(int waited = 0);
+varargs string monster_do_act(int waited);
 
 /*
  * Function name: add_act

@@ -58,6 +58,7 @@ static void cmdhooks_reset()
     add_action(#'communicate, "'", 2);
     add_action(#'acommunicate, "a'", 2);
 
+    log_debug("Current actions: %O", query_actions(this_object()));
     /* Get the different race-sounds. */
     if (!sizeof(com_sounds = RACESOUND[query_race()]))
     {
@@ -379,7 +380,7 @@ static int my_commands(string str)
     string verb = query_verb();
     int    size;
 
-    log_debug("=== Executing command: %s", to_string(str));
+    log_debug("=== Executing command: %s", to_string(query_command()));
 
     /* Don't waste the wiz-souls and toolsouls on mortals.
      */
@@ -538,6 +539,7 @@ nomask public void update_hooks()
     load_tool_souls();
     load_command_souls();
     log_debug("Hooks updated successfully.");
+    log_debug("Current actions: %O", query_actions(this_object()));
 }
 
 

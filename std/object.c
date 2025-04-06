@@ -100,6 +100,7 @@ public string *parse_command_adjectiv_id_list()
  */
 public void create_object()
 {
+    log_debug("Create_object run in object.c: %O", this_object());
     add_name("object");
     add_prop(OBJ_I_WEIGHT, 1000);       /* 1 Kg is default */
     add_prop(OBJ_I_VOLUME, 1000);       /* 1 l is default */
@@ -116,6 +117,7 @@ public void create_object()
  */
 public nomask void create()
 {
+    log_debug("Create run in object.c: %O", this_object());
     create_object();
 
     /* Add the name based on the object number. */
@@ -1048,7 +1050,6 @@ public nomask varargs mixed check_call(mixed retval, object for_obj = previous_o
 
     if (!stringp(retval))
     {
-        log_debug("Not a string: %O", retval);
         return retval;
     }
 
@@ -1064,8 +1065,13 @@ public nomask varargs mixed check_call(mixed retval, object for_obj = previous_o
     else
         proc_ret = process_string(retval);
 
+    if (stringp(proc_ret))
+        log_debug("VBFC: %s", proc_ret);
+    else if (closurep(proc_ret))
+        log_debug("VBFC O: %O", proc_ret);
+    else
+        log_debug("VBFC M: %s", to_string(proc_ret));
 
-    log_debug("VBFC: %s", proc_ret);
     obj_previous = 0;
     return proc_ret;
 }

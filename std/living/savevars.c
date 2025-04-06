@@ -245,13 +245,17 @@ public int query_wiz_level()
  */
 public void set_race_name(string str)
 {
-    if (id(race_name))
+
+    log_debug("Setting race name to: " + str);
+    log_debug("Previous race name: " + race_name);
+    if (race_name && id(race_name))
     {
         remove_name(race_name);
     }
 
     race_name = str;
     add_name(race_name);
+    log_debug("Race name set to: " + race_name);
 }
 
 /*
@@ -492,6 +496,7 @@ void heal_hp(int hp)
     string text;
     object o;
 
+    log_debug("Function: living:heal_hp");
     this_object()->calculate_hp();
 
 #ifdef LOG_REDUCE_HP
@@ -678,7 +683,9 @@ public int query_fatigue()
 void refresh_living()
 {
     if (!(({int}) this_object()->query_npc()))
+    {
         return;
+    }
 
     heal_hp(query_max_hp());
     add_mana(query_max_mana());

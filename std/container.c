@@ -71,6 +71,8 @@ public varargs string show_sublocs(object for_obj, mixed *slocs);
  */
 public nomask void create_object()
 {
+
+    log_debug("Create_object run in container.c: %s", to_string(this_object()));
     cont_block_prop = 0;
     add_prop(CONT_I_IN, 1);         /* Can have things inside it */
     add_prop(OBJ_I_LIGHT, #'light);   /* The total light of container */

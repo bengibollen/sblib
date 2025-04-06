@@ -89,6 +89,8 @@ void catch_tell(string str)
     int il;
     string pattern, func, euid;
 
+    log_debug("Function: catch_tell called in trigaction.c");
+
     if (interactive(this_object())) // Monster is possessed
     {
         write(str);

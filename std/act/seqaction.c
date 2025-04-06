@@ -123,10 +123,15 @@ private int seq_process_commands(int steps)
     newstep = 0;
     stopped = 0;
     if (!steps)
+    {
         steps = 1;
+    }
 
     if (stopseq)
+    {
+        log_debug("Stopping sequence for %s", to_string(this_object()));
         stopped = 1;
+    }
 
     for (il = 0; il < sizeof(seq_names); il++)
     {
@@ -187,9 +192,10 @@ private int seq_process_commands(int steps)
  * Called when the living encounters an interactive player
  * and sequences has been stopped
  */
-public void
-seq_restart()
+public void seq_restart()
 {
+    log_debug("Restarting sequence for %s", to_string(this_object()));
+
     seq_active = 1;
     seq_delay = 0;
     seq_next_step = 1;

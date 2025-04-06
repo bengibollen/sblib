@@ -1,3 +1,4 @@
+#3:2
 m_in "arrives"
 m_out "leaves"
 mm_in "arrives in a puff of smoke."
@@ -32,7 +33,7 @@ player_file "/d/Standard/race/human_std"
 path 0
 mailaddr 0
 adj_desc ({"cold","crawling",})
-default_start_location "/w/debug/workroom"
+default_start_location "/d/Standard/start/church"
 temp_start_location "/w/debug/workroom"
 login_from "172.17.0.1"
 options " 20 8036\"  !"

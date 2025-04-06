@@ -304,6 +304,8 @@ public varargs string query_the_name(object pobj)
 {
     string pre = "", aft = "";
 
+    log_debug("query_the_name: %O", this_object());
+
     if (!objectp(pobj))
 	pobj = previous_object(-1);
 

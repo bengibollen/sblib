@@ -1,11 +1,11 @@
 
 inherit "/std/creature";
 
-#include "/config/login/login.h"
+#include "/conf/login/login.h"
 #include <stdproperties.h>
 #include <const.h>
 
-create_creature()
+void create_creature()
 {
 }
 

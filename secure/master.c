@@ -2520,7 +2520,6 @@ mapping query_move_opposites()
 {
     logger->debug("Querying move opposites.");
     
-    logger->debug("Move opposites: %O", move_opposites);
     /* We intentionally return the unmodified mapping! */
     return move_opposites;
 }

@@ -55,6 +55,7 @@ public varargs int say_to(string str, closure format, string adverb);
  */
 void create()
 {
+    log_debug("Create speech.c: %s", to_string(this_object()));
     configure_object(this_object(), OC_EUID, getuid(this_object()));
 }
 

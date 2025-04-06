@@ -77,7 +77,7 @@ public int query_init_master()
  */
 nomask void create_container()
 {
-    log_debug("Creating container for: %s", to_string(this_object()));
+    log_debug("Create_container for living.c: %s", to_string(this_object()));
 
     if (!(IS_CLONE ||
 	  query_init_master()))
@@ -123,8 +123,11 @@ nomask void create_container()
      */
     if (query_npc())
     {
+        log_debug("I'm a NPC! Object: %s", to_string(this_object()));
+        set_this_player(this_object());
         refresh_living();
-//        cmdhooks_reset();
+        cmdhooks_reset();
+        set_this_player(0);
     }
 }
 

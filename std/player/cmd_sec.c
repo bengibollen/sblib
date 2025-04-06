@@ -73,6 +73,7 @@ static nomask void stop_autosave()
  */
 static nomask void cmd_sec_reset()
 {
+    log_debug("Command security reset for player: %s", to_string(this_object()));
     add_action(#'quit,            "quit");
     add_action(#'save_character,  "save");
     add_action(#'change_password, "password");

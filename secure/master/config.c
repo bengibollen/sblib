@@ -121,10 +121,21 @@ public void setup_include_dirs()
     }));
 }
 
+void notify_no_command(string cmd, object msgobj, object orig_cmd_giver)
+{
+    // Send debug messages
+    logger->debug("No command found for: %s\n", cmd);
+    logger->debug("Command giver: %O\n", orig_cmd_giver);
+    logger->debug("Message object: %O\n", msgobj);
+}
+
 public void setup_error_handling()
 {
     // Set default error message for unknown commands
-    set_driver_hook(H_NOTIFY_FAIL, "What?\n");
+    set_driver_hook(H_NOTIFY_FAIL, "What!?\n");
+    // set_driver_hook(H_SEND_NOTIFY_FAIL, unbound_lambda( ({'msg, 'msgobj, 'orig_cmd_giver}),
+    //     ({#'notify_no_command, 'msg, 'msgobj, 'orig_cmd_giver   })
+    // ));
 }
 
 public void setup_uid_management() {

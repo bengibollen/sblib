@@ -12,6 +12,7 @@
 #include <language.h>
 #include <ss_types.h>
 #include <stdproperties.h>
+#include <driver_info.h>
 
 static mapping introduced_name;   /* People who introduced themselves */
 
@@ -135,5 +136,13 @@ public varargs mixed query_introduced(mixed name)
  */
 public void catch_tell(string msg)
 {
+    log_debug("Function: catch_tell called in getmsg_sec.c");
+    log_debug("This object: %O", this_object());
+    log_debug("This interactive: %O", this_interactive());
+    log_debug("This player: %O", this_player());
+    log_debug("Previous object: %O", previous_object());
+    dump_driver_info(DDI_OBJECTS, "/log/objects_before.txt");
+    dump_driver_info(DDI_MEMORY, "/log/memory_before.txt");
+    log_debug("Raw string: %s", msg);
     write(process_string(msg));
 }

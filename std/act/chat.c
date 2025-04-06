@@ -148,6 +148,9 @@ void monster_do_chat()
     int il;
     string chatstr;
 
+    log_debug("== Monster_do_chat: %O", this_object());
+    log_debug("Current actions: %O", query_actions(this_object()));
+
     if (!({int}) this_object()->query_attack())
     {
         if (!sizeof(monster_chat_left))

@@ -6,9 +6,12 @@ inherit "/std/room";
 #include <stdproperties.h>
 #include <cmdparse.h>
 #include <ss_types.h>
-#include "/config/login/login.h"
+#include "/conf/login/login.h"
 
-mapping bodies;
+static mapping bodies = ([]);
+
+void make_one_of_each(int j);
+void make_random(int j);
 
 
 /*
@@ -27,7 +30,6 @@ create_room()
 	     "end of the hall. Above the hatch there is a sign saying:\n" +
 	     "               TRANSMOGRIFYER\n");
 
-	bodies = ([ ]);
     add_prop(ROOM_I_INSIDE, 1);
     call_out(#'make_one_of_each, 1, sizeof(RACES) - 1);
 }
@@ -41,8 +43,11 @@ void make_one_of_each(int j)
 
     for (i = 0; i < 2; i++)
     {
+		log_debug("Argument j: %d", j);
+		log_debug("Races: %O", RACES);
 		tmp = RACES[j] + (i ? "male" : "female");
-		bodies[tmp] = 1;
+		log_debug("tmp: %s", tmp);
+		bodies += ([tmp: 1]);
 		ob = clone_object(PATH + "body");
 		ob->create_body(RACES[j], (i ? "male" : "female"));
 		ob->move(this_object());
@@ -64,7 +69,7 @@ void make_random(int j)
     ob->create_body();
     ob->move(this_object());
 
-    tmp = ob->query_race_name() + ob->query_gender_string();
+    tmp = ({string}) ob->query_race_name() + ({string}) ob->query_gender_string();
     bodies[tmp]++;
 
     if (j)

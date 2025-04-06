@@ -606,7 +606,7 @@ private nomask int setup_player(string pl_name)
     configure_object(this_object(), OC_EUID, 0);
     if (!({int}) SECURITY->load_player())
     {
-        log_debug("Failed to load player: " + pl_name);
+        log_error("Failed to load player: " + pl_name);
         return 0;
     }
 
@@ -816,8 +816,8 @@ public nomask int enter_game(string pl_name, string pwd)
     }
     log_debug("Login attempt for: " + object_name(previous_object()));
 
-    setup_player(pl_name);
     cmdhooks_reset();
+    setup_player(pl_name);
 
     /* Tell the player when he was last logged in and from which site. */
     if (MASTER_OB(previous_object()) == LOGIN_OBJECT)
@@ -979,6 +979,7 @@ nomask public int save_player(string pl_name)
 nomask public int load_player(string pl_name)
 {
     int ret;
+    string file;
    
     if (!pl_name)
     {
@@ -987,10 +988,20 @@ nomask public int load_player(string pl_name)
     log_debug("Loading player file: " + pl_name);
 
     configure_object(this_object(), OC_EUID, getuid(this_object()));
-    ret = restore_object(PLAYER_FILE(pl_name));
-    if (!ret) {
-        log_debug("Failed to load player file: " + pl_name);
+
+    if (file_size(PLAYER_FILE(pl_name)) < 0)
+    {
+        log_error("Player file not found: %s", pl_name);
+        return 0;
     }
+
+    ret = restore_object(read_file(PLAYER_FILE(pl_name)));
+
+    if (!ret)
+    {
+        log_error("Failed to restore player file: " + pl_name);
+    }
+
     configure_object(this_object(), OC_EUID, 0);
     return ret;
 }
@@ -1264,9 +1275,13 @@ public nomask int command(string cmd)
  */
 public int id(string str)
 {
+
+    log_debug("Checking id for: " + str);
     if ((str == query_real_name()) &&
         notmet_me(this_player()))
     {
+        log_debug("Player " + query_real_name() + " not met by " +
+            ({string}) this_player()->query_real_name() + ".\n");
         return 0;
     }
 

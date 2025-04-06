@@ -15,14 +15,15 @@ void create_room() {
     set_long("\n"+
 	     "You are in the local village church.\n" +
 	     "There is a deep pit in the center.\n" +
-	     "");
+	     "There's a button on the wall labelled 'sheep' for some reason.\n");
 
     add_exit("/d/Standard/start/mailroom","south","@@sblock");
 
-       add_item(({"pit"}),"It is very deep and smells bad. You don't\n" +
-		"dare go near the edge. They guy who made this room must\n" +
-		"be nuts.\n" +
-		"");
+    add_item(({"pit"}),"It is very deep and smells bad. You don't\n" +
+		"dare go near the edge. The guy who made this room must\n" +
+		"be nuts.\n");
+    add_item(({"button"}),"It is very tempting to press it.\n");
+    
 }
 
 
@@ -35,20 +36,38 @@ query_no_snoop()
 void init() {
     add_action("pray", "pray");
     add_action("rest", "rest");
+    add_action("press_button", "press");
     ::init();
 }
 
 
-void pray() {
+int pray()
+{
     write("Since God doesn't exist, nothing happens.\n");
     if (!this_player()->query_invis())
 	say( ({METNAME +" kneels down and mumbles.\n",
 	       ART_NONMETNAME +" kneels down and mumbles.\n"}) );
+    return 1;
 }
 
 
-void rest() {
+int rest()
+{
     write("Ah, wasn't that nice.\n");
+    return 1;
+}
+
+int press_button(string str) {
+    if (str == "button" || str == "sheep")
+    {
+        write("You press the button and a sheep appears.\n");
+        say( QCTNAME(this_player()) + " presses the button and a sheep appears.\n");
+        clone_object("/w/debug/sheep")->move(environment(this_player()));
+        return 1;
+    }
+
+    write("Press what?\n");
+    return 1;
 }
 
 
@@ -59,7 +78,7 @@ string wizinfo() {
 }
 
 
-int sblock()
+string sblock()
 {
     return 0; 
 }

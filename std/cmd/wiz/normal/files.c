@@ -721,164 +721,176 @@ clone_message(mixed cloned)
  * Arguments    : string what - the filename of the object to clone.
  * Returns      : object - the object cloned.
  */
-static nomask object
-clone_ob(string what)
+static nomask object clone_ob(string what)
 {
     string str, mess;
     object ob;
 
+	log_debug("Clone_ob: %s", what);
+
     str = FTPATH(({string})this_interactive()->query_path(), what);
-    if (!sizeof(str))
+
+	if (!sizeof(str))
     {
-	notify_fail("Invalid file.\n");
-	return 0;
+		notify_fail("Invalid file.\n");
+		return 0;
     }
 
     if (file_size(str + ".c") < 0 && file_size(str) < 0)
     {
-	notify_fail("No such file.\n");
-	return 0;
+		notify_fail("No such file.\n");
+		return 0;
     }
 
     ob = clone_object(str);
-    if (!ob)
+
+	if (!ob)
     {
-	notify_fail("You can not clone: " + str + "\n");
-	return 0;
+		notify_fail("You can not clone: " + str + "\n");
+		return 0;
     }
-    say(QCTNAME(this_interactive()) + " fetches @@clone_message:" +
+
+	say(QCTNAME(this_interactive()) + " fetches @@clone_message:" +
 	object_name(this_object()) + "|" + object_name(ob) +
         "@@ from another dimension.\n");
     return ob;
 }
 
-nomask int
-clone(string str)
+nomask int clone(string str)
 {
     object ob;
-    int num, argc;
+    int num;
     string *argv;
     string desc;
+
+	log_debug("Cloning object: %s", str);
 
     CHECK_SO_WIZ;
 
     if (!stringp(str))
     {
-	notify_fail("Clone what object ?\n");
-	return 0;
-    }
+		notify_fail("Clone what object ?\n");
+		return 0;
+	}
 
     argv = explode(str, " ");
-    argc = sizeof(argc);
 
     switch (argv[0])
     {
-    case "-i":
-	ob = clone_ob(argv[1]);
-	if (!ob)
-	    return 0;
-	ob->move(this_interactive(), 1);
-	if (({int}) this_interactive()->query_option(OPT_ECHO))
-	{
-	    desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
-	    write("You clone " + desc + " into your inventory.\n");
-	}
-	else
-	{
-	    write("Ok.\n");
-	}
-	break;
+		case "-i":
+			ob = clone_ob(argv[1]);
 
-    case "-e":
-	ob = clone_ob(argv[1]);
-	if (!ob)
-	    return 0;
-	ob->move(environment(this_interactive()), 1);
-        /* We need to do this instead of write() because cloning a living
-         * will alter this_player().
-         */
-	if (({int}) this_interactive()->query_option(OPT_ECHO))
-	{
-	    desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
-	    this_interactive()->catch_tell("You clone " + desc +
-	        " into your environment.\n");
-	}
-	else
-	{
-	    this_interactive()->catch_tell("Ok.\n");
-	}
-	break;
+			if (!ob)
+				return 0;
 
-    default:
-	ob = clone_ob(argv[0]);
-	if (!ob)
-	    return 0;
+			ob->move(this_interactive(), 1);
 
-	num = ({int}) ob->move(this_interactive());
-	switch (num)
-	{
-	case 0:
-	    if (({int}) this_interactive()->query_option(OPT_ECHO))
-	    {
-	        desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
-	        write("You clone " + desc + " into your inventory.\n");
-	    }
-	    else
-	    {
-	        write("Ok.\n");
-	    }
-	    break;
+			if (({int}) this_interactive()->query_option(OPT_ECHO))
+			{
+				desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
+				write("You clone " + desc + " into your inventory.\n");
+			}
+			else
+			{
+				write("Ok.\n");
+			}
+			break;
 
-	case 1:
-	    write("Too heavy for destination.\n");
-	    break;
+		case "-e":
+			ob = clone_ob(argv[1]);
 
-	case 2:
-	    write("Can't be dropped.\n");
-	    break;
+			if (!ob)
+				return 0;
 
-	case 3:
-	    write("Can't take it out of it's container.\n");
-	    break;
+			ob->move(environment(this_interactive()), 1);
+				/* We need to do this instead of write() because cloning a living
+				* will alter this_player().
+				*/
+			if (({int}) this_interactive()->query_option(OPT_ECHO))
+			{
+				desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
+				this_interactive()->catch_tell("You clone " + desc +
+					" into your environment.\n");
+			}
+			else
+			{
+				this_interactive()->catch_tell("Ok.\n");
+			}
+			break;
 
-	case 4:
-	    write("The object can't be inserted into bags etc.\n");
-	    break;
+		default:
+			ob = clone_ob(argv[0]);
 
-	case 5:
-	    write("The destination doesn't allow insertions of objects.\n");
-	    break;
+			if (!ob)
+				return 0;
 
-	case 6:
-	    write("The object can't be picked up.\n");
-	    break;
+			num = ({int}) ob->move(this_interactive());
 
-	case 7:
-	    write("Other (Error message printed inside move() function).\n");
-	    break;
+			switch (num)
+			{
+				case 0:
+					if (({int}) this_interactive()->query_option(OPT_ECHO))
+					{
+						desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
+						write("You clone " + desc + " into your inventory.\n");
+					}
+					else
+					{
+						write("Ok.\n");
+					}
+					break;
 
-	case 8:
-	    write("Too big volume for destination.\n");
-	    break;
+				case 1:
+					write("Too heavy for destination.\n");
+					break;
 
-	default:
-	    write("Strange, very strange error in move: " + num + "\n");
-	    break;
-	}
-	if (num)
-	{
-	    num = ({int})ob->move(environment(this_interactive()));
-	    if (({int}) this_interactive()->query_option(OPT_ECHO))
-	    {
-	        desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
-	        write("You clone " + desc + " into your environment.\n");
-	    }
-	    else
-	    {
-	        write("Ok.\n");
-	    }
-	}
-	break;
+				case 2:
+					write("Can't be dropped.\n");
+					break;
+
+				case 3:
+					write("Can't take it out of it's container.\n");
+					break;
+
+				case 4:
+					write("The object can't be inserted into bags etc.\n");
+					break;
+
+				case 5:
+					write("The destination doesn't allow insertions of objects.\n");
+					break;
+
+				case 6:
+					write("The object can't be picked up.\n");
+					break;
+
+				case 7:
+					write("Other (Error message printed inside move() function).\n");
+					break;
+
+				case 8:
+					write("Too big volume for destination.\n");
+					break;
+
+				default:
+					write("Strange, very strange error in move: " + num + "\n");
+					break;
+			}
+			if (num)
+			{
+				num = ({int})ob->move(environment(this_interactive()));
+
+				if (({int}) this_interactive()->query_option(OPT_ECHO))
+				{
+					desc = (living(ob) ? ({string}) ob->query_art_name(this_interactive()) : LANG_ASHORT(ob));
+					write("You clone " + desc + " into your environment.\n");
+				}
+				else
+				{
+					write("Ok.\n");
+				}
+			}
+			break;
     }
     return 1;
 }
