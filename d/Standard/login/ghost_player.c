@@ -171,6 +171,7 @@ public nomask void enter_new_player(string name, string pass)
         }
         else
         {
+            log_info("Creating a new player: %s\n", name);
             write("Creating a new player.\n");
             log_file("CREATE_PLAYER", ctime(time()) + " " + query_name() +
                 "(" + interactive_info(this_object(), II_IP_NUMBER) + ")\n");

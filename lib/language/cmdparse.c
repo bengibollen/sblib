@@ -289,22 +289,36 @@ varargs object *do_verb_1obj(string cmd, string single_func, string acsfunc, obj
     mixed * itema;
     object call_obj;
 
+    log_debug("\n=== Handling do_verb_1obj ===\n");
+    log_debug("cmd: %s", cmd);
+    log_debug("single_func: %s", single_func);
+    log_debug("acsfunc: %s", acsfunc);
+    log_debug("cobj: %O", cobj);
+    log_debug("include_invis: %d", include_invis);
+    log_debug("this_player(): %O", this_player());
+    log_debug("previous_object(): %O", previous_object());
+    log_debug("this_object(): %O", this_object());
+    log_debug("environment(this_player()): %O\n\n", environment(this_player()));
+
     if (!cmd)
-	return 0;
+    	return 0;
+
     if (!cobj)
-	call_obj = previous_object();
+    	call_obj = previous_object();
     else
-	call_obj = cobj;
+    	call_obj = cobj;
 
     if (!parse_command(cmd, PARSE_ENV, "[the] %i", itema))
     	return 0;
 
     itema = normal_access(itema, acsfunc, cobj, include_invis);
 
+    log_debug("itema: %O\n", itema);
+
     if (!itema)
     	return 0;
 
-    return filter(itema, "single_func", call_obj);
+    return filter(itema, single_func, call_obj);
 }
 
 

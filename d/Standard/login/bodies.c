@@ -84,6 +84,9 @@ void make_random(int j)
 public void init()
 {
     add_action("all_cmd", "", 1);
+	log_debug("Current actions in room bodies.c: %O", query_actions(this_player()));
+
+	::init();
 }
 
 
@@ -249,8 +252,10 @@ public void enter_cmd(string str)
     object player, *a;
     string tmp;
 
-    if (!str || !sizeof(str))
-    {
+	log_debug("Enter command: %s", to_string(str));
+
+	if (!str || !sizeof(str))
+	{
 		write("Enter what?\n");
 		return;
     }
@@ -367,6 +372,8 @@ varargs void create_new(string *a)
  */
 public int all_cmd(string str)
 {
+
+	log_debug("Command at room bodies.c: %s", query_command());
     switch(query_verb())
     {
 		case "arrive":

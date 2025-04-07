@@ -21,7 +21,7 @@
 #define MSG_DIR   "/players/messages/"
 #endif
 
-#define ALIAS_DIR "/config/aliases/"
+#define ALIAS_DIR "/conf/aliases/"
 #define MAIL_ARCHIVE_DIR "mail_archive/"
 
 /*

@@ -6,12 +6,12 @@
 #define PATH "/d/Standard/login/"
 
 inherit "/std/object";
-#include "/sys/stdproperties.h"
+#include <stdproperties.h>
 
 int aval, bval, gval;
 
 
-create_object()
+public void create_object()
 {
     set_name("selector");
     set_short("attribute selector");
@@ -25,10 +25,10 @@ create_object()
 }
 
 
-init()
+public void init()
 {
     string *adj;
-
+    log_debug("init() called in set_attrib.c");
     add_action("press", "press");
     add_action("alpha", "alpha");
     add_action("beta", "beta");
@@ -56,15 +56,23 @@ int select(string str)
 
     if (call_other(PATH + "check_attrib", "select", str))
     {
-	    adj = (string *) this_player()->query_adj(1);
+	    adj = ({string *}) this_player()->query_adj(1);
+        log_debug("adj: %O", adj);
         this_player()->remove_adj(adj);
         adj = adj + ({"", ""});
-        adj = slice_array(adj, 0, 1);
+        log_debug("adj: %O", adj);
+        adj[2..] = ({});
+        log_debug("adj: %O", adj);
         adj[1] = adj[0];
+        log_debug("adj: %O", adj);
         adj[0] = str;
+        log_debug("adj: %O", adj);
 
         if (adj[1] == "")
-            adj = slice_array(adj, 0, 0);
+        {
+            adj[1..] = ({});
+            log_debug("Updated adj: %O", adj);
+        }
 
         this_player() -> set_adj(adj);
     }
@@ -77,7 +85,7 @@ int select(string str)
 public int show(string str)
 {
     write("This is how you look:\n");
-    write(this_interactive()->long() + "\n");
+    write(({string}) this_interactive()->long() + "\n");
     return 1;
 }
 

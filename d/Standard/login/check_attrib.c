@@ -5,6 +5,7 @@
  */
 #define PATH "/d/Standard/login/"
 inherit "/std/object";
+#include <configuration.h>
 
 /* Attrib contains one element for each category of attributes. Each element
  * conatins an array with 3 parts, category name, category type and an array
@@ -16,7 +17,6 @@ mixed *attrib;
 create_object()
 {
     obj_names = ({"selector"});
-    setuid();
     configure_object(this_object(), OC_EUID, getuid(this_object()));
     restore_object(PATH + "attributes");
 }
@@ -32,7 +32,7 @@ list(string str)
 	for (i = 0; i < sizeof(attrib); i++)
 	{
 	    write("Category: " + attrib[i][0] + "\n");
-	    write(break_string(implode(attrib[i][2], ", "), 70) + "\n");
+	    write(implode(attrib[i][2], ", ") + "\n");
 	}
 	return 1;
     }
@@ -54,7 +54,7 @@ list(string str)
 	    if (tmp[i] == lower_case(attrib[j][0]))
 	    {
                 write("Category: " + attrib[j][0] + "\n");
-	        write(break_string(implode(attrib[j][2], ", "), 70) + "\n");
+	        write(implode(attrib[j][2], ", ") + "\n");
 	    }
 	}
     }
@@ -83,7 +83,8 @@ int
 is_equal(string a, string b)
 {
     if (a == b)
-	return 1;
+    	return 1;
+
     return 0;
 }
 

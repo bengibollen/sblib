@@ -11,7 +11,6 @@
 
 #pragma strict_types
 
-#pragma strict_types
 
 #include <macros.h>
 #include <ss_types.h>
@@ -23,8 +22,7 @@
  * Prototypes
  */
 int sk_improve(string str);
-public varargs int sk_hook_allow_train_skill(object who, string skill,
-                                             int level);
+public varargs int sk_hook_allow_train_skill(object who, string skill, int level);
 
 static mapping sk_trains,     /* The available skills to train */
                sk_default,    /* The default basic skills */

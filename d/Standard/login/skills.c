@@ -6,7 +6,7 @@ inherit "/std/room";
 #include <stdproperties.h>
 #include <std.h>
 #include <macros.h>
-#include "/config/login/login.h"
+#include "/conf/login/login.h"
 
 /*
  * Function name: create_room()

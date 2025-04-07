@@ -1,0 +1,71 @@
+d/Standard/login/skills  6384 ( 7429) ref 922    --  (1102)  2025.04.07-14:40:22
+d/Standard/login/check_attrib  5905 ( 6059) ref  2    --  (218)  2025.04.07-14:40:00
+d/Standard/login/set_attrib  3649 ( 3927) ref  2    --  (222)  2025.04.07-14:39:47
+d/Standard/login/features  6433 ( 7579) ref 140    --  (2163)  2025.04.07-14:39:47
+d/Standard/login/mangle  8469 (10142) ref  8    --  (2454)  2025.04.07-14:39:42
+std/combat/cplain#19   456 (  456) ref  2    --  (226)  2025.04.07-14:39:39
+d/Standard/login/body#18  6693 (10683) ref 19    d/Standard/login/bodies  (11025)  2025.04.07-14:39:39
+lib/language/cmdparse  3600 ( 3600) ref  2    --  (276)  2025.04.07-14:39:38
+std/combat/cplain#15   456 (  456) ref  2    --  (246)  2025.04.07-14:39:36
+d/Standard/login/body#14  6693 (10683) ref 19    d/Standard/login/bodies  (11323)  2025.04.07-14:39:36
+std/combat/cplain#13   456 (  456) ref  2    --  (246)  2025.04.07-14:39:35
+d/Standard/login/body#12  6693 (10679) ref 19    d/Standard/login/bodies  (11320)  2025.04.07-14:39:35
+std/combat/cplain#11   456 (  456) ref  2    --  (246)  2025.04.07-14:39:34
+d/Standard/login/body#10  6693 (10683) ref 19    d/Standard/login/bodies  (11323)  2025.04.07-14:39:34
+std/combat/cplain#9    456 (  456) ref  2    --  (246)  2025.04.07-14:39:33
+d/Standard/login/body#8  6651 (10677) ref 19    d/Standard/login/bodies  (11325)  2025.04.07-14:39:33
+std/combat/cplain#7    456 (  456) ref  2    --  (246)  2025.04.07-14:39:32
+d/Standard/login/body#6  6651 (10673) ref 19    d/Standard/login/bodies  (11292)  2025.04.07-14:39:32
+std/combat/cplain#5    456 (  456) ref  2    --  (248)  2025.04.07-14:39:32
+d/Standard/login/body#4  6651 (10677) ref 19    d/Standard/login/bodies  (11310)  2025.04.07-14:39:32
+d/Standard/login/body 10556 (12642) ref  8    --  (617)  2025.04.07-14:39:32
+lib/language/composite  2808 ( 2808) ref  2    --  (492)  2025.04.07-14:39:31
+lib/language/subloc   1536 ( 1536) ref  2    --  (11)  2025.04.07-14:39:31
+d/Standard/login/bodies  8184 ( 9221) ref 155    --  (7117)  2025.04.07-14:39:31
+std/room             15135 (15954) ref 78    --  (909)  2025.04.07-14:39:31
+std/cmd/std/tracer_tool 14039 (15564) ref  2    --  (163)  2025.04.07-14:39:31
+std/cmd/live/things  20373 (21805) ref  2    --  (411)  2025.04.07-14:39:31
+std/cmd/live/thief   11556 (11719) ref  2    --  (331)  2025.04.07-14:39:31
+std/cmd/live/state   42021 (57580) ref  2    --  (1544)  2025.04.07-14:39:31
+std/cmd/live/speech   9348 ( 9982) ref  2    --  (355)  2025.04.07-14:39:31
+std/cmd/live/social  15543 (16713) ref  2    --  (365)  2025.04.07-14:39:31
+std/cmd/live/magic    1746 ( 1957) ref  2    --  (481)  2025.04.07-14:39:31
+std/cmd/live/items    4574 ( 5346) ref  2    --  (345)  2025.04.07-14:39:31
+std/cmd/live/info     4059 ( 4772) ref  2    --  (349)  2025.04.07-14:39:31
+std/cmd/std/misc_cmd  1048 ( 1081) ref  2    --  (439)  2025.04.07-14:39:31
+std/cmd/std/soul_cmd 62425 (74257) ref  2    --  (876)  2025.04.07-14:39:31
+std/cmd/wiz/apprentice 44088 (47919) ref  2    --  (909)  2025.04.07-14:39:31
+std/cmd/wiz/pilgrim   1354 ( 1457) ref  2    --  (437)  2025.04.07-14:39:31
+std/cmd/wiz/helper    6850 ( 7071) ref  2    --  (375)  2025.04.07-14:39:31
+std/cmd/wiz/normal   27861 (31192) ref  2    --  (604)  2025.04.07-14:39:31
+lib/cache             1664 ( 1664) ref  2    --  (18)  2025.04.07-14:39:31
+std/cmd/std/tracer_tool_base  2600 ( 2633) ref  2    --  (26)  2025.04.07-14:39:31
+std/cmd/wiz/lord      6725 ( 7440) ref  2    --  (457)  2025.04.07-14:39:31
+std/cmd/wiz/arch      9240 (10788) ref  2    --  (483)  2025.04.07-14:39:31
+std/cmd/wiz/keeper    1918 ( 2023) ref  2    --  (538)  2025.04.07-14:39:31
+std/command_driver    1656 ( 1689) ref  2    --  (20)  2025.04.07-14:39:31
+lib/commands          5696 ( 5729) ref  2    --  (6)  2025.04.07-14:39:31
+std/combat/cplain#3    456 (  456) ref  2    --  (89)  2025.04.07-14:39:31
+std/combat/cplain     2272 ( 2272) ref  2    --  (62)  2025.04.07-14:39:31
+secure/armageddon    15803 (19711) ref 22    --  (8001)  2025.04.07-14:39:31
+std/creature         10764 (12850) ref  8    --  (611)  2025.04.07-14:39:31
+std/act/action        1920 ( 1920) ref  2    --  (0)  2025.04.07-14:39:31
+std/act/chat          1776 ( 1776) ref  2    --  (0)  2025.04.07-14:39:31
+std/mobile           11516 (13602) ref 16    --  (605)  2025.04.07-14:39:31
+std/act/trigaction    2496 ( 2496) ref  2    --  (0)  2025.04.07-14:39:31
+std/act/seqaction     2552 ( 2552) ref  2    --  (0)  2025.04.07-14:39:31
+std/combat/cbase#2     456 (  456) ref 27    --  (410)  2025.04.07-14:39:31
+std/combat/cbase     16016 (16016) ref  2    --  (41)  2025.04.07-14:39:31
+d/Standard/login/ghost_player#1  7344 (11805) ref 1110    d/Standard/login/skills  (26303)  2025.04.07-14:39:31
+d/Standard/login/ghost_player 15176 (17484) ref  8    --  (762)  2025.04.07-14:39:31
+std/player           11410 (13562) ref  8    --  (676)  2025.04.07-14:39:31
+std/player_sec       35402 (37554) ref  8    --  (670)  2025.04.07-14:39:31
+std/living           52260 (54346) ref 35    --  (599)  2025.04.07-14:39:31
+std/container         9219 (10157) ref 74    --  (930)  2025.04.07-14:39:31
+lib/language/language 12378 (16654) ref  2    --  (1892)  2025.04.07-14:39:31
+std/object           14784 (14936) ref  2    --  (313)  2025.04.07-14:39:31
+secure/login          9680 ( 9680) ref  3    --  (38)  2025.04.07-14:39:22
+secure/simul_efun     6424 ( 6646) ref 103    --  (12837)  2025.04.07-14:39:17
+lib/log               1352 ( 1352) ref 1058    --  (92521)  2025.04.07-14:39:17
+secure/master        62866 (64922) ref 803    --  (39717)  2025.04.07-14:39:17
+secure/simul/security  1848 ( 1848) ref  2    --  (0)  2025.04.07-14:39:17

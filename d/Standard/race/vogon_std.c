@@ -3,7 +3,7 @@
 
   This is the race object used for players of race: vogon
 */
-inherit "/config/race/generic";
+inherit "/conf/race/generic";
 
 start_player()
 {

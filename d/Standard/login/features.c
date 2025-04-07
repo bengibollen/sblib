@@ -4,7 +4,7 @@
 inherit "/std/room";
 
 #include <stdproperties.h>
-#include "/config/login/login.h"
+#include "/conf/login/login.h"
 
 /*
  * Function name: create_room()
@@ -13,7 +13,7 @@ inherit "/std/room";
  * when the room is started, and not changed in resets.
  */
 
-create_room()
+void create_room()
 {
     object ob;
 
@@ -40,7 +40,11 @@ init()
 {
     object ob;
     add_action("all_cmd", "", 1);
-    if (this_player()->query_ghost() & GP_FEATURES)
+	log_debug("Is ghost: %d", ({int}) this_player()->query_ghost());
+	log_debug("GP_FEATURES: %d", GP_FEATURES);
+	log_debug("12 & 4: %d", 12 & GP_FEATURES);
+	log_debug("0 & 4: %d", 0 & GP_FEATURES);
+    if (({int}) this_player()->query_ghost() & GP_FEATURES)
     {
 	ob = clone_object(PATH + "set_attrib");
 	ob->move(this_player());
@@ -61,7 +65,7 @@ long(string arg)
     if (arg)
 	return str;
 
-    a = this_player()->query_adj(1);
+    a = ({string *}) this_player()->query_adj(1);
     if (sizeof(a) < 2 || a[0] == "" || a[1] == "")
     	str += "\nYou are still rather featureless. " +
 	    "Using the machine might help.\n";
@@ -92,27 +96,26 @@ enter_cmd(string str)
     player = this_player();
     if (str == "teleporter")
     {
-	a = player->query_adj(1);
+	a = ({string *}) player->query_adj(1);
 	if (sizeof(a) < 2 || a[0] == "" || a[1] == "")
 	    write("An invisible force prevents you from leaving.\n");
-	else if (!player->query_ghost())
+	else if (!(({int}) player->query_ghost()))
 	    player->move_living(" through the teleporter.",
-				player->query_def_start());
+				({string}) player->query_def_start());
 	else
 	{
 	    if (ob = present("selector", player))
 		ob->remove_object();
-	    write(break_string
-		  ("As you enter the teleporter, there is a flash of light " +
+	    write("As you enter the teleporter, there is a flash of light " +
 		   "and you suddenly find yourself in a very different " +
-		   "place.", 78));
-	    player->set_ghost(player->query_ghost() - GP_FEATURES);
-	    if (!(player->query_ghost() & GP_SKILLS))
+		   "place.");
+	    player->set_ghost(({int}) player->query_ghost() - GP_FEATURES);
+	    if (!(({int}) player->query_ghost() & GP_SKILLS))
 	    {
 		player->set_ghost(0);
 		player->ghost_ready();
 		player->move_living(" through the teleporter.",
-				    player->query_def_start());
+				    ({string}) player->query_def_start());
 	    }
 	    else
 		player->move_living(" through the teleporter.", PATH + "skills");
@@ -172,5 +175,6 @@ all_cmd(string str)
 	write("That is not possible here.\n");
 	return 1;
     }
+	return 0;
 }
 

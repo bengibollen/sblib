@@ -6,11 +6,11 @@
 #define PATH "/d/Standard/login/"
 
 inherit "/std/object";
-inherit "/lib/skill_raise";
+inherit "/obj/lib/skill_raise";
 
-#include "/config/login/login.h"
-#include "/sys/stdproperties.h"
-#include "/sys/ss_types.h"
+#include "/conf/login/login.h"
+#include <stdproperties.h>
+#include <ss_types.h>
 
 public int done();
 
@@ -83,8 +83,8 @@ ground()
 public int
 done()
 {
-    if (this_player()->query_ghost() & GP_SKILLS)
-	this_player()->set_ghost(this_player()->query_ghost() - GP_SKILLS);
+    if (({int}) this_player()->query_ghost() & GP_SKILLS)
+	this_player()->set_ghost(({int}) this_player()->query_ghost() - GP_SKILLS);
     destruct();
     return 1;
 }
