@@ -15,7 +15,8 @@ inherit "/std/room";
  * when the room is started, and not changed in resets.
  */
 
-create_room()
+
+void create_room()
 {
     set_short("skills room");
     set_long("\nYou are in an a small room. In the room there is a\n" +
@@ -26,12 +27,12 @@ create_room()
     add_prop(ROOM_I_INSIDE, 1);
 }
 
+
 /*
  * Function name: init
  * Description  : Add commands etc.
  */
-public void
-init()
+public void init()
 {
     object ob;
     add_action("all_cmd", "", 1);
@@ -42,12 +43,12 @@ init()
     }
 }
 
+
 /*
  * Function name: long
  * Description  : Modify the behaviour of long
  */
-public varargs mixed
-long(string arg)
+public varargs mixed long(string arg)
 {
     mixed str;
 
@@ -56,13 +57,13 @@ long(string arg)
     return str;
 }
 
+
 /*
  * Function name: enter_cmd
  * Description  : Catch all player commands. Take care of the legal ones
  *                and throw all the others away
  */
-public void
-enter_cmd(string str)
+public void enter_cmd(string str)
 {
     object player, *a;
     string tmp;
@@ -101,6 +102,7 @@ enter_cmd(string str)
     return;
 }
 
+
 void leave_inv(object ob, object to)
 {
     object t;
@@ -113,13 +115,13 @@ void leave_inv(object ob, object to)
     }
 }
 
+
 /*
  * Function name: all_cmd
  * Description  : Catch all player commands. Take care of the legal ones
  *                and throw all the others away
  */
-public int
-all_cmd(string str)
+public int all_cmd(string str)
 {
     switch(query_verb())
     {

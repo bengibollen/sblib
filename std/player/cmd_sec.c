@@ -265,15 +265,15 @@ public nomask void save_me(int value_items)
     query_stuffed();
     query_soaked();
     query_intoxicated();
-//    query_age();
+    query_age();
     compute_auto_str();
     compute_recover_str(value_items);
 #ifndef NO_SKILL_DECAY
 //    query_decay_time();
 #endif
-//    set_logout_time();
+    set_logout_time();
     configure_object(this_object(), OC_EUID, 0);
-//    SECURITY->save_player();
+    SECURITY->save_player();
     configure_object(this_object(), OC_EUID, getuid(this_object()));
 
     /* If the player is a mortal, we will restart autosave. */

@@ -3,7 +3,6 @@
  * This is an object that allows people to choose skills.
  */
 
-#define PATH "/d/Standard/login/"
 
 inherit "/std/object";
 inherit "/obj/lib/skill_raise";
@@ -14,7 +13,8 @@ inherit "/obj/lib/skill_raise";
 
 public int done();
 
-create_object()
+
+void create_object()
 {
     set_name("trainer");
     set_short("skill trainer");
@@ -29,7 +29,8 @@ create_object()
 
 }
 
-init()
+
+void init()
 {
     add_action("ground", "ground");
     add_action("space", "space");
@@ -37,6 +38,7 @@ init()
     add_action("instruct", "help");
     add_action("instruct", "ask");
 }
+
 
 public int instruct(string str)
 {
@@ -46,8 +48,8 @@ public int instruct(string str)
     return 1;
 }
 
-public int
-space()
+
+public int space()
 {
     int sk;
     string *st;
@@ -63,8 +65,8 @@ space()
     return 1;
 }
 
-public int
-ground()
+
+public int ground()
 {
     int sk;
     string *st;
@@ -80,11 +82,12 @@ ground()
     return 1;
 }
 
-public int
-done()
+
+public int done()
 {
     if (({int}) this_player()->query_ghost() & GP_SKILLS)
-	this_player()->set_ghost(({int}) this_player()->query_ghost() - GP_SKILLS);
-    destruct();
+    	this_player()->set_ghost(({int}) this_player()->query_ghost() - GP_SKILLS);
+
+    destruct(this_object());
     return 1;
 }

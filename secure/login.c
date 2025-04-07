@@ -398,9 +398,9 @@ public void handle_name(string name)
    
     name = lower_case(name);
     
-    log_debug("Player file: %s", PLAYER_FILE(name)[..<3]);
+    log_debug("Player file: %s", PLAYER_FILE(name));
 
-    if (restore_object(PLAYER_FILE(name)[..<3]))
+    if (restore_object(PLAYER_FILE(name)))
     {
         write("\nPassword: ");
         input_to(#'handle_password, INPUT_NOECHO);    
