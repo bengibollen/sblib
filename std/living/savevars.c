@@ -1843,11 +1843,6 @@ nomask public int add_cmdsoul(string soul)
         log_debug("Soul change not valid for: " + object_name(previous_object()));
         return 0;
     }
-    log_debug("This interactive: %s", object_name(this_interactive()));
-    log_debug("This player: %s", object_name(this_player()));
-    log_debug("This object: %s", object_name(this_object()));
-    log_debug("Previous object: %s", object_name(previous_object()));
-
 
     if (!(({int})soul->query_cmd_soul()))
     {

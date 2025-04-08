@@ -187,7 +187,6 @@ add_accepted_here(object ob)
  */
 nomask int light()
 {
-    log_debug("Light function called");
     int li;
 
     li = query_prop(ROOM_I_LIGHT);
@@ -199,11 +198,9 @@ nomask int light()
             ({int}) room_link_cont->query_prop(CONT_I_ATTACH) ||
             !({int}) room_link_cont->query_prop(CONT_I_CLOSED)))
         {
-            log_debug("Adding light from linked container");
             li += ({int}) (environment(room_link_cont))->query_prop(OBJ_I_LIGHT);
         }
     }
-    log_debug("Light added: %d", li);
     return query_internal_light() + li;
 }
 

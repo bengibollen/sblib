@@ -314,7 +314,12 @@ public string long_description()
  */
 static mapping restore_mail(string name)
 {
-    mapping mail = restore_value(read_file(FILE_NAME_MAIL(name)));
+    mapping mail;
+    
+    if(file_size(FILE_NAME_MAIL(name)) < 0)
+        return EMPTY_MAIL;
+
+    mail = restore_value(read_file(FILE_NAME_MAIL(name)));
     
     /* If there is no mail for the player, return an empty mail-mapping. */
     if ((!mappingp(mail)) ||
@@ -1772,7 +1777,7 @@ static void send_mail_safely(string *dest_array, string name)
      * unset gBusy to allow operation of the reader again.
      */
     if (sizeof(dest_array))
-        set_alarm(1.0, 0.0, &send_mail_safely(dest_array, name));
+        call_out(#'send_mail_safely, 1, dest_array, name);
     else
     {
         WRITE("Mail sent.\n");
@@ -1942,7 +1947,7 @@ static void get_cc(string str)
         {
             WRITE("No such addressee (player, domain or alias): " +
                 error + ".\nCC: ");
-            input_to(get_cc);
+            input_to(#'get_cc);
             return;
         }
     }
@@ -2017,7 +2022,7 @@ static void get_subject(string str)
     {
         WRITE("Please keep your subject shorter than " + MAX_SUBJECT +
             " characters.\nSubject: ");
-        input_to(get_subject);
+        input_to(#'get_subject);
         return;
     }
 
@@ -2041,7 +2046,7 @@ static void get_subject(string str)
     }
 
     WRITE("CC: ");
-    input_to(get_cc);
+    input_to(#'get_cc);
 }
 
 
@@ -2095,7 +2100,7 @@ static int mail(string str)
 
     WRITE("Subject: ");
 
-    input_to(get_subject);
+    input_to(#'get_subject);
 
     return 1;
 }
@@ -2153,7 +2158,7 @@ static int resend(string str)
 
     WRITE("CC: ");
 
-    input_to(get_cc);
+    input_to(#'get_cc);
 
     return 1;
 }
@@ -2344,7 +2349,7 @@ static void reply(int include)
             COMPOSITE_WORDS(gTo) + ".\nSend the reply to these people as " +
             "well (y/n)? [default: no] ");
 
-        input_to(reply_to_cc);
+        input_to(#'reply_to_cc);
     }
     else
         reply_to_cc("n");
@@ -2572,7 +2577,7 @@ static void get_cmd(string str)
      * message. Also, we check the more-option up front.
      */
     gPrevious = gCurrent;
-    gUse_more = (extract(str, 0, 0) == "m");
+    gUse_more = (str[0..0] == "m");
 
     /* Check for commands we cannot trigger in the switch. */
     if ((sscanf(str, "%d", message) == 1) ||
@@ -2895,7 +2900,7 @@ public int create_mail(string subject, string author, string to, string cc, stri
  * Function name: remove_object
  * Description  : Guard for removal while the mailreader is busy.
  */
-public void remove_object()
+public int remove_object()
 {
     if (gBusy)
     {
@@ -2907,10 +2912,10 @@ public void remove_object()
         /* But let it be removed the moment it gets available. */
         call_out(#'remove_object, 2);
 
-        return;
+        return 1;
     }
 
-    ::remove_object();
+    return ::remove_object();
 }
 
 

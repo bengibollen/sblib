@@ -148,9 +148,6 @@ void monster_do_chat()
     int il;
     string chatstr;
 
-    log_debug("== Monster_do_chat: %O", this_object());
-    log_debug("Current actions: %O", query_actions(this_object()));
-
     if (!({int}) this_object()->query_attack())
     {
         if (!sizeof(monster_chat_left))
@@ -178,7 +175,6 @@ void monster_do_chat()
         il = monster_cchat_time;
     }
 
-    log_debug("Chat il: %d", il);
     this_object()->seq_clear(SEQ_CHAT);
     this_object()->seq_addfirst(SEQ_CHAT, ({ "say " + chatstr, il, #'monster_do_chat }) );
 }

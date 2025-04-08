@@ -37,6 +37,7 @@
 			  "wiz" : ({35, "root", "Wiz", "root",}),])
 */
 #define DEFAULT_WIZARDS (["root": ({WIZ_KEEPER, 50, "root", "Standard", "root", 0, "", ({}) }), \
+                          "danne" : ({WIZ_KEEPER,   50, "root", "Standard", "root", 0, "", ({}) }), \
                           "wiz" : ({WIZ_LORD,   35, "root", "Wiz",      "root", 0, "", ({}) }), ])
 
 /*

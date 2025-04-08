@@ -1643,8 +1643,6 @@ varargs int look(string str, int brief)
 
     int parse_ok;
 
-    log_debug("Entering look function with str: " + str + " and brief: " + brief + "\n");
-
     if (!sizeof(str))
     {
         return ({int}) this_player()->do_glance(brief);

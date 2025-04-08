@@ -47,13 +47,6 @@ static void cmdhooks_reset()
 {
     update_hooks();
 
-    
-
-    log_info("Command hooks have been reset.");
-    log_debug("this_object: " + to_string(this_object()));
-    log_debug("this_interactive: " + to_string(this_interactive()));
-    log_debug("this_player: " + to_string(this_player()));
-
     add_action(#'my_commands, "", 1);
     add_action(#'communicate, "'", 2);
     add_action(#'acommunicate, "a'", 2);
@@ -272,8 +265,6 @@ static nomask int load_wiz_souls()
 {
     int rank;
 
-    log_debug("\n === Loading wizard souls for player: %s", to_string(this_object()));
-
     if (!sizeof(geteuid(this_object())))
     {
         write("PANIC! Player has no euid!\n");
@@ -284,12 +275,11 @@ static nomask int load_wiz_souls()
     /* Only wizards can have wizard souls. */
 
     
-    log_debug("Checking wizard rank for euid: %s", geteuid(this_object()));
-    log_debug("Function exists: %s", function_exists("query_wiz_rank", FEXISTS_LINENO) ? "true" : "false" );
 
     if (rank = ({int}) SECURITY->query_wiz_rank(geteuid(this_object())))
     {
         log_debug("Wizard rank found: %d", rank);
+        log_debug("Loading wizard souls for rank: %d", rank);
         wiz_souls = ({string *}) WIZ_SOUL(rank)->get_soul_list();
         wiz_souls -= ({MBS_SOUL});
     }
@@ -307,7 +297,6 @@ static nomask int load_wiz_souls()
     }
 
     wiz_souls = start_souls(wiz_souls);
-    log_debug("Successfully loaded wizard souls for player: %s", to_string(this_object()));
     return 1;
 }
 
@@ -319,18 +308,16 @@ static nomask int load_wiz_souls()
  */
 nomask public int load_command_souls()
 {
-    log_debug("\n === Loading command souls for player: %s", to_string(this_object()));
-    
     soul_souls = query_cmdsoul_list();
 
     if (!sizeof(soul_souls))
     {
         soul_souls = NPC_SOULS;
+        log_debug("No command souls found, using NPC souls: %O", soul_souls);
     }
 
     soul_souls = start_souls(soul_souls);
     update_cmdsoul_list(soul_souls);
-    log_debug("Successfully loaded command souls for player: %s", to_string(this_object()));
     return 1;
 }
 
@@ -342,9 +329,7 @@ nomask public int load_command_souls()
  */
 nomask public int load_tool_souls()
 {
-    log_debug("\n === Loading tool souls for player: %s", to_string(this_object()));
-
-    if ((({int}) SECURITY->query_wiz_rank(geteuid()) < WIZ_NORMAL) ||
+    if ((({int}) SECURITY->query_wiz_rank(query_real_name()) < WIZ_NORMAL) ||
         !interactive(this_object()))
     {
         tool_souls = ({});
@@ -362,7 +347,6 @@ nomask public int load_tool_souls()
 
     tool_souls = start_souls(tool_souls);
     update_tool_list(tool_souls);
-    log_debug("Successfully loaded tool souls for player: %s", to_string(this_object()));
     return 1;
 }
 
@@ -380,13 +364,10 @@ static int my_commands(string str)
     string verb = query_verb();
     int    size;
 
-    log_debug("=== Executing command: %s", to_string(query_command()));
-
     /* Don't waste the wiz-souls and toolsouls on mortals.
      */
     if (query_wiz_level())
     {
-        
         log_debug("Is wizard.");
         /* This construct with while is faster than any for-loop, so keep
          * it this way.
@@ -411,8 +392,6 @@ static int my_commands(string str)
 
             if (({int}) ob->exist_command(verb))
             {
-                log_debug("Executing command on soul: %s", to_string(ob));
-
                 ob->open_soul(0);
 //                export_uid(ob);
                 ob->open_soul(1);
@@ -534,11 +513,9 @@ static int my_commands(string str)
  */
 nomask public void update_hooks()
 {
-    log_debug("Updating hooks for player.");
     load_wiz_souls();
     load_tool_souls();
     load_command_souls();
-    log_debug("Hooks updated successfully.");
     log_debug("Current actions: %O", query_actions(this_object()));
 }
 

@@ -1734,14 +1734,22 @@ domain_clear_xp(string dname)
  */
 int query_wiz_rank(string wname)
 {
+    logger->debug("Last object: %O", previous_object());
     logger->debug("Wiz rank query: %s", to_string(wname));
-    wname = lower_case(wname);
-    if (sizeof(m_wizards[wname]))
-        logger->debug("Wizard found: " + wname);
-    return WIZ_KEEPER;
-    //     return WIZ_MORTAL;
+    logger->debug("Wiz rank query: %O", m_wizards);
 
-//    return m_wizards[wname][FOB_WIZ_RANK];
+    if(!stringp(wname))
+    {
+        logger->error("Wiz rank query: %s", to_string(wname));
+        return WIZ_MORTAL;
+    }
+
+    wname = lower_case(wname);
+    if (!sizeof(m_wizards[wname]))
+        return WIZ_MORTAL;
+
+    logger->debug("Wizard found: " + wname);
+    return m_wizards[wname][FOB_WIZ_RANK];
 }
 
 /*

@@ -792,9 +792,6 @@ public int do_glance(int brief)
      */
     env = environment();
 
-    log_debug("This object: " + object_name(this_object()));
-    log_debug("Environment: " + object_name(env));
-
     if (query_wiz_level())
     {
         if (stringp(({string}) env->query_prop(OBJ_S_WIZINFO)))

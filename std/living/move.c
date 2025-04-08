@@ -67,7 +67,6 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
     string from_desc;
 
     log_debug(" === Verb: %s ===", to_string(verb));
-    log_debug("Move opposites: %O", move_opposites);
 
     oldtp = this_player();
 

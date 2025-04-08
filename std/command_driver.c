@@ -101,9 +101,7 @@ nomask public void open_soul(int state)
  */
 void teleledningsanka()
 {
-    log_debug("teleledningsanka: " + object_name(this_object()));
     SECURITY->remote_setuid();
-    log_debug("Remote setuid executed for: " + object_name(previous_object()));
 }
 
 /*

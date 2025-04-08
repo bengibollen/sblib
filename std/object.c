@@ -68,7 +68,6 @@ public  nomask varargs int check_recoverable(int flag);
  */
 public string *parse_command_id_list()
 {
-    log_debug("parse_command_id_list: %O", obj_names);
     return obj_names;
 }
 
@@ -78,7 +77,6 @@ public string *parse_command_id_list()
  */
 public string *parse_command_plural_id_list()
 {
-    log_debug("parse_command_plural_id_list: %O", obj_pnames);
     return obj_pnames;
 }
 
@@ -88,9 +86,7 @@ public string *parse_command_plural_id_list()
  */
 public string *parse_command_adjectiv_id_list()
 {
-    log_debug("parse_command_adjectiv_id_list: %O", obj_adjs);
-    return (sizeof(obj_adjs) ? obj_adjs : (stringp(obj_adjs) ?
-                                           ({ obj_adjs }) : 0));
+    return (sizeof(obj_adjs) ? obj_adjs : (stringp(obj_adjs) ? ({ obj_adjs }) : 0));
 }
 
 
@@ -273,7 +269,6 @@ public void update_actions()
  */
 public int id(string str)
 {
-    log_debug("id: %s", str);
     return (member(obj_names, str) >= 0);
 }
 
@@ -521,7 +516,6 @@ public void add_prop(string prop, mixed val)
     /* If there isn't a value, remove the current value. */
     if (!val)
     {
-        log_debug("Removing property: %s for object: %s", prop, to_string(this_object()));
         remove_prop(prop);
         return;
     }
@@ -529,14 +523,11 @@ public void add_prop(string prop, mixed val)
     /* All changes might have been locked out. */
     if (obj_no_change)
     {
-        
-        log_debug("Property changes for %s are currently locked out.", to_string(this_object()));
         return;
     }
 
     if (({void}) this_object()->("add_prop" + prop)(val))
     {
-        log_debug("Property addition aborted by custom function for: %s", prop);
         return;
     }
 
@@ -833,7 +824,7 @@ varargs public int move(mixed dest, mixed subloc)
         if (dest && ({int}) dest->prevent_enter(this_object()))
             return 7;
 
-        log_debug("This_object: %s, Destination: %s", to_string(this_object()), to_string(dest));
+        log_debug("Moving object: %s from %s to %s", to_string(this_object()), to_string(old), to_string(dest));
         move_object(this_object(), dest);
     }
 
@@ -962,8 +953,6 @@ mixed process_value(string vbfc)
     mixed ret;
     object obj;
 
-    log_debug("VBFC: %s", vbfc);
-
     if (sscanf(vbfc, "%s:%s", fun, rest) == 2)
     {
         if (sscanf(rest, "%s|%s", obj_path, rest) == 2)
@@ -990,8 +979,6 @@ mixed process_value(string vbfc)
         }
         obj = this_object();  // Default to this object
     }
-
-    log_debug("Function: %s, Object: %s", to_string(fun), to_string(obj));
 
     if (obj && function_exists(fun, obj))
     {
@@ -1039,7 +1026,6 @@ public nomask varargs mixed check_call(mixed retval, object for_obj = previous_o
 
     if (closurep(retval))
     {
-        log_debug("Closure called with retval: %O", retval);
         obj_previous = for_obj;
 
         proc_ret = funcall(retval);
@@ -1053,7 +1039,6 @@ public nomask varargs mixed check_call(mixed retval, object for_obj = previous_o
         return retval;
     }
 
-    log_debug("Check_call: %s", retval);
     obj_previous = for_obj;
 
     more = sscanf(retval, "@@%s@@%s", a, b);
@@ -1064,13 +1049,6 @@ public nomask varargs mixed check_call(mixed retval, object for_obj = previous_o
         proc_ret = process_value(a);
     else
         proc_ret = process_string(retval);
-
-    if (stringp(proc_ret))
-        log_debug("VBFC: %s", proc_ret);
-    else if (closurep(proc_ret))
-        log_debug("VBFC O: %O", proc_ret);
-    else
-        log_debug("VBFC M: %s", to_string(proc_ret));
 
     obj_previous = 0;
     return proc_ret;
@@ -2068,8 +2046,6 @@ public void set_trusted(int arg)
 {
     object cobj;
 
-    log_debug("Setting trusted status for object: %s", object_name(this_object()));
-
     if (!objectp(cobj = previous_object()))
         return;
 
@@ -2081,18 +2057,12 @@ public void set_trusted(int arg)
         return;
     }
 
-    
-    log_debug("Configuring object EUID: %s", to_string(this_object()));
-    log_debug("Current EUID: %s", to_string(geteuid(this_object())));
-
     if (arg)
     {
-        log_debug("Setting EUID for object: %s", to_string(this_object()));
         configure_object(this_object(), OC_EUID, geteuid(this_object()));
     }
     else
     {
-        log_debug("Removing EUID for object: %s", to_string(this_object()));
         configure_object(this_object(), OC_EUID, 0);
     }
 }

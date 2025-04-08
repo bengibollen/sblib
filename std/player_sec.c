@@ -806,18 +806,22 @@ public nomask int enter_game(string pl_name, string pwd)
 
     
     log_debug("Enter game and checking player setup...");
+    log_debug("Player name: " + pl_name);
+    log_debug("Password: " + pwd);
     configure_interactive(this_object(), IC_ENCODING, "utf-8");
 
     if ((MASTER_OB(previous_object()) != LOGIN_OBJECT) &&
         (MASTER_OB(previous_object()) != LOGIN_NEW_PLAYER))
     {
         write("Bad login object: " + object_name(previous_object()) + "\n");
+        log_error("Bad login object: " + object_name(previous_object()));
         return 0;
     }
-    log_debug("Login attempt for: " + object_name(previous_object()));
 
     cmdhooks_reset();
+    log_debug("(cmdhooks_reset) Current actions: %O", query_actions(this_object()));
     setup_player(pl_name);
+    log_debug("(setup_player) Current actions: %O", query_actions(this_object()));
 
     /* Tell the player when he was last logged in and from which site. */
     if (MASTER_OB(previous_object()) == LOGIN_OBJECT)
@@ -880,6 +884,7 @@ public nomask int enter_game(string pl_name, string pwd)
         {
             /* If this start location is corrupt too, destruct the player */
             write("PANIC, your starting locations are corrupt!!\n");
+            log_error("PANIC, your starting locations are corrupt for: %s", pl_name);;
             destruct(this_object());
         }
     }
@@ -989,13 +994,13 @@ nomask public int load_player(string pl_name)
 
     configure_object(this_object(), OC_EUID, getuid(this_object()));
 
-    if (file_size(PLAYER_FILE(pl_name)) < 0)
+    if (file_size(PLAYER_FILE(pl_name) + ".o") < 0)
     {
         log_error("Player file not found: %s", pl_name);
         return 0;
     }
 
-    ret = restore_object(read_file(PLAYER_FILE(pl_name)));
+    ret = restore_object(read_file(PLAYER_FILE(pl_name) + ".o"));
 
     if (!ret)
     {

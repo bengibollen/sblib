@@ -382,16 +382,10 @@ void notify_shutdown()
 // any use of them should be scrutinized closely.
 int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3)
 {
-    logger->info("Privilege violation check initiated.");
-    logger->debug("Checking privileges for operation: " + op);
-    logger->debug("Operation details: " + op + ", who: " + to_string(who));
-    logger->debug("Arguments: " + to_string(arg) + ", " + to_string(arg2) + ", " + to_string(arg3));
-
     /* This object and the simul_efun objects may do everything */
     if (who == this_object()
      || who == find_object(SIMUL_EFUN))
     {
-        logger->info("Privilege granted for operation: " + op + ", who: " + to_string(who));
         return 1;
     }
 
@@ -414,8 +408,6 @@ int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3
     case "rename_object":
     case "input_to":
         if (check_privilege(1)) {
-            
-            logger->info("Privilege granted for operation: " + op + ", who: " + to_string(who));
             return 1;
         }
         else {
@@ -428,12 +420,10 @@ int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3
         }
       
         if (who[0..6] == "/secure") {
-            logger->info("Privilege granted for operation: " + op + ", who: " + to_string(who));
             return 1;
         }        
         switch(arg) {
             case ERQ_RLOOKUP:
-                logger->info("Privilege granted for operation: " + op + ", who: " + to_string(who));
                 return 1;
             case ERQ_EXECUTE:
             case ERQ_FORK:
@@ -447,12 +437,10 @@ int privilege_violation (string op, mixed who, mixed arg, mixed arg2, mixed arg3
         }
     case "configure_object":
     case "configure_interactive":
-        logger->debug("Configuring object: %s, setting: %d, value %s", object_name(arg), arg2, to_string(arg3));
         return 1;
     
     default:
-        logger->warn("Privilege violation for operation: " + op + ", who: " + to_string(who));
-	    return -1; /* Make this violation an error */
+        return -1; /* Make this violation an error */
     }
 }
 
@@ -1040,7 +1028,7 @@ mixed valid_write(string file, string uid, string func, object|lwobject writer)
     }
 
     /* Anonymous objects cannot do anything. */
-    if (!sizeof(writer))
+    if (!(writer))
     {
         return 0;
     }
@@ -2437,25 +2425,19 @@ string modify_command(string cmd, object ob)
     string domain;
     int no_subst;
 
-    logger->debug("== Command to modify: %s", cmd);
-
     if (!sizeof(cmd))
     {
-        logger->debug("Command is empty.");
         return cmd;
     }
 
     while(cmd[0] == '$')
     {
-        logger->debug("Removing leading $ from command.");
         cmd = cmd[1..];
         no_subst = 1;
     }
 
     while(cmd[0] == ' ')
     {
-        
-        logger->debug("Removing leading space from command.");
         cmd = cmd[1..];
     }
 
@@ -2463,11 +2445,9 @@ string modify_command(string cmd, object ob)
 
     if (cmd in command_substitute)
     {
-        logger->debug("Command is in command_substitute: %s", cmd);
         if (interactive(ob) && !ob->query_wiz_level() &&
             pointerp(m_domains[domain = environment(ob)->query_domain()]))
         {
-            logger->debug("Incrementing command count for domain: %s", domain);
             m_domains[domain][FOB_DOM_CMNDS]++;
         }
         return command_substitute[cmd];
@@ -2476,7 +2456,6 @@ string modify_command(string cmd, object ob)
     /* No modification for NPC's */
     if (!interactive(ob))
     {
-        logger->debug("No modification for NPC's.");
         return cmd;
     }
 
@@ -2487,25 +2466,18 @@ string modify_command(string cmd, object ob)
     {
         m_domains[domain][FOB_DOM_CMNDS]++;
     }
-    logger->debug("(before no_subst) cmd is now: %s", to_string(cmd));
 
     /* Allow modification if it does not start with a "$". */
     if (!no_subst)
     {
-        logger->debug("Modifying command for object: %s", to_string(ob));
         cmd = ({string}) ob->modify_command(cmd);
     }
-
-    logger->debug("(after no_subst) cmd is now: %s", to_string(cmd));
 
     /* We can not allow any handwritten VBFC */
     while(strstr(cmd, "@@") != -1)
     {
         cmd = implode(explode(cmd, "@@"), "#");
     }
-    
-
-    logger->debug("Final modified command: %s", to_string(cmd));
 
     return cmd;
 }
@@ -3190,11 +3162,8 @@ public string generate_password()
  */
 void remote_setuid()
 {
-    logger->debug("Check for remote setuid in %s", to_string(previous_object()));
-
     if (function_exists("open_soul", previous_object()) == COMMAND_DRIVER)
     {
-        logger->info("Check for open soul in %O", previous_object());
         configure_object(previous_object(), OC_EUID, BACKBONE_UID);
     }
 }
@@ -3281,7 +3250,10 @@ int load_player()
 
     if (function_exists("load_player", pobj) != PLAYER_SEC_OBJECT ||
         !LOGIN_NEW_PLAYER->legal_player(pobj))
+    {
+        logger->error("Load player not allowed");
         return 0;
+    }
     else
     {
         configure_object(pobj, OC_EUID, "root");

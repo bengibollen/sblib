@@ -42,7 +42,7 @@ static nomask void start_autosave()
     /* Do not autosave wizards. */
     if (query_wiz_level())
     {
-	return;
+    	return;
     }
 
     /* Only autosave on interactives, not on linkdead players. */
