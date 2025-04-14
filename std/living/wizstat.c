@@ -63,7 +63,7 @@ public string stat_living()
 		  ({string}) to->query_race_name(),
 		  ({string}) to->query_race(),
 		  RPATH(object_name(this_object())[..34]),
-		  getuid(this_object()) + ":" + geteuid(this_object()),
+		  getuid() + ":" + geteuid(this_object()),
 		  ({int}) to->query_exp(),
 		  ((({int}) to->query_max_exp() > ({int}) to->query_exp()) ? "(" + ({int}) to->query_max_exp() : "(max"),
 		  ({int}) to->query_exp_quest(),

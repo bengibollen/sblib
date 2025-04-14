@@ -224,7 +224,7 @@ read_access(object ob)
 void
 read_it(string str)
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
     say(QCTNAME(this_player()) + " reads the " +
 	QSHORT(this_object()) + ".\n");
 

@@ -58,7 +58,7 @@ varargs int team(string str);
  */
 void create()
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 }
 
 

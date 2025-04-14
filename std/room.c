@@ -55,7 +55,7 @@ nomask void create_container()
 
     room_link_cont = 0;
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     /* As service to the folks, we automatically call the function
      * enable_reset() to start resetting if the function reset_room() has

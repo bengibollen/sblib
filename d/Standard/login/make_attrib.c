@@ -16,7 +16,7 @@ create_object()
     j = 0;
     attrib = ({ });
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
     s = read_file(PATH + "attributes");
     a = explode(s, "\n");
 

@@ -6,6 +6,9 @@
 
 inherit "/secure/simul/security";
 
+/* All prototypes have been placed in /secure/master.h */
+#include "/secure/master.h"
+
 #include "/inc/config.h"
 #include "/sys/configuration.h"  // For DC_* constants
 #include "/sys/driver_hooks.h"    // For H_* constants
@@ -23,16 +26,39 @@ inherit "/secure/simul/security";
 #include "/sys/lpctypes.h"
 
 // Forward declarations for functions used in config
-string load_uid(string file);
-string clone_uid(object obj, string name);
-string create_super(string file);
-string create_object(string file);
-void create();
-static void save_master();
-mixed valid_write(string file, string uid, string func, object|lwobject writer);
-string modify_command(string cmd, object ob);
 
-private object logger;  // We'll initialize this later
+
+private nosave object logger;  // We'll initialize this later
+/*
+ * The global variables that are saved in the SAVEFILE.
+ */
+private int     game_started;
+private string  *def_locations;
+private string  *temp_locations;
+private mapping known_muds;
+private int     runlevel;
+
+/*
+ * The global variables that are not saved.
+ */
+private static int     mem_fail_flag;
+private static int     memory_limit;
+private static mapping command_substitute = ([
+    "n"  : "north",
+    "s"  : "south",
+    "w"  : "west",
+    "e"  : "east",
+    "u"  : "up",
+    "d"  : "down",
+    "sw" : "southwest",
+    "se" : "southeast",
+    "nw" : "northwest",
+    "ne" : "northeast",
+    ]);
+private static mapping move_opposites;
+private static string  udp_manager;
+private static int     irregular_uptime;
+
 
 #include "/secure/master/error_handling.c"
 #include "/secure/master/config.c"
@@ -45,6 +71,7 @@ private object logger;  // We'll initialize this later
 #include "/secure/master/sanction.c"
 #include "/secure/master/guild.c"
 #include "/secure/master/mail_admin.c"
+#include "/secure/master/inaugurate_master.c"
 
 #define DEBUG_RESTRICTED ( ({ "mudstatus", "swap", "shutdown", "send_udp" }) )
 
@@ -54,30 +81,8 @@ string mudlib_version = "SBLib v0.1";
 // ---------- MANDATORY: Initialization Functions ----------
 string get_master_uid()
 {
+    debug_message("Get master uid.\n");
     return ROOT_UID;
-}
-
-
-void inaugurate_master(int arg)
-{ 
-    // Use debug_message until logger is ready
-    debug_message("\n=== Master Initialization Starting ===\n");
-    debug_message(sprintf("Master object loaded (arg: %d)\n", arg));
-
-    debug_message("A password: " + crypt("kleggboll") + "\n");
-    
-    setup_all();
-    create();
-    
-    // Now it's safe to initialize the logger
-    string err;
-    if (err = catch(logger = load_object("/lib/log"))) {
-        debug_message("Failed to initialize logger: " + err + "\n");
-    } else {
-        logger->info("Logger system initialized");
-    }
-    
-    debug_message("=== Master Initialization Complete ===\n");
 }
 
 
@@ -178,7 +183,7 @@ public object connect()
 string load_uid(string file)
 {
     debug_message("Loading UID for file: " + file + "\n");
-    return ROOT_UID;  // For now, everything gets ROOT uid
+    return BACKBONE_UID;  // For now, everything gets BACKBONE_UID uid
 }
 
 
@@ -192,7 +197,7 @@ string clone_uid(object blueprint, string name)
 string create_super(string file)
 {
     debug_message("Creating super for file: " + file + "\n");
-    return ROOT_UID;  // For now, everything gets ROOT uid
+    return BACKBONE_UID;  // For now, everything gets BACKBONE_UID uid
 }
 
 
@@ -552,7 +557,7 @@ varargs mixed do_debug(string icmd, mixed a1, mixed a2, mixed a3)
     /* Since debug() returns arrays and mappings by reference, we need to
      * process the value to make it secure, so people cannot alter it.
      */
-    logger->debug("Debug command: %s", icmd);
+    debug_message(sprintf("Debug command: %s\n", to_string(icmd)));
     switch (icmd)
     {
         case "get_variables":
@@ -597,11 +602,8 @@ varargs mixed do_debug(string icmd, mixed a1, mixed a2, mixed a3)
  * contains the search-path for inclusion files is defined in this object.
  */
 
-#define SAVEFILE   ("/syslog/KEEPERSAVE")
-#define GAME_START ("/GAME_START")
 
-/* All prototypes have been placed in /secure/master.h */
-#include "/secure/master.h"
+
 
 // Then declare any critical functions needed before simul_efun loads
 static void load_simul_efun()
@@ -612,38 +614,6 @@ static void load_simul_efun()
     }
 }
 
-
-/*
- * The global variables that are saved in the SAVEFILE.
- */
-private int     game_started;
-private string  *def_locations;
-private string  *temp_locations;
-private mapping known_muds;
-private int     runlevel;
-
-/*
- * The global variables that are not saved.
- */
-private static int     mem_fail_flag;
-private static int     memory_limit;
-private static mapping command_substitute = ([
-    "n"  : "north",
-    "s"  : "south",
-    "w"  : "west",
-    "e"  : "east",
-    "u"  : "up",
-    "d"  : "down",
-    "sw" : "southwest",
-    "se" : "southeast",
-    "nw" : "northwest",
-    "ne" : "northeast",
-    ]);
-private static mapping move_opposites;
-private static string  udp_manager;
-private static int     irregular_uptime;
-
-
 /*
  * Function name: create
  * Description  : This is the first function called in this object.
@@ -651,7 +621,6 @@ private static int     irregular_uptime;
 void create()
 {
     "/lib/log.c"->debug("Creating master object.");
-//    load_simul_efun();
 
     /* Using a global variable for this is exactly TWICE as fast as using a
      * defined mapping. At this point we only have the default direction
@@ -692,7 +661,7 @@ void create()
 #else
     memory_limit = 28000000;
 #endif
-    configure_object(this_object(), OC_EUID, "root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
 
     /* We reset the master every RESET time seconds, initially synchronizing
      * it at exactly 1 second after that occurance. I.e. if RESET_TIME is
@@ -710,6 +679,9 @@ void create()
         (random(UPTIME_VARIATION * 3600) - (UPTIME_VARIATION * 1800));
 #endif
 #endif
+    // game_started = 0;
+    // start_boot(1); /* This does what we want */
+    // game_started = 1;
 }
 
 
@@ -751,7 +723,7 @@ string short()
  */
 static void save_master()
 {
-    configure_object(this_object(), OC_EUID, "root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
 
     save_object(SAVEFILE);
 }
@@ -884,7 +856,7 @@ object get_vbfc_object()
 // static object connect()
 // {
 //     write("\n");
-//     configure_object(this_object(), OC_EUID, "root");
+//     configure_object(this_object(), OC_EUID, ROOT_UID);
 
 //     return clone_object(LOGIN_OBJECT);
 // }
@@ -1223,11 +1195,13 @@ mixed valid_read(string file, string uid, string func, object|lwobject reader)
     {
         return 1;
     }
-
+    logger->debug("Previous: %s", load_name(previous_object()));
+    logger->debug("Current user id: %s", uid);
     /* Root and archwizards and keepers may do as they please. */
-    if ((uid == ROOT_UID) ||
+    if ((uid == ROOT_UID) || load_name(previous_object()) == LOGIN_OBJECT ||
         (query_wiz_rank(uid) >= WIZ_ARCH))
     {
+        logger->debug("User has root or archwizard privileges.");
         return 1;
     }
 
@@ -1261,6 +1235,11 @@ mixed valid_read(string file, string uid, string func, object|lwobject reader)
 
         dname = dirs[1];
         wname = ((size > 2) ? dirs[2] : "");
+
+        if (dname == BASE_DOMAIN || wname == "doc")
+        {
+            return 1;
+        }
 
         /* The domain must be an existing domain. */
         if (query_domain_number(dname) == -1)
@@ -1913,7 +1892,7 @@ static int load_domain_link(string file)
     }
 
     creator = creator_file(file);
-    configure_object(this_object(), OC_EUID, "root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
 
     if (err = ({string})LOAD_ERR(file))
     {
@@ -1926,88 +1905,6 @@ static int load_domain_link(string file)
     catch(file->preload_link());
 
     return 1;
-}
-
-
-/*
- * Function name: start_boot
- * Description:   Loads master data, including list of all domains and wizards,
- *                then makes a list of preload stuff
- * Arguments:     load_empty: If true start_boot() does no preloading
- * Returns:       List of files to preload
- */
-static string *start_boot(int load_empty)
-{
-    string *prefiles = ({ });  // Initialize to empty array
-    string *links;
-    object simf;
-    int size;
-
-    if (game_started)
-        return 0;
-
-    configure_object(this_object(), OC_EUID, "root");
-
-    /* Fix the userids of the simul_efun object */
-    if (objectp(simf = find_object(SIMUL_EFUN)))
-    {
-        configure_object(simf, OC_EUID, "root");
-    }
-
-    write("Retrieving master data.\n");
-    if (!restore_object(SAVEFILE))
-    {
-        write(SAVEFILE + " nonexistant. Using defaults.\n");
-        load_fob_defaults();
-        load_guild_defaults();
-        reset_graph();
-        runlevel = WIZ_MORTAL;
-    }
-
-    /* Set to reasonable defaults, if they don't exist. */
-    if (!pointerp(def_locations))
-    {
-        def_locations = ({ });
-    }
-    if (!pointerp(temp_locations))
-    {
-        temp_locations = ({ });
-    }
-
-    /* Update some internal data. */
-    update_guild_cache();
-    init_sitebans();
-        init_player_info();
-
-    if (load_empty)
-    {
-        write("Not preloading.\n");
-        return 0;
-    }
-
-#ifdef PRELOAD_FIRST
-    /* Process preload files list */
-    if (stringp(PRELOAD_FIRST) && (file_size(PRELOAD_FIRST) > 1))
-    {
-        prefiles = explode(read_file(PRELOAD_FIRST), "\n");
-    }
-        else if (pointerp(PRELOAD_FIRST))
-    {
-        prefiles = ({ PRELOAD_FIRST });
-    }
-#endif
-
-    write("Loading and setting up domain links:\n");
-    links = filter(query_domain_links() + query_mage_links(),
-        #'load_domain_link);
-
-    size = sizeof(links);
-    while (size--)
-    {
-        prefiles += links[size]->query_preload();
-    }
-
-    return prefiles;
 }
 
 
@@ -2027,7 +1924,7 @@ static void preload_boot(string file)
     }
 
     creator = creator_file(file);
-    configure_object(this_object(), OC_EUID, "root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
 
     if (err = ({string})LOAD_ERR(file))
     {
@@ -2325,7 +2222,7 @@ int valid_exec(string name, object to, object from)
  */
 void simul_efun_reload()
 {
-    configure_object(find_object(SIMUL_EFUN), OC_EUID, "root");
+    configure_object(find_object(SIMUL_EFUN), OC_EUID, ROOT_UID);
 }
 
 
@@ -2532,7 +2429,7 @@ static void memory_failure()
     {
         mem_fail_flag = 1;
 
-        configure_object(this_object(), OC_EUID, "root");
+        configure_object(this_object(), OC_EUID, ROOT_UID);
         ARMAGEDDON->start_shutdown("The memory is almost used up!", 10,
             ROOT_UID);
     }
@@ -2766,7 +2663,7 @@ static void mark_quit(object player)
         index--;
     }
 
-    configure_object(this_object(), OC_EUID, "root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
     write_file("/syslog/log/DESTRUCTED", text + "\n");
 }
 
@@ -2864,7 +2761,7 @@ static void runtime_e_error(string error, object ob, string prog, string file)
         mortal = capitalize(this_interactive()->query_real_name());
     }
 
-    configure_object(this_object(), OC_EUID, "root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
 
     /* Create the log directory if necessary. */
     if (objectp(ob))
@@ -3180,7 +3077,7 @@ public void set_helper_soul_euid()
 {
     if (object_name(previous_object()) == WIZ_CMD_HELPER)
     {
-        configure_object(previous_object(), OC_EUID, "root");
+        configure_object(previous_object(), OC_EUID, ROOT_UID);
     }
 }
 
@@ -3256,7 +3153,7 @@ int load_player()
     }
     else
     {
-        configure_object(pobj, OC_EUID, "root");
+        configure_object(pobj, OC_EUID, ROOT_UID);
         res = ({int}) pobj->load_player(pobj->query_real_name());
         configure_object(pobj, OC_EUID, to_string(pobj));
         return res;
@@ -3311,7 +3208,7 @@ void store_predeath()
     prefile = pfile + ".predeath.o";
     pfile += ".o";
     /* Rename the present file. A new file will be made shortly. */
-    if (file_time(pfile) > 0)
+    if (get_dir(pfile, GETDIR_DATES)[0] > 0)
         rename(pfile, prefile);
 }
 
@@ -3411,13 +3308,13 @@ int add_temp_start_loc(string str)
 
 public string *query_list_def_start()
 {
-    return secure_var(def_locations);
+    return def_locations;
 }
 
 
 public string *query_list_temp_start()
 {
-    return secure_var(temp_locations);
+    return pointerp(temp_locations) ? temp_locations : ({});
 }
 
 
@@ -3529,8 +3426,8 @@ int query_player_file_time(string pl_name)
     }
 
     pl_name = lower_case(pl_name);
-    configure_object(this_object(), OC_EUID, "root");
-    return file_time(PLAYER_FILE(pl_name) + ".o");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
+    return get_dir(PLAYER_FILE(pl_name) + ".o", GETDIR_DATES)[0] || 0;
 }
 
 
@@ -3703,7 +3600,7 @@ public int query_start_time()
         game_start = GAME_START + "." + theport;
         if (file_size(game_start) > 0)
         {
-            return file_time(game_start);
+            return get_dir(game_start, GETDIR_DATES)[0];
         }
     }
 
@@ -4049,7 +3946,7 @@ mixed *banish(string name, int what)
     if (file_size(file) > -1)
     {
         info[0] = read_file(file);
-        info[1] = file_time(file);
+        info[1] = get_dir(file, GETDIR_DATES)[0];
     }
 
     switch (what)
@@ -4272,7 +4169,7 @@ mapping query_known_muds()
 #ifdef UDP_ENABLED
     if (mappingp(known_muds))
     {
-        return secure_var(known_muds);
+        return known_muds;
     }
 #endif
     return 0;
@@ -4289,3 +4186,9 @@ nomask int query_prevent_shadow()
     return 1;
 }
 
+
+int file_time(string path)
+{
+    mixed *v;
+    return (sizeof(v = get_dir(path, GETDIR_DATES)) ? v[0] : 0);
+}

@@ -15,7 +15,7 @@ inherit "/std/room";
 #include <libfiles.h>
 #include <configuration.h>
 
-#define NAME_WIZ capitalize(getuid(this_object()))
+#define NAME_WIZ capitalize(getuid())
 
 
 /*

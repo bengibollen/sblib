@@ -15,7 +15,7 @@ inherit "/std/room";
 #include <libfiles.h>
 #include <configuration.h>
 
-#define NAME_WIZ capitalize(getuid(this_object()))
+#define NAME_WIZ capitalize(getuid())
 
 /*
  * Prototypes
@@ -32,7 +32,7 @@ void create_workroom()
     set_short(NAME_WIZ + "'s workroom");
     set_long("This is " + NAME_WIZ + "'s workroom.\n");
     add_exit("@@goto_start", "startloc", 0);
-    if (({int}) SECURITY->query_domain_number(getuid(this_object())) >= 0)
+    if (({int}) SECURITY->query_domain_number(getuid()) >= 0)
 	load_board();
     add_prop(ROOM_I_INSIDE, 1);
 }
@@ -83,7 +83,7 @@ object load_board()
     file = explode(MASTER + "/", "/");
     file[..<2] = ({});
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
     bb = clone_object("/std/board");
 
     name = implode(file, "/") + "/log";

@@ -8,7 +8,7 @@ void create_creature() {
     add_adj("fluffy");
     add_adj("white");
     set_gender(G_FEMALE);
-    set_short("a fluffy sheep\n");
+    set_short("fluffy white sheep");
     set_long("This is a fluffy sheep grazing peacefully.\n");
     set_chat_time(7);
     add_chat("Baaah!");

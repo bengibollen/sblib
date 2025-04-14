@@ -87,7 +87,7 @@ nomask void create_container()
 
     if (!geteuid(this_object()))   /* Get our own uid if not prepared */
     {
-	    configure_object(this_object(), OC_EUID, getuid(this_object()));
+	    configure_object(this_object(), OC_EUID, getuid());
     }
 
     add_prop(LIVE_I_IS, 1);

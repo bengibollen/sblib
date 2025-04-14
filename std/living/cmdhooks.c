@@ -265,6 +265,10 @@ static nomask int load_wiz_souls()
 {
     int rank;
 
+    log_debug("Loading wizard souls...");
+    log_debug("Euid: %s", geteuid(this_object()));
+    log_debug("Player name: %O", this_player());
+
     if (!sizeof(geteuid(this_object())))
     {
         write("PANIC! Player has no euid!\n");
@@ -276,7 +280,7 @@ static nomask int load_wiz_souls()
 
     
 
-    if (rank = ({int}) SECURITY->query_wiz_rank(geteuid(this_object())))
+    if (rank = ({int}) SECURITY->query_wiz_rank(this_player()->query_real_name()))
     {
         log_debug("Wizard rank found: %d", rank);
         log_debug("Loading wizard souls for rank: %d", rank);

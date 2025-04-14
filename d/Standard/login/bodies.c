@@ -20,7 +20,7 @@ void make_random(int j);
  * In this function, we declare everything that should be fixed
  * when the room is started, and not changed in resets.
  */
-create_room()
+void create_room()
 {
     set_short("Hologram room");
 
@@ -49,6 +49,8 @@ void make_one_of_each(int j)
 		log_debug("tmp: %s", tmp);
 		bodies += ([tmp: 1]);
 		ob = clone_object(PATH + "body");
+		log_debug("Creating body for race: %s, gender: %s", RACES[j], (i ? "male" : "female"));
+		log_debug("uid: %s, euid: %s", getuid(ob), geteuid(ob));
 		ob->create_body(RACES[j], (i ? "male" : "female"));
 		ob->move(this_object());
     }

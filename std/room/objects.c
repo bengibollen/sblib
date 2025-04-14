@@ -152,7 +152,7 @@ room_add_object(string file, int num, string mess)
     if (num < 1)
 	num = 1;
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
     for (i = 0; i < num; i++)
     {
 	ob = clone_object(file);

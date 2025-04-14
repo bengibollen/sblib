@@ -7,6 +7,8 @@
  * the calling module.
  */
 
+
+
 /*
  * /secure/master.c
  */
@@ -19,6 +21,17 @@ string creator_object(object obj);
 public int valid_player_info(mixed actor, string name, string func);
 varargs int valid_query_ip(mixed actor, object target);
 int exist_player(string pl_name);
+string load_uid(string file);
+string clone_uid(object obj, string name);
+string create_super(string file);
+string create_object(string file);
+void create();
+static void save_master();
+mixed valid_write(string file, string uid, string func, object|lwobject writer);
+string modify_command(string cmd, object ob);
+static string *start_boot(int load_empty);
+public void setup_all();
+int file_time(string path);
 
 /*
  * /secure/master/fob.c
@@ -31,3 +44,6 @@ int exist_player(string pl_name);
  * /secure/master/sanction.c
  */
 //static void remove_all_sanctions(string name);
+
+#define SAVEFILE   ("/syslog/KEEPERSAVE")
+#define GAME_START ("/GAME_START")

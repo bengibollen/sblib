@@ -17,7 +17,7 @@
 #pragma strict_types
 #pragma no_clone
 
-inherit "/cmd/std/soul_cmd";
+inherit "/std/cmd/std/soul_cmd";
 
 /* **************************************************************************
  * The list of verbs and functions. Please add new in alfabetical order.

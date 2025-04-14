@@ -440,7 +440,7 @@ load_headers()
      */
     fuse = 1;
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     notes = get_dir(board_name + "/b*");
     msg_num = sizeof(notes);
@@ -643,7 +643,7 @@ extract_headers(int number)
     if (!number)
         return 0;
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     file = "b" + number;
     if (!stringp(title = read_file(board_name + "/" + file, 1, 1)))
@@ -807,7 +807,7 @@ new_msg(string msg_head)
     writing[this_player()] = sprintf("%-*s     %-11s %s", MAX_HEADER_LENGTH,
 	msg_head, capitalize(({string}) this_player()->query_real_name()), date);
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     editor = clone_object(EDITOR_OBJECT);
     editor->set_activity("a note" +
@@ -838,7 +838,7 @@ block_discard(string file)
 private nomask void
 discard_message(string file)
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     if (block_discard(file))
 	return;
@@ -888,7 +888,7 @@ post_note(string head, string message)
 	msg_num--;
     }
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     /* If the directory doesn't exist, create it. */
     if (file_size(board_name) == -1)
@@ -1097,7 +1097,7 @@ public nomask varargs int read_msg(string what_msg, int mr)
         say(QCTNAME(this_player()) + " reads a note titled:\n" +
             headers[note][0] + "\n");
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     if (!mr)
 	mr = (query_verb() == "mread");
@@ -1263,7 +1263,7 @@ rename_msg(string str)
 	}
     }
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     num--;
     headers[num][0] = headers[num][0][..45] +

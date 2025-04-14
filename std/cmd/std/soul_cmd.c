@@ -333,8 +333,7 @@ public int query_cmd_soul()
  *                will be written to the file DUMP_EMOTIONS_OUT.
  * Returns      : int 1 - always.
  */
-public nomask int
-dump_emotions()
+public nomask int dump_emotions()
 {
     int index = -1;
     int size = sizeof(ALPHABET);

@@ -110,7 +110,7 @@ public string cb_status()
         " (Uid: " + getuid(me) + ", Euid: " + geteuid(me) + ")\n";
 
     str += "Combat object: " + object_name(this_object()) +
-        " (Uid: " + getuid(this_object()) +
+        " (Uid: " + getuid() +
             ", Euid: " + geteuid(this_object()) + ")\n";
 
     if (attack_ob)
@@ -199,7 +199,7 @@ string cb_data()
         " (Uid: " + getuid(me) + ", Euid: " + geteuid(me) + ")\n";
 
     str += "Combat object: " + object_name(this_object()) +
-        " (Uid: " + getuid(this_object()) +
+        " (Uid: " + getuid() +
             ", Euid: " + geteuid(this_object()) + ")\n";
 
     val = 2 * fixnorm(({int}) me->query_stat(SS_DEX), 50) -

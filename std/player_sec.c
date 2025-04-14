@@ -313,7 +313,7 @@ public void reset_userids()
         SECURITY->reset_wiz_uid(this_object());
     }
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, query_real_name());
     log_debug("User IDs reset successfully.");
 }
 
@@ -598,8 +598,6 @@ private nomask int setup_player(string pl_name)
     
     log_debug("Setting up player with name: " + pl_name);
 
-    set_name(pl_name);
-
     ::set_adj(({}));            /* No adjectives and no default */
     new_init();                 /* All variables to default condition */
 
@@ -807,6 +805,7 @@ public nomask int enter_game(string pl_name, string pwd)
     
     log_debug("Enter game and checking player setup...");
     log_debug("Player name: " + pl_name);
+    log_debug("Saved password: %s", to_string(password));
     log_debug("Password: " + pwd);
     configure_interactive(this_object(), IC_ENCODING, "utf-8");
 
@@ -818,6 +817,7 @@ public nomask int enter_game(string pl_name, string pwd)
         return 0;
     }
 
+    set_name(pl_name);
     cmdhooks_reset();
     log_debug("(cmdhooks_reset) Current actions: %O", query_actions(this_object()));
     setup_player(pl_name);
@@ -962,11 +962,15 @@ nomask public int save_player(string pl_name)
     {
         return 0;
     }
+    log_debug("This object: %O", this_object());
+    log_debug("Saving player file: " + pl_name);
+    log_debug("Uid: %s", getuid());
+    log_debug("Euid: %s", getuid());
 
     pack_bits();
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(previous_object()));
     save_object(PLAYER_FILE(pl_name));
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     /* Discard the props again */
     saved_props = 0;
@@ -991,23 +995,25 @@ nomask public int load_player(string pl_name)
         return 0;
     }
     log_debug("Loading player file: " + pl_name);
+    log_debug("This object: %O", this_object());
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid(previous_object()));
 
-    if (file_size(PLAYER_FILE(pl_name) + ".o") < 0)
+    if (file_size(PLAYER_FILE(pl_name) + ".o") <= 0)
     {
         log_error("Player file not found: %s", pl_name);
         return 0;
     }
+    log_debug("Player file contents:\n%s", read_file(PLAYER_FILE(pl_name) + ".o"));
 
-    ret = restore_object(read_file(PLAYER_FILE(pl_name) + ".o"));
+    ret = restore_object(PLAYER_FILE(pl_name));
 
     if (!ret)
     {
-        log_error("Failed to restore player file: " + pl_name);
+        log_error("Failed to restore player file: %s", PLAYER_FILE(pl_name));
     }
 
-    configure_object(this_object(), OC_EUID, 0);
+    configure_object(this_object(), OC_EUID, getuid());
     return ret;
 }
 
@@ -1202,7 +1208,7 @@ public nomask int new_save(string pl_name, string pwd, string pfile)
     }
 
     write("Creating new player: " + pl_name + "\n");
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
     set_name(pl_name);
     set_password(pwd);
     set_player_file(pfile);

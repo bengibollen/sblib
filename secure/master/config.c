@@ -110,6 +110,7 @@ public void setup_command()
         //  , "d":"down", "u":"up", "nw":"northwest", "ne":"northeast"
         //  , "sw":"southwest", "se":"southeast" ]));
     set_driver_hook(H_MODIFY_COMMAND_FNAME, "modify_command");
+    set_driver_hook(H_DEFAULT_PROMPT, "\n> ");
     
 }
 

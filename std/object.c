@@ -114,6 +114,8 @@ public void create_object()
 public nomask void create()
 {
     log_debug("Create run in object.c: %O", this_object());
+    log_debug("Creating living object, euid: %s, uid: %s", geteuid(this_object()), getuid());
+
     create_object();
 
     /* Add the name based on the object number. */
@@ -1059,7 +1061,7 @@ public nomask varargs mixed check_call(mixed retval, object for_obj = previous_o
  * Function name: reset_euid
  * Description  : This function can be called externally to make sure that
  *                the euid of this object is set exactly to the uid of the
- *                object. All it does is: configure_object(this_object(), OC_EUID, getuid(this_object()));
+ *                object. All it does is: configure_object(this_object(), OC_EUID, getuid());
  */
 public void reset_euid()
 {
@@ -1341,6 +1343,8 @@ public void remove_name(mixed name)
  */
 varargs public mixed query_name(int arg)
 {
+    log_debug("Object names: %O", obj_names);
+    log_debug("Argument: %d", arg);
     return query_list(obj_names, arg);
 }
 
@@ -2499,7 +2503,7 @@ string stat_object()
     mixed tmp;
 
     str = "File: " + object_name(this_object()) + ", Creator: " +
-        getuid(this_object()) + ", Uid: " + getuid(this_object()) +
+        getuid() + ", Uid: " + getuid() +
         ", Euid: " + geteuid(this_object()) + "\n";
     if (tstr = query_prop(OBJ_S_WIZINFO))
         str += "Special info:\n\t" + tstr;

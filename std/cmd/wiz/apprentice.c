@@ -86,7 +86,7 @@ nomask int finger(string str);
 nomask void
 create()
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     restore_object(WIZ_CMD_APPRENTICE);
 

@@ -14,15 +14,14 @@ inherit "/std/object";
 mixed *attrib;
 
 
-create_object()
+void create_object()
 {
     obj_names = ({"selector"});
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
-    restore_object(PATH + "attributes");
+    configure_object(this_object(), OC_EUID, getuid());
+    restore_object(PATH + "attrib");
 }
 
-int
-list(string str)
+int list(string str)
 {
     string *tmp;
     int i, j;

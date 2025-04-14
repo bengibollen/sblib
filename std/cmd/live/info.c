@@ -46,7 +46,7 @@ inherit "/std/command_driver";
  */
 void create()
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 }
 
 
@@ -246,7 +246,7 @@ int help(string what)
 
     if (file_size("/doc/help/" + dir + what) > 0)
     {
-        configure_object(this_object(), OC_EUID, getuid(this_object()));
+        configure_object(this_object(), OC_EUID, getuid());
 
     	this_player()->more(("/doc/help/" + dir + what), 1);
 	    return 1;
@@ -318,7 +318,7 @@ int report(string str)
     this_player()->add_prop(PLAYER_I_LOG_TYPE, type);
     this_player()->add_prop(PLAYER_O_LOG_OBJECT, target);
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     clone_object(EDITOR_OBJECT)->edit("done_reporting", "");
     return 1;

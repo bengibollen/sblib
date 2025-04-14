@@ -241,7 +241,7 @@ private void init_mail_reader(int first)
  */
 public void create_object()
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
     
     set_name("mailreader");
     add_name("reader");
@@ -1185,7 +1185,7 @@ static void store_message(string message, string filename)
 
     configure_object(this_object(), OC_EUID, getuid(environment()));
     result = write_file(filename, message);
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     if (result)
         WRITE("Message stored in " + filename + ".\n");

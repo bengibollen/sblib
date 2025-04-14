@@ -81,6 +81,8 @@ static string getnames(object ob)
 
 static string slice_cmds(mixed *ar)
 {
+    log_debug("Slicing commands: %O", ar);
+    log_debug("Sliced command: %s", to_string(ar[0]));
     return ar[0];
 }
 
@@ -97,7 +99,10 @@ varargs string *get_localcmd(mixed ob = previous_object())
     if (!objectp(ob))
         return ({});
 
-    return map(query_actions(ob, QA_VERB), #'slice_cmds);
+    log_debug("Verbs: %O", QA_VERB);
+    log_debug("Actions: %O", query_actions(ob, QA_VERB));
+
+    return query_actions(ob, QA_VERB);
 }
 
 

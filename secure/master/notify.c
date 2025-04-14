@@ -408,7 +408,13 @@ graph_process_data()
     }
 
     /* Add the averages to the graph data and reset the temporary stack. */
-    graph_players = graph_players[1..] + ({ tmp });
+    if (sizeof(graph_players) > 1){
+        graph_players = graph_players[1..] + ({ tmp });
+    }
+    else {
+        graph_players = ({ tmp });
+    }
+
     graph_tmp_players = ({ });
 }
 
@@ -453,7 +459,7 @@ probe_for_graph()
     tmp[GRAPH_ALL] = size;
 
     /* Find the number of people in the queue. */
-    tmp[GRAPH_QUEUE] = QUEUE->query_queue();
+//    tmp[GRAPH_QUEUE] = QUEUE->query_queue();
 
     /* Add the information to the data stack. */
     graph_tmp_players += ({ tmp });
@@ -628,7 +634,7 @@ notify(object ob, int level)
             tmp = wiz_notify_map[wizname];
         }
 
-        if (member(name, tmp) >= 0)
+        if (name in tmp)
         {
             notify_lvl = NOTIFY_ALL | (notify_lvl & NOTIFY_IP) |
                 (notify_lvl & NOTIFY_NO_LD);

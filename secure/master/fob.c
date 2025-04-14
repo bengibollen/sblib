@@ -391,7 +391,7 @@ make_domain(string dname, string sname, string wname)
         return 0;
     }
 
-    configure_object(this_object(), OC_EUID, "root:root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
 
     switch(file_size("/d/" + dname))
     {
@@ -1736,7 +1736,6 @@ int query_wiz_rank(string wname)
 {
     logger->debug("Last object: %O", previous_object());
     logger->debug("Wiz rank query: %s", to_string(wname));
-    logger->debug("Wiz rank query: %O", m_wizards);
 
     if(!stringp(wname))
     {
@@ -2975,7 +2974,7 @@ set_channels(mapping channels)
     if (!CALL_BY(WIZ_CMD_APPRENTICE))
         return 0;
 
-    configure_object(this_object(), OC_EUID, "root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
     write_file(CHANNELS_SAVE, save_value(channels), 1);
     return 1;
 }
@@ -2992,7 +2991,7 @@ mapping query_channels()
     if (!CALL_BY(WIZ_CMD_APPRENTICE))
         return 0;
 
-    configure_object(this_object(), OC_EUID, "root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
 
     logger->debug("File size: %s", to_string(file_size(CHANNELS_SAVE)));
     logger->debug("File contents:\n%s", read_file(CHANNELS_SAVE));

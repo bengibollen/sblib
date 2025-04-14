@@ -192,7 +192,7 @@ mbm_cmd(string arg)
     string	*args, first, rest;
     int		admin, lvl;
 
-	configure_object(this_object(), OC_EUID, getuid(this_object()));
+	configure_object(this_object(), OC_EUID, getuid());
 
     admin = ({int}) MC->query_admin(({string}) TI->query_real_name());
     lvl = WIZ_CHECK;
@@ -347,7 +347,7 @@ mbm_cmd(string arg)
 public nomask int
 mbh_cmd(string arg)
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     mbs_error(({int}) MC->do_help(arg));
     return 1;
@@ -366,7 +366,7 @@ mbs_cmd(string arg)
     string	*args, first, rest;
     int admin = ({int}) MC->query_admin(({string}) TI->query_real_name());
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     if (!WIZ_CHECK)
     {

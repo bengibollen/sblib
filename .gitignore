@@ -1,2 +1,5 @@
 *.log
 LP_SWAP.sbmud
+log/**/*
+syslog/*
+players/*

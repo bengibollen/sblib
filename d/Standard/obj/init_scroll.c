@@ -14,7 +14,7 @@ inherit "/std/scroll";
 void
 create_scroll()
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
     add_prop(OBJ_I_NO_DROP, "Don't drop the slate, it holds valueable " +
 			    "information!\n");
     set_name("slate");

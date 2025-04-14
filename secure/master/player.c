@@ -46,7 +46,7 @@ static private mapping m_firsts = ([ ]);
 static void
 save_seconds()
 {
-    configure_object(this_object(), OC_EUID, "root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
     string data = save_value(m_seconds);
     write_file(SECONDS_SAVE, data, 1);
 }

@@ -19,7 +19,7 @@ static	mapping	single_locs;
 void create()
 {
     setuid();
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
     single_locs = ([]);
     overlap_map = ({});
     terrain_files = ([]);

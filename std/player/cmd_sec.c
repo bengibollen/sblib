@@ -147,7 +147,7 @@ nomask int check_recover_loc()
 
     /* Check for armageddon */
     if (({int}) ARMAGEDDON->shutdown_active())
-	return 1;
+	    return 1;
 
     /* Wizards always recover. */
     if (query_wiz_level())
@@ -155,16 +155,19 @@ nomask int check_recover_loc()
 
     /* Check for recoverable surroundings */
     if (objectp(tmp = environment(this_object())))
-	env = object_name(tmp);
+    	env = object_name(tmp);
     else
-	return 0;
+	    return 0;
+
+    log_debug("Temp start list: %O", SECURITY->query_list_temp_start());
+    log_debug("Default list: %O", SECURITY->query_list_def_start());
 
     list = ({string *}) SECURITY->query_list_temp_start() +
 	    ({string *}) SECURITY->query_list_def_start();
 
-    if (member(env, list) != -1)
+    if (env in list)
     {
-	return 1;
+    	return 1;
     }
 
     return 0;
@@ -259,6 +262,9 @@ public nomask void save_me(int value_items)
     /* Do some queries to make certain time-dependent
      * vars are updated properly.
      */
+    log_info("Saving player: %s", getuid());
+    log_debug("Password: %s", to_string(password));
+
     query_mana();
     query_fatigue();
     query_hp();
@@ -274,7 +280,7 @@ public nomask void save_me(int value_items)
     set_logout_time();
     configure_object(this_object(), OC_EUID, 0);
     SECURITY->save_player();
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     /* If the player is a mortal, we will restart autosave. */
     start_autosave();

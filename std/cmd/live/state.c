@@ -60,7 +60,7 @@ public int second(string str);
 
 void create()
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 
     /* These global arrays are created once for all since they are used
        quite often. They should be considered constant, so do not mess

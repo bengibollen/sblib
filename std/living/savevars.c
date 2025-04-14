@@ -1853,7 +1853,8 @@ nomask public int add_cmdsoul(string soul)
     /*
      * There can only be one!
      */
-    remove_cmdsoul(soul);
+    if (sizeof(cmdsoul_list) && soul in cmdsoul_list)
+        return 1;
 
     if (!sizeof(cmdsoul_list))
         cmdsoul_list = ({ soul });
@@ -1930,7 +1931,8 @@ nomask public int add_toolsoul(string soul)
     /*
      * There can only be one!
      */
-    remove_toolsoul(soul);
+    if (sizeof(tool_list) && soul in tool_list)
+        return 1;
 
     if (!sizeof(tool_list))
         tool_list = ({ soul });
@@ -1953,7 +1955,7 @@ nomask public int remove_toolsoul(string soul)
     if (!valid_change_soul())
         return 0;
 
-    if ((index = member(soul, tool_list)) < 0)
+    if ((index = member(tool_list, soul)) < 0)
         return 0;
 
     tool_list = exclude_array(tool_list, index, index);

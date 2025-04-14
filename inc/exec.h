@@ -29,7 +29,7 @@
 #define DEFAULT_EXEC_INCLUDE
 
 #ifndef ME
-#define ME     (find_player(getuid(this_object())))
+#define ME     (find_player(getuid()))
 #endif
 
 #ifndef TP

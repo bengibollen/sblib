@@ -82,8 +82,8 @@ nomask public void open_soul(int state)
     if (state)
     {
         
-        log_debug("Setting euid for: %s to %s", object_name(this_object()), getuid(this_object()));
-        configure_object(this_object(), OC_EUID, getuid(this_object()));
+        log_debug("Setting euid for: %s to %s", object_name(this_object()), getuid());
+        configure_object(this_object(), OC_EUID, getuid());
     }
     else
     {

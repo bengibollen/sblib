@@ -72,7 +72,7 @@ static string gItem;         /* string to hold pseudoitem from look command */
 
 void create()
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 }
 
 /* **************************************************************************

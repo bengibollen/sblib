@@ -100,15 +100,16 @@ public nomask void enter_new_player(string name, string pass)
     }
 
     set_name(name);
-    configure_object(this_object(), OC_EUID, 0);
+    configure_object(this_object(), OC_EUID, query_real_name());
 
     /*
      * Check if the player exists
      */
     if (!SECURITY->load_player())
     {
-        configure_object(this_object(), OC_EUID, getuid(this_object()));
-        set_password(pass);
+        configure_object(this_object(), OC_EUID, getuid());
+        log_debug("Attempting to set password: %s", pass);
+        set_password(crypt(pass, 0));
         set_player_file(MASTER);
 
         if (file_size(CONVERT_OLD) > 0)
@@ -182,7 +183,7 @@ public nomask void enter_new_player(string name, string pass)
         ask_player();  /* Some questions are still needed */
         return;
     }
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, query_real_name());
 
     /*
      * Is this a normal CDlib player with a bad playerfile ?

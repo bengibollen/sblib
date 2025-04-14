@@ -22,18 +22,19 @@ inherit "/std/command_driver";
 #include <macros.h>
 #include <std.h>
 #include <stdproperties.h>
+#include <configuration.h>
 
-void
-create()
+
+void create()
 {
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid());
 }
+
 
 /*
  * What souls to use as misc souls
  */
-string *
-replace_soul()
+string *replace_soul()
 {
     return
 	({
@@ -49,8 +50,7 @@ replace_soul()
 /*
  * Return a proper name of the soul in order to get a nice printout.
  */
-string
-get_soul_id()
+string get_soul_id()
 {
     string *st;
 

@@ -1180,7 +1180,7 @@ public int logon1()
 
     player_file = 0;
 
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
     cat(LOGIN_FILE_WELCOME);
 
     write("Gamedriver version:  " + ({string}) SECURITY->do_debug("version") +

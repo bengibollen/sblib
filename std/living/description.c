@@ -110,7 +110,7 @@ public int notmet_me(object obj)
  */
 public string query_real_name()
 {
-    return lower_case(::query_name());
+    return lower_case(::query_name() || to_string(geteuid()));
 }
 
 /*

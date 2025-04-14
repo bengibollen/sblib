@@ -278,7 +278,7 @@ create_sanction(string giver, string receiver, string type, string path)
     int    index;
     int    size;
 
-	configure_object(this_object(), OC_EUID, "root");
+	configure_object(this_object(), OC_EUID, ROOT_UID);
 
     /* This is the file we are supposed to write. */
     path = SANCTION_DIR + giver + "/" + receiver +
@@ -375,7 +375,7 @@ remove_sanction(string giver, string receiver, string type, string path)
     string *parts;
     int    size;
 
-	configure_object(this_object(), OC_EUID, "root");
+	configure_object(this_object(), OC_EUID, ROOT_UID);
 
     /* Construct the path to remove. */
     path = SANCTION_DIR + giver +
@@ -436,7 +436,7 @@ static void remove_all_sanctions(string name)
     int    index;
     int    size;
 
-	configure_object(this_object(), OC_EUID, "root");
+	configure_object(this_object(), OC_EUID, ROOT_UID);
 
     /* Remove the sanctions this wizard or domain has given out. */
     remove_sanction(name);

@@ -26,7 +26,7 @@ inherit "/std/command_driver";
 
 void create()
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 }
 
 

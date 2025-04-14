@@ -41,7 +41,7 @@ private int query_the_value(object ob);
  */
 public void create()
 {
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
 }
 
 
@@ -1384,7 +1384,7 @@ public int steal(string str)
         success, caught, log[9], "");
 
     setuid();
-    configure_object(this_object(), OC_EUID, getuid(this_object()));
+    configure_object(this_object(), OC_EUID, getuid());
     write_file(LOG_STEALS, tmp);
 #endif
 

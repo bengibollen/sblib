@@ -653,7 +653,7 @@ mailadmin(string str)
 	return 0;
     }
 
-    configure_object(this_object(), OC_EUID, "root");
+    configure_object(this_object(), OC_EUID, ROOT_UID);
 
     args = explode(str, " ");
     switch(args[0])
