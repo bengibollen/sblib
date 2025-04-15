@@ -3850,16 +3850,21 @@ pinch(string str)
 #define POINT_DIRECTIONS ({ "up", "down", "north", "south", "west", "east", \
     "northwest", "southwest", "northeast", "southeast" })
 
-int
-point(string str)
+int point(string str)
 {
     object *oblist;
     string *tmp;
+
+    log_debug(" === POINT EMOTE === ");
+    log_debug("str: %s", str);
+    log_debug("this_player(): %s", ({string}) this_player()->query_name());
 
     notify_fail("Where do you want to point?\n");
 
     if (!stringp(str))
     {
+        log_debug(" == nondirectional point == ");
+        
         write("You point in a general direction.\n");
         allbb(" points in a general direction.");
         return 1;
@@ -3868,23 +3873,31 @@ point(string str)
     str = lower_case(str);
     if (str in POINT_DIRECTIONS)
     {
+        log_debug(" == directional point == ");
         write("You point " + str + ".\n");
         allbb(" points " + str + ".");
         return 1;
     }
 
     oblist = parse_this(str, "[at] [the] %i", 0, 1);
+    log_debug("oblist: %O", oblist);
 
     if (!sizeof(oblist))
     {
         tmp = explode(str, " ");
         if (sizeof(tmp) > 1 && tmp[0] == "at")
+        {
+            log_debug(" == point at object == ");
             str = implode(tmp[1 .. sizeof(tmp) - 1], " ");
+        }
         oblist = FIND_STR_IN_OBJECT(str, environment(this_player()));
+        log_debug("oblist: %O", oblist);
         if (!sizeof(oblist))
         {
+            log_debug("No objects found for: " + str);
             if (({int}) environment(this_player())->item_id(str))
             {
+                log_debug(" == point at inventory item? == ");
                 write("You point at the " + str + ".\n");
                 allbb(" points at " + LANG_ADDART(str) + ".");
                 return 1;
@@ -3892,21 +3905,24 @@ point(string str)
             return 0;
         }
 
-	if (oblist[0] != this_player())
-	{
-	    write("You point at " + LANG_THESHORT(oblist[0]) + ".\n");
-	    allbb(" points at " + LANG_THESHORT(oblist[0]) + ".");
-	    return 1;
-	}
+        if (oblist[0] != this_player())
+        {
+            log_debug(" == point at object %O == ", oblist[0]);
+            write("You point at " + LANG_THESHORT(oblist[0]) + ".\n");
+            allbb(" points at " + LANG_THESHORT(oblist[0]) + ".");
+            return 1;
+        }
     }
 
     if (oblist[0] == this_player())
     {
+        log_debug(" == point at self == ");
         write("You point at yourself.\n");
         allbb(" points at " + ({string}) this_player()->query_objective() + "self.");
         return 1;
     }
 
+    log_debug(" == point at target %O == ", oblist);
     actor("You point at", oblist);
     all2actbb(" points at", oblist);
     targetbb(" points at you.", oblist);

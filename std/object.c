@@ -1738,7 +1738,7 @@ public int item_id(string str)
     size = sizeof(obj_items);
     while(--size >= 0)
     {
-        if (member(str, obj_items[size][0]) >= 0)
+        if (str in obj_items[size][0])
         {
             return 1;
         }

@@ -162,7 +162,9 @@ public varargs void target(string str, object *oblist, string adverb = "", int c
 {
     int poss;
     object *players, *all_oblist;
-    closure name;
+    string name;
+
+    log_debug("target(%O, %O, %O, %d)", str, oblist, adverb, cmd_attr);
 
     /* Sanity check. */
     if (!sizeof(oblist))
@@ -195,17 +197,24 @@ public varargs void target(string str, object *oblist, string adverb = "", int c
 
     /* Give only a hook to NPC's. */
     players = FILTER_PLAYERS(oblist);
+    log_debug("oblist: %s",  implode(map(oblist, #'object_name), ", "));
+    log_debug("players: %s", implode(map(players, #'object_name), ", "));
 
     /* Tell the message to players. */
     if (sizeof(players))
     {
-        name = poss ? 
-            (: ({string}) this_player()->query_The_possessive_name($1) :) :
-            (: ({string}) this_player()->query_The_name($1) :);
+        log_debug("Sending message to players");
+        log_debug("this_player(): %s", ({string}) this_player()->query_name());
+        object tp = this_player();
+        name = poss ? QCTPNAME(tp) : QCTNAME(tp);
+            // (: ({string}) $1->query_The_possessive_name(tp) :) :
+            // (: ({string}) $1->query_The_name(tp) :);
 
+        log_debug("name: %O", name);
         foreach(object player: players)
         {
-            player->catch_tell(funcall(name, player) + str + "\n");
+            log_debug("Message for %s: %s", ({string}) player->query_name(), funcall(name, player) + str);
+            player->catch_tell(name + str + "\n");
         }
     }
 
@@ -224,6 +233,7 @@ public varargs void targetbb(string str, object *oblist, string adverb = "", int
 {
     target(str, oblist, adverb, cmd_attr | ACTION_BLIND);
 }
+
 
 /*
  * Function name: all
@@ -248,39 +258,46 @@ public varargs void all(string str, string adverb = "", int cmd_attr = 0)
     int poss;
     object *oblist, *players;
 
+    log_debug("all(%O, %O, %d)", str, adverb, cmd_attr);
     if (str[..1] == "'s")
     {
-	poss = 1;
-	str = str[2..];
+        poss = 1;
+        str = str[2..];
     }
 
     oblist = FILTER_OTHER_LIVE(all_inventory(environment(this_player())));
 
     if (ACTION_BLIND & cmd_attr)
     {
-	oblist = FILTER_CAN_SEE_IN_ROOM(oblist);
-	oblist = FILTER_IS_SEEN(this_player(), oblist);
+        oblist = FILTER_CAN_SEE_IN_ROOM(oblist);
+        oblist = FILTER_IS_SEEN(this_player(), oblist);
     }
 
     oblist  = check_block_action(oblist, cmd_attr);
     players = FILTER_PLAYERS(oblist);
 
+    log_debug("oblist: %s",  implode(map(oblist, #'object_name), ", "));
+    log_debug("players: %s", implode(map(players, #'object_name), ", "));
+
     /* Tell the message to players. */
     if (sizeof(players))
     {
+        object tp = this_player();
         closure name = poss ? 
-            (: ({string}) this_player()->query_The_possessive_name($1) :) :
-            (: ({string}) this_player()->query_The_name($1) :);
+            (: ({string}) tp->query_The_possessive_name($1) :) :
+            (: ({string}) tp->query_The_name($1) :);
 
-	foreach(object player: players)
-	{
-	    player->catch_tell(funcall(name, player) + str + "\n");
-	}
+        foreach(object player: players)
+        {
+            log_debug("Message for %s: %s", ({string}) player->query_name(), funcall(name, player) + str);
+            player->catch_tell(funcall(name, player) + str + "\n");
+        }
     }
 
     oblist->emote_hook(query_verb(), this_player(), adverb, 0, cmd_attr, 0);
     this_player()->emote_hook_actor(query_verb(), oblist);
 }
+
 
 /*
  * Function name: allbb
@@ -293,6 +310,7 @@ public varargs void allbb(string str, string adverb = "", int cmd_attr = 0)
 {
     all(str, adverb, cmd_attr | ACTION_BLIND);
 }
+
 
 /*
  * Function name: all2act
@@ -323,69 +341,74 @@ public varargs void allbb(string str, string adverb = "", int cmd_attr = 0)
  *                string adverb  - the optional adverb if one was used.
  *                int cmd_attr   - the action attributes (from cmdparse.h)
  */
-public varargs void all2act(string str, object *oblist, string str1, string adverb = "",
-    int cmd_attr = 0)
+public varargs void all2act(string str, object *oblist, string str1, string adverb = "", int cmd_attr = 0)
 {
     int    a_poss, o_poss;
     object *livings, *players;
 
+    log_debug("all2act(%O, %O, %O, %O, %d)", str, oblist, str1, adverb, cmd_attr);
+
     /* Sanity check. */
     if (!sizeof(oblist))
-	return;
+    	return;
 
     livings = all_inventory(environment(this_player()));
     livings = FILTER_OTHER_LIVE(livings - oblist);
 
     if (ACTION_BLIND & cmd_attr)
     {
-	livings = FILTER_CAN_SEE_IN_ROOM(livings);
-	livings = FILTER_IS_SEEN(this_player(), livings);
+        livings = FILTER_CAN_SEE_IN_ROOM(livings);
+        livings = FILTER_IS_SEEN(this_player(), livings);
     }
 
     if (!sizeof(livings))
-	return;
+    	return;
 
     if (str[..1] == "'s")
     {
-	a_poss = 1;
-	str = str[2..];
+        a_poss = 1;
+        str = str[2..];
     }
 
-    if (sizeof(str1) &&
-	(str1[..1] == "'s"))
+    if (sizeof(str1) && (str1[..1] == "'s"))
     {
-	o_poss = 1;
-	str1 = str1[2..];
+        o_poss = 1;
+        str1 = str1[2..];
     }
 
     players = FILTER_PLAYERS(livings);
+    log_debug("oblist: %s",  implode(map(oblist, #'object_name), ", "));
+    log_debug("players: %s", implode(map(players, #'object_name), ", "));
+
     if (sizeof(players))
     {
-        closure name = a_poss ? 
-            (: ({string}) this_player()->query_The_possessive_name($1) :) :
-            (: ({string}) this_player()->query_The_name($1) :);
+        object tp = this_player();
+        string name = a_poss ? QCTPNAME(tp) : QCTNAME(tp);
+            // (: ({string}) tp->query_The_possessive_name($1) :) :
+            // (: ({string}) tp->query_The_name($1) :);
 
-	str1 = (sizeof(str1) ? (str1 + "\n") : ".\n");
-	if (living(oblist[0]))
-	{
-	    foreach(object player: players)
-	    {
-            closure oname = o_poss ? 
-                (: ({string}) this_player()->query_the_possessive_name($1) :) :
-                (: ({string}) this_player()->query_the_name($1) :);
+        str1 = (sizeof(str1) ? (str1 + "\n") : ".\n");
 
-		player->catch_tell(funcall(name, player) + str + " " +
-		    COMPOSITE_WORDS(map(oblist, (: funcall(oname, $1) :))) + str1);
-	    }
-	}
-	else
-	{
-	    foreach(object player: players)
-	    {
-		player->catch_tell(funcall(name, player) + str + " " +
-		    COMPOSITE_WORDS(map(oblist, #'desc_theshort, player, o_poss)) + str1);
-	    }
-	}
+        if (living(oblist[0]))
+        {
+            foreach(object player: players)
+            {
+                closure oname = o_poss ? 
+                    (: ({string}) this_player()->query_the_possessive_name($1) :) :
+                    (: ({string}) this_player()->query_the_name($1) :);
+
+                player->catch_tell(funcall(name, player) + str + " " +
+                    COMPOSITE_WORDS(map(oblist, (: funcall(oname, $1) :))) + str1);
+            }
+        }
+        else
+        {
+            foreach(object player: players)
+            {
+                player->catch_tell(funcall(name, player) + str + " " +
+                    COMPOSITE_WORDS(map(oblist, #'desc_theshort, player, o_poss)) + str1);
+            }
+        }
     }
 
     livings->emote_hook_onlooker(query_verb(), this_player(), adverb, oblist,

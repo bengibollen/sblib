@@ -4,7 +4,8 @@ inherit "/std/creature";
 #include <const.h>
 
 void create_creature() {
-    set_name("sheep");
+    add_prop(LIVE_I_NEVERKNOWN, 1);
+    add_name("sheep");
     add_adj("fluffy");
     add_adj("white");
     set_gender(G_FEMALE);
