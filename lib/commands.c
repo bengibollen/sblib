@@ -473,49 +473,49 @@ public object *parse_this_one(string str, string form, int allow_self)
 
     if (str == "enemy")
     {
-	oblist = ({ ({object}) this_player()->query_attack() });
-	if (!objectp(oblist[0]) ||
-	    !CAN_SEE(this_player(), oblist[0]))
-	{
-	    return ({ });
-	}
+        oblist = ({ ({object}) this_player()->query_attack() });
+        if (!objectp(oblist[0]) ||
+            !CAN_SEE(this_player(), oblist[0]))
+        {
+            return ({ });
+        }
 
-	return oblist;
+    	return oblist;
     }
 
     if (str == "team")
     {
-	oblist = ({object *}) this_player()->query_team_others();
-	oblist = FILTER_PRESENT(oblist);
-	oblist = FILTER_CAN_SEE(oblist, this_player());
+        oblist = ({object *}) this_player()->query_team_others();
+        oblist = FILTER_PRESENT(oblist);
+        oblist = FILTER_CAN_SEE(oblist, this_player());
 
-	return oblist;
+        return oblist;
     }
 
     /* Some emotes may be performed on the actor himself. */
     if (allow_self &&
-	((str == "me") ||
-	 (str == "myself") ||
-	 (str == ({string}) this_player()->query_real_name())))
+        ((str == "me") ||
+        (str == "myself") ||
+        (str == ({string}) this_player()->query_real_name())))
     {
-	return ({ this_player() });
+	    return ({ this_player() });
     }
 
     /* No objects found matching 'form'. */
     if (!parse_command(str, environment(this_player()), form, oblist))
     {
-	return ({ });
+    	return ({ });
     }
 
     /* For the '%o' option which only returns a single object. */
     if (objectp(oblist))
     {
-	oblist = ({ (object) oblist });
+        oblist = ({ (object) oblist });
 
-	if (oblist[0] == this_player())
-	    return ({ });
-	else
-	    return oblist;
+        if (oblist[0] == this_player())
+            return ({ });
+        else
+            return oblist;
     }
 
     /* Use NORMAL_ACCESS to for instance get the 'second dwarf'. Filter for
@@ -523,10 +523,9 @@ public object *parse_this_one(string str, string form, int allow_self)
      */
     oblist = NORMAL_ACCESS(oblist - ({ this_player() }), 0, 0) - ({ 0 });
 
-    if ((str == "all") ||
-	(str[-4..] == " all"))
+    if ((str == "all") || (str[-4..] == " all"))
     {
-	oblist = FILTER_LIVE(oblist);
+    	oblist = FILTER_LIVE(oblist);
     }
 
     return oblist;
@@ -587,10 +586,9 @@ public varargs object *parse_this(string str, string form, int cmd_attr = 0, int
     string target, except;
 
     /* Sanity checks. Player must be able to see in the room. */
-    if (!sizeof(str) ||
-	!CAN_SEE_IN_ROOM(this_player()))
+    if (!sizeof(str) || !CAN_SEE_IN_ROOM(this_player()))
     {
-	return ({ });
+	    return ({ });
     }
 
     str = lower_case(str);
@@ -598,17 +596,17 @@ public varargs object *parse_this(string str, string form, int cmd_attr = 0, int
     /* Replace the word "but" by the word "except". */
     if (strstr(str, " but " ) != -1)
     {
-	str = implode(explode(str, " but "), " except ");
+    	str = implode(explode(str, " but "), " except ");
     }
 
     if (sscanf(str, "%s except %s", target, except) == 2)
     {
-	oblist = parse_this_and(target, form, allow_self) -
-	parse_this_and(except, form, allow_self);
+        oblist = parse_this_and(target, form, allow_self) -
+        parse_this_and(except, form, allow_self);
     }
     else
     {
-	oblist = parse_this_and(str, form, allow_self);
+    	oblist = parse_this_and(str, form, allow_self);
     }
 
     return check_block_action(oblist, cmd_attr);
