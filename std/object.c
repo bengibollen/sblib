@@ -731,36 +731,46 @@ varargs public int move(mixed dest, mixed subloc)
                     sw,sv;
     mixed           tmp;
 
+    log_debug(" === MOVE ===");
+    log_debug("Move called in object.c: %O", this_object());
+    log_debug("Move to: %s", to_string(dest));
+    log_debug("Move subloc: %s", to_string(subloc));
+
     if (!dest)
         return 5;
+
     old = environment(this_object());
+
     if (stringp(dest))
     {
         call_other(dest, "??");
         dest = find_object(dest);
     }
+
     if (!objectp(dest))
         dest = old;
 
     if (subloc == 1)
+    {
         move_object(this_object(), dest);
-
+    }
     else if (old != dest)
     {
         if (!dest || !({int}) dest->query_prop(CONT_I_IN) || ({int}) dest->query_prop(CONT_M_NO_INS))
             return 5;
+
         if ((old) && (({int}) old->query_prop(CONT_M_NO_REM)))
             return 3;
+
         if (old && ({int}) old->query_prop(CONT_I_CLOSED))
             return 9;
 
         is_room = ({int}) dest->query_prop(ROOM_I_IS);
 
         if (old)
-            is_live_old = (function_exists("create_container",
-                                           old) == "/std/living");
-        is_live_dest = (function_exists("create_container",
-                                        dest) == "/std/living");
+            is_live_old = (function_exists("create_container", old) == "/std/living");
+
+        is_live_dest = (function_exists("create_container", dest) == "/std/living");
 
         if (old && is_live_old && query_prop(OBJ_M_NO_DROP))
             return 2;
@@ -769,6 +779,7 @@ varargs public int move(mixed dest, mixed subloc)
         {
             if ((!is_room) && (query_prop(OBJ_M_NO_INS)))
                 return 4;
+
             if (dest && query_prop(CONT_I_CLOSED))
                 return 10;
         }
@@ -776,6 +787,7 @@ varargs public int move(mixed dest, mixed subloc)
         {
             if ((!is_live_old) && query_prop(OBJ_M_NO_GET))
                 return 6;
+
             else if (is_live_old && query_prop(OBJ_M_NO_GIVE))
                 return 3;
         }
@@ -784,10 +796,12 @@ varargs public int move(mixed dest, mixed subloc)
         {
             rw = (({int}) dest->query_prop(CONT_I_MAX_WEIGHT) - ({int}) dest->query_prop(OBJ_I_WEIGHT));
             rv = ({int}) dest->volume_left();
+
             if (!query_prop(HEAP_I_IS))
             {
                 if (rw < query_prop(OBJ_I_WEIGHT))
                     return 1;
+
                 if (rv < query_prop(OBJ_I_VOLUME))
                     return 8;
             }
@@ -795,9 +809,11 @@ varargs public int move(mixed dest, mixed subloc)
             {
                 sw = 0;
                 sv = 0;
+
                 if (rw < query_prop(OBJ_I_WEIGHT))
                 {
                     uw = query_prop(HEAP_I_UNIT_WEIGHT);
+
                     if (uw > rw)
                         return 1;
 
@@ -808,13 +824,16 @@ varargs public int move(mixed dest, mixed subloc)
                 if (rv < query_prop(OBJ_I_VOLUME))
                 {
                     uv = query_prop(HEAP_I_UNIT_VOLUME);
+
                     if (uv > rv)
                         return 8;
 
                     sv = rv / uv; /* This amount of the heap can be carried */
+
                     if (!sw)
                         sw = sv;
                 }
+
                 if (sw || sv)
                     this_object()->split_heap((sw < sv) ? sw : sv);
             }
@@ -846,6 +865,7 @@ varargs public int move(mixed dest, mixed subloc)
             dest->enter_inv(this_object(), old);
         }
     }
+ 
     mark_state();
     return 0;
 }
@@ -1343,8 +1363,8 @@ public void remove_name(mixed name)
  */
 varargs public mixed query_name(int arg)
 {
-    log_debug("Object names: %O", obj_names);
-    log_debug("Argument: %d", arg);
+    // log_debug("Object names: %O", obj_names);
+    // log_debug("Argument: %d", arg);
     return query_list(obj_names, arg);
 }
 

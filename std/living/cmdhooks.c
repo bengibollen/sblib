@@ -51,7 +51,7 @@ static void cmdhooks_reset()
     add_action(#'communicate, "'", 2);
     add_action(#'acommunicate, "a'", 2);
 
-    log_debug("Current actions: %O", query_actions(this_object()));
+    // log_debug("Current actions: %O", query_actions(this_object()));
     /* Get the different race-sounds. */
     if (!sizeof(com_sounds = RACESOUND[query_race()]))
     {
@@ -265,9 +265,9 @@ static nomask int load_wiz_souls()
 {
     int rank;
 
-    log_debug("Loading wizard souls...");
-    log_debug("Euid: %s", geteuid(this_object()));
-    log_debug("Player name: %O", this_player());
+    // log_debug("Loading wizard souls...");
+    // log_debug("Euid: %s", geteuid(this_object()));
+    // log_debug("Player name: %O", this_player());
 
     if (!sizeof(geteuid(this_object())))
     {
@@ -282,8 +282,8 @@ static nomask int load_wiz_souls()
 
     if (rank = ({int}) SECURITY->query_wiz_rank(this_player()->query_real_name()))
     {
-        log_debug("Wizard rank found: %d", rank);
-        log_debug("Loading wizard souls for rank: %d", rank);
+        // log_debug("Wizard rank found: %d", rank);
+        // log_debug("Loading wizard souls for rank: %d", rank);
         wiz_souls = ({string *}) WIZ_SOUL(rank)->get_soul_list();
         wiz_souls -= ({MBS_SOUL});
     }
@@ -520,7 +520,7 @@ nomask public void update_hooks()
     load_wiz_souls();
     load_tool_souls();
     load_command_souls();
-    log_debug("Current actions: %O", query_actions(this_object()));
+    // log_debug("Current actions: %O", query_actions(this_object()));
 }
 
 

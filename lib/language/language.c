@@ -245,7 +245,7 @@ string plural_word(string str)
     case 'h':
 	return tmp + slask + "hes";
     case 'y':
-	if (member(slask, ({ "a", "e", "o" })) >= 0)
+	if (slask in ({ "a", "e", "o" }))
 	    return tmp + slask + "ys";
 	else
 	    return tmp + slask + "ies";

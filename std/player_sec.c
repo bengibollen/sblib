@@ -668,7 +668,7 @@ private nomask int setup_player(string pl_name)
     /* Non wizards should not have a lot of souls */
     if (!query_wiz_level())
     {
-        log_debug("Querying command souls for player: " + to_string(this_object()));
+        // log_debug("Querying command souls for player: " + to_string(this_object()));
         souls = query_cmdsoul_list();
         if (sizeof(souls))
         {
@@ -676,7 +676,7 @@ private nomask int setup_player(string pl_name)
             size = sizeof(souls);
             while(++il < size)
             {
-                log_debug("Removing command soul: " + souls[il]);
+                // log_debug("Removing command soul: " + souls[il]);
                 remove_cmdsoul(souls[il]);
             }
         }
@@ -688,7 +688,7 @@ private nomask int setup_player(string pl_name)
             size = sizeof(souls);
             while(++il < size)
             {
-                log_debug("Removing tool soul: " + souls[il]);
+                // log_debug("Removing tool soul: " + souls[il]);
                 this_object()->remove_toolsoul(souls[il]);
             }
         }
@@ -719,7 +719,7 @@ private nomask int setup_player(string pl_name)
 #endif
 
     query_combat_object()->cb_configure();
-    log_debug("Player setup completed successfully.");
+    // log_debug("Player setup completed successfully.");
     return 1;
 }
 
@@ -740,18 +740,18 @@ public nomask int change_player_object(object old_plob)
         return 0;
     }
 
-    log_debug("Changing player object for: " + old_plob->query_real_name());
+    // log_debug("Changing player object for: " + old_plob->query_real_name());
 
     set_name(old_plob->query_real_name());
 
     setup_player(old_plob->query_real_name());
 
-    log_debug("Player object changed successfully for: " + old_plob->query_real_name());
+    // log_debug("Player object changed successfully for: " + old_plob->query_real_name());
     this_object()->start_player();
 
     add_prop(PLAYER_I_LASTXP, old_plob->query_prop(PLAYER_I_LASTXP));
     
-    log_debug("Player object initialization complete for: " + old_plob->query_real_name());
+    // log_debug("Player object initialization complete for: " + old_plob->query_real_name());
     return 1;
 }
 #endif
@@ -768,7 +768,7 @@ static nomask int try_start_location(string path)
     object room;
 
     
-    log_debug("Attempting to check start location: " + path);
+    // log_debug("Attempting to check start location: " + path);
 
     /* Sanity check. */
     if (!sizeof(path) ||
@@ -803,10 +803,10 @@ public nomask int enter_game(string pl_name, string pwd)
     object room;
 
     
-    log_debug("Enter game and checking player setup...");
-    log_debug("Player name: " + pl_name);
-    log_debug("Saved password: %s", to_string(password));
-    log_debug("Password: " + pwd);
+    // log_debug("Enter game and checking player setup...");
+    // log_debug("Player name: " + pl_name);
+    // log_debug("Saved password: %s", to_string(password));
+    // log_debug("Password: " + pwd);
     configure_interactive(this_object(), IC_ENCODING, "utf-8");
 
     if ((MASTER_OB(previous_object()) != LOGIN_OBJECT) &&
@@ -819,9 +819,9 @@ public nomask int enter_game(string pl_name, string pwd)
 
     set_name(pl_name);
     cmdhooks_reset();
-    log_debug("(cmdhooks_reset) Current actions: %O", query_actions(this_object()));
+    // log_debug("(cmdhooks_reset) Current actions: %O", query_actions(this_object()));
     setup_player(pl_name);
-    log_debug("(setup_player) Current actions: %O", query_actions(this_object()));
+    // log_debug("(setup_player) Current actions: %O", query_actions(this_object()));
 
     /* Tell the player when he was last logged in and from which site. */
     if (MASTER_OB(previous_object()) == LOGIN_OBJECT)
@@ -962,10 +962,10 @@ nomask public int save_player(string pl_name)
     {
         return 0;
     }
-    log_debug("This object: %O", this_object());
-    log_debug("Saving player file: " + pl_name);
-    log_debug("Uid: %s", getuid());
-    log_debug("Euid: %s", getuid());
+    // log_debug("This object: %O", this_object());
+    // log_debug("Saving player file: " + pl_name);
+    // log_debug("Uid: %s", getuid());
+    // log_debug("Euid: %s", getuid());
 
     pack_bits();
     configure_object(this_object(), OC_EUID, getuid(previous_object()));
@@ -994,8 +994,9 @@ nomask public int load_player(string pl_name)
     {
         return 0;
     }
-    log_debug("Loading player file: " + pl_name);
-    log_debug("This object: %O", this_object());
+
+    // log_debug("Loading player file: " + pl_name);
+    // log_debug("This object: %O", this_object());
 
     configure_object(this_object(), OC_EUID, getuid(previous_object()));
 
@@ -1004,7 +1005,8 @@ nomask public int load_player(string pl_name)
         log_error("Player file not found: %s", pl_name);
         return 0;
     }
-    log_debug("Player file contents:\n%s", read_file(PLAYER_FILE(pl_name) + ".o"));
+
+    // log_debug("Player file contents:\n%s", read_file(PLAYER_FILE(pl_name) + ".o"));
 
     ret = restore_object(PLAYER_FILE(pl_name));
 

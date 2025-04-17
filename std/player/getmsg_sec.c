@@ -139,6 +139,7 @@ public void catch_tell(string msg)
     log_debug("Function: catch_tell called in getmsg_sec.c");
     log_debug("This object: %O", this_object());
     log_debug("This interactive: %O", this_interactive());
+    object ob = this_player();
     set_this_player(this_object());
     log_debug("This player: %s", query_name());
     log_debug("Previous object: %O", previous_object());
@@ -146,4 +147,5 @@ public void catch_tell(string msg)
     // dump_driver_info(DDI_MEMORY, "/log/memory_before.txt");
     log_debug("Raw string: %s", msg);
     write(process_string(msg));
+    set_this_player(ob);
 }

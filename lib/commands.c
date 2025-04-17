@@ -214,7 +214,8 @@ public varargs void target(string str, object *oblist, string adverb = "", int c
         foreach(object player: players)
         {
             log_debug("Message for %s: %s", ({string}) player->query_name(), funcall(name, player) + str);
-            player->catch_tell(name + str + "\n");
+            tell_object(player, name + str + "\n");
+//            player->catch_tell(name + str + "\n");
         }
     }
 

@@ -217,33 +217,31 @@ public void catch_vbfc(mixed str, object from_player = 0)
 {
     if (!interactive(this_object()) && !query_tell_active())
     {
-	return;
+    	return;
     }
 
     if (pointerp(str))
     {
-	if (!from_player)
-	{
-	    from_player = this_player();
-	}
-	if ((sizeof(str) > 2) &&
-	    (!CAN_SEE_IN_ROOM(this_object()) ||
-		!CAN_SEE(this_object(), from_player)))
-	{
-	    write(str[2]);
-	}
-	else if (({int}) this_object()->query_met(from_player))
-	{
-	    write(str[0]);
-	}
-	else
-	{
-	    write(str[1]);
-	}
+        if (!from_player)
+        {
+            from_player = this_player();
+        }
+
+        if ((sizeof(str) > 2) && (!CAN_SEE_IN_ROOM(this_object()) || !CAN_SEE(this_object(), from_player)))
+        {
+            write(str[2]);
+        }
+        else if (({int}) this_object()->query_met(from_player))
+        {
+            write(str[0]);
+        }
+        else
+        {
+            write(str[1]);
+        }
     }
     else
     {
-        
         log_debug("Function: catch_vbfc");
         log_debug("Raw string: %s", str);
         log_debug("Processed string: %s", process_string(str));
@@ -257,10 +255,18 @@ public void catch_vbfc(mixed str, object from_player = 0)
  */
 public void catch_msg(mixed str, object from_player = 0)
 {
-    write("Function: catch_msg");
     log_debug("Function: catch_msg");
-    log_debug("Raw string: %s", str);
-    log_debug("Processed string: %s", process_string(str));
+    log_debug("Raw string: %s", to_string(str));
+
+    if (pointerp(str))
+    {
+        log_debug("Array string: %O", str);
+    }
+    else
+    {
+        log_debug("Processed string: %s", process_string(str));
+    }
+
     catch_vbfc(str, from_player);
 }
 

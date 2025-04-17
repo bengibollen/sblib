@@ -112,7 +112,7 @@ void teleledningsanka()
  */
 public void using_soul(object live)
 {
-    log_debug("using_soul: " + object_name(live) + " is using " + object_name(this_object()));
+    // log_debug("using_soul: " + object_name(live) + " is using " + object_name(this_object()));
 }
 
 /*

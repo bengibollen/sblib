@@ -1734,8 +1734,8 @@ domain_clear_xp(string dname)
  */
 int query_wiz_rank(string wname)
 {
-    logger->debug("Last object: %O", previous_object());
-    logger->debug("Wiz rank query: %s", to_string(wname));
+    // logger->debug("Last object: %O", previous_object());
+    // logger->debug("Wiz rank query: %s", to_string(wname));
 
     if(!stringp(wname))
     {
@@ -1747,7 +1747,7 @@ int query_wiz_rank(string wname)
     if (!sizeof(m_wizards[wname]))
         return WIZ_MORTAL;
 
-    logger->debug("Wizard found: " + wname);
+    // logger->debug("Wizard found: " + wname);
     return m_wizards[wname][FOB_WIZ_RANK];
 }
 

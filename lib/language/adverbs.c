@@ -21,6 +21,7 @@
 #include <adverbs.h>
 #include <composite.h>
 #include <macros.h>
+#include <configuration.h>
 
 #define DUMP_ADVERBS_OUT ("/open/dump_adverbs")
 
@@ -37,13 +38,13 @@ static string *adverbs;
 static int     adverbs_size;
 static mapping adverb_replacements = ([ ]);
 
+
 /*
  * Function name: create
  * Description  : Called upon initialization to read the adverbs into
  *                memory.
  */
-nomask void
-create()
+nomask void create()
 {
     string *lines;
     string adverb;
@@ -51,14 +52,13 @@ create()
     int    index = -1;
     int    size;
 
-    setuid();
-    seteuid(getuid());
+    configure_object(this_object(), OC_EUID, getuid());
 
     /* Read the adverbs-file if possible. */
     if (file_size(ADVERB_SAVE_FILE) > 0)
     {
-	adverbs = sort_array(explode(read_file(ADVERB_SAVE_FILE), "\n"));
-	adverbs_size = sizeof(adverbs);
+        adverbs = sort_array(explode(read_file(ADVERB_SAVE_FILE), "\n"), #'>);
+        adverbs_size = sizeof(adverbs);
     }
 
     if (!adverbs_size)
@@ -72,6 +72,7 @@ create()
     {
         lines = explode(read_file(ADVERB_REPLACEMENT_SAVE_FILE), "\n");
         size = sizeof(lines);
+
         while(++index < size)
         {
             if (sscanf(lines[index], "%s:%s", adverb, replacement) == 2)
@@ -82,16 +83,17 @@ create()
     }
 }
 
+
 /*
  * Function name: short
  * Description  : Returns the short description of this object.
  * Returns      : string - the short description.
  */
-nomask string
-short()
+nomask string short()
 {
     return "the fabric of adverbs";
 }
+
 
 /*
  * Function name: pattern_is_adverb
@@ -102,11 +104,11 @@ short()
  * Returns      : int 1 - match.
  *                    0 - no match.
  */
-static nomask int
-pattern_is_adverb(string pattern, int position)
+static nomask int pattern_is_adverb(string pattern, int position)
 {
-    return wildmatch((pattern + "*"), adverbs[position]);
+    return strstr(adverbs[position], pattern) == 0;
 }
+
 
 /*
  * Function name: member_adverb
@@ -122,15 +124,14 @@ pattern_is_adverb(string pattern, int position)
  *                    -1   - if the adverb does not exist.
  *                    -2   - it is a special service adverb.
  */
-public nomask int
-member_adverb(string pattern)
+public nomask int member_adverb(string pattern)
 {
     int low;
     int high;
     int half;
 
     /* Not a real adverb. */
-    if (member(pattern, SERVICE_ADVERBS_ARRAY) != -1)
+    if (pattern in SERVICE_ADVERBS_ARRAY)
     {
         return -2;
     }
@@ -168,6 +169,7 @@ member_adverb(string pattern)
             high = half;
             continue;
         }
+
         low = half;
     }
 
@@ -178,6 +180,7 @@ member_adverb(string pattern)
     {
         return low;
     }
+
     if (pattern_is_adverb(pattern, high))
     {
         return high;
@@ -185,6 +188,7 @@ member_adverb(string pattern)
 
     return -1;
 }
+
 
 /*
  * Function name: full_adverb
@@ -194,8 +198,7 @@ member_adverb(string pattern)
  * Arguments    : string pattern - the pattern to check on being an adverb.
  * Returns      : string string - the complete adverb or "".
  */
-public nomask string
-full_adverb(string pattern)
+public nomask string full_adverb(string pattern)
 {
     int index = member_adverb(pattern);
 
@@ -221,14 +224,14 @@ full_adverb(string pattern)
     return adverbs[index];
 }
 
+
 /*
  * Function name: adverb_at_pos
  * Description  : Give the adverb with a certain index in the array
  * Arguments    : int index - the index in the array.
  * Returns      : string - the index'th adverb if the array is that long.
  */
-public nomask string
-adverb_at_pos(int index)
+public nomask string adverb_at_pos(int index)
 {
     if ((index >= 0) &&
     	(index < adverbs_size))
@@ -239,6 +242,7 @@ adverb_at_pos(int index)
     return NO_ADVERB;
 }
 
+
 /*
  * Function name: dump_adverbs
  * Description  : This function can be used to dump all adverbs to a file
@@ -247,8 +251,7 @@ adverb_at_pos(int index)
  *                will be written to the file DUMP_ADVERBS_OUT.
  * Returns      : int 1 - always.
  */
-public nomask int
-dump_adverbs()
+public nomask int dump_adverbs()
 {
     int index = -1;
     int size = sizeof(ALPHABET);
@@ -257,23 +260,24 @@ dump_adverbs()
     catch(rm(DUMP_ADVERBS_OUT));
     while(++index < size)
     {
-	words = filter(adverbs, &wildmatch((ALPHABET[index..index] + "*")));
+        words = filter(adverbs, (: strstr($1, ALPHABET[index..index]) == 0 :));
 
-	if (!sizeof(words))
-	{
-	    continue;
-	}
+        if (!sizeof(words))
+        {
+            continue;
+        }
 
-	if (sizeof(words[0]) < 16)
-	{
-	    words[0] = (words[0] + "                ")[..15];
-	}
-	write_file(DUMP_ADVERBS_OUT,
-	    sprintf("%-76#s\n\n", implode(words, "\n")));
+        if (sizeof(words[0]) < 16)
+        {
+            words[0] = (words[0] + "                ")[..15];
+        }
+
+        write_file(DUMP_ADVERBS_OUT, sprintf("%-76#s\n\n", implode(words, "\n")));
     }
 
     return 1;
 }
+
 
 /*
  * Function name: query_all_adverbs
@@ -281,11 +285,11 @@ dump_adverbs()
  *                list is sorted alphabetically.
  * Returns      : string * - the list of adverbs.
  */
-string *
-query_all_adverbs()
+string *query_all_adverbs()
 {
     return adverbs + ({ });
 }
+
 
 /*
  * Function name: query_all_adverb_replacements
@@ -294,8 +298,7 @@ query_all_adverbs()
  *                    ([ (string)adverb : (string)replacement ])
  * Returns      : mapping - the array with replaced adverbs.
  */
-mapping
-query_all_adverb_replacements()
+mapping query_all_adverb_replacements()
 {
     return adverb_replacements + ([ ]);
 }

@@ -1195,13 +1195,14 @@ mixed valid_read(string file, string uid, string func, object|lwobject reader)
     {
         return 1;
     }
-    logger->debug("Previous: %s", load_name(previous_object()));
-    logger->debug("Current user id: %s", uid);
+
+    // logger->debug("Previous: %s", load_name(previous_object()));
+    // logger->debug("Current user id: %s", uid);
     /* Root and archwizards and keepers may do as they please. */
     if ((uid == ROOT_UID) || load_name(previous_object()) == LOGIN_OBJECT ||
         (query_wiz_rank(uid) >= WIZ_ARCH))
     {
-        logger->debug("User has root or archwizard privileges.");
+        // logger->debug("User has root or archwizard privileges.");
         return 1;
     }
 

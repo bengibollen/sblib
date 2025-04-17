@@ -58,6 +58,16 @@ int rest()
 }
 
 int press_button(string str) {
+
+    log_debug("Inventory: %O", all_inventory());
+
+    if ("/w/debug/sheep" in map(all_inventory(), #'load_name))
+    {
+        write("You press the button and nothing happens.\n");
+        say( QCTNAME(this_player()) + " presses the button and nothing happens.\n");
+        return 1;
+    }
+
     if (str == "button" || str == "sheep")
     {
         write("You press the button and a sheep appears.\n");

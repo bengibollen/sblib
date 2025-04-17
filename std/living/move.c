@@ -66,20 +66,27 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
     mixed msg;
     string from_desc;
 
-    log_debug(" === Verb: %s ===", to_string(verb));
+    log_debug(" === MOVE LIVING Verb: %s ===", to_string(verb));
+    log_debug("Move to: %s", to_string(to_dest));
+    log_debug("Move how: %s", to_string(how));
+    log_debug("Move dont_follow: %d", dont_follow);
+    log_debug("Move no_glance: %d", no_glance);
 
     oldtp = this_player();
 
     if (!objectp(to_dest))
     {
+        log_debug("Move to_dest is not an object, calling find_object");
         msg = LOAD_ERR(to_dest);
         to_dest = find_object(to_dest);
     }
 
     if (stringp(msg))
     {
+        log_debug("Move msg is a string, calling find_object");
         if (!environment(this_object()))
         {
+            log_debug("Move error: %s", msg);
             tell_object(this_object(), "PANIC Move error: " + msg);
             to_dest = ({string}) this_object()->query_default_start_location();
             msg = LOAD_ERR(to_dest);
@@ -87,6 +94,7 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
         }
         else
         {
+            log_debug("Move error: %s", msg);
             tell_object(this_object(), msg);
             SECURITY->log_loaderr(to_dest, environment(this_object()), how,
                 previous_object(), msg);
@@ -96,35 +104,42 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
 
     if (!({int}) to_dest->query_prop(ROOM_I_IS))
     {
+        log_debug("Move error: %s", msg);
         return 7;
     }
 
     if (!how)
     {
+        log_debug("How missing");
         return move(to_dest, 1);
     }
 
     if (how == "M")
     {
+        log_debug("Move M");
         msgin = 0;
         msgout = 0;
     }
     else if (how == "X")
     {
+        log_debug("Move X");
         msgin = ({string}) this_object()->query_mm_in() + "\n";
         msgout = ({string}) this_object()->query_mm_out() + "\n";
-	/* When transing, the team does not follow. */
-	dont_follow = 1;
+        /* When transing, the team does not follow. */
+        dont_follow = 1;
     }
     else
     {
+        log_debug("Move else, direction: %s", how);
         if (query_prop(LIVE_I_SNEAK))
         {
+            log_debug("Move sneaking");
             msgin = ({string}) this_object()->query_m_in() + " sneaking";
             msgout = ({string}) this_object()->query_m_out() + " sneaking " + how + ".\n";
         }
         else
         {
+            log_debug("Move not sneaking");
             msgin = ({string}) this_object()->query_m_in();
             msgout = ({string}) this_object()->query_m_out() + " " + how + ".\n";
         }
@@ -132,16 +147,20 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
         if (sizeof(from_desc =
             ({string}) environment()->query_prop(ROOM_S_EXIT_FROM_DESC)))
         {
+            log_debug("Move from_desc: %s", from_desc);
             msgin += " " + from_desc;
         }
         else if (sizeof(from_desc = move_opposites[verb]))
         {
+            log_debug("Move opposite: %s", from_desc);
             msgin += " from " + from_desc + ".";
         }
         else
         {
+            log_debug("Move no opposite");
             msgin += ".";
         }
+
         msgin += "\n";
     }
 
@@ -150,11 +169,13 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
     /* Make us this_player() if we aren't already. */
     if (this_object() != this_player())
     {
+        log_debug("Move this_player() != this_object()");
         set_this_player(this_object());
     }
 
     if (env = environment(this_object()))
     {
+        log_debug("Move env: %s", to_string(env));
         /* Update the last room settings. */
         add_prop(LIVE_O_LAST_ROOM, env);
         add_prop(LIVE_S_LAST_MOVE, verb);
@@ -167,20 +188,24 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
             (({int}) env->query_prop(ROOM_I_TYPE) == ROOM_NORMAL) &&
             !({int}) query_prop(LIVE_I_NO_FOOTPRINTS))
         {
+            log_debug("Move leaving footprints");
             env->add_prop(ROOM_S_DIR, ({ how, query_race_name() }) );
         }
 
         /* Report the departure. */
         if (msgout)
         {
+            log_debug("Move msgout: %s", msgout);
             if (invis)
             {
+                log_debug("Move invis");
                 say( ({ "(" + METNAME + ") " + msgout,
                     TART_NONMETNAME + " " + msgout,
                     "" }) );
             }
             else
             {
+                log_debug("Move not invis");
                 say( ({ METNAME + " " + msgout,
                     TART_NONMETNAME + " " + msgout,
                     "" }) );
@@ -190,28 +215,34 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
 
     if (!query_prop(LIVE_I_SNEAK))
     {
+        log_debug("Move from hidden not sneaking");
         remove_prop(OBJ_I_HIDE);
     }
     else
     {
+        log_debug("Move from hidden sneaking");
         remove_prop(LIVE_I_SNEAK);
     }
 
     if (index = move(to_dest))
     {
+        log_debug("Move error: %d", index);
         return index;
     }
 
     if (msgin)
     {
+        log_debug("Move msgin: %s", msgin);
         if (invis)
         {
+            log_debug("Move invis");
             say( ({ "(" + METNAME + ") " + msgin,
                 ART_NONMETNAME + " " + msgin,
                 "" }) );
         }
         else
         {
+            log_debug("Move not invis");
             say( ({ METNAME + " " + msgin,
                 ART_NONMETNAME + " " + msgin,
                 "" }) );
@@ -225,6 +256,7 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
     if (interactive(this_object()) &&
         !no_glance)
     {
+        log_debug("Move no_glance: %d", no_glance);
         this_object()->do_glance(this_object()->query_option(OPT_BRIEF));
     }
 
@@ -295,9 +327,11 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
     /* Only reset this_player() if we weren't this_player already. */
     if (oldtp != this_object())
     {
+        log_debug("Move oldtp != this_object()");
         set_this_player(oldtp);
     }
 
+    log_debug("Move success");
     return 0;
 }
 
