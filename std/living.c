@@ -188,6 +188,7 @@ public void encounter(object obj)
  */
 public int command(string cmd)
 {
+    log_debug("Trying to run command on living %O: %s", this_object(), cmd);
     return efun::command(cmd);
 }
 

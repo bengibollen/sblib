@@ -1253,13 +1253,17 @@ public nomask void reset_living()
  */
 public nomask int command(string cmd)
 {
+
+    log_debug("Executing command from player: %s", cmd);
     /* Test permissions if you try to force a wizard. */
-    if (query_wiz_level() &&
-        objectp(previous_object()))
+    if (query_wiz_level() && objectp(previous_object()))
     {
-        if (!({int}) SECURITY->wiz_force_check(geteuid(previous_object()),
-            geteuid()))
+        log_debug("Checking wiz force permissions for: %s", cmd);
+        log_debug("Previous object: %O", previous_object());
+        
+        if (!({int}) SECURITY->wiz_force_check(geteuid(previous_object()), geteuid()))
         {
+            log_debug("Wiz force check failed for: %s", cmd);
             return 0;
         }
     }
@@ -1268,8 +1272,7 @@ public nomask int command(string cmd)
      * to prevent people from using the quicktyper to circumvent being forced
      * to do particular commands.
      */
-    if (cmd[0] != '$' &&
-        (previous_object() != this_object()))
+    if (cmd[0] != '$' && (previous_object() != this_object()))
     {
         cmd = "$" + cmd;
     }

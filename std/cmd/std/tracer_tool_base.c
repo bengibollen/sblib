@@ -23,99 +23,105 @@ inherit "/std/command_driver";
  *                string str  - the string to parse.
  * Returns      : object - the object described with 'str', if any.
  */
-object
-find_item(object prev, string str)
+object find_item(object prev, string str)
 {
     object ob;
     object *ob_list;
     string tmp;
     int    i;
 
-    if ((str == "here") ||
-	(str == "!"))
+    log_debug("find_item: %O", prev);
+    log_debug("find_item: %s", str);
+
+    if ((str == "here") || (str == "!"))
     {
-	return environment(this_interactive());
+    	return environment(this_interactive());
     }
 
     if (str == "me")
     {
-	return this_interactive();
+    	return this_interactive();
     }
 
     if (str == "^")
     {
-	return environment(prev);
+    	return environment(prev);
     }
 
     if (sscanf(str, "@%s", tmp) == 1)
     {
-	return find_living(tmp);
+    	return find_living(tmp);
     }
 
     if (sscanf(str, "*%s", tmp) == 1)
     {
-	return find_player(tmp);
+    	return find_player(tmp);
     }
 
     if (sscanf(str, "$%d", i) == 1)
     {
-	ob_list = users();
-	write("size: " + sizeof(ob_list) + "\n");
-	if ((i >= sizeof(ob_list)) ||
-	    (i < 0))
-	{
-	    return 0;
-	}
-	return ob_list[i - 1];
+        ob_list = users();
+        write("size: " + sizeof(ob_list) + "\n");
+
+        if ((i >= sizeof(ob_list)) || (i < 0))
+        {
+            return 0;
+        }
+
+        return ob_list[i - 1];
     }
 
     if (prev == 0)
     {
-	prev = environment(this_interactive());
+    	prev = environment(this_interactive());
     }
 
     if (sscanf(str, "\"%s\"", tmp) == 1)
     {
-	ob_list = all_inventory(prev);
-	for (i = 0 ; i < sizeof(ob_list) ; i++)
-	{
-	    if (({string})ob_list[i]->short() == tmp)
-	    {
-		return ob_list[i];
-	    }
-	}
+        ob_list = all_inventory(prev);
+
+        for (i = 0 ; i < sizeof(ob_list) ; i++)
+        {
+            if (({string})ob_list[i]->short() == tmp)
+            {
+                return ob_list[i];
+            }
+        }
     }
 
     if (sscanf(str, "#%d", i) == 1)
     {
-	if (prev == 0)
-	{
-	    return 0;
-	}
-	ob_list = all_inventory(prev);
-	if (i > sizeof(ob_list))
-	{
-	    return 0;
-	}
+        if (prev == 0)
+        {
+            return 0;
+        }
 
-	return ob_list[i - 1];
+        ob_list = all_inventory(prev);
+
+        if (i > sizeof(ob_list))
+        {
+            return 0;
+        }
+
+    	return ob_list[i - 1];
     }
 
     if (ob = present(str, prev))
     {
-	return ob;
+    	return ob;
     }
 
     if (ob = present(str, this_interactive()))
     {
-	return ob;
+    	return ob;
     }
 
     tmp = FTPATH(({string}) this_interactive()->query_path() + "/", str);
+
     if (sizeof(tmp))
     {
-	catch(call_other(tmp, "??"));	/* Force load */
-	return find_object(tmp);
+        catch(call_other(tmp, "??"));	/* Force load */
+        return find_object(tmp);
     }
 
     return 0;
@@ -184,19 +190,21 @@ get_assign(string var)
     mixed  *stores, *vars, rval = 0;
     int i, sz;
 
+    log_debug("get_assign: %s", var);
+
     vars = ({mixed *}) this_interactive()->query_prop(TRACER_VARS);
     stores = ({mixed *}) this_interactive()->query_prop(TRACER_STORES);
 
     if (var[0] == '$')
     {
-	for (i = 0, sz = sizeof(vars); i < sz; i++)
-	{
-	    if (vars[i] == var)
-	    {
-		rval = stores[i];
-		break;
-	    }
-	}
+        for (i = 0, sz = sizeof(vars); i < sz; i++)
+        {
+            if (vars[i] == var)
+            {
+                rval = stores[i];
+                break;
+            }
+        }
     }
 
     return rval;
@@ -216,24 +224,28 @@ parse_list(string str)
     string rest;
     object prev;
 
+    log_debug("parse_list: %s", str);
+
     prev = environment(this_interactive());
-    while (objectp(prev) &&
-	   stringp(str))
+
+    while (objectp(prev) && stringp(str))
     {
-	if (sscanf(str, "%s:%s", tmp, rest) == 2)
-	{
-	    prev = find_item(prev, tmp);
-	    str = rest;
-	    continue;
-	}
-	prev = find_item(prev, str);
-	break;
+        if (sscanf(str, "%s:%s", tmp, rest) == 2)
+        {
+            prev = find_item(prev, tmp);
+            str = rest;
+            continue;
+        }
+
+        prev = find_item(prev, str);
+        break;
     }
 
     assign("$", prev);
+
     if (objectp(prev))
     {
-	write(object_name(prev) + "\n");
+    	write(object_name(prev) + "\n");
     }
 
     return prev;

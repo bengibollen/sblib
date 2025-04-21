@@ -1260,8 +1260,7 @@ gwiz(string str)
 /* **************************************************************************
  * home - go home, to a domain workroom, or to another wizard's home
  */
-nomask int
-home(string str)
+nomask int home(string str)
 {
     CHECK_SO_WIZ;
 

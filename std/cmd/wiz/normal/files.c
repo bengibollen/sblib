@@ -28,6 +28,9 @@
 #include <language.h>
 #include <options.h>
 #include <libfiles.h>
+#include <driver_info.h>
+
+#define REOPEN_SOUL	("reopen_soul")
 
 /*
  * Global variable.
@@ -461,7 +464,7 @@ aft(string str)
 
 	/* Mark the file as being up to date and make it current. */
 	aft_tracked[str] = aft_catchup_file(aft_tracked[str]);
-	aft_current[name] = member(str, aft_sorted);
+	aft_current[name] = member(aft_sorted, str);
 	save_aft_file();
 
 	write("Caught up on " + str + ".\n");
@@ -578,7 +581,7 @@ aft(string str)
 	}
 
 	/* Mark as read and file to current. Then save. */
-	aft_current[name] = member(args[1], aft_sorted);
+	aft_current[name] = member(aft_sorted, args[1]);
 	aft_tracked[args[1]] = aft_catchup_file(aft_tracked[args[1]]);
 	save_aft_file();
 
@@ -650,7 +653,7 @@ aft(string str)
 	    return 0;
 	}
 
-	if (member(str, aft_sorted) >= aft_current[name])
+	if (member(aft_sorted, str) >= aft_current[name])
 	{
 	    aft_current[name] -= 1;
 	}
@@ -1125,7 +1128,7 @@ ed_file(string file)
  */
 
 #define LOADMANY_MAX   (5)
-#define LOADMANY_DELAY (10.0)
+#define LOADMANY_DELAY (10)
 
 /*
  * Function name: load_many_delayed
@@ -1136,22 +1139,19 @@ ed_file(string file)
  * Arguments    : object wizard - the wizard handling the object.
  *                string *files - the files to load still.
  */
-// static nomask void
-// load_many_delayed(object wizard, string *files)
-// {
-//     loadmany_wizard = wizard;
+static nomask void
+load_many_delayed(object wizard, string *files)
+{
+    loadmany_wizard = wizard;
 
-//     if (!objectp(loadmany_wizard) ||
-// 	(member(loadmany_wizard->query_real_name(),
-//     	    loadmany_going) == -1) ||
-//     	(!interactive(loadmany_wizard)))
-//     {
-//     	return;
-//     }
+    if (!objectp(loadmany_wizard) || (member(loadmany_going, ({string}) loadmany_wizard->query_real_name()) == -1) || (!interactive(loadmany_wizard)))
+    {
+    	return;
+    }
 
-//     loadmany_files = files;
-//     wizard->reopen_soul();
-// }
+    loadmany_files = files;
+    wizard->reopen_soul();
+}
 
 /*
  * Function name: load_many
@@ -1159,73 +1159,65 @@ ed_file(string file)
  *                function tests only a few (LOADMANY_MAX to be exact) and
  *                then calls an alarm to test the other files.
  */
-// static nomask void
-// load_many()
-// {
-//     int    index = -1;
-//     int    size;
-//     object obj;
-//     string error;
+static nomask void load_many()
+{
+    int    index = -1;
+    int    size;
+    object obj;
+    string error;
 
-//     size = (sizeof(loadmany_files) > LOADMANY_MAX) ? LOADMANY_MAX :
-//     	sizeof(loadmany_files);
-//     while(++index < size)
-//     {
-// 	if (objectp(find_object(loadmany_files[index])) &&
-// 	    loadmany_wizard->query_option(OPT_ECHO))
-// 	{
-// 	    tell_object(loadmany_wizard, "Already loaded:  " +
-// 	    	loadmany_files[index] + "\n");
+    size = (sizeof(loadmany_files) > LOADMANY_MAX) ? LOADMANY_MAX : sizeof(loadmany_files);
 
-// 	    /* Already loaded.. Readjust. */
-// 	    loadmany_files = exclude_array(loadmany_files, index, index);
-// 	    size = (sizeof(loadmany_files) > LOADMANY_MAX) ? LOADMANY_MAX :
-// 		sizeof(loadmany_files);
-// 	    index--;
+	while(++index < size)
+    {
+		if (objectp(find_object(loadmany_files[index])) && ({int}) loadmany_wizard->query_option(OPT_ECHO))
+		{
+			tell_object(loadmany_wizard, "Already loaded:  " + loadmany_files[index] + "\n");
 
-// 	    continue;
-// 	}
+			/* Already loaded.. Readjust. */
+			loadmany_files = exclude_array(loadmany_files, index, index);
+			size = (sizeof(loadmany_files) > LOADMANY_MAX) ? LOADMANY_MAX :
+			sizeof(loadmany_files);
+			index--;
 
-// 	if (error = catch(call_other(loadmany_files[index],
-//             "teleledningsanka")))
-// 	{
-// 	    tell_object(loadmany_wizard, "Error loading:   " +
-// 	    	loadmany_files[index] + "\nMessage      :   " + error + "\n");
-// 	    continue;
-// 	}
+			continue;
+		}
 
-// 	if (loadmany_wizard->query_option(OPT_ECHO))
-// 	    tell_object(loadmany_wizard, "Loaded:          " +
-// 			loadmany_files[index] + "\n");
+		if (error = catch(call_other(loadmany_files[index], "teleledningsanka")))
+		{
+			tell_object(loadmany_wizard, "Error loading:   " + loadmany_files[index] + "\nMessage      :   " + error + "\n");
+			continue;
+		}
 
-// 	/* Try to remove the object from memory the easy way. */
-// 	if (catch(call_other(loadmany_files[index], "remove_object")))
-// 	{
-// 	    tell_object(loadmany_wizard, "Cannot destruct: " +
-// 	    	loadmany_files[index] + "\n");
-// 	}
+		if (({int}) loadmany_wizard->query_option(OPT_ECHO))
+			tell_object(loadmany_wizard, "Loaded:          " + loadmany_files[index] + "\n");
 
-// 	/* Hammer hard if the object doesn't go away that easily. */
-// 	if (objectp(obj = find_object(loadmany_files[index])))
-// 	{
-// 	    SECURITY->do_debug("destroy", obj);
-// 	}
-//     }
+		/* Try to remove the object from memory the easy way. */
+		if (catch(call_other(loadmany_files[index], "remove_object")))
+		{
+			tell_object(loadmany_wizard, "Cannot destruct: " + loadmany_files[index] + "\n");
+		}
 
-//     if (sizeof(loadmany_files) > size)
-//     {
-//     	set_alarm(LOADMANY_DELAY, 0.0, &load_many_delayed(loadmany_wizard,
-//     	    loadmany_files[size..]));
-//     }
-//     else
-//     {
-//  	tell_object(loadmany_wizard, "Loading completed.\n");
-//  	loadmany_going -= ({ loadmany_wizard->query_real_name() });
-//     }
+		/* Hammer hard if the object doesn't go away that easily. */
+		if (objectp(obj = find_object(loadmany_files[index])))
+		{
+			SECURITY->do_debug("destroy", obj);
+		}
+    }
 
-//     loadmany_files = 0;
-//     loadmany_wizard = 0;
-// }
+    if (sizeof(loadmany_files) > size)
+    {
+    	call_out(#'load_many_delayed, LOADMANY_DELAY, loadmany_wizard, loadmany_files[size..]);
+    }
+    else
+    {
+		tell_object(loadmany_wizard, "Loading completed.\n");
+		loadmany_going -= ({ ({string}) loadmany_wizard->query_real_name() });
+    }
+
+    loadmany_files = 0;
+    loadmany_wizard = 0;
+}
 
 /*
  * Function name: load_many_delayed_reloaded
@@ -1234,154 +1226,154 @@ ed_file(string file)
  *                with load_many() itself, but I decided to separate them
  *                in order to make load_many() a static function.
  */
-// public nomask void
-// load_many_delayed_reloaded()
-// {
-//     if ((geteuid(previous_object()) != geteuid()) ||
-//     	(!interactive(previous_object())) ||
-//     	(calling_function() != REOPEN_SOUL))
-//     {
-//     	loadmany_files = 0;
-//     	loadmany_going -= ({ loadmany_wizard->query_real_name() });
-//     	loadmany_wizard = 0;
-//     	return;
-//     }
+public nomask void load_many_delayed_reloaded()
+{
+    if ((geteuid(previous_object()) != geteuid()) || (!interactive(previous_object())) || (driver_info(DI_TRACE_CURRENT)[0][TRACE_NAME] != REOPEN_SOUL))
+    {
+    	loadmany_files = 0;
+    	loadmany_going -= ({ ({string}) loadmany_wizard->query_real_name() });
+    	loadmany_wizard = 0;
+    	return;
+    }
 
-//     load_many();
-// }
+    load_many();
+}
 
-// nomask int
-// load(string str)
-// {
-//     object obj;
-//     string *parts;
-//     string error;
+nomask int load(string str)
+{
+    object obj;
+    string *parts;
+    string error;
 
-//     CHECK_SO_WIZ;
+    CHECK_SO_WIZ;
 
-//     if (!stringp(str))
-//     {
-// 	notify_fail("Load what?\n");
-// 	return 0;
-//     }
+	log_debug("Loading object: %s", str);
 
-//     if (str == "stop")
-//     {
-//     	if (member(this_player()->query_real_name(),
-//     	    loadmany_going) == -1)
-//     	{
-//     	    notify_fail("You are not loading multiple files at the moment.\n");
-//     	    return 0;
-//     	}
+    if (!stringp(str))
+    {
+		notify_fail("Load what?\n");
+		return 0;
+    }
 
-// 	loadmany_going -= ({ this_player()->query_real_name() });
-//     	write("Stopped loading multiple files.\n");
-//     	return 1;
-//     }
+    if (str == "stop")
+    {
+    	if (({string}) this_player()->query_real_name() in loadmany_going)
+    	{
+    	    notify_fail("You are not loading multiple files at the moment.\n");
+    	    return 0;
+    	}
 
-//     str = FTPATH(this_interactive()->query_path(), str);
-//     if (!sizeof(str))
-//     {
-// 	notify_fail("Invalid file name.\n");
-// 	return 0;
-//     }
+		loadmany_going -= ({ ({string}) this_player()->query_real_name() });
+    	write("Stopped loading multiple files.\n");
+    	return 1;
+    }
 
-//     /* If wildcards are used, the wizard means to check many files. */
-//     if (wildmatch("*[\\*\\?]*", str))
-//     {
-// 	if (member(this_player()->query_real_name(),
-// 	    loadmany_going) != -1)
-// 	{
-// 	    notify_fail("You are already loading multiple files. You have " +
-// 	    	"to use \"load stop\" first if you want to interrupt that " +
-// 	    	"sequence and start a new one. Please bear in mind that " +
-// 	    	"this operation is costly and that you should be careful " +
-// 	    	"with executing it a lot.\n");
-// 	    return 0;
-// 	}
+    str = FTPATH(({string}) this_interactive()->query_path(), str);
 
-//     	/* Get the files the wizard wants to load and filter only those
-//     	 * that are executable, ergo that end in .c
-//     	 */
-// 	loadmany_files = filter(get_dir(str), &wildmatch("*.c"));
+	if (!sizeof(str))
+    {
+		notify_fail("Invalid file name.\n");
+		return 0;
+    }
 
-// 	if (!pointerp(loadmany_files) ||
-// 	    !sizeof(loadmany_files))
-// 	{
-// 	    write("No files found: " + str + "\n");
-// 	    return 1;
-// 	}
+    /* If wildcards are used, the wizard means to check many files. */
+    if (sizeof(regexp(({ str }), ".*[\\*\\?].*")))
+    {
+		if (({string}) this_player()->query_real_name() in loadmany_going)
+		{
+			notify_fail("You are already loading multiple files. You have " +
+				"to use \"load stop\" first if you want to interrupt that " +
+				"sequence and start a new one. Please bear in mind that " +
+				"this operation is costly and that you should be careful " +
+				"with executing it a lot.\n");
+			return 0;
+		}
 
-// 	write("Loading " + sizeof(loadmany_files) + " file" +
-// 	    ((sizeof(loadmany_files) == 1) ? "" : "s") + "." +
-// 	    ((sizeof(loadmany_files) > LOADMANY_MAX) ? (" A delay of " +
-// 		to_int(LOADMANY_DELAY) + " seconds is used each " +
-// 		LOADMANY_MAX + " files.") : "") + "\n");
+    	/* Get the files the wizard wants to load and filter only those
+    	 * that are executable, ergo that end in .c
+    	 */
+		loadmany_files = filter(get_dir(str), (: $1[2..] == ".c" :));
 
-// 	/* We have to add the full path to all the files to load. Then */
-// 	parts = explode(str, "/");
-// 	parts[sizeof(parts) - 1] = "";
-// 	loadmany_files = map(loadmany_files,
-// 	    &operator(+)(implode(parts, "/"), ));
-// 	loadmany_wizard = this_interactive();
-// 	loadmany_going += ({ this_player()->query_real_name() });
+		if (!pointerp(loadmany_files) || !sizeof(loadmany_files))
+		{
+			write("No files found: " + str + "\n");
+			return 1;
+		}
 
-// 	load_many();
-// 	return 1;
-//     }
+		write("Loading " + sizeof(loadmany_files) + " file" +
+			((sizeof(loadmany_files) == 1) ? "" : "s") + "." +
+			((sizeof(loadmany_files) > LOADMANY_MAX) ? (" A delay of " +
+			to_int(LOADMANY_DELAY) + " seconds is used each " +
+			LOADMANY_MAX + " files.") : "") + "\n");
 
-//     /* File does not exists. */
-//     if ((file_size(str + ".c") < 0) &&
-//     	(file_size(str) < 0))
-//     {
-// 	notify_fail("No such file.\n");
-// 	return 0;
-//     }
+		/* We have to add the full path to all the files to load. Then */
+		parts = explode(str, "/");
+		parts[sizeof(parts) - 1] = "";
+		loadmany_files = map(loadmany_files, (: implode(parts, "/") + $1 :));
+		loadmany_wizard = this_interactive();
+		loadmany_going += ({ ({string}) this_player()->query_real_name() });
 
-//     /* If the object is already in memory, destruct it. */
-//     if (objectp(obj = find_object(str)))
-//     {
-// 	write("Trying to update: " + str + "\n");
+		load_many();
+		return 1;
+    }
 
-//     	if (!update_ob(str))
-//     	{
-//     	    write("Updating failed...\n");
-//     	    return 0;
-//     	}
-//     }
+    /* File does not exists. */
+    if ((file_size(str + ".c") < 0) && (file_size(str) < 0))
+    {
+		notify_fail("No such file.\n");
+		return 0;
+    }
 
-//     if (error = catch(str->teleledningsanka()))
-//     {
-//     	write("Error loading: " + str + "\n");
-//         write("Message: " + error + "\n");
-// 	return 1;
-//     }
+    /* If the object is already in memory, destruct it. */
+    if (objectp(obj = find_object(str)))
+    {
+		write("Trying to update: " + str + "\n");
 
-//     if (this_player()->query_option(OPT_ECHO))
-// 	write("Loaded: " + str + "\n");
-//     else
-// 	write("Ok.\n");
-//     return 1;
-// }
+    	if (!update_ob(str))
+    	{
+    	    write("Updating failed...\n");
+    	    return 0;
+    	}
+    }
+
+    if (error = catch(str->teleledningsanka()))
+    {
+    	write("Error loading: " + str + "\n");
+        write("Message: " + error + "\n");
+		return 1;
+    }
+
+    if (({int}) this_player()->query_option(OPT_ECHO))
+		write("Loaded: " + str + "\n");
+    else
+		write("Ok.\n");
+
+	return 1;
+}
 
 /* **************************************************************************
  * mkdir - make a directory
  */
-nomask int
-makedir(string str)
+nomask int makedir(string str)
 {
+	log_debug("Making directory: %s", str);
     CHECK_SO_WIZ;
 
     if (!stringp(str))
     {
-	notify_fail("Make what dir?\n");
-	return 0;
+		notify_fail("Make what dir?\n");
+		return 0;
     }
-    if (mkdir(FTPATH(({string}) this_interactive()->query_path(), str)))
-	write("Ok.\n");
+
+	configure_object(this_object(), OC_EUID, geteuid(this_interactive()));
+
+	if (mkdir(FTPATH(({string}) this_interactive()->query_path(), str)))
+		write("Ok.\n");
     else
-	write("Fail.\n");
-    return 1;
+		write("Fail.\n");
+
+	configure_object(this_object(), OC_EUID, getuid(this_object()));
+	return 1;
 }
 
 

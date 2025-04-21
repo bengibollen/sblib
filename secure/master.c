@@ -982,6 +982,10 @@ mixed valid_write(string file, string uid, string func, object|lwobject writer)
     string dir;
     int size;
 
+    logger->debug("valid_write: %s %s %O", file, uid, writer);
+    logger->debug("valid_write: %O", this_object());
+    logger->debug("valid_write: %O", previous_object());
+
     if (objectp(writer))
     {
     	wpath = explode(object_name(writer), "/") - ({ "" });
@@ -1810,8 +1814,7 @@ string creator_file(string str)
     /* The file is from a wizard. */
     if (parts[0] == "w")
     {
-        if ((sizeof(parts) > 2) &&
-            (sizeof(query_wiz_dom(parts[1]))))
+        if ((sizeof(parts) > 2) && (sizeof(query_wiz_dom(parts[1]))))
         {
             return parts[1];
         }
@@ -3820,11 +3823,15 @@ string wiz_home(string wiz)
 {
     string path;
 
+    logger->debug(" === WIZ_HOME === ");
     if (query_wiz_rank(wiz) == WIZ_MORTAL)
         if (query_domain_number(wiz) < 0)        /* Not even a domain */
             return "";
 
     path = query_wiz_path(wiz) + "/workroom.c";
+    logger->debug("path: %s", path);
+    logger->debug("file_size: %d", file_size(path));
+
     if (file_size(path) <= 0)
         write_file(path, "inherit \"/std/workroom\";\n\n" +
                    "void\ncreate_workroom()\n{\n  ::create_workroom();\n}\n");
@@ -3845,18 +3852,29 @@ int wiz_force_check(string forcer, string forced)
     int rlev;
     int dlev;
 
+    logger->debug(" === WIZ_FORCE_CHECK === ");
+    logger->debug("forcer: %s", forcer);
+    logger->debug("forced: %s", forced);
+    logger->debug("this_interactive: %s", this_interactive()->query_real_name());
+
     if (forcer == forced)
     {
         return 1;
     }
 
     rlev = query_wiz_rank(forcer);
-    if ((rlev == WIZ_KEEPER) || (forcer == ROOT_UID))
+    logger->debug("rlev: %d", rlev);
+
+    if ((rlev == WIZ_KEEPER) || (forcer == ROOT_UID) || (forcer == BACKBONE_UID))
+    {
+        return 1;
+    }
     {
         return 1;
     }
 
     dlev = query_wiz_rank(forced);
+    logger->debug("dlev: %d", dlev);
 
     if ((rlev >= WIZ_ARCH) && (dlev <= WIZ_LORD))
     {

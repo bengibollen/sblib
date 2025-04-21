@@ -1175,6 +1175,8 @@ int Reload(string str)
 
     CHECK_SO_WIZ;
 
+    log_debug("Reloading object: %s", str);
+
     if (!sizeof(str))
     {
         return notify_fail("Reload what?\n");
@@ -1182,11 +1184,13 @@ int Reload(string str)
 
     if (!objectp(old = get_assign(str)))
     {
-	if (!objectp(old = parse_list(str)))
-	{
-	    return notify_fail("Object '" + str + "' not found.\n");
-	}
+        if (!objectp(old = parse_list(str)))
+        {
+            return notify_fail("Object '" + str + "' not found.\n");
+        }
     }
+
+    log_debug("Reloading object: %O", old);
 
     if (interactive(old))
     {
@@ -1195,11 +1199,16 @@ int Reload(string str)
     }
 
     file = MASTER_OB(old);
+    log_debug("Reload file: %s", file);
+    log_debug("Old object 1: %O", old);
+
     if (!({int}) this_interactive()->command("$load " + file))
     {
+        log_debug("Failed to load file: %s", file);
         write("Failed to update, aborting...\n");
         return 1;
     }
+    log_debug("Old object 2: %O", old);
 
     if (!objectp(ob = clone_object(file)))
     {
@@ -1211,8 +1220,9 @@ int Reload(string str)
         write("New instance cloned, attempting to move.\n");
     }
 
-    if (!objectp(dest = environment(old)))
-	dest = environment(this_interactive());
+    log_debug("Old object 3: %O", old);
+    if (!objectp(dest = environment(ob)))
+    	dest = environment(this_interactive());
 
     if (living(ob))
         m = (: ({int}) ob->move_living("M",$1,1,1) :);
@@ -1238,7 +1248,8 @@ int Reload(string str)
     else
     {
         write("Object inserted, removing old instance.\n");
-        old->remove_object();
+        if (objectp(old))
+            old->remove_object();
         if (objectp(old))
             SECURITY->do_debug("destroy", old);
     }

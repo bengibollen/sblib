@@ -34,7 +34,7 @@
 #define MAX_TREE_SIZE   ( 60)
 #define TAIL_READ_CHUNK (800)
 
-//#define REOPEN_SOUL	("reopen_soul")
+#define REOPEN_SOUL	("reopen_soul")
 
 #define SPACES ("                              ")
 

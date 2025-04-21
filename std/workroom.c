@@ -15,7 +15,7 @@ inherit "/std/room";
 #include <libfiles.h>
 #include <configuration.h>
 
-#define NAME_WIZ capitalize(getuid())
+#define NAME_WIZ capitalize(({string}) SECURITY->creator_file(program_name(this_object())))
 
 /*
  * Prototypes
@@ -33,7 +33,8 @@ void create_workroom()
     set_long("This is " + NAME_WIZ + "'s workroom.\n");
     add_exit("@@goto_start", "startloc", 0);
     if (({int}) SECURITY->query_domain_number(getuid()) >= 0)
-	load_board();
+    	load_board();
+
     add_prop(ROOM_I_INSIDE, 1);
 }
 

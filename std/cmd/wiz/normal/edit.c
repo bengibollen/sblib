@@ -18,7 +18,7 @@
 
 //#define EXEC_DONE	("exec_done_editing")
 #define PAD_DONE	("pad_done_editing")
-// #define REOPEN_SOUL	("reopen_soul")
+#define REOPEN_SOUL	("reopen_soul")
 
 #define WIZARD_S_PAD_MESSAGE ("_wizard_s_pad_message")
 

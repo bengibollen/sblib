@@ -7,6 +7,7 @@
 #include <macros.h>
 #include <money.h>
 #include <language.h>
+#include <configuration.h>
 
 static	mixed	drinks;	/* Array holding all drink data */
 static	mixed	dr_id;	/* Array holding all names the drinks can be identified
@@ -18,17 +19,18 @@ static	mixed	fo_id;
 
 int order(string str);
 
+
 /*
  * Function name: init_pub
  * Description:   This function adds the buy and order command to this_player()
  *		  call it from your init()
  */
-void
-init_pub()
+void init_pub()
 {
-    add_action(order, "buy");
-    add_action(order, "order");
+    add_action(#'order, "buy");
+    add_action(#'order, "order");
 }
+
 
 /*
  * Function name: fix_drink
@@ -36,8 +38,7 @@ init_pub()
  * Arguments:	  data - The drink data from drinks arrayen
  * Returns:	  The configured drink object
  */
-object
-fix_drink(mixed data)
+object fix_drink(mixed data)
 {
     object ob;
 
@@ -57,14 +58,14 @@ fix_drink(mixed data)
     return ob;
 }
 
+
 /*
  * Function name: fix_food
  * Description:   Configure the food object and return it
  * Arguments:	  data - The data for the food
  * Returns:	  The food object
  */
-object
-fix_food(mixed data)
+object fix_food(mixed data)
 {
     object ob;
 
@@ -83,17 +84,18 @@ fix_food(mixed data)
     return ob;
 }
 
+
 /*
  * Function name: pub_hook_cant_pay
  * Description:   A hook to redefine if you want own message when player can't
  *		  pay the price.
  * Arguments:     price - The price he should had payed
  */
-void
-pub_hook_cant_pay(int price)
+void pub_hook_cant_pay(int price)
 {
     write("You haven't got enough money to pay the price.\n");
 }
+
 
 /*
  * Function name: pay_hook_cant_carry
@@ -101,14 +103,12 @@ pub_hook_cant_pay(int price)
  *		  carry what he ordered.
  * Arguments:     ob - The object he couldn't carry
  */
-void
-pub_hook_cant_carry(object ob)
+void pub_hook_cant_carry(object ob)
 {
-    write(capitalize(ob->short()) + " is too heavy for you. You drop it " +
-	"to the ground.\n");
-    say(capitalize(ob->short()) + " is too heavy for " + QTNAME(this_player()) +
-	" and falls to the ground.\n");
+    write(capitalize(({string}) ob->short()) + " is too heavy for you. You drop it " + "to the ground.\n");
+    say(capitalize(({string}) ob->short()) + " is too heavy for " + QTNAME(this_player()) + " and falls to the ground.\n");
 }
+
 
 /*
  * Function name: pay_hook_player_buys
@@ -117,12 +117,12 @@ pub_hook_cant_carry(object ob)
  * Arguments:     ob - The object player ordered
  *		  price - The price the player payed for the object
  */
-void
-pub_hook_player_buys(object ob, int price)
+void pub_hook_player_buys(object ob, int price)
 {
-    write("You pay " + price + " coppers for " + ob->short() + ".\n");
-    say(QCTNAME(this_player()) + " orders " + ob->short() + ".\n");
+    write("You pay " + price + " coppers for " + ({string}) ob->short() + ".\n");
+    say(QCTNAME(this_player()) + " orders " + ({string}) ob->short() + ".\n");
 }
+
 
 /*
  * Function name: pub_hook_ordered_too_many
@@ -130,13 +130,12 @@ pub_hook_player_buys(object ob, int price)
  * Arguments    : int num - the amount the player ordered.
  * Returns      : int 0/1 - 0 for a notify_fail, 1 for a write.
  */
-int
-pub_hook_ordered_too_many(int num)
+int pub_hook_ordered_too_many(int num)
 {
-    notify_fail("You cannot buy more than " + MAX_PURCHASED +
-	" meals or drinks at a time.\n");
+    notify_fail("You cannot buy more than " + MAX_PURCHASED + " meals or drinks at a time.\n");
     return 0;
 }
+
 
 /*
  * Function name: pub_hook_invalid_order
@@ -144,12 +143,12 @@ pub_hook_ordered_too_many(int num)
  * Arguments:     string str - the item the player tried to order
  * Returns:       1/0
  */
-int
-pub_hook_invalid_order(string str)
+int pub_hook_invalid_order(string str)
 {
     notify_fail("No " + str + " in stock.\n");
     return 0;
 }
+
 
 /*
  * Function name: pub_hook_syntax_failure
@@ -157,12 +156,12 @@ pub_hook_invalid_order(string str)
  * Arguments:     string str - arguments to the command
  * Returns:       1/0
  */
-int
-pub_hook_syntax_failure(string str)
+int pub_hook_syntax_failure(string str)
 {
     notify_fail(capitalize(query_verb()) + " what?\n");
     return 0;
 }
+
 
 /*
  * Function name: order
@@ -171,8 +170,7 @@ pub_hook_syntax_failure(string str)
  * Arguments:	  str - The order from the player
  * Returns:	  1 or 0
  */
-int
-order(string str)
+int order(string str)
 {
     string *words;
     int num, tmp, i, price;
@@ -185,41 +183,48 @@ order(string str)
 
     words = explode(str, " ");
     num = 1;
+
     if (sizeof(words) > 1)
     {
-	tmp = LANG_NUMW(words[0]);
-	if (!tmp)
-	    sscanf(words[0], "%d", tmp);
-	if (tmp > 0)
-	{
-	    num = tmp;
-	    str = implode(words[1 .. sizeof(words)], " ");
-	}
+        tmp = LANG_NUMW(words[0]);
+
+        if (!tmp)
+            sscanf(words[0], "%d", tmp);
+
+        if (tmp > 0)
+        {
+            num = tmp;
+            str = implode(words[1 .. sizeof(words)], " ");
+        }
     }
 
     if (num > MAX_PURCHASED)
     {
-	return pub_hook_ordered_too_many(num);
+	    return pub_hook_ordered_too_many(num);
     }
 
     for (i = 0; i < sizeof(dr_id); i++)
-	if (member(str, dr_id[i]) >= 0)
-	{
-	    ob = fix_drink(drinks[i]);
-	    price = num * drinks[i][4];
-	    ob->set_heap_size(num);
-	    break;
-	}
+    {
+        if (str in dr_id[i])
+        {
+            ob = fix_drink(drinks[i]);
+            price = num * drinks[i][4];
+            ob->set_heap_size(num);
+            break;
+        }
+    }
 
     if (!ob)
-	for (i = 0; i < sizeof(fo_id); i++)
-	    if (member(str, fo_id[i]) >= 0)
-	    {
-		ob = fix_food(food[i]);
-		price = num * food[i][3];
-		ob->set_heap_size(num);
-		break;
-	    }
+    {
+        for (i = 0; i < sizeof(fo_id); i++)
+            if (str in fo_id[i])
+            {
+                ob = fix_food(food[i]);
+                price = num * food[i][3];
+                ob->set_heap_size(num);
+                break;
+            }
+    }
 
     if (!ob)
     {
@@ -228,9 +233,9 @@ order(string str)
 
     if (!MONEY_ADD(this_player(), -price))
     {
-	pub_hook_cant_pay(price);
-	ob->remove_object();
-	return 1;
+        pub_hook_cant_pay(price);
+        ob->remove_object();
+        return 1;
     }
 
     pub_hook_player_buys(ob, price);
@@ -254,6 +259,7 @@ order(string str)
     return 1;
 }
 
+
 /*
  * Function name: add_drink
  * Description:   Add a drink to the menu list
@@ -268,9 +274,17 @@ order(string str)
  *		  long	    - Long description of the drink
  *                dummy     - Obsolete, kept for backward compability
  */
-varargs void
-add_drink(mixed id, mixed names, mixed adj, int soft, int alco, int price,
-	  string short, string pshort, string long, mixed dummy)
+varargs void add_drink(
+    mixed id,
+    mixed names,
+    mixed adj,
+    int soft,
+    int alco,
+    int price,
+    string short,
+    string pshort,
+    string long,
+    mixed dummy)
 {
     if (!pointerp(id))
 	id = ({ id });
@@ -288,21 +302,28 @@ add_drink(mixed id, mixed names, mixed adj, int soft, int alco, int price,
 		    pshort, long }) });
 }
 
+
 /*
  * Function name: query_drinks
  * Description:   Query the drink array
  * Returns:	  The drink array
  */
-mixed
-query_drinks() { return drinks; }
+mixed query_drinks()
+{
+    return drinks;
+}
+
 
 /*
  * Function name: query_drink_id
  * Description:   Query the drink id:s
  * Returns:	  The array holding all drink id:s
  */
-mixed
-query_drink_id() { return dr_id; }
+mixed query_drink_id()
+{
+    return dr_id;
+}
+
 
 /*
  * Function name: remove_drink
@@ -310,8 +331,7 @@ query_drink_id() { return dr_id; }
  * Arguments:	  id - A identifying string
  * Returns:	  1 if removed
  */
-int
-remove_drink(string id)
+int remove_drink(string id)
 {
     int i;
 
@@ -326,6 +346,7 @@ remove_drink(string id)
     return 0;
 }
 
+
 /*
  * Function name: add_food
  * Description:   Add an item of food  to the menu list
@@ -339,9 +360,16 @@ remove_drink(string id)
  *                long      - Long description of the food
  *                dummy     - Obsolete, kept for backward compability
  */
-varargs void
-add_food(mixed id, mixed names, mixed adj, int amount, int price,
-         string short, string pshort, string long, mixed dummy)
+varargs void add_food(
+    mixed id,
+    mixed names,
+    mixed adj,
+    int amount,
+    int price,
+    string short,
+    string pshort,
+    string long,
+    mixed dummy)
 {
     if (!pointerp(id))
         id = ({ id });
@@ -358,21 +386,28 @@ add_food(mixed id, mixed names, mixed adj, int amount, int price,
     food += ({ ({ names, adj, amount, price, short, pshort, long }) });
 }
 
+
 /*
  * Function name: query_food
  * Description:   Query the food array
  * Returns:       The food array
  */
-mixed
-query_food() { return food; }
+mixed query_food()
+{
+    return food;
+}
+
 
 /*
  * Function name: query_food_id
  * Description:   Query the food id:s
  * Returns:       The array holding all food id:s
  */
-mixed
-query_food_id() { return fo_id; }
+mixed query_food_id()
+{
+    return fo_id;
+}
+
 
 /*
  * Function name: remove_food
@@ -380,8 +415,7 @@ query_food_id() { return fo_id; }
  * Arguments:     id - A identifying string
  * Returns:       1 if removed
  */
-int
-remove_food(string id)
+int remove_food(string id)
 {
     int i;
 

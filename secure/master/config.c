@@ -18,19 +18,23 @@ static void _move_hook_fun (object item, object dest)
     if (item != this_object)
     raise_error("Illegal to move other object than this_object()\n");
     */
+    logger->debug(" === MOVE HOOK === ");
+    logger->debug("item: %O", item);
+    logger->debug("dest: %O", dest);
 
     if (living(item) && environment(item))
     {
         name = object_info(item, OI_ONCE_INTERACTIVE)
-        ? ({string}) item->query_real_name()
-        : object_name(item);
+            ? ({string}) item->query_real_name()
+            : object_name(item);
+
         /* PLAIN: the call to exit() is needed in compat mode only */
         efun::set_this_player(item);
         object env = environment(item);
         env->exit(item);
+
         if (!item)
-        raise_error(sprintf("%O->exit() destructed item %s before move.\n"
-                        , env, name));
+            raise_error(sprintf("%O->exit() destructed item %s before move.\n", env, name));
     }
     else
         name = object_name(item);
@@ -46,8 +50,10 @@ static void _move_hook_fun (object item, object dest)
     {
         efun::set_this_player(item);
         dest->init();
+
         if (!item)
             raise_error(sprintf("%O->init() destructed moved item %s\n", dest, name));
+
         if (environment(item) != dest)
             return;
     }
@@ -55,6 +61,7 @@ static void _move_hook_fun (object item, object dest)
     * but only if the item is (still) in the same environment.
     */
     others = all_inventory(dest) - ({ item });
+
     foreach (object obj : others)
     {
         if (living(obj) && environment(obj) == environment(item))

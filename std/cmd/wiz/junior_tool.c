@@ -563,34 +563,33 @@ help(string str)
  * Function taken from WIZ_CMD_APPRENTICE and slightly adjusted for use
  * by juniors.
  */
-nomask static int
-home(string str)
+nomask static int home(string str)
 {
     CHECK_SO_JUNIOR;
     log_usage("home (" + str + ")");
 
     if (str == "admin")
     {
-	str = ADMIN_HOME;
+    	str = ADMIN_HOME;
     }
     else
     {
-	if (!stringp(str))
-	{
-	    if (sscanf(this_player()->query_real_name(), "%sjr", str) != 1)
-	    {
-		write("Your name does not end with \"jr\"! Impossible!\n");
-		return 1;
-	    }
-	}
+        if (!stringp(str))
+        {
+            if (sscanf(this_player()->query_real_name(), "%sjr", str) != 1)
+            {
+            write("Your name does not end with \"jr\"! Impossible!\n");
+            return 1;
+            }
+        }
 
-	str = ({string})SECURITY->wiz_home(str);
+    	str = ({string})SECURITY->wiz_home(str);
     }
 
     if (this_player()->move_living("X", str))
     {
-	write("Unable to teleport there! No such workroom.\n");
-	return 1;
+        write("Unable to teleport there! No such workroom.\n");
+        return 1;
     }
 
     return 1;

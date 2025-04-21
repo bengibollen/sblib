@@ -67,6 +67,7 @@ public varargs int move_living(string how, mixed to_dest, int dont_follow, int n
     string from_desc;
 
     log_debug(" === MOVE LIVING Verb: %s ===", to_string(verb));
+    log_debug("Moved object: %s", to_string(this_object()));
     log_debug("Move to: %s", to_string(to_dest));
     log_debug("Move how: %s", to_string(how));
     log_debug("Move dont_follow: %d", dont_follow);

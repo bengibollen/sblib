@@ -3,9 +3,6 @@ inherit "/std/room";
 #include <stdproperties.h>
 #include <macros.h>
 
-#define	long_line  (sizeof(ART_NONMETNAME) > 78 - sizeof(arr_line[0] + \
-		    arr_line[1]))
-
 string arr_line;
 
 void create_room() {
@@ -17,13 +14,15 @@ void create_room() {
 	     "There is a deep pit in the center.\n" +
 	     "There's a button on the wall labelled 'sheep' for some reason.\n");
 
-    add_exit("/d/Standard/start/mailroom","south","@@sblock");
+//    add_exit("/d/Standard/start/mailroom","south","@@sblock");
+    add_exit("/d/Standard/newbietown/church_plaza", "south");
 
     add_item(({"pit"}),"It is very deep and smells bad. You don't\n" +
 		"dare go near the edge. The guy who made this room must\n" +
 		"be nuts.\n");
     add_item(({"button"}),"It is very tempting to press it.\n");
-    
+    add_prop(ROOM_I_INSIDE, 1);
+    add_prop(ROOM_I_LIGHT, 1);
 }
 
 

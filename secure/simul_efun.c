@@ -99,8 +99,8 @@ varargs string *get_localcmd(mixed ob = previous_object())
     if (!objectp(ob))
         return ({});
 
-    log_debug("Verbs: %O", QA_VERB);
-    log_debug("Actions: %O", query_actions(ob, QA_VERB));
+    // log_debug("Verbs: %O", QA_VERB);
+    // log_debug("Actions: %O", query_actions(ob, QA_VERB));
 
     return query_actions(ob, QA_VERB);
 }
