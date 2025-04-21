@@ -58,6 +58,9 @@ static void _move_hook_fun(object item, object dest)
       raise_error("Illegal to move other object than this_object()\n");
   */
 
+  logger->debug(" === MOVE HOOK ===");
+  logger->debug("Moving object: %s from %s to %s", to_string(item), to_string(environment(item)), to_string(dest));
+
   if (living(item) && environment(item))
   {
       name = object_info(item, OI_ONCE_INTERACTIVE)

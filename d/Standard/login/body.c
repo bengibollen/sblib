@@ -38,8 +38,7 @@ public varargs void create_body(string race, string gender)
 	      " with a tag labeled \"" + query_race_name() +
 	      " " + query_name() + "\"");
 */
-    set_short(query_gender_string() + " " +query_race_name() +
-	      " " + query_name());
+    set_short(query_gender_string() + " " +query_race_name() + " " + query_name());
 
     set_long(capitalize(query_real_name()) + " has an empty and blank stare.\n");
     set_appearance(random(98) + 1);
@@ -49,18 +48,19 @@ public varargs void create_body(string race, string gender)
 
     switch (query_race_name())
     {
-    case "human":
-	         /* str, dex, con, int, wis, dis */
-	stats = ({  9,   9,   9,   9,   9,   9 });
-	break;
-    case "vogon":
-	         /* str, dex, con, int, wis, dis */
-	stats = ({  10,   20,   30,  1,  1,  1 });
-	break;
-    default:
-	         /* str, dex, con, int, wis, dis */
-	stats = ({  9,   9,   9,   9,   9,   9 });
+        case "human":
+                    /* str, dex, con, int, wis, dis */
+            stats = ({  9,   9,   9,   9,   9,   9 });
+            break;
+        case "vogon":
+                    /* str, dex, con, int, wis, dis */
+            stats = ({  10,   20,   30,  1,  1,  1 });
+            break;
+        default:
+                    /* str, dex, con, int, wis, dis */
+            stats = ({  9,   9,   9,   9,   9,   9 });
     }
+
     for(i = 0; i < 6; i++)
     	stats[random(6)]++;
 

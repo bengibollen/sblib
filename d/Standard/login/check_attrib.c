@@ -21,6 +21,7 @@ void create_object()
     restore_object(PATH + "attrib");
 }
 
+
 int list(string str)
 {
     string *tmp;
@@ -28,58 +29,63 @@ int list(string str)
 
     if (!str)
     {
-	for (i = 0; i < sizeof(attrib); i++)
-	{
-	    write("Category: " + attrib[i][0] + "\n");
-	    write(implode(attrib[i][2], ", ") + "\n");
-	}
-	return 1;
+        for (i = 0; i < sizeof(attrib); i++)
+        {
+            write("Category: " + attrib[i][0] + "\n");
+            write(implode(attrib[i][2], ", ") + "\n");
+        }
+
+        return 1;
     }
 
     str = lower_case(str);
     tmp = explode(str, " ");
+
     if (tmp[0] == "categories")
     {
-	for (j = 0; j < sizeof(attrib); j++)
-	    write(attrib[j][0] + " ");
-	write("\n");
-	return 1;
+    	for (j = 0; j < sizeof(attrib); j++)
+	        write(attrib[j][0] + " ");
+
+        write("\n");
+    	return 1;
     }
 
     for (i = 0; i < sizeof(tmp); i++)
     {
-	for (j = 0; j < sizeof(attrib); j++ )
-	{
-	    if (tmp[i] == lower_case(attrib[j][0]))
-	    {
+        for (j = 0; j < sizeof(attrib); j++ )
+        {
+            if (tmp[i] == lower_case(attrib[j][0]))
+            {
                 write("Category: " + attrib[j][0] + "\n");
-	        write(implode(attrib[j][2], ", ") + "\n");
-	    }
-	}
+                write(implode(attrib[j][2], ", ") + "\n");
+            }
+        }
     }
     return 1;
 }
 
-int
-select(string str)
+
+int select(string str)
 {
     int i;
 
     if (!str)
     {
-	write("You have to select an attribute.\n");
-	return 1;
+        write("You have to select an attribute.\n");
+        return 1;
     }
+
     for (i = 0; i < sizeof(attrib); i++)
     {
-	if (sizeof(filter_array(attrib[i][2], "is_equal", this_object(), str)))
-	    return 1;
+        if (sizeof(filter_array(attrib[i][2], "is_equal", this_object(), str)))
+            return 1;
     }
+
     return 0;
 }
 
-int
-is_equal(string a, string b)
+
+int is_equal(string a, string b)
 {
     if (a == b)
     	return 1;
@@ -87,15 +93,18 @@ is_equal(string a, string b)
     return 0;
 }
 
+
 int types()
 {
     return sizeof(attrib);
 }
 
+
 int num_elements(int ind)
 {
     return sizeof(attrib[ind][2]);
 }
+
 
 string get_elem(int ind1, int ind2)
 {
