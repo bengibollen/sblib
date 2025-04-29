@@ -5,19 +5,21 @@
  * The only use of this file is that it should be included by /sys/money.h.
  */
 
-#define SIZEOF_MONEY_TYPES 3
-#define MONEY_TYPES  ({ "cent", "credit", "megabuck" })
-#define MONEY_SHORT  ({ "c",    "C",      "M" })
-#define MONEY_VALUES ({ 1       ,  100     , 100000000 })
-#define MONEY_WEIGHT ({ 7      ,  42     , 10023 })
-#define MONEY_VOLUME ({ 3       ,  2      , 913 })
+#define SIZEOF_MONEY_TYPES 4
+#define MONEY_TYPES  ({ "copper", "silver", "gold", "platinum" })
+#define MONEY_SHORT  ({ "cc",     "sc",     "gc",   "pc" })
+#define MONEY_VALUES ({ 1,         12,       144,    1728 })
+#define MONEY_WEIGHT ({ 7,         42,       100,   120 })
+#define MONEY_VOLUME ({ 3,         2,        3,      4 })
 
-#define MONEY_MAKE_CENT(num)     MONEY_MAKE(num, "cent")
-#define MONEY_MAKE_CREDIT(num)   MONEY_MAKE(num, "credit")
-#define MONEY_MAKE_MEGABUCK(num) MONEY_MAKE(num, "megabuck")
+#define MONEY_MAKE_COPPER(num)     MONEY_MAKE(num, "copper")
+#define MONEY_MAKE_SILVER(num)     MONEY_MAKE(num, "silver")
+#define MONEY_MAKE_GOLD(num)       MONEY_MAKE(num, "gold")
+#define MONEY_MAKE_PLATINUM(num)   MONEY_MAKE(num, "platinum")
 
-#define MONEY_MOVE_CENT(num, from, to)     MONEY_MOVE("cent",     num, from, to)
-#define MONEY_MOVE_CREDIT(num, from, to)   MONEY_MOVE("credit",   num, from, to)
-#define MONEY_MOVE_MEGABUCK(num, from, to) MONEY_MOVE("megabuck", num, from, to)
+#define MONEY_MOVE_COPPER(num, from, to)     MONEY_MOVE("copper",   num, from, to)
+#define MONEY_MOVE_SILVER(num, from, to)     MONEY_MOVE("silver",   num, from, to)
+#define MONEY_MOVE_GOLD(num, from, to)       MONEY_MOVE("gold",     num, from, to)
+#define MONEY_MOVE_PLATINUM(num, from, to)   MONEY_MOVE("platinum", num, from, to)
 
-#define MONEY_LOG_LIMIT ([ "cent": 10000, "credit": 10000, "megabuck": 10000 ])
+#define MONEY_LOG_LIMIT ([ "copper": 10000, "silver": 10000, "gold": 10000, "platinum": 10000 ])

@@ -330,10 +330,12 @@ static nomask void new_init()
     log_debug("Initializing player statistics.");
 
     ostat = query_orig_stat();
+    log_debug("Original stats: %O", ostat);
 
     i = -1;
     while(++i < SS_NO_EXP_STATS)
     {
+        log_debug("Setting exp stat %d to %d", i, ostat[i]);
         set_base_stat(i, ostat[i]);
     }
 
@@ -599,7 +601,6 @@ private nomask int setup_player(string pl_name)
     log_debug("Setting up player with name: " + pl_name);
 
     ::set_adj(({}));            /* No adjectives and no default */
-    new_init();                 /* All variables to default condition */
 
     configure_object(this_object(), OC_EUID, 0);
     if (!({int}) SECURITY->load_player())
@@ -607,6 +608,7 @@ private nomask int setup_player(string pl_name)
         log_error("Failed to load player: " + pl_name);
         return 0;
     }
+    configure_object(this_object(), OC_EUID, query_real_name());
 
     reset_userids();
 
@@ -921,7 +923,7 @@ public nomask void open_player()
         (MASTER_OB(previous_object()) == LOGIN_OBJECT))
     {
 
-        configure_object(this_object(), OC_EUID, 0);
+        configure_object(this_object(), OC_EUID, query_real_name());
         log_debug("Player object opened with euid set to 0.");
     }
     log_debug("Player object opened successfully.");
@@ -962,15 +964,19 @@ nomask public int save_player(string pl_name)
     {
         return 0;
     }
-    // log_debug("This object: %O", this_object());
-    // log_debug("Saving player file: " + pl_name);
-    // log_debug("Uid: %s", getuid());
-    // log_debug("Euid: %s", getuid());
+    log_debug("This object: %O", this_object());
+    log_debug("Saving player file: " + pl_name);
+    log_debug("Uid: %s", getuid());
+    log_debug("Euid: %s", to_string(geteuid(this_object())));
+    log_debug("Previous object: %O", previous_object());
+    log_debug("Previous object uid: %s", getuid(previous_object()));
+    log_debug("Previous object euid: %s", geteuid(previous_object()));
 
     pack_bits();
     configure_object(this_object(), OC_EUID, getuid(previous_object()));
+    log_debug("Savedata: %O", save_object());
     save_object(PLAYER_FILE(pl_name));
-    configure_object(this_object(), OC_EUID, getuid());
+    configure_object(this_object(), OC_EUID, query_name());
 
     /* Discard the props again */
     saved_props = 0;
@@ -1228,6 +1234,7 @@ public nomask int new_save(string pl_name, string pwd, string pfile)
 public nomask void create_living()
 {
     player_save_vars_reset();
+    new_init();                 /* All variables to default condition */
 }
 
 

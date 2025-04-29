@@ -3176,6 +3176,8 @@ int save_player()
 
     pobj = previous_object();
 
+    logger->debug("Saving player: %O", pobj);
+
     if ((function_exists("save_player", pobj) != PLAYER_SEC_OBJECT) ||
         !LOGIN_NEW_PLAYER->legal_player(pobj))
     {

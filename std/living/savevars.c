@@ -644,8 +644,7 @@ void calculate_fatigue()
         stuffed = query_stuffed();
         tmpstuffed = (stuffed + last_stuffed) / 2;
         fatigue_time += n * F_INTERVAL_BETWEEN_FATIGUE_HEALING;
-        add_fatigue(n *
-            F_FATIGUE_FORMULA(tmpstuffed, query_prop(LIVE_I_MAX_EAT)));
+        add_fatigue(n * F_FATIGUE_FORMULA(tmpstuffed, query_prop(LIVE_I_MAX_EAT)));
         last_stuffed = stuffed;
     }
 
@@ -670,6 +669,8 @@ public void set_fatigue(int f)
  */
 public int query_fatigue()
 {
+    log_debug("Function: living:query_fatigue");
+    log_debug("This object: %O", this_object());
     this_object()->calculate_fatigue();
     return fatigue;
 }

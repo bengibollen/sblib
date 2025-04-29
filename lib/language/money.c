@@ -15,19 +15,20 @@
 /* Prototypes. */
 int *what_coins(mixed ob);
 
+
 /*
  * Function name: split_values
  * Description:   Splits a 'copper' value into pc, gc, sc, cc
  * Argument:      v: value in copper coins
  * Returns:       Array: ({ cc, sc, gc, pc })
  */
-int *
-split_values(int v)
+int *split_values(int v)
 {
     int *ret;
     int index = SIZEOF_MONEY_TYPES;
 
     ret = allocate(SIZEOF_MONEY_TYPES);
+
     if (v > 0)
     {
         while(--index >= 0)
@@ -40,14 +41,14 @@ split_values(int v)
     return ret;
 }
 
+
 /*
  * Function name: merge_values
  * Description:   Merges different coins into the value in copper coins
  * Argument:      av: Array ({ cc, sc, gc, pc })
  * Returns:       int - the value in copper coins.
  */
-int
-merge_values(int *av)
+int merge_values(int *av)
 {
     int value = 0;
     int index = -1;
@@ -65,6 +66,7 @@ merge_values(int *av)
     return value;
 }
 
+
 /*
  * Function name: make_coins
  * Description:   Makes a certain number of coins of a certain type
@@ -72,13 +74,13 @@ merge_values(int *av)
  *                num: Number of coins
  * Returns:       Objectpointer to the coins object or 0.
  */
-object
-make_coins(string str, int num)
+object make_coins(string str, int num)
 {
     object cn;
 
-    if (!str ||
-        !num)
+    log_debug("make_coins  type: %s, num: %d", str, num);
+
+    if (!str || !num)
     {
         return 0;
     }
@@ -86,8 +88,12 @@ make_coins(string str, int num)
     cn = clone_object("/std/coins");
     cn->set_heap_size(num);
     cn->set_coin_type(str);
+
+    log_debug("make_coins returning: %O", cn);
+
     return cn;
 }
+
 
 /*
  * Function name: move_coins
@@ -98,8 +104,7 @@ make_coins(string str, int num)
  *                to: To which inventory or 0 if destruct
  * Returns:       -1 if not found, 0 == moved, >0 move error code
  */
-int
-move_coins(string str, int num, mixed from, mixed to)
+int move_coins(string str, int num, mixed from, mixed to)
 {
     object cn, f, t, cf;
     int max, okflag;
@@ -110,23 +115,34 @@ move_coins(string str, int num, mixed from, mixed to)
     if (stringp(from))
     {
         f = find_object(from);
+
         if (!f)
             f = find_player(from);
-    } else if (objectp(from))
+    }
+    else if (objectp(from))
+    {
         f = from;
+    }
     else
+    {
         f = 0;
+    }
 
     if (stringp(to))
     {
         t = find_object(to);
+
         if (!t)
             t = find_player(to);
     }
     else if (objectp(to))
+    {
         t = to;
+    }
     else
+    {
         t = 0;
+    }
 
     if (f)
         cf = present(str+" coin",f);
@@ -143,6 +159,7 @@ move_coins(string str, int num, mixed from, mixed to)
     {
         if (num < max)
             cf->split_heap(num);
+
         return cf->move(t);
     }
 
@@ -153,6 +170,7 @@ move_coins(string str, int num, mixed from, mixed to)
 
     return 0;
 }
+
 
 /*
  * Function name: move_cointypes
@@ -167,8 +185,7 @@ move_coins(string str, int num, mixed from, mixed to)
  *                 0 - Move successful
  *                >0 - Move error code
  */
-public int
-move_cointypes(int *coins, object from, object to)
+public int move_cointypes(int *coins, object from, object to)
 {
     int i, j, res;
     int *all_coins;
@@ -213,6 +230,7 @@ move_cointypes(int *coins, object from, object to)
     return 0;
 }
 
+
 /*
  * Function name: what_coins
  * Description:   Finds out what of the normal cointypes a certain object
@@ -220,15 +238,16 @@ move_cointypes(int *coins, object from, object to)
  * Argument:      ob: The object in which to search for coins
  * Returns:       Array: ( num copper, num silver, num gold, num platinum )
  */
-int *
-what_coins(mixed ob)
+int *what_coins(mixed ob)
 {
     object pl, cn;
     int index = -1;
     int *nums;
 
     if (objectp(ob))
+    {
         pl = ob;
+    }
     else if (stringp(ob))
     {
         pl = find_object(ob);
@@ -238,41 +257,47 @@ what_coins(mixed ob)
         }
     }
     else
+    {
         return 0;
+    }
 
     nums = allocate(SIZEOF_MONEY_TYPES);
 
     while(++index < SIZEOF_MONEY_TYPES)
     {
         cn = present(MONEY_TYPES[index] + " coin",pl);
+
         if (!cn)
         {
             nums[index] = 0;
         }
         else
         {
-            nums[index] = cn->num_heap();
+            nums[index] = ({int}) cn->num_heap();
         }
     }
+
+    log_debug("what_coins: %O", nums);
+
     return nums;
 }
+
 
 /*
  * Function name: total_money
  * Description: calculates the total amount of money on a living
  */
-public int
-total_money(object who)
+public int total_money(object who)
 {
     return merge_values(what_coins(who));
 }
+
 
 /*
  * Function name: give_money
  * Description: gives a certain sum back to this object
  */
-public int
-give_money(object who, int amount)
+public int give_money(object who, int amount)
 {
     object ob;
     int to_do, i, n_coins, c_flag;
@@ -285,10 +310,12 @@ give_money(object who, int amount)
     {
         n_coins = to_do / MONEY_VALUES[i];
         to_do = to_do % MONEY_VALUES[i];
+
         if(n_coins > 0)
         {
             ob = make_coins(MONEY_TYPES[i], n_coins);
-            if((int)ob->move(who))
+
+            if(({int}) ob->move(who))
             {
                 ob->move(environment(who));
                 c_flag = 1;
@@ -298,12 +325,12 @@ give_money(object who, int amount)
 
     if (c_flag)
     {
-        tell_object(who, "You cannot carry this much money, you drop it on " +
-            "the ground.\n");
+        tell_object(who, "You cannot carry this much money, you drop it on the ground.\n");
         say(QCTNAME(who) + " drops some money on the ground.\n", who);
     }
     return 1;
 }
+
 
 /*
  * Function name: take_money
@@ -312,8 +339,7 @@ give_money(object who, int amount)
  * Returns:     0:   player doesn't have enough money
  *              1:   okay, money subtracted from player's money
  */
-public int
-take_money(object who, int amount)
+public int take_money(object who, int amount)
 {
     int *money_list, i, rest, c_flag;
     object *ob_list, ob;
@@ -329,10 +355,11 @@ take_money(object who, int amount)
     for (i = 0; i < SIZEOF_MONEY_TYPES; i++)
     {
         ob = present(MONEY_TYPES[i] + " coin", who);
+
         if (ob)
         {
             ob_list[i] = ob;
-            money_list[i] = (int) ob->query_prop(OBJ_I_VALUE);
+            money_list[i] = ({int}) ob->query_prop(OBJ_I_VALUE);
         }
     }
 
@@ -352,6 +379,7 @@ take_money(object who, int amount)
 
     rest = 0;
     i = SIZEOF_MONEY_TYPES;
+
     while(--i >= 0)
     {
         money_list[i] += rest;
@@ -365,7 +393,8 @@ take_money(object who, int amount)
             if (money_list[i] > 0)
             {
                 ob = make_coins(MONEY_TYPES[i], money_list[i]);
-                if((int)ob->move(who))
+
+                if(({int}) ob->move(who))
                 {
                     ob->move(environment(who));
                     c_flag = 1;
@@ -376,10 +405,10 @@ take_money(object who, int amount)
 
     if (c_flag)
     {
-        tell_object(who, "You cannot carry this much money, you drop it on " +
-            "the ground.\n");
+        tell_object(who, "You cannot carry this much money, you drop it on the ground.\n");
         say(QCTNAME(who) + " drops some money on the ground.\n", who);
     }
+
     return 1;
 }
 
@@ -393,12 +422,12 @@ take_money(object who, int amount)
  *                        negative amount means take coins
  * Returns:       1 - success, 0 - fail
  */
-public int
-add_money(object who, int amount)
+public int add_money(object who, int amount)
 {
     return ((amount < 0) ?
         take_money(who, ABS(amount)) : give_money(who, amount));
 }
+
 
 /*
  * Function name: money_text
@@ -409,8 +438,7 @@ add_money(object who, int amount)
  *                int numerical - if true, use numerical values.
  * Returns      : string - a string describing the coins.
  */
-public varargs string
-money_text(int *coins, int numerical = 0)
+public varargs string money_text(int *coins, int numerical = 0)
 {
     string *text = ({ });
     int    total = 0;
@@ -426,6 +454,7 @@ money_text(int *coins, int numerical = 0)
         if (!coins[index]) continue;
 
         total += coins[index];
+
         if (numerical)
         {
             text += ({ coins[index] + " " + MONEY_TYPES[index] });
@@ -443,20 +472,22 @@ money_text(int *coins, int numerical = 0)
     }
 
     index = sizeof(text);
+
     switch(index)
     {
-    case 0:
-        return "no money at all";
-        break;
+        case 0:
+            return "no money at all";
 
-    case 1:
-        return text[0] + " coins";
-        break;
+        case 1:
+            return text[0] + " coins";
 
-    default:
-        return COMPOSITE_WORDS(text) + " coins";
+        default:
+            return COMPOSITE_WORDS(text) + " coins";
     }
+
+    return "";
 }
+
 
 /*
  * Function name: money_col_text
@@ -467,8 +498,7 @@ money_text(int *coins, int numerical = 0)
  *                int width - the number of digits per column (default: 2)
  * Returns      : string - a string describing the coins.
  */
-public varargs string
-money_col_text(int *coins, int width = 2)
+public varargs string money_col_text(int *coins, int width = 2)
 {
     string text = "";
     int index = SIZEOF_MONEY_TYPES;
@@ -490,9 +520,11 @@ money_col_text(int *coins, int width = 2)
             text += sprintf(" %*s", width + 3, "");
         }
     }
+
     /* Skip the first space. */
     return text[1..];
 }
+
 
 /*
  * Function name: money_condense
@@ -501,8 +533,7 @@ money_col_text(int *coins, int width = 2)
  *                OBJ_M_HAS_MONEY. Then those coins are destructed.
  * Arguments    : object obj - the object to check and condense.
  */
-void
-money_condense(object obj)
+void money_condense(object obj)
 {
     int index = -1;
 
@@ -514,6 +545,7 @@ money_condense(object obj)
     }
 }
 
+
 /*
  * Function name: money_expand
  * Description  : This function will check the property OBJ_M_HAS_MONEY on the
@@ -522,8 +554,7 @@ money_condense(object obj)
  *                use exactly that amount of coins.
  * Arguments    : object obj - the object to check and expand.
  */
-void
-money_expand(object obj)
+void money_expand(object obj)
 {
     mixed value = obj->query_prop(OBJ_M_HAS_MONEY);
     int index;
@@ -540,6 +571,7 @@ money_expand(object obj)
     {
         value = split_values(value);
         index = SIZEOF_MONEY_TYPES;
+
         while(--index > 0)
         {
             if (value[index] <= 0)
@@ -549,6 +581,7 @@ money_expand(object obj)
 
             /* Split either no coins, split one or two coins. */
             split = random(MIN(value[index], 3));
+
             if (split <= 0)
             {
                 continue;
@@ -575,16 +608,19 @@ money_expand(object obj)
         }
 
         index = -1;
+
         while(++index < SIZEOF_MONEY_TYPES)
         {
             /* Move with force. Be lazy, don't check for weights. */
-            make_coins(MONEY_TYPES[index], value[index])->move(obj, 1);
+            make_coins(MONEY_TYPES[index], ({int}) value[index])->move(obj, 1);
         }
 
         obj->remove_prop(OBJ_M_HAS_MONEY);
+
         return;
     }
 }
+
 
 /*
  * Function:    edit_coin_str
@@ -593,8 +629,7 @@ money_expand(object obj)
  * Arguments:   string str - the string to be edited
  * Returns:     the edited string
  */
-string
-edit_coin_str(string str)
+string edit_coin_str(string str)
 {
     /* Remove extra whitespace and the words "and" and "all" */
     str = implode(explode(str, " ") - ({ "", "and", "all" }), " ");
@@ -603,6 +638,7 @@ edit_coin_str(string str)
 
     return str;
 }
+
 
 /*
  * Function:    parse_coins
@@ -617,8 +653,7 @@ edit_coin_str(string str)
  *              returned: the actual number of coins found on the object will
  *              be given instead.
  */
-varargs mixed
-parse_coins(string str, object ob)
+varargs mixed parse_coins(string str, object ob)
 {
     int *coins, *all_coins, i, j, amnt;
     string *tmp;
@@ -627,7 +662,7 @@ parse_coins(string str, object ob)
 
     if (parse_command(str, ({}), "[all] [my] [the] 'coins'"))
     {
-        return (ob ? what_coins(ob) : map(coins, &constant(-1)));
+        return (ob ? what_coins(ob) : map(coins, (: -1 :)));
     }
 
     tmp = explode(edit_coin_str(str), " ");
@@ -644,9 +679,10 @@ parse_coins(string str, object ob)
      * gold coins" is required).
      */
     i = 0;
+
     while (i < sizeof(tmp))
     {
-        if ((j = member_array(tmp[i], MONEY_TYPES)) < 0)
+        if ((j = member(MONEY_TYPES, tmp[i])) < 0)
         {
             /* The word doesn't specify a coin type, so it needs to be a
              * number followed by a coin type.
@@ -656,7 +692,7 @@ parse_coins(string str, object ob)
              * we have an invalid specification.
              */
             if (((i + 1) >= sizeof(tmp)) ||
-                ((j = member_array(tmp[i + 1], MONEY_TYPES)) < 0))
+                ((j = member(MONEY_TYPES, tmp[i + 1])) < 0))
             {
                 return 0;
             }
@@ -699,7 +735,7 @@ parse_coins(string str, object ob)
             i++;
         }
     }
-
+    
     /* If we know where the coins are, go back and replace -1 values with
      * the actual number of coins found in the object.
      */

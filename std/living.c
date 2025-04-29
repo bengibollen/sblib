@@ -96,13 +96,14 @@ nomask void create_container()
     add_prop(CONT_I_REDUCE_WEIGHT, 200);
     add_prop(CONT_I_REDUCE_VOLUME, 200);
 
+    ss_reset();
+    create_living();
     set_random_size_descs();
     save_vars_reset();
     skill_extra_map_reset();
     notify_meet_reset();
     gender_reset();
     spells_reset();
-    ss_reset();
     carry_reset();
     drink_eat_reset();
     move_reset();
@@ -113,8 +114,6 @@ nomask void create_container()
 
     configure_object(this_object(), OC_COMMANDS_ENABLED, 1);
 //    cmdhooks_reset();
-
-    create_living();
 
     combat_reload();
 

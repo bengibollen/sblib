@@ -36,7 +36,7 @@ inherit "/std/heap";
 
 #include <cmdparse.h>
 #include <composite.h>
-#include <files.h>
+#include <libfiles.h>
 #include <macros.h>
 #include <stdproperties.h>
 
@@ -45,24 +45,24 @@ static  int     soft_amount,
 
 static  string  drink_msg;
 
+
 /*
  * Function name: create_drink
  * Description  : This function is called to create the drink. You should
  *                redefine this function to set the descriptions and the
  *                amount of alco, etcetera.
  */
-public void
-create_drink()
+public void create_drink()
 {
 }
+
 
 /*
  * Function name: create_heap
  * Description  : Constructor. It calls create_drink(), the function you
  *                must redefine. The default heap-size is 1.
  */
-public nomask void
-create_heap()
+public nomask void create_heap()
 {
     set_heap_size(1);
     add_prop(OBJ_M_NO_SELL, "Drinks are not to be resold.\n");
@@ -79,17 +79,18 @@ create_heap()
     }
 }
 
+
 /*
  * Function name: reset_heap
  * Description  : When reset has been enabled, this function is called at a.
  *                regular interval. It calls the function reset_drink() that
  *                you should define.
  */
-public nomask void
-reset_heap()
+public nomask void reset_heap()
 {
     this_object()->reset_drink();
 }
+
 
 /*
  * Function name: set_short
@@ -97,8 +98,7 @@ reset_heap()
  *                the unique identifier for the heap.
  * Arguments    : mixed new_short - the short description.
  */
-void
-set_short(mixed new_short)
+void set_short(mixed new_short)
 {
     ::set_short(new_short);
 
@@ -106,61 +106,62 @@ set_short(mixed new_short)
         MASTER + ":" + singular_short(this_object()));
 }
 
+
 /*
  * Function name: set_drink_msg
  * Description  : Sets the extra message given to drinker when
  *                s/he consumes the drink.
  * Arguments    : string str - the string to be written.
  */
-public void
-set_drink_msg(string str)
+public void set_drink_msg(string str)
 {
     drink_msg = str;
 }
+
 
 /*
  * Function name: set_soft_amount
  * Description  : sets the amount of liquid in the drink.
  * Arguments    : int a - the amount of liquid.
  */
-public void
-set_soft_amount(int a)
+public void set_soft_amount(int a)
 {
     soft_amount = a;
 }
+
 
 /*
  * Function name: query_soft_amount
  * Description  : Gives the amount of liquid in the drink.
  * Returns      : int - the amount.
  */
-public int
-query_soft_amount()
+public int query_soft_amount()
 {
     return soft_amount;
 }
+
 
 /*
  * Function name: set_alco_amount
  * Description  : Sets the amount of alcohol in the drink.
  * Arguments    : int a - the amount of alcohol.
  */
-public void
-set_alco_amount(int a)
+public void set_alco_amount(int a)
 {
     alco_amount = a;
 }
+
 
 /*
  * Function name: query_alco_amount
  * Description  : Gives the amount of alcohol in the drink.
  * Returns      : int - the amount.
  */
-public int
-query_alco_amount()
+public int query_alco_amount()
 {
     return alco_amount;
 }
+
 
 /*
  * Function name: command_drink
@@ -168,8 +169,7 @@ query_alco_amount()
  * Returns:       string - an error message (failure)
  *                1 - drink successfully imbibed
  */
-public mixed
-command_drink()
+public mixed command_drink()
 {
     int am1, am2, pstuff, num, i;
 
@@ -177,10 +177,13 @@ command_drink()
     am2 = query_alco_amount();
     num = num_heap();
 
+
+    log_debug("command_drink: am1=%d, am2=%d, num=%d", am1, am2, num);
+
     for (i = 0; i < num; i++)
     {
         /* See if we are still thirsty */
-        if (!this_player()->drink_soft(am1))
+        if (!({int}) this_player()->drink_soft(am1))
         {
             /* We couldn't drink all of the drinks in this heap, so split
              * it and drink what we can.
@@ -199,7 +202,7 @@ command_drink()
         }
 
         /* See if we are too drunk */
-        if (!this_player()->drink_alco(am2))
+        if (!({int}) this_player()->drink_alco(am2))
         {
             /* We couldn't drink all of the drinks in this heap, so split
              * it and drink what we can.
@@ -225,8 +228,8 @@ command_drink()
     return 1;
 }
 
-public void
-remove_drink()
+
+public void remove_drink()
 {
     if (leave_behind > 0)
     {
@@ -238,6 +241,7 @@ remove_drink()
     }
 }
 
+
 /*
  * Function name: config_split
  * Description  : This is called before inserting this heap into the game.
@@ -247,13 +251,13 @@ remove_drink()
  * Arguments    : int new_num - the number of items in the new heap.
  *                object orig - the original heap we are copying.
  */
-void
-config_split(int new_num, object orig)
+void config_split(int new_num, object orig)
 {
     ::config_split(new_num, orig);
-    set_soft_amount(orig->query_soft_amount());
-    set_alco_amount(orig->query_alco_amount());
+    set_soft_amount(({int}) orig->query_soft_amount());
+    set_alco_amount(({int}) orig->query_alco_amount());
 }
+
 
 /*
  * Function name: stat_object
@@ -261,13 +265,13 @@ config_split(int new_num, object orig)
  *                information about an object.
  * Returns      : string str - the information.
  */
-string
-stat_object()
+string stat_object()
 {
     return ::stat_object() +
         "Soft: " + soft_amount + "\n" +
         "Alco: " + alco_amount + "\n";
 }
+
 
 /*
  * Function name: query_recover
@@ -276,8 +280,7 @@ stat_object()
  *                real file rather than being cloned from /std/drink.c
  *                since only the amount of drinks on the heap is saved.
  */
-public string
-query_recover()
+public string query_recover()
 {
     string file = MASTER;
 
@@ -292,13 +295,13 @@ query_recover()
     return file + ":heap#" + num_heap() + "#";
 }
 
+
 /*
  * Function name: init_recover
  * Description  : This function is called when the drinks recover.
  * Arguments    : string str - the recover argument.
  */
-public void
-init_recover(string str)
+public void init_recover(string str)
 {
     string foobar;
     int    num;
@@ -309,6 +312,7 @@ init_recover(string str)
     }
 }
 
+
 /*
  * Function name: special_effect
  * Description  : Define this routine if you want to do some special effect
@@ -316,8 +320,7 @@ init_recover(string str)
  *                the message set with set_drink_msg(), if any.
  * Arguments    : int amount - the number of drinks consumed.
  */
-public void
-special_effect(int amount)
+public void special_effect(int amount)
 {
     if (sizeof(drink_msg))
     {

@@ -102,29 +102,36 @@ drink_alco(int strength, int ask)
  *			ask: True if we only want to know IF we can drink this
  * Returns:		True if successfully drunk.
  */
-public int
-drink_soft(int amount, int ask)
+public int drink_soft(int amount, int ask)
 {
     int maxam, curam;
+
+    log_debug("drink_soft: amount=%d, ask=%d", amount, ask);
 
     maxam = query_prop(LIVE_I_MAX_DRINK);
 
     curam = query_soaked();
 
+    log_debug("drink_soft: maxam=%d, curam=%d", maxam, curam);
+
     if (amount >= 0)
     {
-
-	/* Not too much, and not too much at once
-	*/
-	if (((curam + amount) > maxam) || (amount > maxam / 15))
+        /* Not too much, and not too much at once
+        */
+        if (((curam + amount) > maxam) || (amount > maxam / 10)) // original value was 15
+        {
+            return 0;
+        }
+    }
+    else if ((curam + amount) < 0)
+    {
 	    return 0;
     }
-    else
-	if ((curam + amount) < 0)
-	    return 0;
 
     if (ask)
-	return 1;
+    {
+        return 1;
+    }
 
     curam += amount;
     set_soaked(curam);

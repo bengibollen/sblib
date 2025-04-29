@@ -93,10 +93,13 @@ varargs int set_base_stat(int stat, int value, int deviation = 0)
 {
     int offset;
 
+    log_debug("set_base_stat: stat=%d, value=%d, deviation=%d", stat, value, deviation);
+
     if ((stat < 0) ||
         (stat >= SS_NO_STATS) ||
         (value < 1 ))
     {
+        log_debug("set_base_stat: failed, stat=%d, value=%d, SS_NO_STATS=%d", stat, value, SS_NO_STATS);
         return 0;
     }
 
@@ -109,6 +112,7 @@ varargs int set_base_stat(int stat, int value, int deviation = 0)
     }
 
     stats[stat] = value;
+    log_debug("set_base_stat: stats[%d]=%d", stat, stats[stat]);
     return value;
 }
 
@@ -215,14 +219,20 @@ public int query_stat(int stat)
 {
     int i, value;
 
+    log_debug("query_stat: stat=%d", stat);
+
     if ((stat < 0) || (stat >= SS_NO_STATS))
     {
     	return -1;
     }
 
     value = query_base_stat(stat);
+    log_debug("query_stat: base_stat=%d", value);
     value += delta_stat[stat];
+    log_debug("query_stat: delta_stat=%d", delta_stat[stat]);
     value += stat_extra[stat];
+    log_debug("query_stat: stat_extra=%d", stat_extra[stat]);
+    log_debug("query_stat: final_value=%d", value);
 
     return (value > 0 ? value : 1);
 }

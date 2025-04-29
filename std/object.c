@@ -1897,7 +1897,7 @@ public int cmditem_action(string str)
 
     for (il = 0; il < sizeof(obj_cmd_items); il++)
     {
-        if ((pos = member(verb, obj_cmd_items[il][1])) < 0)
+        if ((pos = member(obj_cmd_items[il][1], verb)) < 0)
             continue;
         if (pos >= sizeof(obj_cmd_items[il][2])) pos = 0;
 
@@ -1947,7 +1947,9 @@ public int add_cmd_item(mixed names, string *cmd_arr, mixed desc_arr)
         names = ({ names });
 
     if (!pointerp(cmd_arr))
-        cmd_arr = to_array(cmd_arr);
+    {
+        cmd_arr = ({ to_string(cmd_arr) });
+    }
 
     if (!pointerp(desc_arr))
         desc_arr = ({ desc_arr });
@@ -1961,7 +1963,9 @@ public int add_cmd_item(mixed names, string *cmd_arr, mixed desc_arr)
         obj_cmd_items = ({ ({ names, cmd_arr, desc_arr }) });
 
     if (sizeof(cmd_arr))
+    {
         obj_commands = obj_commands + (cmd_arr - obj_commands);
+    }
 
     return 1;
 }
@@ -2582,7 +2586,7 @@ mixed query_alarms()
 public void init()
 {
     int index = sizeof(obj_commands);
-
+    log_debug("obj_commands: %O", obj_commands);
     while(--index >= 0)
     {
         add_action(#'cmditem_action, obj_commands[index]);

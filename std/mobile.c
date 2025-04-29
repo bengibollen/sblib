@@ -52,7 +52,7 @@ nomask void create_living()
     add_prop(LIVE_M_NO_ACCEPT_GIVE, #'mobile_deny_objects);
     mobile_exp_factor = 100;
     this_object()->seq_reset();
-    default_config_mobile();
+    default_config_mobile(0);
     create_mobile();
     stats_to_acc_exp();
 }
@@ -155,13 +155,15 @@ varargs void default_config_mobile(int lvl)
     	set_base_stat(i, (lvl ? lvl : 5));
     }
 
+    drink_eat_reset();
+
     set_hp(500 * 500); /* Will adjust for CON above */
 
     stats_to_acc_exp();
 
     add_prop(CONT_I_WEIGHT, 70 * 1000);
     add_prop(CONT_I_VOLUME, 70 * 1000);
-
+    log_debug("default_max_fatigue: %d", query_max_fatigue());
     mobile_exp_factor = 100;
     set_fatigue(query_max_fatigue());
 }
