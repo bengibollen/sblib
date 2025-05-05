@@ -215,6 +215,11 @@ public nomask int can_see_in_room()
  */
 public void catch_vbfc(mixed str, object from_player = 0)
 {
+    log_debug("Function: catch_vbfc");
+    log_debug("Raw string: %O", str);
+    log_debug("From player: %O", from_player);
+    log_debug("Object: %O", this_object());
+
     if (!interactive(this_object()) && !query_tell_active())
     {
     	return;

@@ -14,13 +14,15 @@ inherit "/obj/lib/pub";
  */
 void create_room()
 {
-    set_short("The Inn of Last Home");
+    set_short("The Broken Sword");
+    // The inn is under construction, it should probably not be opened yet.
     set_long(
-        "You are in the Inn of Last Home. There is a menu on the bar. " +
-        "You find this place rather cozy with a lot of tables and chairs " +
-        "and a warm fireplace. You can smell the beer from the kegs " +
-        "and the food from the kitchen." +
-        "" + "\n");
+        "You are in the Newbietown Inn, \"The Broken Sword.\" The place is a mess.\n" +
+        "Step ladders are standing around, and the bar is covered with a tarp.\n" +
+        "You see an assortment of tools and paint buckets scattered about.\n" +
+        "A few chairs and tables are set up, the place should probably\n" +
+        "not have been opened yet...\n");
+    add_exit("/d/Standard/newbietown/main_street_outside_church", "south", "@@leave");
 
     add_item("bar", "A nice looking wooden bar with a menu on it.\n");
     add_item("menu", "It has a lot of readable words on it.\n");
@@ -83,5 +85,13 @@ int read(string str)
         "ten beers from the bar, but it takes a little while to\n" +
         "give them all to you.\n");
     return 1;
+}
+
+
+int leave(string str)
+{
+    write("You leave the inn through the south door.\n");
+    write("You feel confused because the door you exited is south from here...\n\n");
+    return 0;
 }
 

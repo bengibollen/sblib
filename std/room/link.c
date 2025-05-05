@@ -144,7 +144,7 @@ make_link(mixed to_room, object via_link)
 		       link_starts + ({ via_link }) : ({ via_link }));
 
     ex = query_exit();
-    ne = member(to_room, ex);
+    ne = member(ex, to_room);
 
     return (ne >= 0 ? ex[ne + 1] : "back");
     /* We can't go back when we are at the end point, ie one way corridor */

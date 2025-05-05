@@ -974,7 +974,7 @@ nomask public int save_player(string pl_name)
 
     pack_bits();
     configure_object(this_object(), OC_EUID, getuid(previous_object()));
-    log_debug("Savedata: %O", save_object());
+    // log_debug("Savedata: %O", save_object());
     save_object(PLAYER_FILE(pl_name));
     configure_object(this_object(), OC_EUID, query_name());
 

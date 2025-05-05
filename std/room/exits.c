@@ -30,6 +30,7 @@ public int unq_no_move(string str);
 #define DEF_DIRS ({ "north", "south", "east", "west", "up", "down", \
 		    "northeast", "northwest", "southeast", "southwest" })
 
+
 /*
  * Function name: ugly_update_function
  * Description  : Just fix so the verb is updated in a room when an exit
@@ -37,8 +38,7 @@ public int unq_no_move(string str);
  * Arguments    : string cmd - the command verb.
  *		  int add    - add command if 1 else remove.
  */
-public void
-ugly_update_action(string cmd, int add)
+public void ugly_update_action(string cmd, int add)
 {
     object *livings;
     object old_tp;
@@ -49,27 +49,33 @@ ugly_update_action(string cmd, int add)
     livings = FILTER_LIVE(all_inventory(this_object()));
     size = sizeof(livings);
     index = -1;
+
     while(++index < size)
     {
-	set_this_player(livings[index]);
-	if (add == 1)
-	    add_action(#'unq_move, cmd);
-	else
-	    add_action(#'unq_no_move, cmd);
+        set_this_player(livings[index]);
+
+        if (add == 1)
+        {
+            add_action(#'unq_move, cmd);
+        }
+        else
+        {
+            add_action(#'unq_no_move, cmd);
+        }
     }
 
     if (objectp(old_tp))
     {
-	set_this_player(old_tp);
+    	set_this_player(old_tp);
     }
 }
+
 
 /*
  * Function name: init
  * Description  : Add direction commands to livings in the room.
  */
-public void
-init()
+public void init()
 {
     int index;
     int size;
@@ -80,19 +86,22 @@ init()
     dd = DEF_DIRS;
     index = -2;
     size = sizeof(room_exits);
-    while((index += 3) < size)
+
+    while ((index += 3) < size)
     {
-	add_action(#'unq_move, room_exits[index]);
-	dd -= ({ room_exits[index] });
+        add_action(#'unq_move, room_exits[index]);
+        dd -= ({ room_exits[index] });
     }
 
     index = -1;
     size = sizeof(dd);
-    while(++index < size)
+
+    while (++index < size)
     {
-	add_action(#'unq_no_move, dd[index]);
+    	add_action(#'unq_no_move, dd[index]);
     }
 }
+
 
 /*
  * Function name: set_noshow_obvious
@@ -102,22 +111,22 @@ init()
  *                is quicker when dealing with all exits.
  * Arguments    : int obv - 1/0 - if true then all exits are hidden.
  */
-public void
-set_noshow_obvious(int obv)
+public void set_noshow_obvious(int obv)
 {
     room_no_obvious = obv;
 }
+
 
 /*
  * Function name: query_noshow_obvious
  * Description  : Return whether all exits in this room are hidden.
  * Returns      : int - if true then all exits are hidden.
  */
-public int
-query_noshow_obvious()
+public int query_noshow_obvious()
 {
     return room_no_obvious;
 }
+
 
 /*
  * Function name: add_exit
@@ -143,57 +152,52 @@ query_noshow_obvious()
  *                    exit, but he can use it. VBFC can be used here.
  * Returns      : int 1/0 - success/failure.
  */
-public varargs int
-add_exit(string place, string cmd, mixed efunc, mixed tired, mixed non_obvious)
+public varargs int add_exit(string place, string cmd, mixed efunc, mixed tired, mixed non_obvious)
 {
     string dir;
 
-    log_debug("Adding exit: %s, with command: %s", place, cmd);
+    log_debug("Adding exit: %s, with command: %s", to_string(place), to_string(cmd));
 
     /* No extra exits allowed. */
     if (query_prop(ROOM_I_NO_EXTRA_EXIT))
     {
-	return 0;
+    	return 0;
     }
 
     /* If the place can consist of only the filename. Then we should add the
      * complete path name from the filename from this room.
      */
-    if (stringp(place) &&
-	(place[0] != '/') &&
-	(place[0] != '@'))
+    if (stringp(place) && (place[0] != '/') && (place[0] != '@'))
     {
-	dir = implode(explode(object_name(this_object()), "/")[..-2], "/");
+        dir = implode(explode(object_name(this_object()), "/")[..-2], "/");
         place = FPATH(dir, place);
     }
 
     if (pointerp(room_exits))
-	room_exits = room_exits + ({ place, cmd, efunc });
+    	room_exits = room_exits + ({ place, cmd, efunc });
     else
-	room_exits = ({ place, cmd, efunc });
+	    room_exits = ({ place, cmd, efunc });
 
     /* Only create this for non-default values. Note that 1 is the default
      * value. We won't add that either, but parse 0 as 1 later.
      */
     if (!intp(tired) || (tired > 1))
     {
-	if (!pointerp(tired_exits))
-	    tired_exits = ({ });
+        if (!pointerp(tired_exits))
+            tired_exits = ({ });
 
-	tired_exits +=
-            allocate((sizeof(room_exits) / 3) - sizeof(tired_exits));
-	tired_exits[sizeof(tired_exits) - 1] = tired;
+        tired_exits += allocate((sizeof(room_exits) / 3) - sizeof(tired_exits));
+        tired_exits[sizeof(tired_exits) - 1] = tired;
     }
 
     /* Only create this for non-default values. */
     if (non_obvious)
     {
-	if (!pointerp(non_obvious_exits))
-	    non_obvious_exits = ({ });
+        if (!pointerp(non_obvious_exits))
+            non_obvious_exits = ({ });
 
-	non_obvious_exits +=
-            allocate((sizeof(room_exits) / 3) - sizeof(non_obvious_exits));
-	non_obvious_exits[sizeof(non_obvious_exits) - 1] = non_obvious;
+        non_obvious_exits += allocate((sizeof(room_exits) / 3) - sizeof(non_obvious_exits));
+        non_obvious_exits[sizeof(non_obvious_exits) - 1] = non_obvious;
     }
 
     ugly_update_action(cmd, 1);
@@ -206,36 +210,40 @@ add_exit(string place, string cmd, mixed efunc, mixed tired, mixed non_obvious)
  * Description  : Remove one exit from the room.
  * Arguments    : string cmd - command of the exit to be removed.
  */
-public int
-remove_exit(string cmd)
+public int remove_exit(string cmd)
 {
     int i;
 
     if (!pointerp(room_exits))
-	return 0;
+    	return 0;
+
     if (query_prop(ROOM_I_NO_EXTRA_EXIT))
-	return 0;
+	    return 0;
 
     for (i = 1; i < sizeof(room_exits); i += 3)
     {
-	if (cmd == room_exits[i])
-	{
-	    room_exits = exclude_array(room_exits, i - 1, i + 1);
-	    i /= 3;
-	    if (i < sizeof(tired_exits))
-	    {
-		tired_exits = exclude_array(tired_exits, i, i);
-	    }
-	    if (i < sizeof(non_obvious_exits))
-	    {
-		non_obvious_exits = exclude_array(non_obvious_exits, i, i);
-	    }
-	    ugly_update_action(cmd, 0);
-	    return 1;
-	}
+        if (cmd == room_exits[i])
+        {
+            room_exits = exclude_array(room_exits, i - 1, i + 1);
+            i /= 3;
+
+            if (i < sizeof(tired_exits))
+            {
+                tired_exits = exclude_array(tired_exits, i, i);
+            }
+
+            if (i < sizeof(non_obvious_exits))
+            {
+                non_obvious_exits = exclude_array(non_obvious_exits, i, i);
+            }
+
+            ugly_update_action(cmd, 0);
+            return 1;
+        }
     }
     return 0;
 }
+
 
 /*
  * Function name: query_exit
@@ -248,16 +256,16 @@ remove_exit(string cmd)
  * })
  *
  */
-public mixed
-query_exit()
+public mixed query_exit()
 {
     if (!pointerp(room_exits))
     {
-	return ({ });
+    	return ({ });
     }
 
     return ({ }) + room_exits;
 }
+
 
 /*
  * Function name: query_tired_exits
@@ -267,33 +275,33 @@ query_exit()
  *                the particular exit you need.
  * Returns      : mixed - an array with one element per exit.
  */
-public mixed
-query_tired_exits()
+public mixed query_tired_exits()
 {
     int *tired;
     int size;
 
     if (!pointerp(tired_exits))
     {
-	tired = allocate(sizeof(room_exits) / 3);
+    	tired = allocate(sizeof(room_exits) / 3);
     }
     else
     {
-	tired = tired_exits + allocate((sizeof(room_exits) / 3) -
-	    sizeof(tired_exits));
+        tired = tired_exits + allocate((sizeof(room_exits) / 3) - sizeof(tired_exits));
     }
 
     size = sizeof(tired);
+
     while(--size >= 0)
     {
-	if (tired[size] < 1)
-	{
-	    tired[size] = 1;
-	}
+        if (tired[size] < 1)
+        {
+            tired[size] = 1;
+        }
     }
 
     return tired;
 }
+
 
 /*
  * Function name: query_tired_exit
@@ -304,18 +312,18 @@ query_tired_exits()
  * Arguments    : int index - the index-number of the exit to query.
  * Returns      : int - the tired value.
  */
-public int
-query_tired_exit(int index)
+public int query_tired_exit(int index)
 {
     int tired;
 
     if (index < sizeof(tired_exits))
     {
-	tired = check_call(tired_exits[index]);
+    	tired = check_call(tired_exits[index]);
     }
 
     return ((tired > 0) ? tired : 1);
 }
+
 
 /*
  * Function name: query_exit_rooms
@@ -324,8 +332,7 @@ query_tired_exit(int index)
  *                The values may contain VBFC.
  * Returns      : mixed - the array with exits.
  */
-mixed
-query_exit_rooms()
+mixed query_exit_rooms()
 {
     int index;
     int size;
@@ -333,17 +340,20 @@ query_exit_rooms()
 
     if ((size = sizeof(room_exits)) < 3)
     {
-	return ({ });
+    	return ({ });
     }
 
     exits = ({ });
     index = -3;
+
     while((index += 3) < size)
     {
-	exits += ({ room_exits[index] });
+    	exits += ({ room_exits[index] });
     }
+
     return exits;
 }
+
 
 /*
  * Function name: query_exit_cmds
@@ -351,8 +361,7 @@ query_exit_rooms()
  *                commands to move through an exit added by add_exit().
  * Returns      : string * - the array with commands.
  */
-string *
-query_exit_cmds()
+string *query_exit_cmds()
 {
     int index;
     int size;
@@ -360,15 +369,17 @@ query_exit_cmds()
 
     if ((size = sizeof(room_exits)) < 3)
     {
-	return ({ });
+    	return ({ });
     }
 
     cmds = ({ });
     index = -2;
+
     while((index += 3) < size)
     {
-	cmds += ({ room_exits[index] });
+    	cmds += ({ room_exits[index] });
     }
+
     return cmds;
 }
 
@@ -378,8 +389,7 @@ query_exit_cmds()
  *                through an exit added by add_exit(). This may be VBFC.
  * Returns      : mixed - the array of delays.
  */
-mixed
-query_exit_functions()
+mixed query_exit_functions()
 {
     int index;
     int size;
@@ -387,17 +397,20 @@ query_exit_functions()
 
     if ((size = sizeof(room_exits)) < 3)
     {
-	return ({ });
+    	return ({ });
     }
 
     delays = ({ });
     index = -1;
+
     while((index += 3) < size)
     {
-	delays += ({ room_exits[index] });
+    	delays += ({ room_exits[index] });
     }
+
     return delays;
 }
+
 
 /*
  * Function name: query_obvious_exits
@@ -406,8 +419,7 @@ query_exit_functions()
  *                is able to see the exit.
  * Returns      : string * - An array (possibly empty) of the obvious exits.
  */
-public string *
-query_obvious_exits()
+public string *query_obvious_exits()
 {
     int index;
     int size;
@@ -417,43 +429,43 @@ query_obvious_exits()
     /* No non-obvious exits marked, so all exits are obvious. */
     if (!pointerp(non_obvious_exits))
     {
-	return query_exit_cmds();
+    	return query_exit_cmds();
     }
 
     size_cmds = sizeof(room_exits) / 3;
+
     if (!size_cmds)
     {
-	return ({ });
+    	return ({ });
     }
 
     obvious_exits = ({ });
     index = -1;
     size = sizeof(non_obvious_exits);
+
     while(++index < size_cmds)
     {
-	if (index >= size ||
-	    !check_call(non_obvious_exits[index]))
-	{
-	    obvious_exits += ({ room_exits[(index * 3) + 1] });
-	}
+        if (index >= size || !check_call(non_obvious_exits[index]))
+        {
+            obvious_exits += ({ room_exits[(index * 3) + 1] });
+        }
     }
 
     return obvious_exits;
 }
+
 
 /*
  * Function name: query_non_obvious_exits
  * Description  : Returns an array containing the non-obvious-exits flags.
  * Returns      : mixed - the non-obvious-exits array.
  */
-public mixed
-query_non_obvious_exits()
+public mixed query_non_obvious_exits()
 {
     if (!pointerp(non_obvious_exits))
     {
-	return allocate(sizeof(room_exits) / 3);
+    	return allocate(sizeof(room_exits) / 3);
     }
 
-    return non_obvious_exits + allocate((sizeof(room_exits) / 3) -
-					sizeof(non_obvious_exits));
+    return non_obvious_exits + allocate((sizeof(room_exits) / 3) - sizeof(non_obvious_exits));
 }
