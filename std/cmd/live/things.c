@@ -390,9 +390,9 @@ int manip_set_dest(string prep, object *carr)
         return 0;
     }
 
-    if ((member(prep, ({ "in", "into", "inside" })) >= 0) ||
+    if ((prep in ({ "in", "into", "inside" })) ||
         (({int}) gDest->query_prop(CONT_I_ATTACH) &&
-        (member(prep, ({ "on", "onto" })) >= 0)))
+        (prep in ({ "on", "onto" }))))
     {
         notify_fail(capitalize(query_verb()) + " what " + prep +
             " the " + ({string}) gDest->short() + "?\n");
@@ -1460,7 +1460,7 @@ int keep(string str)
             objs -= keep_objs;
         }
 
-        /* Filter all unsellables. */
+        /* Filter all unsellable. */
         keep_objs = filter(objs, (: !({int}) $1->query_unsellable() :));
         if (sizeof(keep_objs))
         {

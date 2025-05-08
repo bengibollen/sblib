@@ -24,6 +24,8 @@ void create_room() {
     add_cmd_item("press", "console", "@@press_console");
     add_cmd_item("read", "sign", "@@read");
     add_cmd_item("inspect", "dummies", "@@inspect_dummies");
+    add_object("/d/Standard/newbietown/obj/chest", 1);
+
 }
 
 void read(string str) {

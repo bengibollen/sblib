@@ -15,7 +15,7 @@ void create_room() {
         "The village street is to the south.\n");
 
     add_exit("/d/Standard/start/church", "north");
-    add_exit("/d/Standard/newbietown/main_street_outside_church", "south");
+    add_exit("/d/Standard/newbietown/newbietown_square", "south");
 
     add_item(({"fountain"}),"It is dry and cracked, a remnant of better days.\n");
     add_item(({"statue"}),"The statue is weathered and worn, depicting an unknown figure.\n" + 

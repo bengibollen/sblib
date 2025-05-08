@@ -22,7 +22,7 @@ void create_room()
         "You see an assortment of tools and paint buckets scattered about.\n" +
         "A few chairs and tables are set up, the place should probably\n" +
         "not have been opened yet...\n");
-    add_exit("/d/Standard/newbietown/main_street_outside_church", "south", "@@leave");
+    add_exit("/d/Standard/newbietown/newbietown_square", "south", "@@leave");
 
     add_item("bar", "A nice looking wooden bar with a menu on it.\n");
     add_item("menu", "It has a lot of readable words on it.\n");

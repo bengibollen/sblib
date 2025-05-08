@@ -87,14 +87,14 @@ When creating a weapon, certain RULES must be respected.
     these limits are for non-quest weapons.
 
                 non-magical     non-magical     magical         magical
-		one-handed	two-handed      one-handed      two-handed
-    Sword:	    35		    40              50              60
-    Polearm:	    n.a.	    40              n.a.            60
-    Axe:	    35		    40              50              60
-    Knife:	    20		    n.a.            40              n.a.
-    Club:	    35		    40              50              60
-    Missile:	    35 	            40              50              60
-    Javelin:	    n.a.            n.a.            n.a.            n.a.
+		            one-handed      two-handed      one-handed      two-handed
+    Sword:	    35		          40              50              60
+    Polearm:	  n.a.	          40              n.a.            60
+    Axe:	      35		          40              50              60
+    Knife:	    20		          n.a.            40              n.a.
+    Club:	      35		          40              50              60
+    Missile:	  35 	            40              50              60
+    Javelin:	  n.a.            n.a.            n.a.            n.a.
 
   o Magical weapons:
 

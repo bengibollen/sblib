@@ -22,34 +22,36 @@ object load_room(int index)
     object ob;
 
     droom = check_call(room_exits[index]);
-    if (objectp(droom))
+
+	if (objectp(droom))
     {
-	return droom;
+		return droom;
     }
 
     /* Handle linkrooms that get destructed, bad wizard... baa-aad wizard. */
     if (!stringp(droom))
     {
-	remove_exit(room_exits[index + 1]);
-	this_player()->move_living("X", query_link_master());
-	return 0;
+		remove_exit(room_exits[index + 1]);
+		this_player()->move_living("X", query_link_master());
+		return 0;
     }
 
     ob = find_object(droom);
-    if (objectp(ob))
+
+	if (objectp(ob))
     {
-	return ob;
+		return ob;
     }
 
     if (err = LOAD_ERR(droom))
     {
-	SECURITY->log_loaderr(droom, environment(this_object()),
-			      room_exits[index + 1], this_object(), err);
-	write("Err in load:" + err + " <" + droom +
-	    ">\nPlease make a bugreport about this.\n");
-	return 0;
+		SECURITY->log_loaderr(droom, environment(this_object()), room_exits[index + 1], this_object(), err);
+		write("Error in load_room: " + err + " <" + droom + ">\nPlease make a bugreport about this.\n");
+
+		return 0;
     }
-    return find_object(droom);
+
+	return find_object(droom);
 }
 
 

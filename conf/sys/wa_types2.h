@@ -30,7 +30,6 @@
  * With dull means generally that the weapon gets in worse condition
  * since it has been used a lot. Clubs etc don't get dull ;-)
  */
-#define W_DRAWBACKS ({ ({ 0, 5, 5 }), ({ 0, 0, 0 }), ({ 0, 0, 5 }), ({ 4, 4, 4 }) \
-({ 0, 0, 5 }) })
+#define W_DRAWBACKS ({ ({ 0, 5, 5 }), ({ 0, 0, 0 }), ({ 0, 0, 5 }), ({ 4, 4, 4 }), ({ 0, 0, 5 }) })
 
 #define W_NAMES	({ "assault rifle", "psi", "missile", "knife", "polearm" })

@@ -157,12 +157,7 @@ static float random_reset()
  */
 public nomask void reset()
 {
-    mixed *calls = call_out_info();
-    int index = sizeof(calls);
-
-    while(--index >= 0)
-        if (calls[index][1] == "reset")
-            remove_call_out(calls[index][0]);
+    remove_call_out("reset");
 
     if (!reset_interval)
         return;
@@ -181,12 +176,7 @@ public nomask void reset()
  */
 nomask public void disable_reset()
 {
-    mixed *calls = call_out_info();
-    int index = sizeof(calls);
-
-    while(--index >= 0)
-        if (calls[index][1] == "reset")
-            remove_call_out(calls[index][1]);
+    remove_call_out("reset");
 
     reset_interval = 0;
 }

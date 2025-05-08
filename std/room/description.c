@@ -13,6 +13,7 @@
 #include <ss_types.h>
 #include <login.h>
 #include <configuration.h>
+#include <color.h>
 
 static  mixed   room_descs;        /* Extra longs added to the rooms own */
 static  int     searched;          /* Times this room has been searched */
@@ -146,12 +147,12 @@ exits_description()
         break;
 
     case 1:
-        text =  "There is one obvious exit: " + exits[0] + ".\n";
+        text = "There is one obvious exit: " + C_EXITS + exits[0] + C_RESET + ".\n";
         break;
 
     default:
         text = "There are " + LANG_WNUM(size) +
-            " obvious exits: " + COMPOSITE_WORDS(exits) + ".\n";
+            " obvious exits: " + C_EXITS + COMPOSITE_WORDS(exits) + C_RESET + ".\n";
     }
 
     if (({int}) this_player()->query_wiz_level())

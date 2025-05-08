@@ -7,6 +7,7 @@
  */
 static mapping room_objects;
 
+
 /*
  * Function Name: reset_auto_objects
  * Description  : Reset any items on the list of objects to automatically
@@ -14,8 +15,7 @@ static mapping room_objects;
  *                It will only clone 15 items at a time, if more is needed
  *                they will be cloned after a short delay.
  */
-void
-reset_auto_objects()
+void reset_auto_objects()
 {
     int clone_count;
 
@@ -52,8 +52,8 @@ reset_auto_objects()
                 ob->move(this_object(), 1);
 
             clones += ({ ob });
-
             clone_count++;
+
             if (clone_count > 15)
             {
                 call_out(#'reset_auto_objects, 5 + random(5));
@@ -62,7 +62,6 @@ reset_auto_objects()
         }
 
         data[3] = clones;
-
     }
 }
 
@@ -119,6 +118,7 @@ varargs void add_npc(string file, int count = 1, closure init_call = 0)
     add_auto_object(file, count, #'objectp, init_call);
 }
 
+
 /*
  * Function Name: add_object
  * Description  : Clone an object into the room, reset it when
@@ -130,11 +130,11 @@ varargs void add_npc(string file, int count = 1, closure init_call = 0)
  *                                For example &->add_name("extra name")
  *                                to have add_name called.
  */
-varargs void
-add_object(string file, int count = 1, closure init_call = 0)
+varargs void add_object(string file, int count = 1, closure init_call = 0)
 {
     add_auto_object(file, count, (: this_object() == environment() :), init_call);
 }
+
 
 /*
  * Function name: room_add_object
@@ -143,27 +143,32 @@ add_object(string file, int count = 1, closure init_call = 0)
  *		  num  - How many clones we want to have, if not set 1 clone
  *		  mess - Message to be written when cloned
  */
-varargs void
-room_add_object(string file, int num, string mess)
+varargs void room_add_object(string file, int num, string mess)
 {
     int i;
     object ob;
 
     if (num < 1)
-	num = 1;
+	    num = 1;
 
     configure_object(this_object(), OC_EUID, getuid());
+
     for (i = 0; i < num; i++)
     {
-	ob = clone_object(file);
-	if (stringp(mess))
-	{
-	    tell_room(this_object(), mess);
-	    ob->move(this_object(), 1);
- 	}
-	else if (living(ob))
-	    ob->move_living("xx", this_object());
-	else
-	    ob->move(this_object(), 1);
+        ob = clone_object(file);
+
+        if (stringp(mess))
+        {
+            tell_room(this_object(), mess);
+            ob->move(this_object(), 1);
+        }
+        else if (living(ob))
+        {
+            ob->move_living("xx", this_object());
+        }
+        else
+        {
+            ob->move(this_object(), 1);
+        }
     }
 }
