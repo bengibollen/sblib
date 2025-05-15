@@ -496,7 +496,8 @@ void heal_hp(int hp)
     string text;
     object o;
 
-    log_debug("Function: living:heal_hp");
+    log_debug("Function: living:heal_hp %O", this_object());
+    log_debug("hp: %d", hp);
     this_object()->calculate_hp();
 
 #ifdef LOG_REDUCE_HP
@@ -524,6 +525,7 @@ void heal_hp(int hp)
 #endif
 
     hit_points = min(max(hit_points + hp, 0), query_max_hp());
+    log_debug("Hitpoints: %d", hit_points);
 }
 
 /*
@@ -672,6 +674,7 @@ public int query_fatigue()
     log_debug("Function: living:query_fatigue");
     log_debug("This object: %O", this_object());
     this_object()->calculate_fatigue();
+    log_debug("Fatigue: %d", fatigue);
     return fatigue;
 }
 
@@ -1652,6 +1655,7 @@ public int set_skill(int skill, int val)
     if ((skill >= 0) && (skill <= SS_MAX))
         val = max(min(100, val), 0);
 
+    log_debug("Function: living:set_skill Skill: %d, Value: %d", skill, val);
     skillmap[skill] = val;
     return 1;
 }

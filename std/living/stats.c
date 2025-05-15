@@ -16,6 +16,7 @@ static int	*delta_stat;  /* Temporary extra stats. */
 static int      *stats;	      /* Stats the calculated values from acc_exp */
 static int	*stat_extra;  /* Extra to add to the stats */
 
+
 /*
  * Function name:   ss_reset
  * Description:     Reset stats and skills at start of character.
@@ -30,6 +31,7 @@ static void ss_reset()
     stat_extra = allocate(SS_NO_STATS);
 }
 
+
 /*
  * Function name:   query_skill_cost
  * Description:     Calculates the cost in experience points to raise a skill
@@ -43,23 +45,25 @@ nomask public int query_skill_cost(int oldskill, int newskill)
     return stat_to_exp(newskill) - stat_to_exp(oldskill);
 }
 
+
 /*
  * Function name:   set_stat_extra
  * Description:     Sets an extra number to add to the normal stats. It could be
- * 		    some object changing the livings stats while being held or
- *		    some other not time based stat bonus.
+ *                    some object changing the livings stats while being held or
+ *                    some other not time based stat bonus.
  * Arguments:       stat - What stat
- *		    val  - The extra value to modify stat with
+ *                  val  - The extra value to modify stat with
  * Returns:	    The extra stat value
  */
 public int set_stat_extra(int stat, int val)
 {
     if (stat < 0 || stat >= SS_NO_STATS)
-	return 0;
+    	return 0;
 
     stat_extra[stat] = val;
-    return val;
+        return val;
 }
+
 
 /*
  * Function name:   query_stat_extra
@@ -70,10 +74,11 @@ public int set_stat_extra(int stat, int val)
 public int query_stat_extra(int stat)
 {
     if (stat < 0 || stat >= SS_NO_STATS)
-	return 0;
+	    return 0;
 
     return stat_extra[stat];
 }
+
 
 /*
  * Function name: set_base_stat
@@ -113,8 +118,10 @@ varargs int set_base_stat(int stat, int value, int deviation = 0)
 
     stats[stat] = value;
     log_debug("set_base_stat: stats[%d]=%d", stat, stats[stat]);
+
     return value;
 }
+
 
 /*
  * Function name:   query_base_stat
@@ -124,14 +131,14 @@ varargs int set_base_stat(int stat, int value, int deviation = 0)
  */
 public int query_base_stat(int stat)
 {
-    if ((stat < 0) ||
-        (stat >= SS_NO_STATS))
+    if ((stat < 0) || (stat >= SS_NO_STATS))
     {
-	return -1;
+    	return -1;
     }
 
     return stats[stat];
 }
+
 
 /*
  * Function name:   query_average_stat
@@ -141,9 +148,10 @@ public int query_base_stat(int stat)
 public int query_average_stat()
 {
     return (query_base_stat(SS_STR) + query_base_stat(SS_DEX) +
-	query_base_stat(SS_CON) + query_base_stat(SS_INT) +
-	query_base_stat(SS_WIS) + query_base_stat(SS_DIS)) / 6;
+    	query_base_stat(SS_CON) + query_base_stat(SS_INT) +
+	    query_base_stat(SS_WIS) + query_base_stat(SS_DIS)) / 6;
 }
+
 
 /*
  * Function name: query_relative_stat
@@ -156,10 +164,9 @@ public int query_relative_stat(int stat)
 {
     int average;
 
-    if ((stat < 0) ||
-        (stat >= SS_NO_STATS))
+    if ((stat < 0) || (stat >= SS_NO_STATS))
     {
-	return 0;
+    	return 0;
     }
 
     /* The average should not be 0, but even so, let's test to be sure. */
@@ -168,6 +175,7 @@ public int query_relative_stat(int stat)
     else
         return 0;
 }
+
 
 /*
  * Function name: expire_tmp_stat()
@@ -179,6 +187,7 @@ void expire_tmp_stat(int stat, int value)
 {
     delta_stat[stat] -= value;
 }
+
 
 /*
  * Function name: add_tmp_stat
@@ -209,6 +218,7 @@ public int add_tmp_stat(int stat, int ds, int dt)
     return 1;
 }
 
+
 /*
  * Function name: query_stat
  * Description  : Get the compound value of a stat. Never less than 1.
@@ -227,15 +237,12 @@ public int query_stat(int stat)
     }
 
     value = query_base_stat(stat);
-    log_debug("query_stat: base_stat=%d", value);
     value += delta_stat[stat];
-    log_debug("query_stat: delta_stat=%d", delta_stat[stat]);
     value += stat_extra[stat];
-    log_debug("query_stat: stat_extra=%d", stat_extra[stat]);
-    log_debug("query_stat: final_value=%d", value);
 
     return (value > 0 ? value : 1);
 }
+
 
 /*
  * Function name: query_rel_stat
@@ -249,6 +256,7 @@ public int query_rel_stat(int stat)
     return (100 * query_stat(stat)) / query_average_stat();
 }
 
+
 /*
  * Function name: exp_to_stat
  * Description  : Translates given number of exp to a stat/skill value.
@@ -257,8 +265,10 @@ public int query_rel_stat(int stat)
  */
 nomask int exp_to_stat(int exp)
 {
+    log_debug("exp_to_stat: exp=%d", exp);
     return F_EXP_TO_STAT(exp);
 }
+
 
 /*
  * Function name:   stat_to_exp
@@ -269,8 +279,10 @@ nomask int exp_to_stat(int exp)
  */
 nomask int stat_to_exp(int stat)
 {
+    log_debug("stat_to_exp: stat=%d", stat);
     return F_STAT_TO_EXP(stat);
 }
+
 
 /*
  * Function name: stats_to_acc_exp
@@ -284,20 +296,21 @@ static void stats_to_acc_exp()
 
     for (il = SS_STR, sum = 0; il < SS_NO_STATS; il++)
     {
-	tmp = stat_to_exp(query_base_stat(il));
-	if (tmp > 0)
-	{
-	    set_acc_exp(il, tmp);
+        tmp = stat_to_exp(query_base_stat(il));
+
+        if (tmp > 0)
+        {
+            set_acc_exp(il, tmp);
 
             /* Only count the "real" stats in the total experience. */
-	    if (il < SS_NO_EXP_STATS)
-	    {
-	        sum += tmp;
-	    }
-	}
-	else
+            if (il < SS_NO_EXP_STATS)
+            {
+                sum += tmp;
+            }
+        }
+        else
         {
-	    set_acc_exp(il, 0);
+    	    set_acc_exp(il, 0);
         }
     }
 
@@ -305,6 +318,7 @@ static void stats_to_acc_exp()
     set_exp_combat(0);
     set_exp_general(0);
 }
+
 
 /*
  * Function name: acc_exp_to_stats
@@ -314,13 +328,15 @@ void acc_exp_to_stats()
 {
     int il, tmp;
 
+    log_debug("acc_exp_to_stats: called");
+
     for (il = SS_STR; il < SS_NO_STATS; il++)
     {
-	if (query_base_stat(il) >= 0)
-	{
-	    tmp = exp_to_stat(query_acc_exp(il));
-	    set_base_stat(il, tmp);
-	}
+        if (query_base_stat(il) >= 0)
+        {
+            tmp = exp_to_stat(query_acc_exp(il));
+            set_base_stat(il, tmp);
+        }
     }
 }
 
@@ -454,6 +470,8 @@ varargs static void update_acc_exp(int exp, int taxfree)
     int   total;
     float factor;
 
+    log_debug("== update_acc_exp: exp=%d, taxfree=%d", exp, taxfree);
+
     /* Negative experience. Adjust only the 'real' stats. */
     if (exp < 0)
     {
@@ -512,6 +530,8 @@ static void check_acc_exp()
 {
     int index = -1;
     int sum = query_exp();
+
+    log_debug("== check_acc_exp");
 
     /* Make sure the array of of experience has the right size. */
     if (sizeof(acc_exp) < SS_NO_STATS)

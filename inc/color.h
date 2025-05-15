@@ -9,7 +9,7 @@
  */
 
 // Path to the color utility object
-#define COLOR_HANDLER "/inc/color"
+#define COLOR_HANDLER "/lib/color.c"
 
 // Function to colorize a string using the standard color mapping
 #define COLORIZE(str) (call_other(COLOR_HANDLER, "colorize", (str)))

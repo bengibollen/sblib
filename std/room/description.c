@@ -14,6 +14,7 @@
 #include <login.h>
 #include <configuration.h>
 #include <color.h>
+#include COLOR_HANDLER    
 
 static  mixed   room_descs;        /* Extra longs added to the rooms own */
 static  int     searched;          /* Times this room has been searched */
@@ -173,7 +174,7 @@ exits_description()
         }
     }
 
-    return text;
+    return terminal_colour(text, query_color_map());
 }
 
 /*

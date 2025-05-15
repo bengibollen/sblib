@@ -14,8 +14,12 @@ static mapping tool_slots = ([]);  /* The object occupying a certain slot */
  */
 static nomask int clear_tool_slots(object tool)
 {
+    log_debug("Function: clear_tool_slots");
+    log_debug("Object: %O", tool);
+    log_debug("Slots: %O", tool_slots);
     int size = sizeof(tool_slots);
-    tool_slots = filter(tool_slots, #'!=, tool);
+    tool_slots = filter(tool_slots, (: log_debug("filter: %O", $2); $2 != tool:));
+    log_debug("Slots: %O", tool_slots);
     return (sizeof(tool_slots) != size);
 }
 

@@ -61,8 +61,11 @@ public object query_combat_object()
 
 static void combat_reload()
 {
-    if (combat_extern)
+    log_debug("Reloading combat object");
+    if (combat_extern) {
+        log_debug("combat_extern: %O", combat_extern);
         return;
+    }
 
     combat_extern = clone_object(query_combat_file());
 
@@ -645,7 +648,7 @@ varargs public mixed hit_me(int wcpen, int dt, object attacker, int attack_id, i
     /*
      * Start nonplayers when attacked
      */
-    start_heart();
+    // start_heart();
 
     CEX;
     hres = ({mixed})combat_extern->cb_hit_me(wcpen, dt, attacker,
@@ -672,13 +675,14 @@ varargs public mixed hit_me(int wcpen, int dt, object attacker, int attack_id, i
 public void attack_object(object ob)
 {
     /* For monsters, start the heart beat. */
-    start_heart();
+//    start_heart();
 
     /* Get the combat started in the combact object. */
-    CEX; combat_extern->cb_attack(ob);
+    CEX;
+    combat_extern->cb_attack(ob);
 
     /* Check for sparring, and give the appropriate message if necessary. */
-    if ((ob in query_prop(LIVE_AO_SPARRING)))
+    if (query_prop(LIVE_AO_SPARRING) && (ob in query_prop(LIVE_AO_SPARRING)))
     {
         tell_object(this_object(), "You are sparring with " +
             ({string}) ob->query_the_name(this_object()) + ".\n");
@@ -696,7 +700,7 @@ public void attacked_by(object ob)
     CEX; combat_extern->cb_attacked_by(ob);
 
     /* Check for sparring, and give the appropriate message if necessary. */
-    if ((ob in query_prop(LIVE_AO_SPARRING)))
+    if (query_prop(LIVE_AO_SPARRING) && (ob in query_prop(LIVE_AO_SPARRING)))
     {
         tell_object(this_object(), "You are sparring with " +
             ({string}) ob->query_the_name(this_object()) + ".\n");

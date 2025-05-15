@@ -19,6 +19,7 @@ inherit "/std/combat/chumanoid";
 */
 public nomask void create_chumanoid()
 {
+    log_debug("Creating combat object");
     this_object()->create_chumplayer();
 }
 
@@ -36,14 +37,19 @@ public nomask void create_chumanoid()
  *
  * Returns:       True if added.
  */
-public nomask int cb_add_attack(int wchit, mixed wcpen, int damtype, int prcuse,
-              int id, int skill)
+public nomask int cb_add_attack(
+    int wchit,
+    mixed wcpen,
+    int damtype,
+    int prcuse,
+    int id,
+    int skill)
 {
     /* Allow modification only of known attacks */
     if (id in query_attack_id())
-	return ::cb_add_attack(wchit, wcpen, damtype, prcuse, id, skill);
+	    return ::cb_add_attack(wchit, wcpen, damtype, prcuse, id, skill);
     else
-	return 0;
+	    return 0;
 }
 
 

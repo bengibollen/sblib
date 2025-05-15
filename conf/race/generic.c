@@ -88,6 +88,7 @@ public string query_def_start()
 
 public int *query_orig_stat()
 {
+    log_debug("query_orig_stat: %O", this_object());
     return RACESTAT[this_object()->query_race()];
 }
 

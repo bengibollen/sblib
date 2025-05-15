@@ -91,10 +91,14 @@ public void cb_modify_procuse()
     mixed *att;
     object tool;
 
+    log_debug("=== cb_modify_procuse. size of attid: %d", sizeof(attid));
+
     if (!attuse)
         return;
 
     attid = query_attack_id();
+    log_debug("Attid: %O", attid);
+    log_debug("Attid size: %d", sizeof(attid));
     att = allocate(sizeof(attid));
     enabled_attacks = allocate(sizeof(attid));
     weapon_no = sizeof(cb_query_weapon(-1));
@@ -105,36 +109,44 @@ public void cb_modify_procuse()
         att[il] = query_attack(attid[il]);
 
         if (!att[il][ATT_OBJ])
-	{
-	    /* No weapon in this slot.  See if unarmed is off
-             * and there is a weapon wielded elsewhere.
-             */
+    	{
+            /* No weapon in this slot.  See if unarmed is off
+                * and there is a weapon wielded elsewhere.
+                */
             if (unarmed_off && (weapon_no > 0))
-	    {
+            {
                 continue;
-	    }
+            }
 
             /* See if there is another kind of tool in the slot
              * that might prevent us from using it to attack.
              */
             if ((tool = ({object})qme()->query_tool(attid[il])) &&
                 ({int})tool->query_attack_blocked(attid[il]))
-	    {
+            {
                 continue;
-	    }
+            }
         }
 
         enabled_attacks[il] = 1;
-        swc += att[il][ATT_WCHIT] * F_PENMOD(att[il][ATT_WCHIT],
-            att[il][ATT_SKILL]);
+        swc += att[il][ATT_WCHIT] * F_PENMOD(att[il][ATT_WCHIT], att[il][ATT_SKILL]);
     }
+
+    log_debug("Me: %O", me);
+    log_debug("This Object: %O", this_object());
+    log_debug("Attacks: %O", attid);
 
     for (il = 0; il < sizeof(attid); il++)
     {
+        log_debug("Attack il: %d", il);
+        log_debug("Attack id: %d", attid[il]);
+        log_debug("Enabled attack: %d", enabled_attacks[il]);
+
         if (swc && enabled_attacks[il])
         {
             puse = (attuse * att[il][ATT_WCHIT] *
                     F_PENMOD(att[il][ATT_WCHIT], att[il][ATT_SKILL])) / swc;
+            log_debug("Attack use%%: %d", puse);
         }
         else
         {
@@ -178,6 +190,7 @@ varargs int add_attack(int wchit, mixed wcpen, int damtype, int prcuse, int id, 
     object wep)
 {
     int ret;
+    log_debug("Adding attack in chumanoid: %d", id);
 
     ret = ::add_attack(wchit, wcpen, damtype, prcuse, id, skill, wep);
     cb_modify_procuse();

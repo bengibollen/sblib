@@ -149,16 +149,16 @@ public nomask int name_to_random(string name, int seed, int range)
     /* Player names cannot be larger than NAME_LEN characters, though
      * people may feed us with other strings.
      */
-    if (strlen(name) > NAME_LEN)
+    if (sizeof(name) > NAME_LEN)
     {
-	name = extract(name, 0, (NAME_LEN - 1));
+	name = name[..NAME_LEN - 1];
     }
 
     /* To find the result, we apply the same formula to each character
      * of the name, in addition with its rank, the seed and the first
      * primes ending with 3 or 7.
      */
-    size = strlen(name);
+    size = sizeof(name);
     while(++index < size)
     {
 	char = name[index] - CHAR_a;

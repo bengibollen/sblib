@@ -216,7 +216,16 @@ nomask public string query_real_name()
  */
 public int query_wiz_level()
 {
-    return (({int}) SECURITY->query_wiz_rank(({string}) this_player()->query_real_name()) > WIZ_MORTAL);
+    object ob = this_player();  // Initialize ob to this_player()   
+    log_debug("Querying wiz level for player: %O", ob);
+    log_debug("Current object: %O", this_object());
+    log_debug("Previous object: %O", previous_object());
+    log_debug("This player: %O", this_player());
+    if (!ob)
+        ob = this_object();  // Change to use this_player() instead of this_object()
+
+    log_debug("Checking wiz level for player: %O", ob);
+    return (({int}) SECURITY->query_wiz_rank(({string}) ob->query_real_name()) > WIZ_MORTAL);
 }
 
 

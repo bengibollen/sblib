@@ -18,10 +18,10 @@
 
 inherit "/std/combat/unarmed";
 
-#include "/inc/wa_types.h"
-#include "/inc/ss_types.h"
-#include "/inc/macros.h"
-#include "/inc/formulas.h"
+#include <wa_types.h>
+#include <ss_types.h>
+#include <macros.h>
+#include <formulas.h>
 
 #define QEXC (({object}) this_object()->query_combat_object())
 
@@ -51,42 +51,44 @@ public nomask void cr_reset_attack(int aid)
 {
     int wchit, wcpen, uskill;
 
+	log_debug("Resetting attack %d", aid);
     ::cr_reset_attack(aid);
 
     if (!sizeof(query_ua_attack(aid)))
     {
-	wchit = W_HAND_HIT;
-	wcpen = W_HAND_PEN;
-	if (uskill = ({int}) this_object()->query_skill(SS_UNARM_COMBAT))
-	{
-	    wchit += F_UNARMED_HIT(uskill, ({int}) this_object()->query_stat(SS_DEX));
-	    wcpen += F_UNARMED_PEN(uskill, ({int}) this_object()->query_stat(SS_STR));
-	}
+		wchit = W_HAND_HIT;
+		wcpen = W_HAND_PEN;
 
-	if (uskill < 1)
-	   uskill = -1;
+		if (uskill = ({int}) this_object()->query_skill(SS_UNARM_COMBAT))
+		{
+			wchit += F_UNARMED_HIT(uskill, ({int}) this_object()->query_stat(SS_DEX));
+			wcpen += F_UNARMED_PEN(uskill, ({int}) this_object()->query_stat(SS_STR));
+		}
 
-	switch(aid)
-	{
-	case W_RIGHT:
-	    QEXC->cb_add_attack(wchit, wcpen, W_BLUDGEON, 25, aid, uskill + 6);
-	    break;
-	case W_LEFT:
-	    QEXC->cb_add_attack(wchit, wcpen, W_BLUDGEON, 25, aid, uskill + 6);
-	    break;
-	case W_BOTH:
-	    /*
-             * We use the hands separately in unarmed combat
-             */
-	    QEXC->cb_add_attack(0, 0, W_BLUDGEON, 0, aid, uskill + 6);
-	    break;
-	case W_FOOTR:
-	    QEXC->cb_add_attack(wchit, wcpen, W_BLUDGEON, 25, aid, uskill);
-	    break;
-	case W_FOOTL:
-	    QEXC->cb_add_attack(wchit, wcpen, W_BLUDGEON, 25, aid, uskill);
-	    break;
-	}
+		if (uskill < 1)
+			uskill = -1;
+
+		switch(aid)
+		{
+			case W_RIGHT:
+				QEXC->cb_add_attack(wchit, wcpen, W_BLUDGEON, 25, aid, uskill + 6);
+				break;
+			case W_LEFT:
+				QEXC->cb_add_attack(wchit, wcpen, W_BLUDGEON, 25, aid, uskill + 6);
+				break;
+			case W_BOTH:
+				/*
+					* We use the hands separately in unarmed combat
+					*/
+				QEXC->cb_add_attack(0, 0, W_BLUDGEON, 0, aid, uskill + 6);
+				break;
+			case W_FOOTR:
+				QEXC->cb_add_attack(wchit, wcpen, W_BLUDGEON, 25, aid, uskill);
+				break;
+			case W_FOOTL:
+				QEXC->cb_add_attack(wchit, wcpen, W_BLUDGEON, 25, aid, uskill);
+				break;
+		}
     }
 }
 

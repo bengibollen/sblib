@@ -32,6 +32,7 @@
 #include <math.h>
 #include <comb_mag.h>
 #include <options.h>
+#include <configuration.h>
 #include "/std/combat/combat.h"
 
 /*
@@ -330,8 +331,12 @@ public void remove_object()
  */
 public void cb_link()
 {
-    if (objectp(me))
+    if (objectp(me)){
+        log_debug("Combat object already linked to " + object_name(me));
         return;
+    }
+
+    log_debug("Linking combat object to " + object_name(previous_object()));
 
     me = previous_object();
     i_am_real = !(({int}) me->query_npc());
@@ -1284,7 +1289,7 @@ public void cb_run_away(string dir)
     while (i < size && here == environment(me))
     {
         i += 3;
-        if ((pos = member(exits[j * 3 + 1], std_exits)) > -1)
+        if ((pos = member(std_exits, exits[j * 3 + 1])) > -1)
             std_exits[pos] = "";
         old_mout = ({string}) me->query_m_out();
         me->set_m_out("panics and flees");
@@ -1492,11 +1497,7 @@ static void restart_heart()
     /* Mark this moment as being in combat. */
     cb_update_combat_time();
 
-    if (!find_call_out(#'heart_beat))
-    {
-        cb_update_speed();
-        call_out(#'heart_beat, (int) speed);
-    }
+    configure_object(this_object(), OC_HEART_BEAT, 1);
 }
 
 
@@ -1508,8 +1509,8 @@ static void restart_heart()
 static void stop_heart()
 {
     me->remove_prop(LIVE_I_ATTACK_DELAY);
-    remove_call_out(#'heart_beat);
-    alarm_id = 0;
+
+    configure_object(this_object(), OC_HEART_BEAT, 0);
 }
 
 
@@ -1550,8 +1551,7 @@ static nomask void heart_beat()
     }
 
     /* First do some check if we actually attack. */
-    if (pointerp(fail = ({string *}) me->query_prop(LIVE_AS_ATTACK_FUMBLE)) &&
-        sizeof(fail))
+    if (pointerp(fail = ({string *}) me->query_prop(LIVE_AS_ATTACK_FUMBLE)) && sizeof(fail))
     {
         if (i_am_real)
         {
@@ -1644,6 +1644,7 @@ static nomask void heart_beat()
                 {
                     // Critical hit!
                     pen = attacks[il][ATT_M_PEN];
+
                     if (sizeof(pen))
                     {
                         pen = pen[0];
@@ -1658,6 +1659,7 @@ static nomask void heart_beat()
                     if (sizeof(pen))
                     {
                         tmp = ({int}) MATH_FILE->quick_find_exp(dt);
+
                         if((tmp < sizeof(pen)))
                             pen = pen[tmp];
                         else
@@ -1701,6 +1703,7 @@ static nomask void heart_beat()
                     hitsuc = 0;
                 }
             }
+
             if (hitresult[1])
             {
                 cb_did_hit(att_id[il], hitresult[1], hitresult[4], hitresult[0],
@@ -1736,14 +1739,14 @@ static nomask void heart_beat()
      * Fighting is quite tiresome you know
      */
     ftg = random(3) + 1;
+
     if (({int}) me->query_fatigue() >= ftg)
     {
         me->add_fatigue(-ftg);
     }
     else
     {
-        tell_object(me,
-                "You are so tired that every move drains your health.\n");
+        tell_object(me, "You are so tired that every move drains your health.\n");
         me->set_fatigue(0);
         me->reduce_hit_point(ftg);
     }
@@ -1889,6 +1892,7 @@ varargs public nomask mixed cb_hit_me(
     /*
      * Wizards are immortal. (immorale ??)
      */
+    log_debug("Check if immortal. me: %O", me);
     if (({int}) me->query_wiz_level() && dam >= hp)
     {
         tell_object(me, "Your wizardhood protects you from death.\n");
@@ -2204,6 +2208,8 @@ varargs int add_attack(
 {
     int pos, *pen, *m_pen;
 
+    log_debug(" === ADD ATTACK ===");
+
     if (sizeof(attacks) >= MAX_ATTACK)
     {
         return 0;
@@ -2240,15 +2246,19 @@ varargs int add_attack(
             pen[pos] = wcpen[pos];
         }
     }
-
+    log_debug("Attack id object: %O", att_id);
     if ((pos = member(att_id, id)) < 0)
     {
+        log_debug("Adding attack, pruse: %d", prcuse);
+        log_debug("Adding attack, id: %d, pos: %d", id, pos);
         att_id += ({ id });
         attacks += ({ ({ wchit, pen, damtype, prcuse, skill, m_pen, wep }) });
         return 1;
     }
     else
     {
+        log_debug("Updating attack, pruse: %d", prcuse);
+        log_debug("Updating attack, id: %d, pos: %d", id, pos);
         attacks[pos] = ({ wchit, pen, damtype, prcuse, skill, m_pen, wep });
     }
 
@@ -2300,6 +2310,7 @@ public mixed * query_attack(int id)
 
     if ((pos = member(att_id, id)) >= 0)
     {
+        log_debug("Querying attack ");
         return attacks[pos];
     }
 

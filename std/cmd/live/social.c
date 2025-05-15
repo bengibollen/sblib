@@ -52,6 +52,30 @@ nomask int sort_name(object a, object b);
 varargs int team(string str);
 
 /*
+ * Function name: smart_capitalize_name
+ * Description  : Capitalizes a name. If the name starts with '(' or '[',
+ *                it preserves the leading character and capitalizes the
+ *                character immediately following it.
+ * Arguments    : name_str - The name string to capitalize.
+ * Returns      : The capitalized name string.
+ */
+static string smart_capitalize_name(string name_str) {
+    if (!stringp(name_str) || !sizeof(name_str)) {
+        return name_str;
+    }
+
+    // If the name starts with ( or [, return that char + capitalized rest.
+    // This handles cases like "(name)" -> "(Name)" and "[name]" -> "[Name]".
+    // It also correctly handles "(name" -> "(Name" or even just "(" -> "(".
+    if (name_str[0] in "([") {
+        return name_str[..0] + capitalize(name_str[1..]);
+    }
+
+    // Otherwise, just capitalize the whole string.
+    return capitalize(name_str);
+}
+
+/*
  * Function name: create
  * Description  : This function is called the moment this object is created
  *                and loaded into memory.
@@ -160,7 +184,7 @@ int assist(string str)
     object friend;
     object victim;
     int    index;
-    mixed  tmp;
+    mixed  property_value; // Renamed from tmp
 
     if (!CAN_SEE_IN_ROOM(this_player()))
     {
@@ -263,19 +287,19 @@ int assist(string str)
         return 1;
     }
 
-    if (tmp = ({mixed}) environment(this_player())->query_prop(ROOM_M_NO_ATTACK))
+    if (property_value = ({mixed}) environment(this_player())->query_prop(ROOM_M_NO_ATTACK))
     {
-        if (stringp(tmp))
-            write(tmp);
+        if (stringp(property_value))
+            write(property_value);
         else
             write("You sense a divine force preventing your attack.\n");
         return 1;
     }
 
-    if (tmp = ({mixed}) victim->query_prop(OBJ_M_NO_ATTACK))
+    if (property_value = ({mixed}) victim->query_prop(OBJ_M_NO_ATTACK))
     {
-        if (stringp(tmp))
-            write(tmp);
+        if (stringp(property_value))
+            write(property_value);
         else
             write("You feel a divine force protecting this being, your " +
                 "attack fails.\n");
@@ -607,15 +631,20 @@ varargs int join(string str)
 varargs int kill(string str)
 {
     object ob;
-    mixed  tmp, *oblist;
+    mixed  property_value, *oblist; // Renamed tmp to property_value
+    object me = this_player();
+    object my_env = environment(me);
+    string ob_s_the_name;
+    string me_s_the_name_ob;
+    string ob_s_real_name;
 
-    if (!CAN_SEE_IN_ROOM(this_player()))
+    if (!CAN_SEE_IN_ROOM(me))
     {
         notify_fail("You can't see anything here.\n");
         return 0;
     }
 
-    if (({int}) this_player()->query_ghost())
+    if (({int}) me->query_ghost())
     {
         notify_fail("Umm yes, killed. That's what you are.\n");
         return 0;
@@ -628,7 +657,8 @@ varargs int kill(string str)
     }
 
     str = lower_case(str);
-    if (!parse_command(str, all_inventory(environment(this_player())),
+
+    if (!parse_command(str, all_inventory(my_env),
        "[the] %i", oblist) || !sizeof(oblist = NORMAL_ACCESS(oblist, 0, 0)))
     {
         notify_fail("You find no such living creature.\n");
@@ -650,98 +680,100 @@ varargs int kill(string str)
        return 1;
     }
 
+    ob_s_the_name = ({string}) ob->query_the_name(me);
+    me_s_the_name_ob = ({string}) me->query_The_name(ob);
+    ob_s_real_name = ({string}) ob->query_real_name();
+
     if (({int}) ob->query_ghost())
     {
-        write(({string}) ob->query_The_name(this_player()) + " is already dead!\n");
+        write(smart_capitalize_name(ob_s_the_name) + " is already dead!\n");
         return 1;
     }
 
-    if (ob == this_player())
+    if (ob == me)
     {
         write("What? Attack yourself?\n");
         return 1;
     }
 
-    if (({object}) this_player()->query_attack() == ob)
+    if (({object}) me->query_attack() == ob)
     {
         write("Yes, yes.\n");
         return 1;
     }
 
-    if (tmp = ({mixed}) environment(this_player())->query_prop(ROOM_M_NO_ATTACK))
+    if (property_value = ({mixed}) my_env->query_prop(ROOM_M_NO_ATTACK))
     {
-        if (stringp(tmp))
-            write(tmp);
+        if (stringp(property_value))
+            write(property_value);
         else
             write("You sense a divine force preventing your attack.\n");
         return 1;
     }
 
-    if (tmp = ({mixed}) ob->query_prop(OBJ_M_NO_ATTACK))
+    if (property_value = ({mixed}) ob->query_prop(OBJ_M_NO_ATTACK))
     {
-        if (stringp(tmp))
+        if (stringp(property_value))
         {
-            write(tmp);
+            write(property_value);
         }
         else
         {
             write("You feel a divine force protecting " +
-                ({string}) ob->query_the_name(this_player()) + ", your attack fails.\n");
+                ob_s_the_name + ", your attack fails.\n");
         }
 
         return 1;
     }
 
-    if (ob in ({object *}) this_player()->query_team_others())
+    if (ob in ({object *}) me->query_team_others())
     {
-        write("You cannot attack " + ({string}) ob->query_the_name(this_player()) +
+        write("You cannot attack " + ob_s_the_name +
             " as " + ({string}) ob->query_pronoun() + " is in your team.\n");
         return 1;
     }
 
-    if (!({int}) this_player()->query_npc() &&
-        ({int}) this_player()->query_met(ob) &&
-        (({object}) this_player()->query_prop(LIVE_O_LAST_KILL) != ob))
+    if (!({int}) me->query_npc() &&
+        ({int}) me->query_met(ob) &&
+        (({object}) me->query_prop(LIVE_O_LAST_KILL) != ob))
     {
-        this_player()->add_prop(LIVE_O_LAST_KILL, ob);
+        me->add_prop(LIVE_O_LAST_KILL, ob);
+
         /* Only ask if the person did not use the real name of the target. */
-        if (str != ({string}) ob->query_real_name())
+        if (str != ob_s_real_name)
         {
-            write("Attack " + ({string}) ob->query_the_name(this_player()) +
-                "?!? Please confirm by trying again.\n");
+            write("Attack " + ob_s_the_name + "?!? Please confirm by trying again.\n");
             return 1;
         }
     }
 
-    this_player()->reveal_me(1);
+    me->reveal_me(1);
 
     /* Check if we dare! */
-    if (!F_DARE_ATTACK(this_player(), ob))
+    if (!F_DARE_ATTACK(me, ob))
     {
         write("Umm... no. You do not have enough self-discipline to dare!\n");
-        say(QCTNAME(this_player()) + " considers attacking " + QTNAME(ob) +
-            ", though does not dare to do so.\n", ({ ob, this_player() }) );
-        tell_object(ob, ({string}) this_player()->query_The_name(ob) +
-            " looks at you as if ready to attack, though you see fear in " +
-            ({string}) this_player()->query_possessive() + " eyes.\n");
+        say(QCTNAME(me) + " considers attacking " + QTNAME(ob) +
+            ", though does not dare to do so.\n", ({ ob, me }) );
+        tell_object(ob, me_s_the_name_ob + " eyes you critically.\n");
         return 1;
     }
 
-    say(QCTNAME(this_player()) + " attacks " + QTNAME(ob) + ".\n",
-        ({ this_player(), ob }) );
-    tell_object(ob, ({string}) this_player()->query_The_name(ob) + " attacks you!\n");
+    say(QCTNAME(me) + " attacks " + QTNAME(ob) + ".\n", ({ me, ob }) );
+    tell_object(ob, me_s_the_name_ob + " attacks you!\n");
 
-    this_player()->attack_object(ob);
-    this_player()->add_prop(LIVE_O_LAST_KILL, ob);
+    me->attack_object(ob);
+    me->add_prop(LIVE_O_LAST_KILL, ob);
 
-    if (({int}) this_player()->query_option(OPT_ECHO))
+    if (({int}) me->query_option(OPT_ECHO))
     {
-        write("You attack " + ({string}) ob->query_the_name(this_player()) + ".\n");
+        write("You attack " + ob_s_the_name + ".\n");
     }
     else
     {
         write("Ok.\n");
     }
+
     return 1;
 }
 

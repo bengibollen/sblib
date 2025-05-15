@@ -529,6 +529,18 @@ int valid_query_snoop(object obj)
 varargs mixed do_debug(string icmd, mixed a1, mixed a2, mixed a3)
 {
     string euid = geteuid(previous_object());
+    if (euid == BACKBONE_UID)
+    {
+        euid = ROOT_UID;
+    }
+
+    logger->debug(" === do_debug() ===\n");
+    logger->debug("icmd: %s\n", icmd);
+    logger->debug("euid: %s\n", euid);
+    logger->debug("a1: %O\n", a1);
+    logger->debug("a2: %O\n", a2);
+    logger->debug("a3: %O\n", a3);
+    logger->debug("previous_object: %O\n", previous_object());
 
     /* Some debug() commands are not meant to be called by just anybody. Only
      * 'root' and the administration may call them.
@@ -561,9 +573,16 @@ varargs mixed do_debug(string icmd, mixed a1, mixed a2, mixed a3)
     switch (icmd)
     {
         case "get_variables":
-            mixed * vars = variable_list(previous_object(), RETURN_FUNCTION_NAME|RETURN_VARIABLE_VALUE);
-            logger->debug("vars: %O", vars);
-            return mkmapping(map(vars, (: $1[0] :), map(vars, (: $1[1] :)))); 
+            mixed *vars = variable_list(a1, RETURN_FUNCTION_NAME|RETURN_VARIABLE_VALUE);
+            mapping var_map = ([]);
+            if (pointerp(vars)) {
+                for (int i = 0; i < sizeof(vars); i += 2) {
+                    if (i + 1 < sizeof(vars)) {
+                        var_map[vars[i]] = vars[i+1];
+                    }
+                }
+            }
+            return var_map; 
         default:
             break;
 
@@ -2316,7 +2335,7 @@ void cloned_object(object cob, object ob)
  * Description  : Modify a command given by a certain living object. This can
  *                be used for many quicktyper-like functions. There are also
  *                some master.c defined substitutions. Commands that start
- *                with a dollar ($) are not substututed.
+ *                with a dollar ($) are not substituted.
  * Arguments    : string cmd - the command to modify.
  *                object ob - the object for which to modify the command.
  * Returns      : string - the modified command to execute.
@@ -3857,7 +3876,6 @@ int wiz_force_check(string forcer, string forced)
     logger->debug(" === WIZ_FORCE_CHECK === ");
     logger->debug("forcer: %s", forcer);
     logger->debug("forced: %s", forced);
-    logger->debug("this_interactive: %s", this_interactive()->query_real_name());
 
     if (forcer == forced)
     {
@@ -3871,9 +3889,7 @@ int wiz_force_check(string forcer, string forced)
     {
         return 1;
     }
-    {
-        return 1;
-    }
+
 
     dlev = query_wiz_rank(forced);
     logger->debug("dlev: %d", dlev);

@@ -922,12 +922,11 @@ public nomask void open_player()
     if ((previous_object() == find_object(SECURITY)) ||
         (MASTER_OB(previous_object()) == LOGIN_OBJECT))
     {
-
         configure_object(this_object(), OC_EUID, query_real_name());
         log_debug("Player object opened with euid set to 0.");
     }
-    log_debug("Player object opened successfully.");
 
+    log_debug("Player object opened successfully.");
 }
 
 
@@ -1001,7 +1000,7 @@ nomask public int load_player(string pl_name)
         return 0;
     }
 
-    // log_debug("Loading player file: " + pl_name);
+    log_debug("Loading player file: " + pl_name);
     // log_debug("This object: %O", this_object());
 
     configure_object(this_object(), OC_EUID, getuid(previous_object()));
@@ -1233,6 +1232,7 @@ public nomask int new_save(string pl_name, string pwd, string pfile)
  */
 public nomask void create_living()
 {
+    log_debug("Creating player object: create_living.");
     player_save_vars_reset();
     new_init();                 /* All variables to default condition */
 }

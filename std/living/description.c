@@ -133,9 +133,9 @@ public varargs string query_name()
 public string query_met_name()
 {
     if (({int}) this_object()->query_ghost())
-	return "ghost of " + query_name();
-    else
-	return query_name();
+    	return "ghost of " + query_name();
+
+    return query_name();
 }
 
 /*
@@ -155,26 +155,21 @@ public string query_nonmet_name()
 
     /* Espcially true for NPC's. If a short has been set, use it. */
     if (query_short())
-	return ::short();
+    	return ::short();
 
     /* Get the gender description only if needed. */
-    if (query_humanoid() &&
-	!query_prop(LIVE_I_NO_GENDER_DESC) &&
-	(({int}) this_object()->query_gender() != G_NEUTER))
-	gender = ({string}) this_object()->query_gender_string() + " ";
+    if (query_humanoid() && !query_prop(LIVE_I_NO_GENDER_DESC) && (({int}) this_object()->query_gender() != G_NEUTER))
+	    gender = ({string}) this_object()->query_gender_string() + " ";
     else
-	gender = "";
+	    gender = "";
 
     if (sizeof((adj = ({string *}) this_object()->query_adj(1))) > 0)
-	str = implode(adj[..1], " ") + " " + gender +
-        ({string}) this_object()->query_race_name() +
-	    (query_wiz_level() ? (" " + LD_WIZARD) : "");
+        str = implode(adj[..1], " ") + " " + gender + ({string}) this_object()->query_race_name() + (query_wiz_level() ? (" " + LD_WIZARD) : "");
     else
-	str = gender + ({string}) this_object()->query_race_name() +
-	    (query_wiz_level() ? (" " + LD_WIZARD) : "");
+        str = gender + ({string}) this_object()->query_race_name() + (query_wiz_level() ? (" " + LD_WIZARD) : "");
 
     if (query_ghost())
-	str += " " + LD_GHOST;
+	    str += " " + LD_GHOST;
 
     return str;
 }
@@ -307,19 +302,21 @@ public varargs string query_the_name(object pobj)
     log_debug("query_the_name: %O", this_object());
 
     if (!objectp(pobj))
-	pobj = previous_object(-1);
+	    pobj = previous_object(-1);
 
     if (!CAN_SEE(pobj, this_object()) || !CAN_SEE_IN_ROOM(pobj))
-	return LD_SOMEONE;
+	    return LD_SOMEONE;
+
     if (query_prop(OBJ_I_HIDE) > 0)
     {
-	pre = "[";
-	aft = "]";
+        pre = "[";
+        aft = "]";
     }
+
     if (query_prop(OBJ_I_INVIS) > 0)
     {
-	pre = "(";
-	aft = ")";
+        pre = "(";
+        aft = ")";
     }
 
 #ifdef MET_ACTIVE
@@ -327,7 +324,8 @@ public varargs string query_the_name(object pobj)
 	return pre + LD_THE + " " + query_nonmet_name() + aft;
     else
 #endif
-	return pre + query_met_name() + aft;
+
+    return pre + query_met_name() + aft;
 }
 
 /*

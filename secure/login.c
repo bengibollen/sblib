@@ -642,8 +642,7 @@ static void start_player2(object ob)
                 ({ ob }) );
         }
 
-        tell_object(ob,
-            "New interactive link to your body. Closing this connection.\n");
+        tell_object(ob, "New interactive link to your body. Closing this connection.\n");
 
         dump = clone_object(LOGIN_NEW_PLAYER);
         /* Swap old socket to dummy player. */
@@ -652,7 +651,6 @@ static void start_player2(object ob)
         old_was_live = 1;
     }
 
-    
     log_debug("Swapping to the player object.");
     log_debug("This object: " + to_string(this_object()) + "\n");
     log_debug("Ob object: " + to_string(ob) + "\n");
@@ -729,8 +727,7 @@ static void start_player1()
      *    3 - The players racefile is not a legal playerfile, a new body
      *        must be choosen.
      */
-    if (!player_file ||
-        (player_file == LOGIN_NEW_PLAYER))
+    if (!player_file || (player_file == LOGIN_NEW_PLAYER))
     {
         /* Only clone if we have not done so yet. */
         if (!objectp(ob))

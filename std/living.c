@@ -250,7 +250,7 @@ public void catch_vbfc(mixed str, object from_player = 0)
         log_debug("Function: catch_vbfc");
         log_debug("Raw string: %s", str);
         log_debug("Processed string: %s", process_string(str));
-        write(process_string(str));
+        tell_object(this_object(), process_string(str));
     }
 }
 

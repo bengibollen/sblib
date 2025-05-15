@@ -700,6 +700,7 @@ int Dump(string str)
     case "vars":
     case "variables":
         map_data = ({mapping}) SECURITY->do_debug("get_variables", ob);
+        log_debug("get_variables, map_data: %O", map_data);
 	    vars = m_indices(map_data);
 
         for (i = 0; i < sizeof(vars); i++)

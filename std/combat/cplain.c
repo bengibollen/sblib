@@ -59,7 +59,13 @@ public void cb_configure()
  *
  * Returns:       True if added.
  */
-public int cb_add_attack(int wchit, mixed wcpen, int damtype, int prcuse, int id, int skill)
+public int cb_add_attack(
+    int wchit,
+    mixed wcpen,
+    int damtype,
+    int prcuse,
+    int id,
+    int skill)
 {
     return ::add_attack(wchit, wcpen, damtype, prcuse, id, skill);
 }
