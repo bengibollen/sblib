@@ -43,6 +43,7 @@ nomask void reset_mobile()
  */
 public string query_combat_file()
 {
+    log_debug("Using creature (plain) combat file");
     return "/std/combat/cplain";
 }
 

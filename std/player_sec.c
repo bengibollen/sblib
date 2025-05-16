@@ -719,8 +719,9 @@ private nomask int setup_player(string pl_name)
     decay_time = time();
     setup_skill_decay();
 #endif
-
-    query_combat_object()->cb_configure();
+    // Combat object already configure in create_living()
+    // log_debug("Configuring combat object for player");
+    // query_combat_object()->cb_configure();
     // log_debug("Player setup completed successfully.");
     return 1;
 }

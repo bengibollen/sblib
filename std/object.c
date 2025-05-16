@@ -394,21 +394,20 @@ public varargs string short(object for_obj)
  *                  if not defined we assume that we are doing a vbfc
  *                  through the vbfc_object
  */
-// varargs public string
-// vbfc_short(object pobj)
-// {
-//     if (!objectp(pobj))
-//     {
-//         pobj = previous_object(-1);
-//     }
-//     if (!({int}) this_object()->check_seen(pobj) ||
-//         !CAN_SEE_IN_ROOM(pobj))
-//     {
-//         return "something";
-//     }
+varargs public string vbfc_short(object pobj)
+{
+    if (!objectp(pobj))
+    {
+        pobj = previous_object(-1);
+    }
+    if (!({int}) this_object()->check_seen(pobj) ||
+        !CAN_SEE_IN_ROOM(pobj))
+    {
+        return "something";
+    }
 
-//     return short(pobj);
-// }
+    return short(pobj);
+}
 
 
 /*

@@ -62,6 +62,7 @@ reset_npc() { reset_monster(); }
 public string
 query_combat_file()
 {
+    log_debug("Using monster (humanoid) combat file");
     return "/std/combat/chumanoid";
 }
 

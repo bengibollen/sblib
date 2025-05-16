@@ -33,6 +33,8 @@ inherit "/std/combat/ctool";
 #include <options.h>
 #include <libfiles.h>
 
+public void cb_modify_procuse();
+
 static  int             attuse;      /* Total %use, 100% is 1 attack */
 
 
@@ -65,6 +67,7 @@ public void cb_configure()
     add_attack(0, 0, 0, 0, W_BOTH);  me->cr_reset_attack(W_BOTH);
     add_attack(0, 0, 0, 0, W_FOOTR); me->cr_reset_attack(W_FOOTR);
     add_attack(0, 0, 0, 0, W_FOOTL); me->cr_reset_attack(W_FOOTL);
+    cb_modify_procuse();
 
     add_hitloc(0, 0, 0, A_HEAD);  me->cr_reset_hitloc(A_HEAD);
     add_hitloc(0, 0, 0, A_L_ARM); me->cr_reset_hitloc(A_L_ARM);
@@ -167,6 +170,7 @@ public void cb_modify_procuse()
  */
 public void cb_set_attackuse(int sumproc)
 {
+    log_debug("Setting attackuse to %d", sumproc);
     attuse = sumproc;
     cb_modify_procuse();
 }
@@ -193,7 +197,6 @@ varargs int add_attack(int wchit, mixed wcpen, int damtype, int prcuse, int id, 
     log_debug("Adding attack in chumanoid: %d", id);
 
     ret = ::add_attack(wchit, wcpen, damtype, prcuse, id, skill, wep);
-    cb_modify_procuse();
 
     return ret;
 }
@@ -212,29 +215,31 @@ public mixed cb_wield_weapon(object wep)
     mixed *att;
     mixed str;
 
-    if (!({int}) me->query_wiz_level() &&
-        function_exists("create_object", wep) != WEAPON_OBJECT)
+    if (!({int}) me->query_wiz_level() && function_exists("create_object", wep) != WEAPON_OBJECT)
     {
-	return "The " + ({string}) wep->short() + " is not a true weapon!\n";
+    	return "The " + ({string}) wep->short() + " is not a true weapon!\n";
     }
 
     if (stringp(str = ::cb_wield_weapon(wep)))
     {
-	return str;
+    	return str;
     }
 
     aid = ({int}) wep->query_attack_id();
+
     if (cb_query_weapon(aid) == wep)
     {
-	att = query_attack(aid);
+    	att = query_attack(aid);
     	/*
          * We get no more use of the weapon than our skill with it allows.
-	 */
-	wcskill = ({int}) me->query_skill(SS_WEP_FIRST +
-				       (({int}) wep->query_wt() - W_FIRST));
-	if (wcskill < 1)
-	    wcskill = -1;
-	add_attack(att[0], att[1], att[2], att[3], aid, wcskill, wep);
+    	 */
+        wcskill = ({int}) me->query_skill(SS_WEP_FIRST + (({int}) wep->query_wt() - W_FIRST));
+
+        if (wcskill < 1)
+            wcskill = -1;
+
+        add_attack(att[0], att[1], att[2], att[3], aid, wcskill, wep);
+        cb_modify_procuse();
     }
 
     return 1;
@@ -249,10 +254,9 @@ public mixed cb_wield_weapon(object wep)
  */
 public mixed cb_wear_arm(object arm)
 {
-    if (!({int}) me->query_wiz_level() &&
-        function_exists("create_object", arm) != ARMOUR_OBJECT)
+    if (!({int}) me->query_wiz_level() && function_exists("create_object", arm) != ARMOUR_OBJECT)
     {
-	return "The " + ({string}) arm->short() + " is not a true armour!\n";
+    	return "The " + ({string}) arm->short() + " is not a true armour!\n";
     }
 
     return ::cb_wear_arm(arm);

@@ -78,6 +78,7 @@ reset_creature()
 public string
 query_combat_file()
 {
+    log_debug("Using npc (tool) combat file");
     return "/std/combat/ctool";
 }
 

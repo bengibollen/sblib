@@ -21,6 +21,7 @@ inherit "/std/combat/cplain";
 #include <stdproperties.h>
 
 /* Prototypes */
+public void cb_modify_procuse();
 public void cb_remove_arm(object wep);
 static void adjust_ac(int hid, object arm, int rm);
 
@@ -419,4 +420,5 @@ public void cb_update_weapon(object wep)
     add_attack(({int}) wep->query_hit(), ({int *}) wep->query_modified_pen(), ({int}) wep->query_dt(),
         ({int}) wep->query_procuse(), ({int}) wep->query_attack_id(),
         ({int}) me->query_skill(({int}) wep->query_wt()), wep);
+    cb_modify_procuse();
 }

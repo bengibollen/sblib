@@ -32,7 +32,11 @@ static	mapping 	com_sounds;
  * Description:   Gives the name of the file to use for combat.
  */
 public nomask string
-query_combat_file() { return "/std/combat/chumlock"; }
+query_combat_file()
+{
+    log_debug("Using human (generic) combat file");
+    return "/std/combat/chumlock";
+}
 
 
 void finger_info()

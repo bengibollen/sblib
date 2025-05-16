@@ -35,9 +35,9 @@ public nomask void cr_configure()
     ::cr_configure();
 
     if (query_attackuse())
-	QEXC->cb_set_attackuse(query_attackuse());
+		QEXC->cb_set_attackuse(query_attackuse());
     else
-	QEXC->cb_set_attackuse(100);
+		QEXC->cb_set_attackuse(100);
 }
 
 

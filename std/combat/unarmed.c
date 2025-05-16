@@ -61,6 +61,7 @@ public varargs void set_attack_unarmed(
 
 public mixed *query_ua_attack(int aid)
 {
+    log_debug("Querying unarmed attack %d", aid);
     return ua_attdata[aid];
 }
 
@@ -122,12 +123,19 @@ public int query_attackuse()
 public void cr_configure()
 {
     if (mappingp(ua_attdata))
-	map(m_indices(ua_attdata), #'cr_reset_attack);
+    {
+	    map(m_indices(ua_attdata), #'cr_reset_attack);
+    }
+
     if (mappingp(ua_hitdata))
-	map(m_indices(ua_hitdata), #'cr_reset_hitloc);
+    {
+	    map(m_indices(ua_hitdata), #'cr_reset_hitloc);
+    }
 
     if (ua_attuse)
-	QEXC->cb_set_attackuse(ua_attuse);
+    {
+	    QEXC->cb_set_attackuse(ua_attuse);
+    }
 }
 
 
@@ -141,9 +149,10 @@ public void cr_reset_attack(int aid)
 {
     mixed att;
 
+    log_debug("Resetting unarmed attack %d", aid);
     if (!mappingp(ua_attdata))
     {
-	ua_attdata = ([]);
+	    ua_attdata = ([]);
     }
 
     att = ua_attdata[aid];

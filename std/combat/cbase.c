@@ -1893,7 +1893,7 @@ varargs public nomask mixed cb_hit_me(
      * Wizards are immortal. (immorale ??)
      */
     log_debug("Check if immortal. me: %O", me);
-    if (({int}) me->query_wiz_level() && dam >= hp)
+    if (dam >= hp && ({int}) me->query_wiz_level())
     {
         tell_object(me, "Your wizardhood protects you from death.\n");
         tell_room(environment(me),

@@ -45,6 +45,7 @@ public mixed query_enemy(int arg);
  */
 public string query_combat_file()
 {
+    log_debug("Using base combat file: %s", COMBAT_FILE);
     return COMBAT_FILE;
 }
 
