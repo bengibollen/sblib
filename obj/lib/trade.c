@@ -186,9 +186,9 @@
 #pragma strict_types
 
 
-#include "/sys/stdproperties.h"
-#include "/sys/macros.h"
-#include "/sys/money.h"
+#include <stdproperties.h>
+#include <macros.h>
+#include <money.h>
 
 #define MONEY_GIVE_MAX     MONEY_VALUES[3]
   /* Good thing to set the copper max to this give max so no money will be lost

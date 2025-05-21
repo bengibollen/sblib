@@ -5,7 +5,7 @@
  */
 #pragma strict_types
 
-inherit "/lib/trade";
+inherit "/obj/lib/trade";
 
 #include <cmdparse.h>
 #include <composite.h>
