@@ -1,0 +1,46 @@
+{
+  "driver": {
+    "type": "ldmud",
+    "version": "3.6.7"
+  },
+  "include": [
+    "./**/*"
+  ],
+  "exclude": [
+    "**/.*/**",
+    "**/backup/**",
+    "**/tmp/**",
+    "**/log/**"
+  ],
+  "libFiles": {
+    "master": "/secure/master.c",
+    "simul_efun": "/secure/simul_efun.c",
+    "global_include": "/inc/std.h",
+    "player": "/std/player_sec.c"
+  },
+  "libInclude": [
+    "/inc/",
+    "/sys/",
+    "/std/",
+    "/lib/",
+    "/secure/",
+    "/obj/"
+  ],
+  "defines": [
+    { "__VERSION__": "\"3.6.7\"" },
+    { "MUD_NAME": "\"Silverminken\"" },
+    { "HOST_NAME": "\"localhost\"" },
+    { "EMAIL": "\"admin@localhost\"" },
+    { "MAX_MALLOC_SIZE": "0x60000000" },
+    { "MASTER_OB": "__MASTER_OBJECT__" },
+    { "MAP_OB": "\"/map/map\"" },
+    { "CRON_OB": "\"/apps/cron\"" },
+    { "LOGIN_OB": "\"/secure/obj/login\"" },
+    { "WIZARD_SHELL_OB": "\"/obj/wizard_shell\"" }
+  ],
+  "diagnostics": "on",
+  "compilerOptions": {
+    "strictObjectTypes": false,
+    "allowUnreachableCode": true
+  }
+}
