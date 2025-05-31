@@ -89,77 +89,53 @@ public void cb_configure()
  */
 public void cb_modify_procuse()
 {
-    int il, *attid, *enabled_attacks, swc, puse, weapon_no;
-    int unarmed_off;
-    mixed *att;
+    int swc = 0, puse, weapon_no, unarmed_off;
     object tool;
-
-    log_debug("=== cb_modify_procuse. size of attid: %d", sizeof(attid));
+    int *attid;
+    mixed *attack;
 
     if (!attuse)
         return;
 
     attid = query_attack_id();
-    log_debug("Attid: %O", attid);
-    log_debug("Attid size: %d", sizeof(attid));
-    att = allocate(sizeof(attid));
-    enabled_attacks = allocate(sizeof(attid));
-    weapon_no = sizeof(cb_query_weapon(-1));
+    weapon_no = sizeof(cb_query_weapons());
     unarmed_off = ({int}) me->query_option(OPT_UNARMED_OFF);
 
-    for (swc = 0, il = 0; il < sizeof(attid); il++)
+    mapping enabled_attacks = ([]);
+    mapping attacks_data = ([]);
+
+    foreach (int id in attid)
     {
-        att[il] = query_attack(attid[il]);
-
-        if (!att[il][ATT_OBJ])
-    	{
-            /* No weapon in this slot.  See if unarmed is off
-                * and there is a weapon wielded elsewhere.
-                */
+        attack = query_attack(id);
+        attacks_data[id] = attack;
+        if (!attack[ATT_OBJ])
+        {
             if (unarmed_off && (weapon_no > 0))
-            {
                 continue;
-            }
-
-            /* See if there is another kind of tool in the slot
-             * that might prevent us from using it to attack.
-             */
-            if ((tool = ({object})qme()->query_tool(attid[il])) &&
-                ({int})tool->query_attack_blocked(attid[il]))
-            {
+            if ((tool = ({object})qme()->query_tool(id)) &&
+                ({int})tool->query_attack_blocked(id))
                 continue;
-            }
         }
-
-        enabled_attacks[il] = 1;
-        swc += att[il][ATT_WCHIT] * F_PENMOD(att[il][ATT_WCHIT], att[il][ATT_SKILL]);
+        enabled_attacks[id] = 1;
+        swc += attack[ATT_WCHIT] * F_PENMOD(attack[ATT_WCHIT], attack[ATT_SKILL]);
     }
 
-    log_debug("Me: %O", me);
-    log_debug("This Object: %O", this_object());
-    log_debug("Attacks: %O", attid);
-
-    for (il = 0; il < sizeof(attid); il++)
+    foreach (int id in attid)
     {
-        log_debug("Attack il: %d", il);
-        log_debug("Attack id: %d", attid[il]);
-        log_debug("Enabled attack: %d", enabled_attacks[il]);
-
-        if (swc && enabled_attacks[il])
+        attack = attacks_data[id];
+        if (swc && enabled_attacks[id])
         {
-            puse = (attuse * att[il][ATT_WCHIT] *
-                    F_PENMOD(att[il][ATT_WCHIT], att[il][ATT_SKILL])) / swc;
-            log_debug("Attack use%%: %d", puse);
+            puse = (attuse * attack[ATT_WCHIT] *
+                    F_PENMOD(attack[ATT_WCHIT], attack[ATT_SKILL])) / swc;
         }
         else
         {
             puse = 0;
         }
-
-        ::add_attack(att[il][ATT_WCHIT], att[il][ATT_WCPEN],
-                     att[il][ATT_DAMT], puse, attid[il],
-                     (att[il][ATT_SKILL] ? att[il][ATT_SKILL] : -1),
-                     att[il][ATT_OBJ] );
+        ::add_attack(attack[ATT_WCHIT], attack[ATT_WCPEN],
+                     attack[ATT_DAMT], puse, id,
+                     (attack[ATT_SKILL] ? attack[ATT_SKILL] : -1),
+                     attack[ATT_OBJ]);
     }
 }
 

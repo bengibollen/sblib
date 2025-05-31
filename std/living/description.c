@@ -472,7 +472,7 @@ public varargs string short(object for_obj)
  * Description:   Gives short as seen by previous object
  * Returns:	  string holding short()
  */
-public string vbfc_short()
+varargs public string vbfc_short(object ob)
 {
     object for_obj;
 

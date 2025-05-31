@@ -76,21 +76,21 @@ public nomask mixed cb_update_attack();
          hit_id:    Specific id, for humanoids, A_TORSO, A_HEAD etc
 */
 
-static int    *att_id = ({}),    /* Id's for attacks */
-              *hit_id = ({}),    /* Id's for hitlocations */
+static int    *hit_id = ({}),    /* Id's for hitlocations */
               panic,             /* Dont panic... */
               panic_time,        /* Time panic last checked. */
               tohit_val,         /* A precalculated tohit value for someone */
               i_am_real,         /* True if the living object is interactive */
               alarm_id,          /* The id of the heart_beat alarm */
               combat_time,       /* The last time a hit was made. */
-              tohit_mod;         /* Bonus/Minus to the tohit value */
+              tohit_mod,         /* Bonus/Minus to the tohit value */
+              beat;              /* The beat count for the heart_beat */
 
 static float  speed = 0.0,       /* How often I hit */
               delay = 0.0;
 
-static mixed  *attacks = ({}),   /* Array of each attack */
-              *hitloc_ac = ({}); /* The armour classes for each hitloc */
+static mapping attacks = ([]);   /* Mapping of each attack */
+static mixed *hitloc_ac = ({}); /* The armour classes for each hitloc */
 
 static object me,                /* The living object concerned */
               *enemies = ({}),   /* Array holding all living I hunt */
@@ -130,29 +130,31 @@ public string cb_status()
         str += "No enemies pending";
 
     str += sprintf("\nPanic: %3d, Attacks: %3d, Hitlocations: %3d\n",
-                   cb_query_panic(), sizeof(att_id), sizeof(hit_id));
+                   cb_query_panic(), sizeof(attacks), sizeof(hit_id));
 
-    il = -1;
-    size = sizeof(att_id);
-    while(++il < size)
+    // Refactored: Use foreach over attacks mapping
+    int header_printed = 0;
+    foreach (int id, mixed *attack in attacks)
     {
-        if (!il)
+        if (!header_printed) {
             str += sprintf("\n%-20s %@|9s\n","  Attack",
                            ({"wchit",
                              "impale/slash/bludg ", "wcskill",
                              "   %use" }));
-        ac = attacks[il][ATT_DAMT];
-        ac = ({ (ac & W_IMPALE ? attacks[il][ATT_WCPEN][0] + " " : "no "),
-                (ac & W_SLASH ? attacks[il][ATT_WCPEN][1] + " " : "no "),
-                (ac & W_BLUDGEON ? attacks[il][ATT_WCPEN][2] + " " : "no ") });
+            header_printed = 1;
+        }
+        ac = attack[ATT_DAMT];
+        ac = ({ (ac & W_IMPALE ? attack[ATT_WCPEN][0] + " " : "no "),
+                (ac & W_SLASH ? attack[ATT_WCPEN][1] + " " : "no "),
+                (ac & W_BLUDGEON ? attack[ATT_WCPEN][2] + " " : "no ") });
         ac = implode(ac,"   ");
 
         str += sprintf("%-20s %|9d %-17s %|9d %|9d\n",
-            ({string}) this_player()->check_call(cb_attack_desc(att_id[il])) + ":",
-            attacks[il][ATT_WCHIT],
+            ({string}) this_player()->check_call(cb_attack_desc(id)) + ":",
+            attack[ATT_WCHIT],
             ac,
-            attacks[il][ATT_SKILL],
-            attacks[il][ATT_PROCU]);
+            attack[ATT_SKILL],
+            attack[ATT_PROCU]);
     }
 
     il = -1;
@@ -207,37 +209,54 @@ string cb_data()
         fixnorm(({int}) me->query_encumberance_weight() +
             ({int}) me->query_encumberance_volume(), 60);
 
+    log_debug("Dex: %d, Enc (wt): %d, Enc (vol): %d", ({int}) me->query_stat(SS_DEX),
+        ({int}) me->query_encumberance_weight(),
+        ({int}) me->query_encumberance_volume());
+    log_debug("Fixnorm dex: %d",
+        fixnorm(({int}) me->query_stat(SS_DEX), 50));
+    log_debug("Fixnorm enc: %d",
+        fixnorm(({int}) me->query_encumberance_weight() +
+            ({int}) me->query_encumberance_volume(), 60));
+    
+    log_debug("Val: %d", val);
+
     tmp = 0;
     i = -1;
-    size = sizeof(att_id);
-    while(++i < size)
+    size = sizeof(attacks);
+
+    foreach (int id, mixed *attack in attacks)
     {
-        tmp += attacks[i][ATT_WCHIT] * attacks[i][ATT_PROCU];
+        log_debug("Attack: %O", attack);
+        tmp += attack[ATT_WCHIT] * attack[ATT_PROCU];
     }
+
     tmp /= 100;
+
+    log_debug("Tmp: %d", tmp);
+    log_debug("Fixnorm tmp: %d", fixnorm(2 * tmp, 50));
 
     val += 4 * fixnorm(2 * tmp, 50);
 
     str += sprintf("\n%-20s %5d\n", "Offensive tohit:", val);
 
     val = 0;
-    i = -1;
-    size = sizeof(att_id);
-    while(++i < size)
+
+    foreach (int id, mixed *attack in attacks)
     {
-        ac = attacks[i][ATT_DAMT];
+        ac = attack[ATT_DAMT];
+
         if (ac & W_IMPALE)
-            tmp = attacks[i][ATT_M_PEN][0];
+            tmp = attack[ATT_M_PEN][0];
         else if (ac & W_SLASH)
-            tmp = attacks[i][ATT_M_PEN][1];
+            tmp = attack[ATT_M_PEN][1];
         else if (ac & W_BLUDGEON)
-            tmp = attacks[i][ATT_M_PEN][2];
-        val += tmp * attacks[i][ATT_PROCU];
+            tmp = attack[ATT_M_PEN][2];
+
+        val += tmp * attack[ATT_PROCU];
     }
+
     val /= 100;
-
     str += sprintf("%-20s %5d\n", "Offensive pen:", val);
-
     val = 2 * fixnorm(50, ({int}) me->query_stat(SS_DEX)) -
         fixnorm(60, ({int}) me->query_encumberance_weight() +
             ({int}) me->query_encumberance_volume());
@@ -260,10 +279,12 @@ string cb_data()
     val = 0;
     i = -1;
     size = sizeof(hit_id);
+
     while(++i < size)
     {
         val += hitloc_ac[i][HIT_M_AC][0] * hitloc_ac[i][HIT_PHIT];
     }
+
     val /= 100;
 
     str += sprintf("%-20s %5d\n", "Defensive ac:", val);
@@ -358,10 +379,9 @@ public object qme()
  */
 public void cb_configure()
 {
-    att_id = ({});
     hit_id = ({});
     hitloc_ac = ({});
-    attacks = ({});
+    attacks = ([]);
 }
 
 
@@ -1373,19 +1393,30 @@ public void cb_unwield(object wep)
  */
 public mixed cb_query_weapon(int which)
 {
-    int pos;
-
-    if (which == -1)
-    {
-        return filter(map(attacks, (: $1[ATT_OBJ] :)), #'objectp);
-    }
-
-    if ((pos = member(att_id, which)) < 0)
-    {
+    if (!member(attacks, which))
         return 0;
+    return attacks[which][ATT_OBJ];
+}
+
+
+/*
+ * Function name: cb_query_weapons
+ * Description:   Returns a list of all weapons held.
+ * Returns:       The corresponding weapon(s).
+ */
+public mixed cb_query_weapons()
+{
+    object *weapons = ({});
+
+    foreach (int id, mixed *attack in attacks)
+    {
+        if (pointerp(attack) && sizeof(attack) > ATT_OBJ && pointerp(attack[ATT_OBJ]))
+        {
+            weapons += ({ attack[ATT_OBJ] });
+        }
     }
 
-    return attacks[pos][ATT_OBJ];
+    return weapons;
 }
 
 
@@ -1494,6 +1525,9 @@ public nomask void cb_update_speed()
 
 static void restart_heart()
 {
+    log_debug("=== START FIGHT ===");
+    beat = 0;
+
     /* Mark this moment as being in combat. */
     cb_update_combat_time();
 
@@ -1508,6 +1542,7 @@ static void restart_heart()
  */
 static void stop_heart()
 {
+    log_debug("=== STOP FIGHT ===");
     me->remove_prop(LIVE_I_ATTACK_DELAY);
 
     configure_object(this_object(), OC_HEART_BEAT, 0);
@@ -1526,6 +1561,16 @@ static nomask void heart_beat()
     string logtext;
     mixed           *hitresult, *dbits, pen, fail;
     object          *new, ob;
+
+    log_debug("heart_beat: %O", this_object());
+    log_debug("Beat: %d", beat);
+
+    if (beat++ % 3 != 0)
+    {
+        return;
+    }
+
+    log_debug("=== attack#%d ===", beat/3);
 
     if (!objectp(me) || ({int}) me->query_ghost())
     {
@@ -1573,6 +1618,7 @@ static nomask void heart_beat()
 
     if (({int}) me->query_prop(LIVE_I_STUNNED))
     {
+        log_debug("Stunned");
         return;
     }
 
@@ -1581,6 +1627,7 @@ static nomask void heart_beat()
      */
     if (({int}) me->query_npc() && ({int}) me->special_attack(attack_ob))
     {
+        log_debug("Special attack");
         return;
     }
 
@@ -1602,24 +1649,24 @@ static nomask void heart_beat()
     /* Mark this moment as being in combat. */
     cb_update_combat_time();
 
-    il = -1;
-    size = sizeof(attacks);
-    while(++il < size)
+    foreach (int id, mixed *attack in attacks)
     {
-        if (!objectp(me))
-            break;
-
+        log_debug("Attack: %d", attack);
         /*
          * Will we use this attack this round? (random(100) < %use)
          */
-        if (random(100) < attacks[il][ATT_PROCU])
+        if (random(100) < attack[ATT_PROCU])
         {
+            log_debug("Attacking id %d", id);
             /*
              * The attack has a chance of failing. If for example the attack
              * comes from a wielded weapon, the weapon can force a fail or
              * if the wchit is to low for this opponent.
              */
-            hitsuc = cb_try_hit(att_id[il]);
+            hitsuc = cb_try_hit(id);
+
+            log_debug("Hitsuc: %d", hitsuc);
+            
             if (hitsuc <= 0)
             {
                 continue;
@@ -1629,13 +1676,13 @@ static nomask void heart_beat()
              * The intended victim can also force a fail. like in the weapon
              * case, if fail, the cause must produce explanatory text himself.
              */
-            hitsuc = ({int}) attack_ob->query_not_attack_me(me, att_id[il]);
+            hitsuc = ({int}) attack_ob->query_not_attack_me(me, id);
             if (hitsuc > 0)
             {
                 continue;
             }
 
-            hitsuc = cb_tohit(att_id[il], attacks[il][ATT_WCHIT], attack_ob);
+            hitsuc = cb_tohit(id, attack[ATT_WCHIT], attack_ob);
 
             if (hitsuc > 0)
             {
@@ -1643,7 +1690,7 @@ static nomask void heart_beat()
                 if (crit = (!random(10000)))
                 {
                     // Critical hit!
-                    pen = attacks[il][ATT_M_PEN];
+                    pen = attack[ATT_M_PEN];
 
                     if (sizeof(pen))
                     {
@@ -1654,7 +1701,7 @@ static nomask void heart_beat()
                 }
                 else
                 {
-                    pen = attacks[il][ATT_M_PEN];
+                    pen = attack[ATT_M_PEN];
 
                     if (sizeof(pen))
                     {
@@ -1667,11 +1714,11 @@ static nomask void heart_beat()
                     }
                 }
 
-                dt = attacks[il][ATT_DAMT];
+                dt = attack[ATT_DAMT];
                 dbits = ({dt & W_IMPALE, dt & W_SLASH, dt & W_BLUDGEON }) - ({0});
                 dt = sizeof(dbits) ? one_of_list(dbits) : W_NO_DT;
 
-                hitresult = ({mixed}) attack_ob->hit_me(pen, dt, me, att_id[il]);
+                hitresult = ({mixed}) attack_ob->hit_me(pen, dt, me, id);
 
                 if (crit)
                 {
@@ -1684,7 +1731,7 @@ static nomask void heart_beat()
             }
             else
             {
-                hitresult = ({mixed}) attack_ob->hit_me(hitsuc, 0, me, att_id[il]);
+                hitresult = ({mixed}) attack_ob->hit_me(hitsuc, 0, me, id);
             }
 
             /*
@@ -1693,7 +1740,7 @@ static nomask void heart_beat()
              */
             if (hitsuc > 0)
             {
-                hitsuc = attacks[il][ATT_WCPEN][tmp];
+                hitsuc = attack[ATT_WCPEN][tmp];
                 if (hitsuc > 0)
                 {
                     hitsuc = 100 * hitresult[2] / hitsuc;
@@ -1706,7 +1753,7 @@ static nomask void heart_beat()
 
             if (hitresult[1])
             {
-                cb_did_hit(att_id[il], hitresult[1], hitresult[4], hitresult[0],
+                cb_did_hit(id, hitresult[1], hitresult[4], hitresult[0],
                        attack_ob, dt, hitsuc, hitresult[3]);
             }
             else
@@ -2079,6 +2126,7 @@ public nomask void cb_stop_fight(mixed elist)
 public nomask void cb_update_enemies()
 {
     enemies = filter(enemies, #'objectp);
+    log_debug("Update enemies: %O", enemies);
 }
 
 
@@ -2137,12 +2185,18 @@ public nomask mixed cb_update_attack()
     object *targets, old_enemy;
 
 
+    log_debug("cb_update_attack");
+
     /* Old enemy valid? */
     old_enemy = attack_ob;
+
     if (cb_query_attack())
     {
+        log_debug("cb_update_attack: attack_ob is valid: %O", attack_ob);
         return attack_ob;
     }
+
+    log_debug("cb_update_attack: no attack_ob, looking for new enemies");
 
     me->notify_enemy_gone(attack_ob);
     /* To cling to an enemy we must fight it. */
@@ -2151,7 +2205,6 @@ public nomask mixed cb_update_attack()
 
     old_enemy = attack_ob;
     attack_ob = 0;
-
 
     /* Look for any new enemies to attack. */
     targets = (all_inventory(environment(me)) & enemies) - ({ attack_ob });
@@ -2171,6 +2224,7 @@ public nomask mixed cb_update_attack()
          * enough to remove some stuns. */
         me->remove_prop(LIVE_I_ATTACK_DELAY);
         me->remove_prop(LIVE_I_STUNNED);
+        stop_heart();
     }
 
     return attack_ob;
@@ -2228,6 +2282,7 @@ varargs int add_attack(
     }
 
     pos = -1;
+
     while(++pos < W_NO_DT)
     {
         if (!pointerp(wcpen))
@@ -2246,20 +2301,18 @@ varargs int add_attack(
             pen[pos] = wcpen[pos];
         }
     }
-    log_debug("Attack id object: %O", att_id);
-    if ((pos = member(att_id, id)) < 0)
+
+    if (!(id in m_indices(attacks)))
     {
         log_debug("Adding attack, pruse: %d", prcuse);
         log_debug("Adding attack, id: %d, pos: %d", id, pos);
-        att_id += ({ id });
-        attacks += ({ ({ wchit, pen, damtype, prcuse, skill, m_pen, wep }) });
-        return 1;
+        attacks[id] = ({ wchit, pen, damtype, prcuse, skill, m_pen, wep });
     }
     else
     {
         log_debug("Updating attack, pruse: %d", prcuse);
         log_debug("Updating attack, id: %d, pos: %d", id, pos);
-        attacks[pos] = ({ wchit, pen, damtype, prcuse, skill, m_pen, wep });
+        attacks[id] = ({ wchit, pen, damtype, prcuse, skill, m_pen, wep });
     }
 
     return 1;
@@ -2274,12 +2327,9 @@ varargs int add_attack(
  */
 static int remove_attack(int id)
 {
-    int pos;
-
-    if ((pos = member(att_id, id)) >= 0)
+    if (id in m_indices(attacks))
     {
-        attacks = exclude_array(attacks, pos, pos);
-        att_id = exclude_array(att_id, pos, pos);
+        m_delete(attacks, id);
         return 1;
     }
 
@@ -2294,7 +2344,7 @@ static int remove_attack(int id)
  */
 public int * query_attack_id()
 {
-    return att_id + ({});
+    return m_indices(attacks);
 }
 
 
@@ -2306,15 +2356,26 @@ public int * query_attack_id()
  */
 public mixed * query_attack(int id)
 {
-    int pos;
+    log_debug("Querying attack ");
 
-    if ((pos = member(att_id, id)) >= 0)
+    if (id in m_indices(attacks))
     {
-        log_debug("Querying attack ");
-        return attacks[pos];
+        log_debug("Found attack id: %d", id);
+        return attacks[id];
     }
 
+    log_debug("Did not find attack id: %d", id);
     return 0;
+}
+
+/*
+ * Function name: query_attacks
+ * Description:   Gives a list of all attacks.
+ * Returns:       An array of all attacks.
+ */
+public mapping query_attacks()
+{
+    return attacks;
 }
 
 

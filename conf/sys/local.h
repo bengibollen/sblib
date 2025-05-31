@@ -343,7 +343,7 @@
  * If DAY_AND_NIGHT is active there will be a day night cyclus from 10 pm
  * to 5 am.
  */
-#define DAY_AND_NIGHT
+//#define DAY_AND_NIGHT
 
 /*
  * STATUE_WHEN_LINKDEAD

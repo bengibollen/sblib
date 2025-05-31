@@ -114,7 +114,7 @@ public mixed cb_wield_weapon(object wep)
      * skill > 20 will it be profitable to wield 2 weapons.
      * Attack use range from 80 to 150
      */
-    if (sizeof(cb_query_weapon(-1)) > 1)
+    if (sizeof(cb_query_weapons()) > 1)
     {
         extra = ({int}) qme()->query_skill(SS_2H_COMBAT);
         extra = extra > 20 ? extra / 2 : extra - 20;
@@ -139,7 +139,7 @@ public void cb_unwield(object wep)
 
    /* If we wield no more than 1 weapon our % use should go back to 100 */
 
-    if (sizeof(cb_query_weapon(-1)) < 2)
+    if (sizeof(cb_query_weapons()) < 2)
     {
         this_object()->cb_set_attackuse(100);
     }
