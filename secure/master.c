@@ -35,7 +35,7 @@ private nosave object logger;  // We'll initialize this later
 private int     game_started;
 private string  *def_locations;
 private string  *temp_locations;
-private mapping known_muds;
+// private mapping known_muds;
 private int     runlevel;
 
 /*
@@ -56,7 +56,7 @@ private static mapping command_substitute = ([
     "ne" : "northeast",
     ]);
 private static mapping move_opposites;
-private static string  udp_manager;
+// private static string  udp_manager;
 private static int     irregular_uptime;
 
 

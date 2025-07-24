@@ -45,7 +45,7 @@
  */
 static private string  mail_wizard  = 0;
 static private mapping mail_system  = 0;
-static private int     mail_alarm   = 0;
+// static private int     mail_alarm   = 0;
 
 /*
  * Function name: restore_mail
@@ -364,7 +364,7 @@ purge_check_messages(int dir, int messages, int purged, string *files)
 
     mail_system = 0;
     mail_wizard = 0;
-    mail_alarm = 0;
+    // mail_alarm = 0;
 }
 
 /*
@@ -519,7 +519,7 @@ report_statistics(int boxes, int messages, int files)
 	HASH_SIZE + " directories.\n");
 
     mail_wizard = 0;
-    mail_alarm = 0;
+    // mail_alarm = 0;
 }
 
 /*
@@ -683,7 +683,7 @@ mailadmin(string str)
 	mail_wizard = 0;
 	mail_system = 0;
 //	remove_call_out(mail_alarm);
-	mail_alarm = 0;
+//	mail_alarm = 0;
 
 	write("Reset the \"mailadmin\" command.\n");
 	return 1;

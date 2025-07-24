@@ -1651,7 +1651,7 @@ static nomask void heart_beat()
 
     foreach (int id, mixed *attack in attacks)
     {
-        log_debug("Attack: %d", attack);
+        log_debug("Attack: %O", attack);
         /*
          * Will we use this attack this round? (random(100) < %use)
          */
