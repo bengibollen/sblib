@@ -15,6 +15,19 @@
 
          3 - The players racefile is not a legal playerfile, a new body
              must be choosen.
+
+   STREAMLINED CHARACTER CREATION:
+   This file now supports streamlined character creation that bypasses the
+   traditional multi-room process (bodies.c, mangle.c, features.c, skills.c).
+   Set USE_STREAMLINED_CHARGEN to 1 to enable, 0 to use traditional process.
+   
+   The streamlined process automatically assigns sensible defaults for:
+   - Race and gender
+   - Physical attributes (height/weight)  
+   - Basic features/adjectives
+   - Starting stats with racial modifiers
+   
+   Wizards can use "test_chargen" command to test the system.
 */
 inherit "/std/player";
 
@@ -25,6 +38,12 @@ inherit "/std/player";
 #include <configuration.h>
 #include <interactive_info.h>
 #include "/conf/login/login.h"
+
+/*
+ * Configuration: Set to 1 to use streamlined character creation,
+ * 0 to use traditional multi-room character creation
+ */
+#define USE_STREAMLINED_CHARGEN 1
 
 static 	object		wiz,		/* For 'jr' this is the wizard */
                     pold;   	/* An 'old' player object */
@@ -387,7 +406,10 @@ public void ghost_start()
     /*
 	We now have a correct .o file
     */
-    write("\nEntering the hall of the bodies in waiting...\n\n");
+    if (USE_STREAMLINED_CHARGEN)
+        write("\nStarting streamlined character creation...\n\n");
+    else
+        write("\nEntering the hall of the bodies in waiting...\n\n");
     enter_game(query_real_name(), "");
 }
 
@@ -405,6 +427,28 @@ void start_player()
 
 public string query_default_start_location()
 {
+    mixed result;
+    
+    // Use streamlined character creation if enabled and player needs creation
+    if (USE_STREAMLINED_CHARGEN && (query_ghost() & (GP_BODY | GP_MANGLE | GP_FEATURES | GP_SKILLS)))
+    {
+        result = "/d/Standard/login/create_character"->bypass_traditional_creation(this_object());
+        
+        if (result == 0)
+        {
+            log_debug("Streamlined character creation successful for %O", this_object());
+            // Streamlined creation was successful, character is ready
+            if (query_ghost() == 0)
+                return RACESTART[this_object()->query_race_name()];
+            else
+                return query_def_start();
+        }
+        
+        // If streamlined creation failed, fall back to traditional process
+        write("Streamlined character creation unavailable, using traditional process.\n");
+    }
+    
+    // Traditional multi-room character creation process
     if (query_ghost() & GP_BODY)
     	return "/d/Standard/login/bodies";
     else if (query_ghost() & GP_MANGLE)
@@ -571,6 +615,44 @@ public void reincarnate_me()
     gh->enter_new_player(n);
 }
 
+
+/*
+ * Function name: cmd_test_chargen
+ * Description  : Wizard command to test the streamlined character creation
+ * Arguments    : str - command arguments
+ * Returns      : 1 if command handled, 0 otherwise
+ */
+public int cmd_test_chargen(string str)
+{
+    if (!query_wiz_level())
+    {
+        write("Permission denied.\n");
+        return 1;
+    }
+    
+    if (str == "traditional")
+    {
+        write("Note: To switch to traditional character creation, set USE_STREAMLINED_CHARGEN to 0 in ghost_player.c\n");
+        return 1;
+    }
+    else if (str == "streamlined")
+    {
+        write("Note: To switch to streamlined character creation, set USE_STREAMLINED_CHARGEN to 1 in ghost_player.c\n");
+        return 1;
+    }
+    else if (str == "test")
+    {
+        "/d/Standard/login/create_character"->test_character_creation();
+        return 1;
+    }
+    
+    write("Usage: test_chargen [traditional|streamlined|test]\n");
+    write("  traditional - Information about traditional mode\n");
+    write("  streamlined - Information about streamlined mode\n");
+    write("  test        - Test the character creation system\n");
+    write("Current mode: " + (USE_STREAMLINED_CHARGEN ? "streamlined" : "traditional") + "\n");
+    return 1;
+}
 
 query_race()
 {

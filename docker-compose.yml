@@ -5,8 +5,8 @@ services:
       args:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
-        DRIVER_REPO: https://github.com/bengibollen/ldmud.git
-        DRIVER_BRANCH: sblib
+        DRIVER_REPO: https://github.com/ldmud/ldmud.git
+        DRIVER_BRANCH: master
         PYTHON_REPO: https://github.com/bengibollen/ldmud-python.git
         PYTHON_BRANCH: main
       extra_hosts:
@@ -23,24 +23,3 @@ services:
       - 8.8.4.4
     dns_search:
       - .
-    depends_on:
-      - db
-    environment:
-      - PGHOST=db
-      - PGUSER=mud
-      - PGPASSWORD=mudpassword
-      - PGDATABASE=sbmud
-
-  db:
-    image: postgres:15
-    hostname: db
-    container_name: sbmud_db
-    environment:
-      - POSTGRES_USER=mud
-      - POSTGRES_PASSWORD=mudpassword
-      - POSTGRES_DB=sbmud
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-volumes:
-  pgdata:

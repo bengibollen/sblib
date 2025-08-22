@@ -1,0 +1,43 @@
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Git files
+.git
+.gitignore
+
+# Documentation
+README.md
+doc/
+
+# Logs and temporary files
+*.log
+*.tmp
+*~
+.DS_Store
+
+# Player files (these should be in volumes)
+players/*
+
+# System logs
+syslog/*
+
+# Build artifacts
+*.o
+*.so
+*.a
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules if any
+node_modules/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo

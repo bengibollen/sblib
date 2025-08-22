@@ -1,0 +1,65 @@
+#
+# Settings file for Silver Bucket Mudlib
+# This file configures the LDMud driver for use with the sblib mudlib
+#
+
+# Enable debugging features
+#define DEBUG
+#define DEBUG_TELNET
+
+# Memory and performance settings
+#define MAX_COST                1000000
+#define CATCH_RESERVED_COST     2000
+#define MASTER_RESERVED_COST    512
+#define MAX_ARRAY_SIZE          5000
+#define MAX_MAPPING_SIZE        15000
+#define MAX_MAPPING_KEYS        3000
+#define MAX_CALLOUTS            1000
+#define MAX_PLAYERS             50
+
+# Enable features commonly used in mudlibs
+#define USE_BUILTIN_EDITOR
+#define USE_SWAP
+#define USE_SYSTEM_CRYPT
+#define USE_PARSE_COMMAND
+#define USE_PROCESS_STRING
+#define USE_STRUCTS
+#define USE_NEW_INLINES
+#define USE_CLOSURE_SPECIALIZER
+
+# Network settings
+#define USE_IPV6
+#define USE_MCCP
+#define ERQ_INCLUDE_FILE_ACCESS
+#define ERQ_INCLUDE_EXECUTE
+
+# Enable advanced string and array functions
+#define USE_EXPERIMENTAL
+#define USE_DEPRECATED
+
+# Wizard features
+#define WIZLIST_FILE            "/WIZLIST"
+
+# Default runtime limits
+#define DEF_EVAL_COST           200000
+#define DEF_MAX_EVAL_COST       2000000
+
+# File system settings
+#define MAX_SAVE_OBJECT_RECURSION 50
+
+# Enable PCRE regular expressions
+#define HAS_PCRE
+
+# Enable XML support if available
+#define HAS_XML
+
+# Python integration (if ldmud-python is available)
+#define HAS_PYTHON
+
+# Security settings
+#define RESTRICTED_FILE_WRITE
+#define RESTRICTED_ED
+
+# Optimize for mudlib usage
+#define OPTIMIZE_FUNCTION_CALLS
+#define USE_BUILTIN_EDITOR

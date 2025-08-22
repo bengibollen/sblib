@@ -4,15 +4,15 @@ FROM debian:bookworm
 # Default values are provided but will be overridden by docker-compose.yml
 ARG UID=1000
 ARG GID=1000
-ARG DRIVER_REPO=https://github.com/bengibollen/ldmud.git
-ARG DRIVER_BRANCH=sblib
+ARG DRIVER_REPO=https://github.com/ldmud/ldmud.git
+ARG DRIVER_BRANCH=master
 ARG PYTHON_REPO=https://github.com/bengibollen/ldmud-python.git
 ARG PYTHON_BRANCH=main
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     build-essential ca-certificates git bison autoconf autogen automake wget \
-    pkg-config libgcrypt20-dev libgnutls28-dev libpq-dev python3-dev \
+    pkg-config libgcrypt20-dev libgnutls28-dev python3-dev \
     libxml2-dev zlib1g-dev libpcre3-dev libc-ares-dev python3-hunspell \
     python3-pip hunspell-de-de help2man gdb
 
@@ -20,9 +20,14 @@ RUN apt-get update \
 RUN groupadd -g $GID mud \
  && useradd -u $UID -g mud -m mud
 
-# Clone and build the driver from the specified repo/branch
-RUN git clone ${DRIVER_REPO} --branch ${DRIVER_BRANCH} --depth 1 /build \
- && cd /build/src \
+# Clone the driver from the original LDMud repository
+RUN git clone ${DRIVER_REPO} --branch ${DRIVER_BRANCH} --depth 1 /build
+
+# Copy our custom settings file to the driver
+COPY src/settings/sblib /build/src/settings/sblib
+
+# Build and install the driver with our settings
+RUN cd /build/src \
  && ./autogen.sh \
  && ./configure --with-setting=sblib --prefix=/usr/local --libdir=/mud/sblib \
  && make install-all \
@@ -39,8 +44,8 @@ COPY --chown=mud:mud . /mud/sblib/
 
 # Clean up packages that are no longer needed
 RUN apt-get clean \
- && apt-mark manual libgnutls30 libpq5 libpython3.11 libxml2 libpcre3 \
- && apt-get remove --purge -y build-essential ca-certificates git bison autoconf autogen automake wget pkg-config libgcrypt20-dev libgnutls28-dev libsqlite3-dev python3-dev libxml2-dev zlib1g-dev libpcre3-dev \
+ && apt-mark manual libgnutls30 libpython3.11 libxml2 libpcre3 \
+ && apt-get remove --purge -y build-essential ca-certificates git bison autoconf autogen automake wget pkg-config libgcrypt20-dev libgnutls28-dev python3-dev libxml2-dev zlib1g-dev libpcre3-dev \
  && apt-get autoremove -y 
 
 # Add environment variables
