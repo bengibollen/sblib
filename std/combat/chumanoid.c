@@ -146,7 +146,6 @@ public void cb_modify_procuse()
  */
 public void cb_set_attackuse(int sumproc)
 {
-    log_debug("Setting attackuse to %d", sumproc);
     attuse = sumproc;
     cb_modify_procuse();
 }
@@ -170,7 +169,6 @@ varargs int add_attack(int wchit, mixed wcpen, int damtype, int prcuse, int id, 
     object wep)
 {
     int ret;
-    log_debug("Adding attack in chumanoid: %d", id);
 
     ret = ::add_attack(wchit, wcpen, damtype, prcuse, id, skill, wep);
 

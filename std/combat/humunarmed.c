@@ -51,7 +51,6 @@ public nomask void cr_reset_attack(int aid)
 {
     int wchit, wcpen, uskill;
 
-	log_debug("Resetting attack %d", aid);
     ::cr_reset_attack(aid);
 
     if (!sizeof(query_ua_attack(aid)))

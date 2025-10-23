@@ -357,8 +357,6 @@ public void cb_link()
         return;
     }
 
-    log_debug("Linking combat object to " + object_name(previous_object()));
-
     me = previous_object();
     i_am_real = !(({int}) me->query_npc());
 }
@@ -1973,7 +1971,7 @@ varargs public nomask mixed cb_hit_me(
         else
         {
             tmp = random(({int}) me->query_skill(SS_PARRY) +
-                         ({int}) me->query_skill(SS_DEFENSE));
+                                   ({int}) me->query_skill(SS_DEFENSE));
 
             if (sizeof(attack) && objectp(attack[6]))
             {
@@ -2126,7 +2124,7 @@ public nomask void cb_stop_fight(mixed elist)
 public nomask void cb_update_enemies()
 {
     enemies = filter(enemies, #'objectp);
-    log_debug("Update enemies: %O", enemies);
+    log_debug("Update enemies: %O", map(enemies, #'object_name));
 }
 
 
@@ -2262,8 +2260,6 @@ varargs int add_attack(
 {
     int pos, *pen, *m_pen;
 
-    log_debug(" === ADD ATTACK ===");
-
     if (sizeof(attacks) >= MAX_ATTACK)
     {
         return 0;
@@ -2304,14 +2300,10 @@ varargs int add_attack(
 
     if (!(id in m_indices(attacks)))
     {
-        log_debug("Adding attack, pruse: %d", prcuse);
-        log_debug("Adding attack, id: %d, pos: %d", id, pos);
         attacks[id] = ({ wchit, pen, damtype, prcuse, skill, m_pen, wep });
     }
     else
     {
-        log_debug("Updating attack, pruse: %d", prcuse);
-        log_debug("Updating attack, id: %d, pos: %d", id, pos);
         attacks[id] = ({ wchit, pen, damtype, prcuse, skill, m_pen, wep });
     }
 
@@ -2356,15 +2348,11 @@ public int * query_attack_id()
  */
 public mixed * query_attack(int id)
 {
-    log_debug("Querying attack ");
-
     if (id in m_indices(attacks))
     {
-        log_debug("Found attack id: %d", id);
         return attacks[id];
     }
 
-    log_debug("Did not find attack id: %d", id);
     return 0;
 }
 

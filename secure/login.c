@@ -692,18 +692,14 @@ static void start_player2(object ob)
 static void start_player1()
 {
     object ob;
-    
-    log_debug("Running start player 1");
 
     /* Now we can enter the game, find the player file */
     if (player_file)
     {
-        log_debug("Attempting to clone player file.");
         ob = clone_object(player_file);
 
         if (function_exists("enter_game", ob) != PLAYER_SEC_OBJECT)
         {
-            log_debug("Player file does not have the required function.");
             ob->remove_object();
         }
 
@@ -781,7 +777,6 @@ static void start_player()
 
     if (!objectp(other_copy))
     {
-        log_debug("No other copy found, starting player.");
         start_player1();
         return;
     }

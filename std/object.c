@@ -113,9 +113,6 @@ public void create_object()
  */
 public nomask void create()
 {
-    log_debug("Create run in object.c: %O", this_object());
-    log_debug("Creating living object, euid: %s, uid: %s", geteuid(this_object()), getuid());
-
     create_object();
 
     /* Add the name based on the object number. */
@@ -719,11 +716,6 @@ varargs public int move(mixed dest, mixed subloc)
                     uw,uv,
                     sw,sv;
     mixed           tmp;
-
-    log_debug(" === MOVE ===");
-    log_debug("Move called in object.c: %O", this_object());
-    log_debug("Move to: %s", to_string(dest));
-    log_debug("Move subloc: %s", to_string(subloc));
 
     if (!dest)
         return 5;

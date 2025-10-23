@@ -2410,8 +2410,6 @@ string modify_command(string cmd, object ob)
  */
 mapping query_move_opposites()
 {
-    logger->debug("Querying move opposites.");
-    
     /* We intentionally return the unmodified mapping! */
     return move_opposites;
 }

@@ -34,7 +34,6 @@ static	mapping 	com_sounds;
 public nomask string
 query_combat_file()
 {
-    log_debug("Using human (generic) combat file");
     return "/std/combat/chumlock";
 }
 

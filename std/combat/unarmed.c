@@ -61,7 +61,7 @@ public varargs void set_attack_unarmed(
 
 public mixed *query_ua_attack(int aid)
 {
-    log_debug("Querying unarmed attack %d", aid);
+
     return ua_attdata[aid];
 }
 
@@ -149,7 +149,6 @@ public void cr_reset_attack(int aid)
 {
     mixed att;
 
-    log_debug("Resetting unarmed attack %d", aid);
     if (!mappingp(ua_attdata))
     {
 	    ua_attdata = ([]);

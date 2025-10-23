@@ -327,15 +327,11 @@ static nomask void new_init()
     int i;
     int *ostat;
 
-    log_debug("Initializing player statistics.");
-
     ostat = query_orig_stat();
-    log_debug("Original stats: %O", ostat);
 
     i = -1;
     while(++i < SS_NO_EXP_STATS)
     {
-        log_debug("Setting exp stat %d to %d", i, ostat[i]);
         set_base_stat(i, ostat[i]);
     }
 

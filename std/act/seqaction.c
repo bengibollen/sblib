@@ -129,7 +129,6 @@ private int seq_process_commands(int steps)
 
     if (stopseq)
     {
-        log_debug("Stopping sequence for %s", to_string(this_object()));
         stopped = 1;
     }
 
@@ -145,7 +144,6 @@ private int seq_process_commands(int steps)
 
             if (stringp(cmd) || closurep(cmd))
             {
-                log_debug("Running command: %O", cmd);
                 cmdres = ({mixed}) this_object()->check_call(cmd);
             }
             else if (intp(cmd))
@@ -158,17 +156,13 @@ private int seq_process_commands(int steps)
                 continue;
             }
 
-            log_debug("Running command: %O", cmdres);
-
             if (stringp(cmdres))
             {
-                log_debug("Command result: %s", cmdres);
                 command(cmdres);
                 newstep = 1;
             }
             else if (intp(cmdres) && cmdres > 0)
             {
-                log_debug("Command result: %d", cmdres);
                 newstep = ((newstep) && (cmdres > newstep) ? newstep : cmdres);
                 seq_cpos[il]--;
                 seq_commands[il][seq_cpos[il]] = cmdres;

@@ -19,7 +19,6 @@ inherit "/std/combat/chumanoid";
 */
 public nomask void create_chumanoid()
 {
-    log_debug("Creating combat object");
     this_object()->create_chumplayer();
 }
 

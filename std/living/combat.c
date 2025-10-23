@@ -62,9 +62,7 @@ public object query_combat_object()
 
 static void combat_reload()
 {
-    log_debug("Reloading combat object");
     if (combat_extern) {
-        log_debug("combat_extern: %O", combat_extern);
         return;
     }
 

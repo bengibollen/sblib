@@ -3,3 +3,4 @@ LP_SWAP.sbmud
 log/**/*
 syslog/*
 players/*
+lpc-config.json

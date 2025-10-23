@@ -98,13 +98,10 @@ varargs int set_base_stat(int stat, int value, int deviation = 0)
 {
     int offset;
 
-    log_debug("set_base_stat: stat=%d, value=%d, deviation=%d", stat, value, deviation);
-
     if ((stat < 0) ||
         (stat >= SS_NO_STATS) ||
         (value < 1 ))
     {
-        log_debug("set_base_stat: failed, stat=%d, value=%d, SS_NO_STATS=%d", stat, value, SS_NO_STATS);
         return 0;
     }
 
@@ -117,7 +114,6 @@ varargs int set_base_stat(int stat, int value, int deviation = 0)
     }
 
     stats[stat] = value;
-    log_debug("set_base_stat: stats[%d]=%d", stat, stats[stat]);
 
     return value;
 }
@@ -229,8 +225,6 @@ public int query_stat(int stat)
 {
     int i, value;
 
-    log_debug("query_stat: stat=%d", stat);
-
     if ((stat < 0) || (stat >= SS_NO_STATS))
     {
     	return -1;
@@ -279,7 +273,6 @@ nomask int exp_to_stat(int exp)
  */
 nomask int stat_to_exp(int stat)
 {
-    log_debug("stat_to_exp: stat=%d", stat);
     return F_STAT_TO_EXP(stat);
 }
 
@@ -530,8 +523,6 @@ static void check_acc_exp()
 {
     int index = -1;
     int sum = query_exp();
-
-    log_debug("== check_acc_exp");
 
     /* Make sure the array of of experience has the right size. */
     if (sizeof(acc_exp) < SS_NO_STATS)
