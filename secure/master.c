@@ -3361,6 +3361,11 @@ public varargs void log_syslog(string file, string text, int length = 0)
 {
     string fname;
 
+    logger->debug("log_syslog called from %O", previous_object());
+    logger->debug("log_syslog called with file: %O", file);
+    logger->debug("log_syslog called with text: %O", text);
+    logger->debug("log_syslog called with length: %O", length);
+
     fname = driver_info(DI_TRACE_CURRENT)[0][TRACE_PROGRAM];
 
     if ((fname[0..6] != "secure/") &&

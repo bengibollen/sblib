@@ -53,12 +53,12 @@ public nomask mixed cb_update_attack();
 /*
     Format of each element in the attacks array:
 
-         ({ wchit, wcpen, dt, %use, skill })
-              wchit: Weapon class to hit
-              wcpen: Weapon class penetration
-              dt:    Damage type
+         ({ wc_tohit, wc_penetration, damage_type, %use, skill })
+              wc_tohit: Weapon class to hit
+              wc_penetration: Weapon class penetration
+              damage_type:    Damage type
               %use:  Chance of use each turn
-              skill: The skill of this attack (defaults to wcpen)
+              skill: The skill of this attack (defaults to wc_penetration)
               m_pen: The modified pen used in combat
 
          att_id:    Specific id, for humanoids W_NONE, W_RIGHT etc
@@ -138,7 +138,7 @@ public string cb_status()
     {
         if (!header_printed) {
             str += sprintf("\n%-20s %@|9s\n","  Attack",
-                           ({"wchit",
+                           ({"wc_tohit",
                              "impale/slash/bludg ", "wcskill",
                              "   %use" }));
             header_printed = 1;
@@ -555,14 +555,14 @@ int cb_query_tohit_mod()
 /*
  * Function name: cb_tohit
  * Description:   Decide if we hit our victim or not. This should depend
- *                on wchit and skill/stat differences me/victim
+ *                on wc_tohit and skill/stat differences me/victim
  * Arguments:     aid:   The attack id
- *                wchit: Weapon class 'to hit'
+ *                wc_tohit: Weapon class 'to hit'
  *                vic:   The intended victim
  * Returns:       True if hit, otherwise a negative value indicating how much
  *                we failed.
  */
-public int cb_tohit(int aid, int wchit, object vic)
+public int cb_tohit(int aid, int wc_tohit, object vic)
 {
     int tmp, whit;
 
@@ -574,6 +574,9 @@ public int cb_tohit(int aid, int wchit, object vic)
      * 4 - Dexterity
      * These are weighted with the factors (4, 1, 1, 2)
      */
+
+    log_debug("Attack wc_tohit: %d", wc_tohit);
+    log_debug("Victim: %O", vic);
 
     if (sizeof(filter(({object *}) vic->query_weapon(-1), #'objectp)))
     {
@@ -597,20 +600,23 @@ public int cb_tohit(int aid, int wchit, object vic)
     if (!CAN_SEE_IN_ROOM(me) ||
         (({int}) vic->query_prop(OBJ_I_INVIS) > ({int}) me->query_prop(LIVE_I_SEE_INVIS)))
     {
-        wchit = ({int}) me->query_skill(SS_BLIND_COMBAT) * wchit / 100;
+        wc_tohit = ({int}) me->query_skill(SS_BLIND_COMBAT) * wc_tohit / 100;
     }
+
     if (!CAN_SEE_IN_ROOM(vic) ||
         (({int}) me->query_prop(OBJ_I_INVIS) > ({int}) vic->query_prop(LIVE_I_SEE_INVIS)))
     {
         tmp = ({int}) vic->query_skill(SS_BLIND_COMBAT) * tmp / 100;
     }
 
-    whit = 4 * fixnorm(random(wchit) + random(wchit) +
-                       random(wchit) + random(wchit), random(tmp));
+    whit = 4 * fixnorm(random(wc_tohit) + random(wc_tohit) +
+                       random(wc_tohit) + random(wc_tohit), random(tmp));
 
     cb_update_tohit_val(vic);
 
     whit += tohit_val;
+
+    log_debug("Weapon hit value: %d", whit);
 
     if (whit > 0)
         return 1;
@@ -668,10 +674,10 @@ public int cb_try_hit(int aid)
  *                ph:    The %hurt
  *                att:   Attacker
  *                aid:   The attack id of the attacker
- *                dt:    The damagetype
- *                dam:   The number of hitpoints taken
+ *                damage_type:    The damagetype
+ *                damage:   The number of hitpoints taken
  */
-public varargs void cb_got_hit(int hid, int ph, object att, int aid, int dt, int dam)
+public varargs void cb_got_hit(int hid, int ph, object att, int aid, int damage_type, int damage)
 {
 }
 
@@ -797,13 +803,13 @@ varargs void tell_watcher_miss(string str, object enemy, mixed arr)
  *                hid:   The hitlocation id
  *                phurt: The %hurt made on the enemy
  *                enemy: The enemy who got hit
- *                dt:    The current damagetype
+ *                damage_type:    The current damagetype
  *                phit:  The %success that we made with our weapon
  *                       If this is negative, it indicates fail
- *                dam:   Damage we did in hit points
+ *                damage:   Damage we did in hit points
  */
-public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object enemy, int dt,
-           int phit, int dam)
+public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object enemy, int damage_type,
+           int phit, int damage)
 {
     string attacker_def_desc, other_def_desc,
            damage_desc, other_damage_desc,
@@ -825,7 +831,7 @@ public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object
         damage_desc = "strike at";
         other_damage_desc    = "strikes at";
     }
-    else if (dt == W_IMPALE)
+    else if (damage_type == W_IMPALE)
     {
         damage_desc = "thrust at";
         other_damage_desc    = "thrusts at";
@@ -881,7 +887,7 @@ public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object
 
     cb_add_panic(-3 - (phurt / 5));
 
-    if (dam == 0)
+    if (damage == 0)
     {
         object combat_obj = ({object}) enemy->query_combat_object();
         armours = ({object *}) combat_obj->cb_query_armour(hid);
@@ -919,12 +925,12 @@ public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object
     }
 
     extra_damage_desc = " ";
-    pdam = 100 * dam / ({int}) enemy->query_max_hp();
+    pdam = 100 * damage / ({int}) enemy->query_max_hp();
 
     switch (pdam)
     {
         case 0..2:
-            switch (dt)
+            switch (damage_type)
             {
                 case W_BLUDGEON:
                     damage_desc = "lightly bruise";
@@ -947,7 +953,7 @@ public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object
             break;
 
         case 3..5:
-            switch (dt)
+            switch (damage_type)
             {
                 case W_BLUDGEON:
                     damage_desc = "batter";
@@ -970,7 +976,7 @@ public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object
             break;
 
         case 6..9:
-            switch (dt)
+            switch (damage_type)
             {
                 case W_BLUDGEON:
                     damage_desc = "pound";
@@ -993,7 +999,7 @@ public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object
             break;
 
         case 10..19:
-            switch (dt)
+            switch (damage_type)
             {
                 case W_BLUDGEON:
                     damage_desc = "beat";
@@ -1016,7 +1022,7 @@ public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object
             break;
 
         case 20..39:
-            switch (dt)
+            switch (damage_type)
             {
                 case W_BLUDGEON:
                     damage_desc = "seriously beat";
@@ -1039,7 +1045,7 @@ public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object
             break;
 
         case 40..59:
-            switch (dt)
+            switch (damage_type)
             {
                 case W_BLUDGEON:
                     damage_desc = "soundly beat";
@@ -1062,7 +1068,7 @@ public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object
             break;
 
         case 60..90:
-            switch (dt)
+            switch (damage_type)
             {
                 case W_BLUDGEON:
                     damage_desc = "hammer";
@@ -1086,7 +1092,7 @@ public varargs void cb_did_hit(int aid, string hdesc, int hid, int phurt, object
             break;
 
         default:
-            switch (dt)
+            switch (damage_type)
             {
                 case W_BLUDGEON:
                     damage_desc = "brutally pummel";
@@ -1555,7 +1561,7 @@ static void stop_heart()
  */
 static nomask void heart_beat()
 {
-    int             il, dt, hitsuc, tmp, size, crit, ftg;
+    int             il, damage_type, hitsuc, tmp, size, crit, ftg;
     string logtext;
     mixed           *hitresult, *dbits, pen, fail;
     object          *new, ob;
@@ -1659,7 +1665,7 @@ static nomask void heart_beat()
             /*
              * The attack has a chance of failing. If for example the attack
              * comes from a wielded weapon, the weapon can force a fail or
-             * if the wchit is to low for this opponent.
+             * if the wc_tohit is to low for this opponent.
              */
             hitsuc = cb_try_hit(id);
 
@@ -1703,7 +1709,7 @@ static nomask void heart_beat()
 
                     if (sizeof(pen))
                     {
-                        tmp = ({int}) MATH_FILE->quick_find_exp(dt);
+                        tmp = ({int}) MATH_FILE->quick_find_exp(damage_type);
 
                         if((tmp < sizeof(pen)))
                             pen = pen[tmp];
@@ -1712,16 +1718,18 @@ static nomask void heart_beat()
                     }
                 }
 
-                dt = attack[ATT_DAMT];
-                dbits = ({dt & W_IMPALE, dt & W_SLASH, dt & W_BLUDGEON }) - ({0});
-                dt = sizeof(dbits) ? one_of_list(dbits) : W_NO_DT;
+                damage_type = attack[ATT_DAMT];
+                dbits = ({damage_type & W_IMPALE, damage_type & W_SLASH, damage_type & W_BLUDGEON }) - ({0});
+                damage_type = sizeof(dbits) ? one_of_list(dbits) : W_NO_DT;
 
-                hitresult = ({mixed}) attack_ob->hit_me(pen, dt, me, id);
+                hitresult = ({mixed}) attack_ob->hit_me(pen, damage_type, me, id);
+
+                log_debug("Hitresult: %O", hitresult);
 
                 if (crit)
                 {
                    log_file("CRITICAL", sprintf("%s: %-11s on %-11s " +
-                                "(dam = %4d(%4d))\n\t%s on %s\n",
+                                "(damage = %4d(%4d))\n\t%s on %s\n",
                        ctime(time()), ({string}) me->query_real_name(),
                        ({string}) attack_ob->query_real_name(), hitresult[3], pen,
                        object_name(me), object_name(attack_ob)), -1);
@@ -1752,7 +1760,7 @@ static nomask void heart_beat()
             if (hitresult[1])
             {
                 cb_did_hit(id, hitresult[1], hitresult[4], hitresult[0],
-                       attack_ob, dt, hitsuc, hitresult[3]);
+                       attack_ob, damage_type, hitsuc, hitresult[3]);
             }
             else
             {
@@ -1809,30 +1817,33 @@ static nomask void heart_beat()
 /*
  * Function name: cb_hit_me
  * Description:   Called to decide damage for a certain hit on 'me'.
- * Arguments:     wcpen:         Weapon class penetration
- *                dt:            Damage type, MAGIC_DT if no ac helps
+ * Arguments:     wc_penetration:         Weapon class penetration
+ *                damage_type:            Damage type, MAGIC_DT if no ac helps
  *                attacker:
  *                attack_id:     -1 if a special attack
  *                target_hitloc: The hit location to damage.  If left
  *                               unspecified or an invalid hitloc is
  *                               given, a random hitlocation will be
  *                               used.
- * Returns:       Result of hit: ({ proc_hurt, hitloc desc, phit, dam, hitloc id })
+ * Returns:       Result of hit: ({ proc_hurt, hitloc desc, phit, damage, hitloc id })
  */
 varargs public nomask mixed cb_hit_me(
-    int wcpen,
-    int dt,
+    int wc_penetration,
+    int damage_type,
     object attacker,
     int attack_id,
     int target_hitloc = -1)
 {
     object      *my_weapons, my_weapon, attacker_weapon;
     int         proc_hurt, hp,
-                tmp, dam, phit,
+                tmp, damage, phit,
                 hloc,
                 j, size;
     string      msg;
     mixed       ac, attack;
+
+    log_debug("cb_hit_me called: wc_penetration=%d, damage_type=%d, attacker=%O, attack_id=%d, target_hitloc=%d",
+              wc_penetration, damage_type, attacker, attack_id, target_hitloc);
 
     if (!objectp(me))
     {
@@ -1865,7 +1876,7 @@ varargs public nomask mixed cb_hit_me(
     /* Mark that we were hit. */
     cb_update_combat_time();
 
-    /* Choose a hit location, and compute damage if wcpen > 0 */
+    /* Choose a hit location, and compute damage if wc_penetration > 0 */
     if ((target_hitloc == -1) || ((hloc = member(hit_id, target_hitloc)) < 0))
     {
         tmp = random(100);
@@ -1889,21 +1900,26 @@ varargs public nomask mixed cb_hit_me(
         }
     }
 
+    log_debug("Hit location chosen: hloc=%d, desc=%s", hloc, hitloc_ac[hloc][HIT_DESC]);
+
     ac = hitloc_ac[hloc][HIT_M_AC];
 
-    if (wcpen > 0)
+    if (wc_penetration > 0)
     {
-        if (dt == MAGIC_DT)
+        if (damage_type == MAGIC_DT)
         {
+            log_debug("Taking MAGIC_DT path: damage_type=MAGIC_DT");
             ac = 0;
 
-            /* MAGIC_DT damage has a base damage value of wcpen / 4 */
-            phit = wcpen / 4;
+            /* MAGIC_DT damage has a base damage value of wc_penetration / 4 */
+            phit = wc_penetration / 4;
             phit += random(phit) + random(phit) + random(phit);
+            log_debug("MAGIC_DT: phit=%d, ac=%d", phit, ac);
         }
         else
         {
-            tmp = ({int}) MATH_FILE->quick_find_exp(dt);
+            log_debug("Taking regular damage path: damage_type=%d", damage_type);
+            tmp = ({int}) MATH_FILE->quick_find_exp(damage_type);
 
             if (sizeof(ac) && (tmp < sizeof(ac)))
             {
@@ -1918,18 +1934,21 @@ varargs public nomask mixed cb_hit_me(
                 ac = 0;
             }
 
-            phit = wcpen / 4;
+            phit = wc_penetration / 4;
             phit = random(phit) + random(phit) + random(phit) + random(phit);
 
             ac = random(ac);
+            log_debug("Regular: tmp=%d, ac=%d, phit=%d", tmp, ac, phit);
         }
 
-        dam = max(0, F_DAMAGE(phit, ac));
+        damage = max(0, F_DAMAGE(phit, ac));
+        log_debug("Damage calculated: phit=%d, ac=%d, damage=%d", phit, ac, damage);
     }
     else
     {
-        dam = 0;
-        phit = (wcpen < 0 ? wcpen : -1);
+        log_debug("No damage path: wc_penetration <= 0");
+        damage = 0;
+        phit = (wc_penetration < 0 ? wc_penetration : -1);
     }
 
     hp = ({int}) me->query_hp();
@@ -1938,7 +1957,7 @@ varargs public nomask mixed cb_hit_me(
      * Wizards are immortal. (immorale ??)
      */
     log_debug("Check if immortal. me: %O", me);
-    if (dam >= hp && ({int}) me->query_wiz_level())
+    if (damage >= hp && ({int}) me->query_wiz_level())
     {
         tell_object(me, "Your wizardhood protects you from death.\n");
         tell_room(environment(me),
@@ -1949,15 +1968,15 @@ varargs public nomask mixed cb_hit_me(
     /*
      * Ok, hurt me.
      */
-    if (dam > 0 && hp)
+    if (damage > 0 && hp)
     {
-        proc_hurt = (100 * dam) / hp;
-        if (dam && !proc_hurt)
+        proc_hurt = (100 * damage) / hp;
+        if (damage && !proc_hurt)
             proc_hurt = 1;     /* Less than 1% damage */
     }
-    else if (dam > 0)
+    else if (damage > 0)
         proc_hurt = 100;
-    else if (wcpen >= 0)
+    else if (wc_penetration >= 0)
         proc_hurt = 0;
     else
     {
@@ -1983,18 +2002,22 @@ varargs public nomask mixed cb_hit_me(
             {
                 proc_hurt = -2;   /* we parried */
                 my_weapon = my_weapons[random(sizeof(my_weapons))];
-                my_weapon->did_parry(attacker, attack_id, dt);
+                my_weapon->did_parry(attacker, attack_id, damage_type);
             }
             else
             {
                 proc_hurt = -1;   /* we dodged */
             }
         }
+        
+        log_debug("Miss or dodge/parry path: proc_hurt=%d", proc_hurt);
     }
 
-    if (dam > 0)
+    log_debug("Final results: proc_hurt=%d, damage=%d, phit=%d", proc_hurt, damage, phit);
+
+    if (damage > 0)
     {
-        me->heal_hp(-dam);
+        me->heal_hp(-damage);
     }
 
     /* Adjust our panic level. */
@@ -2004,18 +2027,18 @@ varargs public nomask mixed cb_hit_me(
     }
 
     /* Tell us where we were attacked and by which damagetype. */
-    cb_got_hit(hit_id[hloc], proc_hurt, attacker, attack_id, dt, dam);
+    cb_got_hit(hit_id[hloc], proc_hurt, attacker, attack_id, damage_type, damage);
 
     /* Reward attacker for hurting me. */
-    if (dam)
+    if (damage)
     {
 #ifdef CB_HIT_REWARD
-        me->combat_reward(attacker, dam, 0);
+        me->combat_reward(attacker, damage, 0);
 #endif
         me->interrupt_spell();
     }
 
-    return ({ proc_hurt, hitloc_ac[hloc][HIT_DESC], phit, dam, hit_id[hloc] });
+    return ({ proc_hurt, hitloc_ac[hloc][HIT_DESC], phit, damage, hit_id[hloc] });
 }
 
 
@@ -2239,9 +2262,9 @@ public nomask mixed cb_update_attack()
  * Function name: add_attack
  * Description:   Add an attack to the attack array.
  * Arguments:
- *             wchit: Weapon class to hit
- *             wcpen: Weapon class penetration
- *             dt:    Damage type
+ *             wc_tohit: Weapon class to hit
+ *             wc_penetration: Weapon class penetration
+ *             damage_type:    Damage type
  *             %use:  Chance of use each turn
  *             id:    Specific id, for humanoids W_NONE, W_RIGHT etc
  *             skill: Optional skill with this attack
@@ -2250,8 +2273,8 @@ public nomask mixed cb_update_attack()
  * Returns:       True if added.
  */
 varargs int add_attack(
-    int wchit,
-    mixed wcpen,
+    int wc_tohit,
+    mixed wc_penetration,
     int damtype,
     int prcuse,
     int id,
@@ -2270,7 +2293,7 @@ varargs int add_attack(
 
     if (skill == 0)
     {
-        skill = wchit;
+        skill = wc_tohit;
     }
     else if (skill < 1)
     {
@@ -2281,30 +2304,30 @@ varargs int add_attack(
 
     while(++pos < W_NO_DT)
     {
-        if (!pointerp(wcpen))
+        if (!pointerp(wc_penetration))
         {
-            m_pen[pos] = F_PENMOD(wcpen, skill);
-            pen[pos] = wcpen;
+            m_pen[pos] = F_PENMOD(wc_penetration, skill);
+            pen[pos] = wc_penetration;
         }
-        else if (pos >= sizeof(wcpen))
+        else if (pos >= sizeof(wc_penetration))
         {
             m_pen[pos] = (pos ? m_pen[0] : 0);
             pen[pos] = (pos ? pen[0] : 0);
         }
         else
         {
-            m_pen[pos] = F_PENMOD(wcpen[pos], skill);
-            pen[pos] = wcpen[pos];
+            m_pen[pos] = F_PENMOD(wc_penetration[pos], skill);
+            pen[pos] = wc_penetration[pos];
         }
     }
 
     if (!(id in m_indices(attacks)))
     {
-        attacks[id] = ({ wchit, pen, damtype, prcuse, skill, m_pen, wep });
+        attacks[id] = ({ wc_tohit, pen, damtype, prcuse, skill, m_pen, wep });
     }
     else
     {
-        attacks[id] = ({ wchit, pen, damtype, prcuse, skill, m_pen, wep });
+        attacks[id] = ({ wc_tohit, pen, damtype, prcuse, skill, m_pen, wep });
     }
 
     return 1;

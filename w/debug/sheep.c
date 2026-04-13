@@ -46,8 +46,8 @@ void create_creature() {
     set_attack_unarmed(A_KICK, 40, 2, W_BLUDGEON,  40, "kick");
     set_attack_unarmed(A_BITE, 40, 2, W_BLUDGEON,  30, "teeth");
 
-    set_hitloc_unarmed(H_HEAD, ({ 15, 25, 20, 20 }), 20, "head");
-    set_hitloc_unarmed(H_BODY, ({ 10, 15, 30, 20 }), 80, "body");
+    set_hitloc_unarmed(H_HEAD, ({ 0, 0, 0, 0 }), 20, "head");
+    set_hitloc_unarmed(H_BODY, ({ 0, 0, 0, 0 }), 80, "body");
 
 
 }

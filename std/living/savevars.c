@@ -18,6 +18,7 @@
 #include <std.h>
 #include <libfiles.h>
 #include <config.h>
+#include <cd_log.h>
 
 private string m_in,            /* Messages when entering or leaving a room. */
                m_out,           /* Messages when entering or leaving a room. */
@@ -317,7 +318,7 @@ public void set_title(string t)
     if (this_player() != this_object() && interactive(this_object()))
         SECURITY->log_syslog(LOG_TITLE, ctime(time()) + " " +
             query_real_name() + " new title " + t + " by " +
-            this_player()->query_real_name() + "\n");
+            ({string}) this_player()->query_real_name() + "\n");
 #endif
     title = t;
 }
@@ -334,7 +335,7 @@ public void set_al_title(string t)
     if (this_player() != this_object() && interactive(this_object()))
         SECURITY->log_syslog(LOG_AL_TITLE, ctime(time()) + " " +
             query_real_name() + " new title " + t + " by " +
-            this_player()->query_real_name() + "\n");
+            ({string}) this_player()->query_real_name() + "\n");
 #endif
     al_title = t;
 }
@@ -507,13 +508,15 @@ void heal_hp(int hp)
         text = sprintf("%s %s %d->%d by ", ctime(time()), query_name(),
 	    hit_points, hit_points + hp);
 
-	text += (this_interactive() ? this_interactive()->query_name() : "?");
+	text += (this_interactive() ? ({string}) this_interactive()->query_name() : "?");
 
         if (o)
-            text += " " + object_name(o) + ", " + o->short() +
+            text += " " + object_name(o) + ", " + ({string}) o->short() +
 		" (" + getuid(o) + ")\n";
         else
             text += " ??\n";
+
+    log_debug("Logging reduce_hp: %O", text);
 
 	/* Don't log CHUMLOCK heal-hp. */
 	if (objectp(o) && (MASTER_OB(o) == CHUMLOCK_OBJECT))

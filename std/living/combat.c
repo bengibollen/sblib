@@ -653,6 +653,11 @@ varargs public mixed hit_me(int wcpen, int dt, object attacker, int attack_id, i
     hres = ({mixed})combat_extern->cb_hit_me(wcpen, dt, attacker,
                                            attack_id, target_hitloc);
 
+
+    log_debug("Hit result: %s", hres[1]);
+    log_debug("Current HP: %d", query_hp());
+    log_debug("Max HP: %d", query_max_hp());
+
     if (!(wi = query_whimpy()))
         return hres;
 
