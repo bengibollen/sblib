@@ -19,8 +19,9 @@ and what "sensible" ranges look like for NPCs, weapons, and armour.
 10. [Armour Configuration](#armour-configuration)
 11. [Combat Speed](#combat-speed)
 12. [Experience on Kill](#experience-on-kill)
-13. [Reference Tables](#reference-tables)
-14. [Worked Examples](#worked-examples)
+13. [Fleeing, Following, and Aggro](#fleeing-following-and-aggro)
+14. [Reference Tables](#reference-tables)
+15. [Worked Examples](#worked-examples)
 
 ---
 
@@ -465,6 +466,151 @@ team_exp_per_member = (100 + team_size * 10) / 100 * base_exp / team_size
 
 A team of 3 each gets 130% / 3 ≈ 43% of solo exp. More total exp, less per
 person, which rewards grouping without overwhelming scaling.
+
+---
+
+## Fleeing, Following, and Aggro
+
+### Can the Mob Flee? (Whimpy)
+
+Any living can be made to automatically flee when badly hurt:
+
+```lpc
+set_whimpy(40);           // flee when below 40% HP
+set_whimpy_dir("north");  // try this direction first when fleeing
+```
+
+`set_whimpy(0)` disables fleeing (the default). The valid range is 0–99.
+
+When the HP threshold is crossed, `run_away()` is called after a 1-second
+delay. The function tries the preferred direction first, then works through
+the room's exits randomly. If none succeed, it reports and stays put.
+
+**Prevent a mob from fleeing at all** regardless of panic or whimpy — useful
+for guards and boss mobs:
+
+```lpc
+add_prop(NPC_I_NO_RUN_AWAY, 1);
+```
+
+### Panic and Automatic Fleeing
+
+Even without `set_whimpy`, a mob that accumulates enough panic **may** bolt
+on its own (see `cb_may_panic()`). Panic is suppressed by `NPC_I_NO_RUN_AWAY`
+and by `NPC_I_NO_FEAR`.
+
+Panic increases when the mob is hit and decreases over time (every 20 sec)
+based on DIS. The check to flee fires each attack round:
+
+```
+F_PANIC_WIMP_LEVEL(dis) = 10 + 3 * dis
+if random(panic) > F_PANIC_WIMP_LEVEL(dis)  ->  mob runs
+```
+
+A mob with DIS 1 starts panicking with ~13+ accumulated panic.
+A mob with DIS 10 needs ~40+ before it bolts.
+
+To make a mob that **never panics** no matter the circumstance:
+
+```lpc
+add_prop(NPC_I_NO_FEAR,    1);   // ignore discipline check; always attacks
+add_prop(NPC_I_NO_RUN_AWAY, 1); // never flees even if panic fires
+```
+
+`NPC_I_NO_FEAR` also allows the mob to attack targets that are much stronger
+than it would normally dare to challenge (see `F_DARE_ATTACK`).
+
+### Does the Mob Follow the Player?
+
+When a player moves out of a room during combat, each enemy in the enemy list
+decides independently:
+
+- **If the enemy has `LIVE_O_ENEMY_CLING` set to point at the fleeing player:**
+  it is dragged along automatically into the next room. The player cannot
+  escape it by simply walking away.
+
+- **Otherwise:** the enemy stays behind, is told "You are now hunting X",
+  and the combat link is dropped. *However*, the enemy remains in the mob's
+  enemy list. If the mob later enters a room where the player is, it will
+  immediately attack again (see `combat_init`).
+
+**To make a mob cling to and follow a specific target:**
+
+```lpc
+// In the mob's special_attack() or cr_got_hit() or similar:
+add_prop(LIVE_O_ENEMY_CLING, target_object);
+```
+
+Setting `LIVE_O_ENEMY_CLING` to point to an enemy object causes that enemy
+to be dragged into the next room if they walk away while the mob is in the
+same room. The cling is automatically cleared when the target is no longer
+the active combatant.
+
+**To make all enemies follow by default**, override `cb_adjust_combat_on_move`
+or set the cling property on aggressors when combat starts via a hook.
+
+### How Long Does Aggro Last?
+
+There is no automatic time-based aggro decay for mobs. Once a living is in
+a mob's enemy list, it **stays there until one of the following happens**:
+
+1. The enemy dies.
+2. `stop_fight(enemy)` is called on the mob.
+3. The combat object is destructed (mob resets/destructs).
+4. The mob's heart-beat finds no reachable enemies for **30 consecutive
+   seconds** and stops; the enemy list is NOT cleared, only the active fight
+   ends — the mob will re-engage on next contact.
+
+The enemy list holds up to `MAX_ENEMIES` (10) entries. Oldest entries are
+dropped when the list overflows.
+
+### Player "Relaxed from Combat" Timer
+
+For players, the game considers them relaxed from combat (able to quit/linkdie)
+once enough time has passed since the last hit:
+
+```
+F_RELAX_TIME_AFTER_COMBAT(last_hit_time) = last_hit_time + 60 + 6 * (last_hit_time % 10)
+```
+
+This is roughly **60–120 seconds** after the last hit landed (on or by the
+player). It does not depend on the mob; the timer is per-player.
+
+### Summary: Behaviour Control Properties
+
+| Property              | Set on   | Effect                                                |
+|-----------------------|----------|-------------------------------------------------------|
+| `NPC_I_NO_RUN_AWAY`   | mob      | Mob never flees regardless of panic or whimpy         |
+| `NPC_I_NO_FEAR`       | mob      | Mob always attacks; ignores the dare-attack check     |
+| `LIVE_O_ENEMY_CLING`  | mob      | Mob drags the targeted enemy along when that enemy moves |
+| `set_whimpy(pct)`     | any living | Flee automatically when HP drops below `pct`%       |
+| `set_whimpy_dir(dir)` | any living | Preferred direction to run in when fleeing          |
+
+### Typical Mob Recipes
+
+**Harmless ambient creature** (runs at first scratch):
+```lpc
+add_prop(NPC_I_NO_FEAR, 0);   // default — uses discipline check
+set_whimpy(80);               // flee at 80% HP
+```
+
+**Normal mob** (fights back, runs when badly hurt):
+```lpc
+set_whimpy(20);               // flee below 20% HP (panic may trigger earlier)
+```
+
+**Guard / boss** (never retreats):
+```lpc
+add_prop(NPC_I_NO_RUN_AWAY, 1);
+add_prop(NPC_I_NO_FEAR,     1);
+```
+
+**Pursuing mob** (follows the player who attacked it):
+```lpc
+// In cr_got_hit() or special_attack():
+add_prop(LIVE_O_ENEMY_CLING, attacker);
+add_prop(NPC_I_NO_RUN_AWAY, 1);
+```
 
 ---
 
