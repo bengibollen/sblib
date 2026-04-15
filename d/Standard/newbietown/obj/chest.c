@@ -1,4 +1,4 @@
-inherit "/std/container";
+inherit "/std/receptacle";
 
 #include <macros.h>
 #include <stdproperties.h>
@@ -11,7 +11,7 @@ void create_container() {
     set_short("large chest");
     set_long("This is a large wooden chest, it looks like it could hold a lot of items.\n");
     add_prop(OBJ_M_NO_GET, "You can't pick up the chest.\n");
-    add_prop(CONT_I_CLOSED, 0);
+    add_prop(CONT_I_CLOSED, 1);
 
     add_object("/d/Standard/newbietown/obj/training_sword", 1);
 

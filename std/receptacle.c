@@ -90,6 +90,7 @@ inherit "/std/container";
 
 #include <cmdparse.h>
 #include <files.h>
+#include <libfiles.h>
 #include <macros.h>
 #include <ss_types.h>
 #include <stdproperties.h>
@@ -121,6 +122,7 @@ static object cont_func;   /* the object defining open, close etc.          */
 static mixed  cont_key;    /* the identifier to the key to open this object */
 static int    cont_pick = 40; /* how hard it is to pick the lock            */
 
+
 /*
  * Function name: create_receptacle
  * Description  : Creator. You should define this function in order to set
@@ -128,10 +130,10 @@ static int    cont_pick = 40; /* how hard it is to pick the lock            */
  *                some extra functionality, you can also use the function
  *                create_container().
  */
-void
-create_receptacle()
+void create_receptacle()
 {
 }
+
 
 /*
  * Function name: create_container
@@ -140,11 +142,11 @@ create_receptacle()
  *                create_container can be used, since this is just a
  *                container with some extra functions.
  */
-void
-create_container()
+void create_container()
 {
     create_receptacle();
 }
+
 
 /*
  * Function name: reset_receptacle
@@ -155,10 +157,10 @@ create_container()
  *                must call enable_reset() from your create function to
  *                actually make this object reset.
  */
-void
-reset_receptacle()
+void reset_receptacle()
 {
 }
+
 
 /*
  * Function name: reset_container
@@ -168,36 +170,36 @@ reset_receptacle()
  *                that you have to call enable_reset() from your create
  *                function in order to make this object actually reset.
  */
-void
-reset_container()
+void reset_container()
 {
     reset_receptacle();
 }
+
 
 /*
  * Function name: init
  * Description  : Link the commands to manipulate the container to the
  *                player.
  */
-public void
-init()
+public void init()
 {
     ::init(); /* always make the call to the previous definitions. */
 
-    add_action(do_default_open,  "open");
-    add_action(do_default_close, "close");
+    add_action(#'do_default_open,  "open");
+    add_action(#'do_default_close, "close");
 
     if (cont_key)
     {
-        add_action(do_default_lock,   "lock");
-        add_action(do_default_unlock, "unlock");
+        add_action(#'do_default_lock,   "lock");
+        add_action(#'do_default_unlock, "unlock");
 
         if (cont_pick != 0)
         {
-            add_action(do_default_pick, "pick");
+            add_action(#'do_default_pick, "pick");
         }
     }
 }
+
 
 /*
  * Function name: real_short
@@ -205,11 +207,11 @@ init()
  * Arguments    : for_obj - who wants to know the short
  * Returns      : The short description
  */
-public varargs string
-real_short(object for_obj)
+public varargs string real_short(object for_obj)
 {
     return ::short(for_obj);
 }
+
 
 /*
  * Function name: short
@@ -217,12 +219,12 @@ real_short(object for_obj)
  * Arguments    : for_obj - who wants to know the short
  * Returns      : The short description.
  */
-public varargs string
-short(object for_obj)
+public varargs string short(object for_obj)
 {
     return ::short(for_obj) +
         ((query_prop(CONT_I_CLOSED)) ? "" : " (open)");
 }
+
 
 /*
  * Function name: pshort
@@ -230,8 +232,7 @@ short(object for_obj)
  * Arguments    : for_obj - who wants to know the pshort
  * Returns      : The plural short description.
  */
-public varargs string
-plural_short(object for_obj)
+public varargs string plural_short(object for_obj)
 {
     string plural_short_description = ::plural_short(for_obj);
 
@@ -240,6 +241,7 @@ plural_short(object for_obj)
             ((query_prop(CONT_I_CLOSED)) ? "" : " (open)")) : 0);
 }
 
+
 /*
  * Function name: long
  * Description  : A the status of the container to it.
@@ -247,8 +249,7 @@ plural_short(object for_obj)
  *                object for_obj - who wants to know the long
  * Returns      : string - The long description.
  */
-public varargs string
-long(string str, object for_obj)
+public varargs string long(string str, object for_obj)
 {
     string desc;
 
@@ -260,6 +261,7 @@ long(string str, object for_obj)
     }
     return desc;
 }
+
 
 /*
  * Function name: do_default_open
@@ -273,8 +275,7 @@ long(string str, object for_obj)
  * Arguments    : str - the rest of the command line by the mortal
  * Returns      : 1 = success, 0 = failure.
  */
-public int
-do_default_open(string str)
+public int do_default_open(string str)
 {
     object tp = this_player();
     object *items;
@@ -294,23 +295,23 @@ do_default_open(string str)
     {
         what = ({string})items[i]->real_short(tp);
 
-        if (!(items[i]->query_prop(CONT_I_CLOSED)))
+        if (!(({int})items[i]->query_prop(CONT_I_CLOSED)))
         {
             gFail += "The " + what + " is already open.\n";
         }
-        else if (items[i]->query_prop(CONT_I_LOCK))
+        else if (({int})items[i]->query_prop(CONT_I_LOCK))
         {
             gFail += "The " + what + " is locked.\n";
         }
         else
         {
-            if (!objectp(items[i]->query_cf()))
+            if (!objectp(({object})items[i]->query_cf()))
             {
                 cres = 0;
             }
             else
             {
-                cres = (int)((items[i]->query_cf())->open(items[i]));
+                cres = ({int})(({object})items[i]->query_cf())->open(items[i]);
 
                 if (cres == 2)
                 {
@@ -321,7 +322,7 @@ do_default_open(string str)
             if (cres == 0)
             {
                 gSucces += "You open the " + what + ".\n";
-                say(QCTNAME(tp) + " opens the " + items[i]->real_short() +
+                say(QCTNAME(tp) + " opens the " + (({string})items[i]->real_short()) +
                     ".\n");
             }
             if (cres <= 1)
@@ -350,6 +351,7 @@ do_default_open(string str)
     return 0;
 }
 
+
 /*
  * Function name: do_default_close
  * Description  : Try to close one or more chests. This command does not allow
@@ -362,8 +364,7 @@ do_default_open(string str)
  * Arguments    : str - the rest of the command line by the mortal
  * Returns      : 1 = success, 0 = failure.
  */
-public int
-do_default_close(string str)
+public int do_default_close(string str)
 {
     object tp = this_player();
     object *items;
@@ -383,19 +384,19 @@ do_default_close(string str)
     {
         what = ({string})items[i]->real_short(tp);
 
-        if (items[i]->query_prop(CONT_I_CLOSED))
+        if (({int})items[i]->query_prop(CONT_I_CLOSED))
         {
             gFail += "The " + what + " is already closed.\n";
         }
         else
         {
-            if (!objectp(items[i]->query_cf()))
+            if (!objectp(({object})items[i]->query_cf()))
             {
                 cres = 0;
             }
             else
             {
-                cres = (int)((items[i]->query_cf())->close(items[i]));
+                cres = ({int})(({object})items[i]->query_cf())->close(items[i]);
 
                 if (cres == 2)
                 {
@@ -406,7 +407,7 @@ do_default_close(string str)
             if (cres == 0)
             {
                 gSucces += "You close the " + what + ".\n";
-                say(QCTNAME(tp) + " closes the " + items[i]->real_short() +
+                say(QCTNAME(tp) + " closes the " + (({string})items[i]->real_short()) +
                     ".\n");
             }
             if (cres <= 1)
@@ -435,6 +436,7 @@ do_default_close(string str)
     return 0;
 }
 
+
 /*
  * Function name: do_default_lock
  * Description  : Try to lock one container. This command does not allow
@@ -447,8 +449,7 @@ do_default_close(string str)
  * Arguments    : str - the rest of the command line by the mortal
  * Returns      : 1 = success, 0 = failure.
  */
-public int
-do_default_lock(string str)
+public int do_default_lock(string str)
 {
     object tp = this_player();
     object container_item;
@@ -467,16 +468,16 @@ do_default_lock(string str)
     }
     container_item = items[0][0];
 
-    if (!(keyval = container_item->query_key()))
+    if (!(keyval = ({mixed})container_item->query_key()))
     {
-        notify_fail("The " + container_item->real_short(tp) +
+        notify_fail("The " + ({string})container_item->real_short(tp) +
             " does not have a lock.\n");
         return 0;
     }
 
-    if (container_item->query_prop(CONT_I_LOCK))
+    if (({int})container_item->query_prop(CONT_I_LOCK))
     {
-        notify_fail("The " + container_item->real_short(tp) +
+        notify_fail("The " + ({string})container_item->real_short(tp) +
             " is already locked.\n");
         return 0;
     }
@@ -484,26 +485,27 @@ do_default_lock(string str)
     if (!objectp(key_item = get_key_to_fit(items[1], keyval)))
     {
         notify_fail("You do not have the key to " + qvb + " the " +
-            container_item->real_short(tp) + " on you.\n");
+            ({string})container_item->real_short(tp) + " on you.\n");
         return 0;
     }
 
-    if ((objectp(container_item->query_cf())) &&
-        ((container_item->query_cf())->lock(container_item)))
+    if ((objectp(({object})container_item->query_cf())) &&
+        (({int})(({object})container_item->query_cf())->lock(container_item)))
     {
         write("You fail to " + qvb + " the " +
-            container_item->real_short(tp) + ".\n");
+            ({string})container_item->real_short(tp) + ".\n");
         return 1;
     }
 
     container_item->add_prop(CONT_I_LOCK, 1);
-    write("You " + qvb + " the " + container_item->real_short(tp) + ".\n");
-    say(QCTNAME(tp) + " " + qvb + "s the " + container_item->real_short() +
+    write("You " + qvb + " the " + ({string})container_item->real_short(tp) + ".\n");
+    say(QCTNAME(tp) + " " + qvb + "s the " + ({string})container_item->real_short() +
         ((environment(this_object()) == this_player()) ?
-        (" " + tp->query_pronoun() + " carries") : "") + ".\n");
+        (" " + (({string})tp->query_pronoun() + " carries")) : "") + ".\n");
 
     return 1;
 }
+
 
 /*
  * Function name: do_default_unlock
@@ -517,8 +519,7 @@ do_default_lock(string str)
  * Arguments    : str - the rest of the command line by the mortal
  * Returns      : 1 = success, 0 = failure.
  */
-public int
-do_default_unlock(string str)
+public int do_default_unlock(string str)
 {
     object tp = this_player();
     object container_item;
@@ -537,16 +538,16 @@ do_default_unlock(string str)
     }
     container_item = items[0][0];
 
-    if (!(keyval = container_item->query_key()))
+    if (!(keyval = ({mixed})container_item->query_key()))
     {
-        notify_fail("The " + container_item->real_short(tp) +
+        notify_fail("The " + ({string})container_item->real_short(tp) +
             " does not have a lock.\n");
         return 0;
     }
 
-    if (!(container_item->query_prop(CONT_I_LOCK)))
+    if (!({int})container_item->query_prop(CONT_I_LOCK))
     {
-        notify_fail("The " + container_item->real_short(tp) +
+        notify_fail("The " + ({string})container_item->real_short(tp) +
             " is not locked.\n");
         return 0;
     }
@@ -554,26 +555,27 @@ do_default_unlock(string str)
     if (!objectp(key_item = get_key_to_fit(items[1], keyval)))
     {
         notify_fail("You do not have the key to " + qvb + " the " +
-            container_item->real_short(tp) + " on you.\n");
+            ({string})container_item->real_short(tp) + " on you.\n");
         return 0;
     }
 
-    if ((objectp(container_item->query_cf())) &&
-        ((container_item->query_cf())->unlock(container_item)))
+    if ((objectp(({object})container_item->query_cf())) &&
+        (({int})(({object})container_item->query_cf())->unlock(container_item)))
     {
         write("You fail to " + qvb + " the " +
-            container_item->real_short(tp) + ".\n");
+            ({string})container_item->real_short(tp) + ".\n");
         return 1;
     }
 
     container_item->remove_prop(CONT_I_LOCK);
-    write("You " + qvb + " the " + container_item->real_short(tp) + ".\n");
-    say(QCTNAME(tp) + " " + qvb + "s the " + container_item->real_short() +
+    write("You " + qvb + " the " + ({string})container_item->real_short(tp) + ".\n");
+    say(QCTNAME(tp) + " " + qvb + "s the " + ({string})container_item->real_short() +
         ((environment(this_object()) == this_player()) ?
-        (" " + tp->query_pronoun() + " carries") : "") + ".\n");
+        (" " + ({string})tp->query_pronoun() + " carries") : "") + ".\n");
 
     return 1;
 }
+
 
 /*
  * Function name: do_default_pick
@@ -584,8 +586,7 @@ do_default_unlock(string str)
  * Reurns       : 1   - success on picking a lock
  *                0   - on failure
  */
-public int
-do_default_pick(string str)
+public int do_default_pick(string str)
 {
     object tp = this_player();
     object *items;
@@ -598,31 +599,31 @@ do_default_pick(string str)
         return 0;
     }
 
-    skill = (int)tp->query_skill(SS_OPEN_LOCK);
+    skill = ({int})tp->query_skill(SS_OPEN_LOCK);
     if (skill == 0)
     {
         write("You do not know how to pick a lock.\n");
         return 1;
     }
 
-    if (tp->query_mana() <= MANA_TO_PICK_LOCK)
+    if (({int})tp->query_mana() <= MANA_TO_PICK_LOCK)
     {
         write("You cannot concentrate enough to pick a lock.\n");
         return 1;
     }
     tp->add_mana(-(MANA_TO_PICK_LOCK));
 
-    if (!(items[0]->query_prop(CONT_I_LOCK)))
+    if (!({int})items[0]->query_prop(CONT_I_LOCK))
     {
         write("Much to your surprise you find that the " +
-            items[0]->real_short(tp) + " is not locked.\n");
+            ({string})items[0]->real_short(tp) + " is not locked.\n");
         return 1;
     }
 
-    if (items[0]->query_no_pick())
+    if (({int})items[0]->query_no_pick())
     {
         write("Close examination of the lock on the " +
-            items[0]->real_short(tp) +
+            ({string})items[0]->real_short(tp) +
             " teaches you that it is unpickable.\n");
         return 1;
     }
@@ -633,10 +634,10 @@ do_default_pick(string str)
      */
     skill = ((skill * 3 / 4) + random(skill / 2));
 
-    if (skill >= items[0]->query_pick())
+    if (skill >= ({int})items[0]->query_pick())
     {
-        if (!objectp(items[0]->query_cf()) ||
-            ((res = items[0]->query_cf()->pick(items[0])) >= 0))
+        if (!objectp(({object})items[0]->query_cf()) ||
+            ((res = ({int})(({object})items[0]->query_cf())->pick(items[0])) >= 0))
 	{
             items[0]->remove_prop(CONT_I_LOCK);
 
@@ -645,12 +646,12 @@ do_default_pick(string str)
             if (res == 0)
 	    {
         	say(QCTNAME(tp) + " fumbles with the lock on the " +
-        	    items[0]->real_short() +
+        	    ({string})items[0]->real_short() +
         	    ((environment(this_object()) == this_player()) ?
-        	    (" " + tp->query_pronoun() + " carries") : "") +
+        	    (" " + ({string})tp->query_pronoun() + " carries") : "") +
         	    " and you hear soft 'click' coming from it.\n");
         	write("You feel very satisfied when you hear a soft 'click' from " +
-        	    "the lock on the " + items[0]->real_short(tp) +
+        	    "the lock on the " + ({string})items[0]->real_short(tp) +
         	    " after you picked it.\n");
 	    }
 
@@ -667,17 +668,18 @@ do_default_pick(string str)
     if (res >= -1)
     {
     	say(QCTNAME(tp) + " fumbles with the lock on the " +
-    	    items[0]->real_short() +
+    	    ({string})items[0]->real_short() +
     	    ((environment(this_object()) == this_player()) ?
-    	    (" " + tp->query_pronoun() + " carries") : "") +
+    	    (" " + ({string})tp->query_pronoun() + " carries") : "") +
     	    ". Nothing happens though.\n");
-    	write("You fail to pick the lock on the " + items[0]->real_short(tp) +
-    	    "." + ((skill + PICK_SKILL_DIFFERENCE < items[0]->query_pick()) ?
+    	write("You fail to pick the lock on the " + ({string})items[0]->real_short(tp) +
+    	    "." + ((skill + PICK_SKILL_DIFFERENCE < ({int})items[0]->query_pick()) ?
     	    " The lock seems unpickable to you.\n" : "\n"));
     }
 
     return 1;
 }
+
 
 /*
  * Function name: set_cf
@@ -691,8 +693,7 @@ do_default_pick(string str)
  *                it.
  * Arguments    : object obj - the object specifying the code.
  */
-public void
-set_cf(object obj)
+public void set_cf(object obj)
 {
     /* All changes to the object might have been ruled out. */
     if (query_lock())
@@ -703,23 +704,23 @@ set_cf(object obj)
     cont_func = obj;
 }
 
+
 /*
  * Function name: query_cf
  * Description  : Query the object that holds protection code.
  * Returns      : object - the object specifying the code.
  */
-public object
-query_cf()
+public object query_cf()
 {
     return cont_func;
 }
+
 
 /*
  * Function name: set_no_pick
  * Description  : Make sure the lock on the container is not pickable.
  */
-public void
-set_no_pick()
+public void set_no_pick()
 {
     /* all changes to the object might have been ruled out. */
     if (query_lock())
@@ -730,25 +731,25 @@ set_no_pick()
     cont_pick = 0;
 }
 
+
 /*
  * Function name: query_no_pick
  * Description  : Returns whether the lock on the container can be picked.
  * Returns      : 1 - lock on container is not pickable
  *                0 - lock on container is pickable
  */
-public int
-query_no_pick()
+public int query_no_pick()
 {
     return (cont_pick == 0);
 }
+
 
 /*
  * Function name: set_pick
  * Description  : Set the difficulty to pick the lock.
  * Arguments    : i - the pick level
  */
-public void
-set_pick(int i)
+public void set_pick(int i)
 {
     /* all changes to the object might have been ruled out. */
     if (query_lock())
@@ -765,24 +766,24 @@ set_pick(int i)
     cont_pick = 0; /* not pickable */
 }
 
+
 /*
  * Function name: query_pick
  * Description  : Returns how easy it is to pick the lock on a door
  * Returns      : int - the pick level
  */
-public int
-query_pick()
+public int query_pick()
 {
     return cont_pick;
 }
+
 
 /*
  * Function name: set_key
  * Description  : Set the number of the key that fits this container.
  * Arguments    : keyval - the key to the container
  */
-public void
-set_key(mixed keyval)
+public void set_key(mixed keyval)
 {
     /* All changes might have been locked out. */
     if (query_lock())
@@ -793,16 +794,17 @@ set_key(mixed keyval)
     cont_key = keyval;
 }
 
+
 /*
  * Function name: query_key
  * Description  : Query the key that fits this container.
  * REturns      : mixed - the key to the container
  */
-public mixed
-query_key()
+public mixed query_key()
 {
     return cont_key;
 }
+
 
 /*
  * Function name: get_key_to_fit
@@ -815,15 +817,14 @@ query_key()
  *                            inventory and that matches all requirements.
  *                0         - failure
  */
-public nomask object
-get_key_to_fit(object *key_items, mixed key_value)
+public nomask object get_key_to_fit(object *key_items, mixed key_value)
 {
     int i;
 
     for(i = 0; i < sizeof(key_items); i++)
     {
         if ((function_exists("create_object", key_items[i]) == KEY_OBJECT) &&
-            (key_items[i]->query_key() == key_value) &&
+            (({mixed})key_items[i]->query_key() == key_value) &&
             (environment(key_items[i]) == this_player()))
         {
             return key_items[i];
@@ -832,6 +833,7 @@ get_key_to_fit(object *key_items, mixed key_value)
 
     return 0;
 }
+
 
 /*
  * Function name: normal_access
@@ -844,14 +846,13 @@ get_key_to_fit(object *key_items, mixed key_value)
  * Returns      : object * - the objects the player wants to handle
  *                0        - on failure.
  */
-public varargs nomask object *
-normal_access(string str, string pattern, string fail_str)
+public varargs nomask object * normal_access(string str, string pattern, string fail_str)
 {
     object tp = this_player();
     object *items;
 
     /* No access on another container, so don't bother to check this one. */
-    if (tp->query_prop(TEMP_LIBCONTAINER_CHECKED))
+    if (({int})tp->query_prop(TEMP_LIBCONTAINER_CHECKED))
     {
         return 0;
     }
@@ -872,7 +873,7 @@ normal_access(string str, string pattern, string fail_str)
 
     if (!sizeof(items =
     	filter((all_inventory(environment(tp)) + all_inventory(tp)),
-    	       filter_open_close_containers)))
+    	       #'filter_open_close_containers)))
     {
         return 0;
     }
@@ -895,6 +896,7 @@ normal_access(string str, string pattern, string fail_str)
     return items;
 }
 
+
 /*
  * Function name: normal_access_key
  * Description  : This function is used by all commands attached to the
@@ -907,8 +909,7 @@ normal_access(string str, string pattern, string fail_str)
  *                        ({ ({ container_items }), ({ key_items }) })
  *                0     - on failure.
  */
-public nomask mixed
-normal_access_key(string str)
+public nomask mixed normal_access_key(string str)
 {
     object *container_items;
     object *key_items;
@@ -926,13 +927,14 @@ normal_access_key(string str)
         return 0;
     }
     if (!sizeof(container_items =
-    	filter(container_items, filter_open_close_containers)))
+    	filter(container_items, #'filter_open_close_containers)))
     {
         return 0;
     }
 
     return ({ container_items, key_items });
 }
+
 
 /*
  * Function name: filter_open_close_containers
@@ -943,12 +945,12 @@ normal_access_key(string str)
  * Returns      : 1 - this container is oke.
  *                0 - apparently it is not a good container.
  */
-public nomask int
-filter_open_close_containers(object ob)
+public nomask int filter_open_close_containers(object ob)
 {
     return (function_exists("filter_open_close_containers", ob) ==
     	RECEPTACLE_OBJECT);
 }
+
 
 /*
  * Function name: add_temp_libcontainer_checked
@@ -956,12 +958,12 @@ filter_open_close_containers(object ob)
  *                try to handle other containers in the same heartbeat.
  * Arguments    : player - the player to add it to.
  */
-public nomask void
-add_temp_libcontainer_checked(object player)
+public nomask void add_temp_libcontainer_checked(object player)
 {
-    set_alarm(1.0, 0.0, &player->remove_prop(TEMP_LIBCONTAINER_CHECKED));
+    call_out((: ({int})player->remove_prop(TEMP_LIBCONTAINER_CHECKED) :), 1);
     player->add_prop(TEMP_LIBCONTAINER_CHECKED, 1);
 }
+
 
 /*
  * Function name: remove_temp_libcontainer_checked
@@ -969,11 +971,11 @@ add_temp_libcontainer_checked(object player)
  *                try to handle another containers in the same heartbeat.
  * Arguments    : player - the player to remove it from
  */
-public nomask void
-remove_temp_libcontainer_checked(object player)
+public nomask void remove_temp_libcontainer_checked(object player)
 {
     player->remove_prop(TEMP_LIBCONTAINER_CHECKED);
 }
+
 
 /*
  * Function name: stat_object
@@ -981,10 +983,11 @@ remove_temp_libcontainer_checked(object player)
  *                about the container.
  * Returns      : string - the stats of the container.
  */
-public string
-stat_object()
+public string stat_object()
 {
-    string str = ::stat_object();
+    string str;
+
+    str = ::stat_object();
 
     if (cont_key)
     {
@@ -1007,6 +1010,7 @@ stat_object()
     return str;
 }
 
+
 /*
  * Function name: get_pick_chance
  * Description  : Make a string from the difference in pick-skill of the
@@ -1015,8 +1019,7 @@ stat_object()
  * Arguments    : pick_val - the mentioned difference
  * Returns      : string   - a nice string with the mentioned description.
  */
-public nomask string
-get_pick_chance(int pick_val)
+public nomask string get_pick_chance(int pick_val)
 {
     if (pick_val >= 40)
         return "pickable by only looking at it";
@@ -1041,19 +1044,20 @@ get_pick_chance(int pick_val)
     return "completely unpickable by you";
 }
 
+
 /*
  * Function name: appraise_object
  * Description  : This function is called when a player appraises the
  *                container to find out more about it.
  * Arguments    : num - use this num rather than the players appraise skill
  */
-public varargs void
-appraise_object(int num)
+public varargs void appraise_object(int num)
 {
-    int pick_level = cont_pick;
+    int pick_level;
     int seed;
     int skill;
 
+    pick_level = cont_pick;
     ::appraise_object(num);
 
     if (!cont_key)
@@ -1063,7 +1067,7 @@ appraise_object(int num)
 
     if (!num)
     {
-	skill = (int)this_player()->query_skill(SS_APPR_OBJ);
+	skill = ({int})this_player()->query_skill(SS_APPR_OBJ);
     }
     else
     {
@@ -1071,8 +1075,8 @@ appraise_object(int num)
     }
 
     sscanf(OB_NUM(this_object()), "%d", seed);
-    skill = random((1000 / (skill + 1)), seed);
-    pick_level = (int)this_player()->query_skill(SS_OPEN_LOCK) -
+    skill = random((1000 / (skill + 1)));
+    pick_level = ({int})this_player()->query_skill(SS_OPEN_LOCK) -
         cut_sig_fig(pick_level + (skill % 2 ? -skill % 70 : skill) *
 	pick_level / 100);
 
@@ -1080,18 +1084,19 @@ appraise_object(int num)
         ".\n");
 }
 
+
 /*
  * Function name: query_container_recover
  * Description  : Return the recover string with information on the status
  *                of the container.
  * Returns      : part of recover string
  */
-public nomask string
-query_container_recover()
+public nomask string query_container_recover()
 {
     return ("#c_c#" + query_prop(CONT_I_CLOSED) + "#" +
             "#c_l#" + query_prop(CONT_I_LOCK)   + "#");
 }
+
 
 /*
  * Function name: init_container_recover
@@ -1099,8 +1104,7 @@ query_container_recover()
  *                reboot.
  * Arguments    : arg - the total recover string
  */
-public nomask void
-init_container_recover(string arg)
+public nomask void init_container_recover(string arg)
 {
     string foobar;
     int    tmp;
