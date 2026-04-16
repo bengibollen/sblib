@@ -106,7 +106,7 @@ int press_console(string str) {
 
 void button_a()
 {
-    if ("/w/debug/sheep" in map(all_inventory(), #'load_name))
+    if ("/d/Standard/newbietown/mob/sheep" in map(all_inventory(), #'load_name))
     {
         write("You press the button and nothing happens.\n");
         say( QCTNAME(this_player()) + " presses the button and nothing happens.\n");
@@ -115,7 +115,7 @@ void button_a()
 
     write("You press the button and a sheep appears.\n");
     say( QCTNAME(this_player()) + " presses the button and a sheep appears.\n");
-    clone_object("/w/debug/sheep")->move(environment(this_player()));
+    clone_object("/d/Standard/newbietown/mob/sheep")->move(environment(this_player()));
 }
 
 

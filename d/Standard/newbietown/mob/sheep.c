@@ -39,12 +39,14 @@ void create_creature() {
 
     set_hp(query_max_hp());
 
-    set_skill(SS_DEFENCE, 30);
+    add_prop(NPC_I_NO_RUN_AWAY, 1);
+
+    set_skill(SS_DEFENCE, 10);
     set_skill(SS_SWIM, 80);
 
-    set_attack_unarmed(A_HEADBUTT,  20, 3, W_BLUDGEON, 30, "headbutt");
-    set_attack_unarmed(A_KICK, 40, 2, W_BLUDGEON,  40, "kick");
-    set_attack_unarmed(A_BITE, 40, 2, W_BLUDGEON,  30, "teeth");
+    set_attack_unarmed(A_HEADBUTT,  10, 2, W_BLUDGEON, 30, "headbutt");
+    set_attack_unarmed(A_KICK, 10, 1, W_BLUDGEON,  40, "kick");
+    set_attack_unarmed(A_BITE, 10, 1, W_BLUDGEON,  30, "teeth");
 
     set_hitloc_unarmed(H_HEAD, ({ 0, 0, 0, 0 }), 20, "head");
     set_hitloc_unarmed(H_BODY, ({ 0, 0, 0, 0 }), 80, "body");
