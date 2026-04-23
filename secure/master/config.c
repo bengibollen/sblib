@@ -118,31 +118,41 @@ public void noecho_hook(int flag, object ob)
 
 public string default_prompt_hook()
 {
+    return "\n> ";
+}
+
+public void print_prompt_hook(string prompt)
+{
     object ob;
 
-    ob = this_interactive();
-    if (!objectp(ob))
-        return "\n> ";
+    if (!stringp(prompt) || !sizeof(prompt))
+        return;
 
-    if (function_exists("query_client_managed_prompt", ob) &&
-        ({int}) ob->query_client_managed_prompt())
+    ob = this_interactive();
+    if (objectp(ob))
     {
-        if (function_exists("send_prompt_ready", ob))
-            ob->send_prompt_ready();
-        return "";
+        tell_object(ob, prompt);
+        if (function_exists("query_prompt_mode_eor", ob) &&
+            ({int}) ob->query_prompt_mode_eor() &&
+            function_exists("send_eor", ob))
+        {
+            ob->send_eor();
+        }
+        return;
     }
 
-    return "\n> ";
+    write(prompt);
 }
 
 public void setup_command()
 {
     set_driver_hook(H_MODIFY_COMMAND, #'modify_command);
         // ([ "e":"east", "w":"west", "s":"south", "n":"north"
-        //  , "d":"down", "u":"up", "nw":"northwest", "ne":"northeast"
-        //  , "sw":"southwest", "se":"southeast" ]));
+    //  , "d":"down", "u":"up", "nw":"northwest", "ne":"northeast"
+    //  , "sw":"southwest", "se":"southeast" ]));
     set_driver_hook(H_MODIFY_COMMAND_FNAME, "modify_command");
     set_driver_hook(H_DEFAULT_PROMPT, #'default_prompt_hook);
+    set_driver_hook(H_PRINT_PROMPT, #'print_prompt_hook);
     set_driver_hook(H_TELNET_NEG, "got_telnet");
     set_driver_hook(H_NOECHO, #'noecho_hook);
     
