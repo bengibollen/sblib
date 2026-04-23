@@ -2,6 +2,7 @@
 #pragma no_inherit
 
 #include <config.h>
+#include <configuration.h>
 #include <input_to.h>  // For INPUT_* flags
 #include <log.h>       // For logging
 #include <libfiles.h>     // For PLAYER_OBJECT
@@ -19,7 +20,7 @@
 #include <libtime.h>
 
 
-// inherit "/lib/telnetneg.c";
+inherit "/lib/telnetneg.c";
 
 
 // Constants
@@ -56,6 +57,7 @@ static void start_player();
 public void new_player(string name);
 public void new_password(string input);
 private int check_password_rules(string password);
+private void transfer_client_session_state(object ob);
 
 /*
  * Prototypes.
@@ -89,6 +91,7 @@ private int     restricted;      /* Are we restricted?                 */
 
 
 public void create() {
+    create_telnetneg();
     log_info("=== Login Object Created ===");
     log_debug("Object name: %s", object_name(this_object()));
     time_of_login = time();
@@ -99,6 +102,10 @@ public void create() {
 public void logon() {
     log_info("New login session started");
     log_debug("Object name: %s", object_name(this_object()));
+    configure_interactive(this_object(), IC_TELNET_ENABLED, 1);
+    configure_interactive(this_object(), IC_CONNECTION_CHARSET_AS_STRING, 0);
+    configure_interactive(this_object(), IC_QUOTE_IAC, 1);
+    configure_interactive(this_object(), IC_ENCODING, "utf-8");
 
     write("\nWelcome to SBLib MUD!\n");
     show_banner();
@@ -167,6 +174,7 @@ public void new_player_entry()
     configure_object(player_obj, OC_EUID, BACKBONE_UID);
 
     player_obj->set_trusted(1);
+    transfer_client_session_state(player_obj);
     exec(player_obj, this_object());
     player_obj->enter_new_player(name, password);
     destruct(this_object());
@@ -455,6 +463,7 @@ private void login_success() {
 
     log_info("Successfully cloned player object: %s", object_name(player));
     
+    transfer_client_session_state(player);
     int success = exec(player, this_object());
     log_debug("Exec result: %d", success);
 
@@ -604,6 +613,26 @@ string query_real_name()
     return "logon";
 }
 
+private void transfer_client_session_state(object ob)
+{
+    mixed state;
+
+    if (!objectp(ob))
+        return;
+
+    if (function_exists("transfer_ts", ob))
+    {
+        state = transfer_ts(0);
+        ob->transfer_ts(state);
+    }
+
+    if (function_exists("transfer_sbclient_state", ob))
+    {
+        state = transfer_sbclient_state(0);
+        ob->transfer_sbclient_state(state);
+    }
+}
+
 
 /*
  * Function name: start_player2
@@ -656,6 +685,7 @@ static void start_player2(object ob)
     log_debug("Ob object: " + to_string(ob) + "\n");
 
     /* Swap to the playerobject. */
+    transfer_client_session_state(ob);
     exec(ob, this_object());
 
     /* If we are not in the game, enter it. */
@@ -741,6 +771,7 @@ static void start_player1()
         configure_object(ob, OC_EUID, BACKBONE_UID);
 
         ob->set_trusted(1);
+        transfer_client_session_state(ob);
         exec(ob, this_object());
         ob->enter_new_player(name, password);
         destruct(this_object());

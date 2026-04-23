@@ -11,10 +11,10 @@ ARG PYTHON_BRANCH=main
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
-    build-essential ca-certificates git bison autoconf autogen automake wget \
-    pkg-config libgcrypt20-dev libgnutls28-dev python3-dev \
-    libxml2-dev zlib1g-dev libpcre3-dev libc-ares-dev python3-hunspell \
-    python3-pip hunspell-de-de help2man gdb
+     build-essential ca-certificates git bison autoconf autogen automake wget \
+     pkg-config libgcrypt20-dev libgnutls28-dev python3-dev \
+     libxml2-dev zlib1g-dev libpcre3-dev libc-ares-dev libjson-c-dev python3-hunspell \
+     python3-pip hunspell-de-de help2man gdb
 
 # Create mud user/group using the provided UID/GID
 RUN groupadd -g $GID mud \
@@ -44,8 +44,8 @@ COPY --chown=mud:mud . /mud/sblib/
 
 # Clean up packages that are no longer needed
 RUN apt-get clean \
- && apt-mark manual libgnutls30 libpython3.11 libxml2 libpcre3 \
- && apt-get remove --purge -y build-essential ca-certificates git bison autoconf autogen automake wget pkg-config libgcrypt20-dev libgnutls28-dev python3-dev libxml2-dev zlib1g-dev libpcre3-dev \
+ && apt-mark manual libgnutls30 libpython3.11 libxml2 libpcre3 libjson-c5 \
+ && apt-get remove --purge -y build-essential ca-certificates git bison autoconf autogen automake wget pkg-config libgcrypt20-dev libgnutls28-dev python3-dev libxml2-dev zlib1g-dev libpcre3-dev libjson-c-dev \
  && apt-get autoremove -y 
 
 # Add environment variables

@@ -20,6 +20,7 @@
 #include <input_to.h>            // INPUT_*
 #include <config.h>              // ROOTID
 #include <configuration.h>       // IC_*
+#include <std.h>
 //#include <stdproperties.h>          // P_* macros
 #define NEED_PROTOTYPES
 // #include <thing/properties.h>    // SetProp() proto
@@ -52,6 +53,118 @@
 //   set_telnet(WILL, TELOPT_EOR);
 
 nosave mapping ts; // Complete telnet negotation state
+nosave mapping sb_client_state; // Higher-level client capability/config state
+
+public void create_telnetneg();
+public int query_sbclient_ready();
+public void send_gmcp(string package, mixed payload);
+
+private void init_sb_client_state()
+{
+  if (mappingp(sb_client_state)) return;
+
+  sb_client_state = ([
+    "gmcp" : 0,
+    "hello" : 0,
+    "proto_v" : 0,
+    "client" : "",
+    "client_version" : "",
+    "prompt" : ([
+      "mode" : "server",
+      "ready_event" : 0,
+    ]),
+    "prompt_seq" : 0,
+  ]);
+}
+
+private int *string_to_telnet_array(string text)
+{
+  int end;
+  int *data_bytes;
+
+  if (!stringp(text) || !sizeof(text)) return ({ });
+
+  data_bytes = to_array(text);
+  end = sizeof(to_array(""));
+  if (sizeof(data_bytes) >= end)
+    return data_bytes[0..<end];
+
+  return data_bytes;
+}
+
+private mapping parse_gmcp_payload(string payload)
+{
+#ifdef __JSON__
+  mixed data;
+
+  if (!stringp(payload) || !sizeof(payload))
+    return ([ ]);
+
+  if (catch(data = json_parse(payload)))
+    return 0;
+
+  if (mappingp(data))
+    return data;
+#endif
+  return 0;
+}
+
+private void send_sbclient_state()
+{
+  mapping prompt;
+
+  init_sb_client_state();
+  prompt = ([ ]) + sb_client_state["prompt"];
+
+  send_gmcp("SB.Client.State", ([
+    "v" : 1,
+    "prompt" : prompt,
+  ]));
+}
+
+private void handle_sbclient_hello(string payload)
+{
+  mapping data;
+
+  data = parse_gmcp_payload(payload);
+  if (!mappingp(data) || !intp(data["v"]) || data["v"] != 1)
+    return;
+
+  init_sb_client_state();
+  sb_client_state["hello"] = 1;
+  sb_client_state["proto_v"] = data["v"];
+  sb_client_state["client"] = stringp(data["client"]) ? data["client"] : "";
+  sb_client_state["client_version"] =
+    stringp(data["client_version"]) ? data["client_version"] : "";
+
+  send_sbclient_state();
+}
+
+private void handle_sbclient_prompt_set(string payload)
+{
+  mapping data;
+  mapping prompt;
+
+  if (!query_sbclient_ready())
+    return;
+
+  data = parse_gmcp_payload(payload);
+  if (!mappingp(data))
+    return;
+
+  init_sb_client_state();
+  prompt = ([ ]) + sb_client_state["prompt"];
+
+  if (stringp(data["mode"]) && data["mode"] == "client")
+    prompt["mode"] = "client";
+  else if (stringp(data["mode"]) && data["mode"] == "server")
+    prompt["mode"] = "server";
+
+  prompt["ready_event"] = data["ready_event"] ? 1 : 0;
+  sb_client_state["prompt"] = prompt;
+
+  send_sbclient_state();
+}
 
 // Set preferences and callbacks
 //
@@ -213,6 +326,8 @@ void got_telnet(int command, int option, int *optargs) {
   int state;
   mixed agree;
   string log;
+
+  create_telnetneg();
 
   // Set the hook as follows.
   //   set_driver_hook(H_TELNET_NEG, "got_telnet");
@@ -404,7 +519,13 @@ void got_telnet(int command, int option, int *optargs) {
 // work with the same copy of ts
 mapping transfer_ts(mapping old_ts) {
   int opt;
-  if (!previous_object() || getuid(previous_object()) != ROOT_UID) return 0;
+  string prev_uid;
+
+  create_telnetneg();
+  if (!previous_object()) return 0;
+
+  prev_uid = getuid(previous_object());
+  if (prev_uid != ROOT_UID && prev_uid != BACKBONE_UID) return 0;
   if (!old_ts) return ts;
 
   // use callbacks of THIS object
@@ -419,6 +540,94 @@ mapping transfer_ts(mapping old_ts) {
   ts = old_ts;
 
   return 0;
+}
+
+mapping transfer_sbclient_state(mapping old_state)
+{
+  string prev_uid;
+
+  init_sb_client_state();
+  if (!previous_object()) return 0;
+
+  prev_uid = getuid(previous_object());
+  if (prev_uid != ROOT_UID && prev_uid != BACKBONE_UID) return 0;
+  if (!old_state) return ([ ]) + sb_client_state;
+
+  sb_client_state = ([ ]) + old_state;
+  init_sb_client_state();
+  return 0;
+}
+
+public int query_sbclient_ready()
+{
+  int state;
+
+  create_telnetneg();
+  state = ts[TELOPT_GMCP, TS_STATE];
+  return (Q_LOCAL(state) == YES) && sb_client_state["hello"];
+}
+
+public int query_client_managed_prompt()
+{
+  mapping prompt;
+
+  if (!query_sbclient_ready())
+    return 0;
+
+  prompt = sb_client_state["prompt"];
+  return mappingp(prompt) && prompt["mode"] == "client";
+}
+
+public mapping query_sbclient_state()
+{
+  init_sb_client_state();
+  return ([ ]) + sb_client_state;
+}
+
+public void send_gmcp(string package, mixed payload)
+{
+  string message;
+
+  create_telnetneg();
+  if (!stringp(package) || !sizeof(package))
+    return;
+
+  if (Q_LOCAL(ts[TELOPT_GMCP, TS_STATE]) != YES)
+    return;
+
+  message = package;
+
+  if (mappingp(payload) || pointerp(payload) || intp(payload) || floatp(payload))
+  {
+#ifdef __JSON__
+    message += " " + json_serialize(payload);
+#else
+    return;
+#endif
+  }
+  else if (stringp(payload) && sizeof(payload))
+    message += " " + payload;
+
+  send(({ IAC, SB, TELOPT_GMCP }) + string_to_telnet_array(message) + ({ IAC, SE }));
+}
+
+public void send_prompt_ready()
+{
+  int seq;
+  mapping prompt;
+
+  if (!query_client_managed_prompt())
+    return;
+
+  prompt = sb_client_state["prompt"];
+  if (!mappingp(prompt) || !prompt["ready_event"])
+    return;
+
+  seq = ++sb_client_state["prompt_seq"];
+  send_gmcp("SB.Prompt.Ready", ([
+    "kind" : "command",
+    "seq" : seq,
+  ]));
 }
 
 // All telnet negotations are sent through this function
@@ -454,6 +663,11 @@ private string telnet_to_text(int command, int option, int* args) {
   d_txt = TELCMD2STRING(IAC) + " " +
     TELCMD2STRING(command) + " " + TELOPT2STRING(option);
   if (args && sizeof(args)) {
+    if (command == SB && option == TELOPT_GMCP) {
+      d_txt += " " + to_string(args);
+      return d_txt;
+    }
+
     if (command == SB && option == TELOPT_LINEMODE) {
       switch (args[0]) {
         case LM_MODE:
@@ -549,11 +763,12 @@ private void tel_error(string err) {
 
 nosave int* tm_t;
 
-void create() {
+public void create_telnetneg() {
   if (!ts) {
     ts = m_allocate(7, TS_SIZE);
     ts[TS_EXTRA, TSE_LOG] = "";
   }
+  init_sb_client_state();
 
   // set how we would like the options' states
   set_callback(TELOPT_NAWS,     DO,   WONT, 0,           #'sb_naws);
@@ -571,6 +786,7 @@ void create() {
 
   set_callback(TELOPT_SGA,      #'neg_sga, #'neg_sga, #'cb_sga, 0);
   set_callback(TELOPT_ECHO,     #'neg_echo, WONT, #'cb_echo, 0);
+  set_callback(TELOPT_GMCP,     DONT, WILL, #'start_gmcp, #'sb_gmcp);
 
 #ifdef __MCCP__
   set_callback(TELOPT_COMPRESS2, DONT,      WILL,       #'start_mccp, 0);
@@ -786,6 +1002,12 @@ private void start_eor(int command, int option) {
   if (command == DO || command == DONT) modify_prompt();
 }
 
+private void start_gmcp(int command, int option)
+{
+  init_sb_client_state();
+  sb_client_state["gmcp"] = (command == DO);
+}
+
 #ifdef __MCCP__
 private void start_mccp(int command, int option) {
     if(command == DO)
@@ -832,6 +1054,38 @@ private void cb_sga(int command, int option) {
       S_TSE_SGA_CHAR(NO);
       break;
   }
+}
+
+private void sb_gmcp(int command, int option, int* optargs)
+{
+  string package;
+  string payload;
+  string message;
+
+  if (Q_LOCAL(ts[TELOPT_GMCP, TS_STATE]) != YES)
+    return;
+
+  message = to_string(optargs);
+  if (sscanf(message, "%s %s", package, payload) != 2)
+  {
+    package = message;
+    payload = "";
+  }
+
+  switch (package)
+  {
+  case "SB.Client.Hello":
+    handle_sbclient_hello(payload);
+    return;
+
+  case "SB.Prompt.Set":
+    handle_sbclient_prompt_set(payload);
+    return;
+  }
+}
+
+static void modify_prompt()
+{
 }
 
 private void cb_echo(int command, int option) {
@@ -935,12 +1189,6 @@ private void sb_naws(int command, int option, int* optargs) {
 
   ts[TS_EXTRA, TSE_LOG] +=
     "     Window size: " + cols + " cols, " + lines + " lines\n";
-
-  // inform mudlib
-  if (pointerp(old)) {
-    if (old[0] != cols)  SetProp(P_TTY_COLS, cols);
-    if (old[1] != lines) SetProp(P_TTY_ROWS, lines);
-  }
 }
 
 private void sb_xdisp(int command, int option, int* optargs) {
@@ -981,8 +1229,6 @@ private void sb_ttype(int command, int option, int* optargs) {
   all = ts[option, TS_SB];
   if (!all) {
     all = ({ 0, ({}) });
-    // inform mudlib
-    SetProp(P_TTY_TYPE, value);
   }
 
 #ifdef GET_ALL_TTYPES

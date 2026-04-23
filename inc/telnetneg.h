@@ -84,6 +84,7 @@ private void sb_env(int command, int option, int* optargs);
 private void sb_naws(int command, int option, int* optargs);
 private void sb_status(int command, int option, int* optargs);
 private void sb_line(int command, int option, int* optargs);
+private void sb_gmcp(int command, int option, int* optargs);
 #ifdef __TLS__
 private void sb_tls(int command, int option, int* optargs);
 private void sb_auth(int command, int option, int* optargs);
@@ -97,6 +98,7 @@ private int neg_mccp(int command, int option);
 #endif
 private void start_sb(int command, int option);
 private void start_eor(int command, int option);
+private void start_gmcp(int command, int option);
 private void start_lm(int command, int option);
 #ifdef __MCCP__
 private void start_mccp(int command, int option);
@@ -176,6 +178,7 @@ static void modify_prompt(); // std/player/prompt.c
 #define TELOPT_COMPRESS2 86     /* Mud Compression Protocol, v.2 */
 #define TELOPT_MSP       90     /* Mud Sound Protocol */
 #define TELOPT_MXP       91     /* Mud Extension Protocol */
+#define TELOPT_GMCP      201    /* Generic Mud Communication Protocol */
 
 #define TELOPT_EXOPL    255     /* extended-options-list */
 

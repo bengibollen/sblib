@@ -11,6 +11,7 @@
 
 #pragma strict_types
 
+inherit "/lib/telnetneg.c";
 inherit "/std/player_sec";
 
 #include <macros.h>
