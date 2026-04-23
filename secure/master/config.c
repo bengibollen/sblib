@@ -110,6 +110,31 @@ public void setup_filesystem() {
     set_driver_hook(H_FILE_ENCODING, "UTF-8");
 }
 
+public void noecho_hook(int flag, object ob)
+{
+    if (objectp(ob) && function_exists("set_noecho", ob))
+        ob->set_noecho(flag);
+}
+
+public string default_prompt_hook()
+{
+    object ob;
+
+    ob = this_interactive();
+    if (!objectp(ob))
+        return "\n> ";
+
+    if (function_exists("query_client_managed_prompt", ob) &&
+        ({int}) ob->query_client_managed_prompt())
+    {
+        if (function_exists("send_prompt_ready", ob))
+            ob->send_prompt_ready();
+        return "";
+    }
+
+    return "\n> ";
+}
+
 public void setup_command()
 {
     set_driver_hook(H_MODIFY_COMMAND, #'modify_command);
@@ -117,7 +142,9 @@ public void setup_command()
         //  , "d":"down", "u":"up", "nw":"northwest", "ne":"northeast"
         //  , "sw":"southwest", "se":"southeast" ]));
     set_driver_hook(H_MODIFY_COMMAND_FNAME, "modify_command");
-    set_driver_hook(H_DEFAULT_PROMPT, "\n> ");
+    set_driver_hook(H_DEFAULT_PROMPT, #'default_prompt_hook);
+    set_driver_hook(H_TELNET_NEG, "got_telnet");
+    set_driver_hook(H_NOECHO, #'noecho_hook);
     
 }
 

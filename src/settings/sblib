@@ -68,6 +68,7 @@ enable_use_xml=xml2
 enable_use_deprecated=no
 enable_use_pcre=no
 enable_lpc_array_calls=yes
+enable_use_json=yes
 enable_use_python=yes
 enable_keyword_in=yes
 
