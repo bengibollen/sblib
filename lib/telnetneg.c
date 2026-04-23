@@ -56,25 +56,83 @@ nosave mapping ts; // Complete telnet negotation state
 nosave mapping sb_client_state; // Higher-level client capability/config state
 
 public void create_telnetneg();
-public int query_sbclient_ready();
+public void start_telnet_session();
+public int query_gmcp_enabled();
+public int query_eor_enabled();
+public int query_prompt_mode_eor();
+public int *query_naws_size();
+public int query_naws_cols();
+public int query_naws_rows();
 public void send_gmcp(string package, mixed payload);
+public void send_eor();
 
 private void init_sb_client_state()
 {
-  if (mappingp(sb_client_state)) return;
+  mapping telnet_state;
+  mapping gmcp_state;
+  mapping naws_state;
+  mapping eor_state;
+  mapping gmcp_telnet_state;
+  mapping hello_state;
+  mapping options_state;
 
-  sb_client_state = ([
-    "gmcp" : 0,
-    "hello" : 0,
-    "proto_v" : 0,
-    "client" : "",
-    "client_version" : "",
-    "prompt" : ([
-      "mode" : "server",
-      "ready_event" : 0,
-    ]),
-    "prompt_seq" : 0,
-  ]);
+  if (!mappingp(sb_client_state))
+    sb_client_state = ([ ]);
+
+  telnet_state = mappingp(sb_client_state["telnet"])
+    ? ([ ]) + sb_client_state["telnet"]
+    : ([ ]);
+  gmcp_state = mappingp(sb_client_state["gmcp"])
+    ? ([ ]) + sb_client_state["gmcp"]
+    : ([ ]);
+
+  naws_state = mappingp(telnet_state["naws"])
+    ? ([ ]) + telnet_state["naws"]
+    : ([ ]);
+  eor_state = mappingp(telnet_state["eor"])
+    ? ([ ]) + telnet_state["eor"]
+    : ([ ]);
+  gmcp_telnet_state = mappingp(telnet_state["gmcp"])
+    ? ([ ]) + telnet_state["gmcp"]
+    : ([ ]);
+
+  hello_state = mappingp(gmcp_state["hello"])
+    ? ([ ]) + gmcp_state["hello"]
+    : ([ ]);
+  options_state = mappingp(gmcp_state["options"])
+    ? ([ ]) + gmcp_state["options"]
+    : ([ ]);
+
+  naws_state["enabled"] = naws_state["enabled"] ? 1 : 0;
+  naws_state["cols"] = intp(naws_state["cols"]) ? naws_state["cols"] : 0;
+  naws_state["rows"] = intp(naws_state["rows"]) ? naws_state["rows"] : 0;
+
+  eor_state["enabled"] = eor_state["enabled"] ? 1 : 0;
+  gmcp_telnet_state["enabled"] = gmcp_telnet_state["enabled"] ? 1 : 0;
+
+  hello_state["client"] = stringp(hello_state["client"])
+    ? hello_state["client"]
+    : "";
+  hello_state["version"] = stringp(hello_state["version"])
+    ? hello_state["version"]
+    : "";
+
+  if (!pointerp(gmcp_state["supports"]))
+    gmcp_state["supports"] = ({ });
+
+  options_state["prompt_mode"] =
+    stringp(options_state["prompt_mode"]) ? options_state["prompt_mode"] : "text";
+
+  telnet_state["naws"] = naws_state;
+  telnet_state["eor"] = eor_state;
+  telnet_state["gmcp"] = gmcp_telnet_state;
+
+  gmcp_state["hello"] = hello_state;
+  gmcp_state["supports"] = filter(gmcp_state["supports"], #'stringp);
+  gmcp_state["options"] = options_state;
+
+  sb_client_state["telnet"] = telnet_state;
+  sb_client_state["gmcp"] = gmcp_state;
 }
 
 private int *string_to_telnet_array(string text)
@@ -92,78 +150,81 @@ private int *string_to_telnet_array(string text)
   return data_bytes;
 }
 
-private mapping parse_gmcp_payload(string payload)
+private mixed parse_gmcp_payload(string payload)
 {
 #ifdef __JSON__
   mixed data;
 
   if (!stringp(payload) || !sizeof(payload))
-    return ([ ]);
+    return 0;
 
   if (catch(data = json_parse(payload)))
     return 0;
 
-  if (mappingp(data))
-    return data;
+  return data;
 #endif
   return 0;
 }
 
-private void send_sbclient_state()
+private void handle_core_hello(string payload)
 {
-  mapping prompt;
+  mixed parsed;
+  mapping data;
+  mapping gmcp_state;
+  mapping hello_state;
 
+  parsed = parse_gmcp_payload(payload);
+  if (!mappingp(parsed))
+    return;
+
+  data = parsed;
   init_sb_client_state();
-  prompt = ([ ]) + sb_client_state["prompt"];
+  gmcp_state = ([ ]) + sb_client_state["gmcp"];
+  hello_state = ([ ]) + gmcp_state["hello"];
 
-  send_gmcp("SB.Client.State", ([
-    "v" : 1,
-    "prompt" : prompt,
-  ]));
+  hello_state["client"] = stringp(data["client"]) ? data["client"] : "";
+  hello_state["version"] = stringp(data["version"]) ? data["version"] : "";
+  gmcp_state["hello"] = hello_state;
+  sb_client_state["gmcp"] = gmcp_state;
 }
 
-private void handle_sbclient_hello(string payload)
+private void handle_core_supports_set(string payload)
 {
-  mapping data;
+  mixed parsed;
+  mapping gmcp_state;
 
-  data = parse_gmcp_payload(payload);
-  if (!mappingp(data) || !intp(data["v"]) || data["v"] != 1)
+  parsed = parse_gmcp_payload(payload);
+  if (!pointerp(parsed))
     return;
 
   init_sb_client_state();
-  sb_client_state["hello"] = 1;
-  sb_client_state["proto_v"] = data["v"];
-  sb_client_state["client"] = stringp(data["client"]) ? data["client"] : "";
-  sb_client_state["client_version"] =
-    stringp(data["client_version"]) ? data["client_version"] : "";
-
-  send_sbclient_state();
+  gmcp_state = ([ ]) + sb_client_state["gmcp"];
+  gmcp_state["supports"] = filter(parsed, #'stringp);
+  sb_client_state["gmcp"] = gmcp_state;
 }
 
-private void handle_sbclient_prompt_set(string payload)
+private void handle_sbclient_options_set(string payload)
 {
+  mixed parsed;
   mapping data;
-  mapping prompt;
+  mapping gmcp_state;
+  mapping options_state;
 
-  if (!query_sbclient_ready())
+  parsed = parse_gmcp_payload(payload);
+  if (!mappingp(parsed))
     return;
 
-  data = parse_gmcp_payload(payload);
-  if (!mappingp(data))
-    return;
-
+  data = parsed;
   init_sb_client_state();
-  prompt = ([ ]) + sb_client_state["prompt"];
+  gmcp_state = ([ ]) + sb_client_state["gmcp"];
+  options_state = ([ ]) + gmcp_state["options"];
 
-  if (stringp(data["mode"]) && data["mode"] == "client")
-    prompt["mode"] = "client";
-  else if (stringp(data["mode"]) && data["mode"] == "server")
-    prompt["mode"] = "server";
+  if (stringp(data["prompt_mode"]) &&
+      member(({ "text", "eor" }), data["prompt_mode"]) != -1)
+    options_state["prompt_mode"] = data["prompt_mode"];
 
-  prompt["ready_event"] = data["ready_event"] ? 1 : 0;
-  sb_client_state["prompt"] = prompt;
-
-  send_sbclient_state();
+  gmcp_state["options"] = options_state;
+  sb_client_state["gmcp"] = gmcp_state;
 }
 
 // Set preferences and callbacks
@@ -558,30 +619,78 @@ mapping transfer_sbclient_state(mapping old_state)
   return 0;
 }
 
-public int query_sbclient_ready()
+public void start_telnet_session()
+{
+  create_telnetneg();
+  if (!ts[TS_EXTRA, TSE_TELNETNEG])
+    start_telnetneg();
+}
+
+public int query_gmcp_enabled()
 {
   int state;
 
   create_telnetneg();
   state = ts[TELOPT_GMCP, TS_STATE];
-  return (Q_LOCAL(state) == YES) && sb_client_state["hello"];
+  return Q_LOCAL(state) == YES;
 }
 
-public int query_client_managed_prompt()
+public int query_eor_enabled()
 {
-  mapping prompt;
+  int state;
 
-  if (!query_sbclient_ready())
+  create_telnetneg();
+  state = ts[TELOPT_EOR, TS_STATE];
+  return Q_LOCAL(state) == YES;
+}
+
+public int query_prompt_mode_eor()
+{
+  mapping gmcp_state;
+  mapping options_state;
+
+  init_sb_client_state();
+  gmcp_state = sb_client_state["gmcp"];
+  options_state = gmcp_state["options"];
+
+  return query_eor_enabled() && options_state["prompt_mode"] == "eor";
+}
+
+public int *query_naws_size()
+{
+  mapping telnet_state;
+  mapping naws_state;
+
+  init_sb_client_state();
+  telnet_state = sb_client_state["telnet"];
+  naws_state = telnet_state["naws"];
+
+  if (!naws_state["enabled"])
     return 0;
 
-  prompt = sb_client_state["prompt"];
-  return mappingp(prompt) && prompt["mode"] == "client";
+  return ({ naws_state["cols"], naws_state["rows"] });
+}
+
+public int query_naws_cols()
+{
+  int *size;
+
+  size = query_naws_size();
+  return pointerp(size) ? size[0] : 0;
+}
+
+public int query_naws_rows()
+{
+  int *size;
+
+  size = query_naws_size();
+  return pointerp(size) ? size[1] : 0;
 }
 
 public mapping query_sbclient_state()
 {
   init_sb_client_state();
-  return ([ ]) + sb_client_state;
+  return copy(sb_client_state);
 }
 
 public void send_gmcp(string package, mixed payload)
@@ -592,7 +701,7 @@ public void send_gmcp(string package, mixed payload)
   if (!stringp(package) || !sizeof(package))
     return;
 
-  if (Q_LOCAL(ts[TELOPT_GMCP, TS_STATE]) != YES)
+  if (!query_gmcp_enabled())
     return;
 
   message = package;
@@ -611,23 +720,12 @@ public void send_gmcp(string package, mixed payload)
   send(({ IAC, SB, TELOPT_GMCP }) + string_to_telnet_array(message) + ({ IAC, SE }));
 }
 
-public void send_prompt_ready()
+public void send_eor()
 {
-  int seq;
-  mapping prompt;
-
-  if (!query_client_managed_prompt())
+  if (!query_eor_enabled())
     return;
 
-  prompt = sb_client_state["prompt"];
-  if (!mappingp(prompt) || !prompt["ready_event"])
-    return;
-
-  seq = ++sb_client_state["prompt_seq"];
-  send_gmcp("SB.Prompt.Ready", ([
-    "kind" : "command",
-    "seq" : seq,
-  ]));
+  efun::binary_message(({ IAC, EOR }));
 }
 
 // All telnet negotations are sent through this function
@@ -994,6 +1092,16 @@ private void start_lm(int command, int option) {
 }
 
 private void start_eor(int command, int option) {
+  mapping telnet_state;
+  mapping eor_state;
+
+  init_sb_client_state();
+  telnet_state = ([ ]) + sb_client_state["telnet"];
+  eor_state = ([ ]) + telnet_state["eor"];
+  eor_state["enabled"] = (command == DO);
+  telnet_state["eor"] = eor_state;
+  sb_client_state["telnet"] = telnet_state;
+
   // If we are allowed to use EOR whilst displaying a possible prompt
   // line, mark is as such. This happens unually only at the login.
   if (command == DO) efun::binary_message(({ IAC, EOR }));
@@ -1004,8 +1112,15 @@ private void start_eor(int command, int option) {
 
 private void start_gmcp(int command, int option)
 {
+  mapping telnet_state;
+  mapping gmcp_state;
+
   init_sb_client_state();
-  sb_client_state["gmcp"] = (command == DO);
+  telnet_state = ([ ]) + sb_client_state["telnet"];
+  gmcp_state = ([ ]) + telnet_state["gmcp"];
+  gmcp_state["enabled"] = (command == DO);
+  telnet_state["gmcp"] = gmcp_state;
+  sb_client_state["telnet"] = telnet_state;
 }
 
 #ifdef __MCCP__
@@ -1074,12 +1189,16 @@ private void sb_gmcp(int command, int option, int* optargs)
 
   switch (package)
   {
-  case "SB.Client.Hello":
-    handle_sbclient_hello(payload);
+  case "Core.Hello":
+    handle_core_hello(payload);
     return;
 
-  case "SB.Prompt.Set":
-    handle_sbclient_prompt_set(payload);
+  case "Core.Supports.Set":
+    handle_core_supports_set(payload);
+    return;
+
+  case "SbClient.Options.Set":
+    handle_sbclient_options_set(payload);
     return;
   }
 }
@@ -1179,6 +1298,8 @@ private void sb_status(int command, int option, int* optargs) {
 
 private void sb_naws(int command, int option, int* optargs) {
   int cols, lines, *old;
+  mapping telnet_state;
+  mapping naws_state;
 
   if (sizeof(optargs) != 4) return tel_error("SB NAWS with wrong size");
 
@@ -1186,6 +1307,15 @@ private void sb_naws(int command, int option, int* optargs) {
   lines = optargs[3] + optargs[2] * 256;
   old = ts[option, TS_SB];
   ts[option, TS_SB] = ({ cols, lines });
+
+  init_sb_client_state();
+  telnet_state = ([ ]) + sb_client_state["telnet"];
+  naws_state = ([ ]) + telnet_state["naws"];
+  naws_state["enabled"] = 1;
+  naws_state["cols"] = cols;
+  naws_state["rows"] = lines;
+  telnet_state["naws"] = naws_state;
+  sb_client_state["telnet"] = telnet_state;
 
   ts[TS_EXTRA, TSE_LOG] +=
     "     Window size: " + cols + " cols, " + lines + " lines\n";

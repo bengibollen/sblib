@@ -106,6 +106,7 @@ public void logon() {
     configure_interactive(this_object(), IC_CONNECTION_CHARSET_AS_STRING, 0);
     configure_interactive(this_object(), IC_QUOTE_IAC, 1);
     configure_interactive(this_object(), IC_ENCODING, "utf-8");
+    start_telnet_session();
 
     write("\nWelcome to SBLib MUD!\n");
     show_banner();
