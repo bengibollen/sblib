@@ -1201,11 +1201,14 @@ private void cb_sga(int command, int option) {
     case WONT:
       switch (Q_TSE_SGA_CHAR) {
         case WANT_NO:
-          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE left\n";       break;
+          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE left\n";
+          break;
         case WANT_YES:
-          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE denied\n";          break;
+          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE denied\n";
+          break;
         case YES:
-          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE forcefully left\n"; break;
+          ts[TS_EXTRA, TSE_LOG] += "* CHARMODE forcefully left\n";
+          break;
       }
       S_TSE_SGA_CHAR(NO);
       break;
@@ -1245,6 +1248,9 @@ private void sb_gmcp(int command, int option, int* optargs)
     return;
   }
 }
+
+
+static void modify_prompt()
 {
   /*
    * Intentionally left empty.
@@ -1254,9 +1260,8 @@ private void sb_gmcp(int command, int option, int* optargs)
    * This stub is kept so existing callers such as start_eor() can
    * continue to call it without changing telnet negotiation flow.
    */
-static void modify_prompt()
-{
 }
+
 
 private void cb_echo(int command, int option) {
   switch (command) {
