@@ -166,6 +166,32 @@ private mixed parse_gmcp_payload(string payload)
   return 0;
 }
 
+private int should_log_telnet_option(int option)
+{
+  return member(({ TELOPT_NAWS, TELOPT_EOR, TELOPT_GMCP }), option) != -1;
+}
+
+private void log_telnet_event(string direction, int command, int option, int *optargs)
+{
+  if (!should_log_telnet_option(option))
+    return;
+
+  log_debug("Telnet capability %s %s",
+    direction,
+    telnet_to_text(command, option, optargs));
+}
+
+private void log_gmcp_message(string direction, string package, string payload)
+{
+  if (!stringp(package) || !sizeof(package))
+    return;
+
+  if (stringp(payload) && sizeof(payload))
+    log_debug("Telnet capability %s GMCP %s %s", direction, package, payload);
+  else
+    log_debug("Telnet capability %s GMCP %s", direction, package);
+}
+
 private void handle_core_hello(string payload)
 {
   mixed parsed;
@@ -401,6 +427,7 @@ void got_telnet(int command, int option, int *optargs) {
   if (sizeof(log) > 4000) log = "..." + log[<3800..];
   log += "got  " + telnet_to_text(command, option, optargs) + "\n";
   ts[TS_EXTRA, TSE_LOG] = log;
+  log_telnet_event("received", command, option, optargs);
 
   state = ts[option, TS_STATE];
   switch (command) {
@@ -622,6 +649,7 @@ mapping transfer_sbclient_state(mapping old_state)
 public void start_telnet_session()
 {
   create_telnetneg();
+  log_debug("Telnet capability starting NAWS/EOR/GMCP negotiation");
   if (!ts[TS_EXTRA, TSE_TELNETNEG])
     start_telnetneg();
 }
@@ -696,6 +724,7 @@ public mapping query_sbclient_state()
 public void send_gmcp(string package, mixed payload)
 {
   string message;
+  string payload_text;
 
   create_telnetneg();
   if (!stringp(package) || !sizeof(package))
@@ -709,14 +738,18 @@ public void send_gmcp(string package, mixed payload)
   if (mappingp(payload) || pointerp(payload) || intp(payload) || floatp(payload))
   {
 #ifdef __JSON__
-    message += " " + json_serialize(payload);
+    payload_text = json_serialize(payload);
+    message += " " + payload_text;
 #else
     return;
 #endif
   }
-  else if (stringp(payload) && sizeof(payload))
+  else if (stringp(payload) && sizeof(payload)) {
+    payload_text = payload;
     message += " " + payload;
+  }
 
+  log_gmcp_message("sent", package, payload_text);
   send(({ IAC, SB, TELOPT_GMCP }) + string_to_telnet_array(message) + ({ IAC, SE }));
 }
 
@@ -725,6 +758,7 @@ public void send_eor()
   if (!query_eor_enabled())
     return;
 
+  log_debug("Telnet capability sent prompt EOR");
   efun::binary_message(({ IAC, EOR }));
 }
 
@@ -749,6 +783,7 @@ private int send(int* x) {
   if (sizeof(log) > 4000) log = "..." + log[<3800..];
   log += "sent " + telnet_to_text(x[1], x[2], y) +"\n";
   ts[TS_EXTRA, TSE_LOG] = log;
+  log_telnet_event("sent", x[1], x[2], y);
 
   return efun::binary_message(x);
 }
@@ -1101,6 +1136,7 @@ private void start_eor(int command, int option) {
   eor_state["enabled"] = (command == DO);
   telnet_state["eor"] = eor_state;
   sb_client_state["telnet"] = telnet_state;
+  log_debug("Telnet capability EOR %s", command == DO ? "enabled" : "disabled");
 
   // If we are allowed to use EOR whilst displaying a possible prompt
   // line, mark is as such. This happens unually only at the login.
@@ -1121,6 +1157,7 @@ private void start_gmcp(int command, int option)
   gmcp_state["enabled"] = (command == DO);
   telnet_state["gmcp"] = gmcp_state;
   sb_client_state["telnet"] = telnet_state;
+  log_debug("Telnet capability GMCP %s", command == DO ? "enabled" : "disabled");
 }
 
 #ifdef __MCCP__
@@ -1186,6 +1223,8 @@ private void sb_gmcp(int command, int option, int* optargs)
     package = message;
     payload = "";
   }
+
+  log_gmcp_message("received", package, payload);
 
   switch (package)
   {
@@ -1316,6 +1355,7 @@ private void sb_naws(int command, int option, int* optargs) {
   naws_state["rows"] = lines;
   telnet_state["naws"] = naws_state;
   sb_client_state["telnet"] = telnet_state;
+  log_debug("Telnet capability received NAWS cols=%d rows=%d", cols, lines);
 
   ts[TS_EXTRA, TSE_LOG] +=
     "     Window size: " + cols + " cols, " + lines + " lines\n";
