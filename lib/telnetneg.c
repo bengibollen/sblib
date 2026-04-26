@@ -722,7 +722,7 @@ public int query_naws_rows()
 public mapping query_sbclient_state()
 {
   init_sb_client_state();
-  return copy(sb_client_state);
+  return deep_copy(sb_client_state);
 }
 
 public void send_gmcp(string package, mixed payload)
