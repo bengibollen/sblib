@@ -2,7 +2,7 @@
 #pragma no_inherit
 
 #include <config.h>
-#include <configuration.h>
+
 #include <input_to.h>  // For INPUT_* flags
 #include <log.h>       // For logging
 #include <libfiles.h>     // For PLAYER_OBJECT
@@ -91,7 +91,7 @@ private int     restricted;      /* Are we restricted?                 */
 
 
 public void create() {
-    create_telnetneg();
+    init_telnetneg();
     log_info("=== Login Object Created ===");
     log_debug("Object name: %s", object_name(this_object()));
     time_of_login = time();
