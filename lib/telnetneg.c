@@ -55,7 +55,7 @@
 nosave mapping ts; // Complete telnet negotation state
 nosave mapping sb_client_state; // Higher-level client capability/config state
 
-public void create_telnetneg();
+public void init_telnetneg();
 public void start_telnet_session();
 public int query_gmcp_enabled();
 public int query_eor_enabled();
@@ -137,15 +137,17 @@ private void init_sb_client_state()
 
 private int *string_to_telnet_array(string text)
 {
-  int end;
+  int null_terminator_size;
   int *data_bytes;
 
   if (!stringp(text) || !sizeof(text)) return ({ });
 
   data_bytes = to_array(text);
-  end = sizeof(to_array(""));
-  if (sizeof(data_bytes) >= end)
-    return data_bytes[0..<end];
+  // to_array("") is used here only to determine the trailing string
+  // terminator size so it can be removed from the converted byte array.
+  null_terminator_size = sizeof(to_array(""));
+  if (sizeof(data_bytes) >= null_terminator_size)
+    return data_bytes[0..<null_terminator_size];
 
   return data_bytes;
 }
@@ -414,7 +416,7 @@ void got_telnet(int command, int option, int *optargs) {
   mixed agree;
   string log;
 
-  create_telnetneg();
+  init_telnetneg();
 
   // Set the hook as follows.
   //   set_driver_hook(H_TELNET_NEG, "got_telnet");
@@ -607,13 +609,15 @@ void got_telnet(int command, int option, int *optargs) {
 // work with the same copy of ts
 mapping transfer_ts(mapping old_ts) {
   int opt;
+  object prev;
   string prev_uid;
 
-  create_telnetneg();
-  if (!previous_object()) return 0;
-
-  prev_uid = getuid(previous_object());
-  if (prev_uid != ROOT_UID && prev_uid != BACKBONE_UID) return 0;
+  init_telnetneg();
+  prev = previous_object();
+  if (!objectp(prev) ||
+      ((prev_uid = getuid(prev)) != ROOT_UID &&
+       prev_uid != BACKBONE_UID))
+    return 0;
   if (!old_ts) return ts;
 
   // use callbacks of THIS object
@@ -648,7 +652,7 @@ mapping transfer_sbclient_state(mapping old_state)
 
 public void start_telnet_session()
 {
-  create_telnetneg();
+  init_telnetneg();
   log_debug("Telnet capability starting NAWS/EOR/GMCP negotiation");
   if (!ts[TS_EXTRA, TSE_TELNETNEG])
     start_telnetneg();
@@ -658,7 +662,7 @@ public int query_gmcp_enabled()
 {
   int state;
 
-  create_telnetneg();
+  init_telnetneg();
   state = ts[TELOPT_GMCP, TS_STATE];
   return Q_LOCAL(state) == YES;
 }
@@ -667,7 +671,7 @@ public int query_eor_enabled()
 {
   int state;
 
-  create_telnetneg();
+  init_telnetneg();
   state = ts[TELOPT_EOR, TS_STATE];
   return Q_LOCAL(state) == YES;
 }
@@ -726,7 +730,7 @@ public void send_gmcp(string package, mixed payload)
   string message;
   string payload_text;
 
-  create_telnetneg();
+  init_telnetneg();
   if (!stringp(package) || !sizeof(package))
     return;
 
@@ -896,7 +900,7 @@ private void tel_error(string err) {
 
 nosave int* tm_t;
 
-public void create_telnetneg() {
+public void init_telnetneg() {
   if (!ts) {
     ts = m_allocate(7, TS_SIZE);
     ts[TS_EXTRA, TSE_LOG] = "";
@@ -1241,7 +1245,15 @@ private void sb_gmcp(int command, int option, int* optargs)
     return;
   }
 }
-
+{
+  /*
+   * Intentionally left empty.
+   *
+   * Prompt modification is handled through the prompt hook path
+   * (for example H_PRINT_PROMPT in the master configuration).
+   * This stub is kept so existing callers such as start_eor() can
+   * continue to call it without changing telnet negotiation flow.
+   */
 static void modify_prompt()
 {
 }
