@@ -36,7 +36,7 @@
 //
 // The machine is used with three functions:
 //   set_telnet()    requests a change in the telnet state
-//   set_callback()  sets our prefered telnet states and a callback
+//   set_option_callbacks()  sets our prefered telnet states and a callback
 //                   function which is called on telnet state changes
 //   query_telnet()  query state and sb info
 //
@@ -257,22 +257,26 @@ private void handle_sbclient_options_set(string payload)
 
 // Set preferences and callbacks
 //
-// r_a_cb is the preference for the state on the remote side. It could be
+// remote_preference is the preference for the state on the remote side. It could be
 //   DO, DONT or a callback closure which decides if we get a request.
-// l_a_cb is the same for the local side.
-// change_cb is called if the state changes to NO or YES (real change)
-// sb_cb is called with incoming subnegotiations.
-private void set_callback(int opt, mixed r_a_cb, mixed l_a_cb,
-    closure change_cb, closure sb_cb) {
-  if (r_a_cb == DO) r_a_cb = 1;
-  else if (r_a_cb == DONT) r_a_cb = 0;
-  if (l_a_cb == WILL) l_a_cb = 1;
-  else if (l_a_cb == WONT) l_a_cb = 0;
+// local_preference is the same for the local side.
+// state_change_callback is called if the state changes to NO or YES (real change)
+// subnegotiation_callback is called with incoming subnegotiations.
+private void set_option_callbacks(
+    int option,
+    mixed remote_preference,
+    mixed local_preference,
+    closure state_change_callback,
+    closure subnegotiation_callback) {
+  if (remote_preference == DO) remote_preference = 1;
+  else if (remote_preference == DONT) remote_preference = 0;
+  if (local_preference == WILL) local_preference = 1;
+  else if (local_preference == WONT) local_preference = 0;
 
-  ts[opt, TS_R_AGREE] = r_a_cb;
-  ts[opt, TS_L_AGREE] = l_a_cb;
-  ts[opt, TS_CB] = change_cb;
-  ts[opt, TS_SBCB] = sb_cb;
+  ts[option, TS_R_AGREE] = remote_preference;
+  ts[option, TS_L_AGREE] = local_preference;
+  ts[option, TS_CB] = state_change_callback;
+  ts[option, TS_SBCB] = subnegotiation_callback;
 }
 
 // Try to change an option
@@ -767,83 +771,83 @@ public void send_eor()
 }
 
 // All telnet negotations are sent through this function
-private int send(int* x) {
+private int send(int* telnet_bytes) {
   string log;
-  int *y, i, j;
+  int *payload_bytes, index, end;
 
-  if (x[1] != SB) y = x[3..];
+  if (telnet_bytes[1] != SB) payload_bytes = telnet_bytes[3..];
   else {
-    y = x[3..<3];
-    j = sizeof(y) - 1;
-    for (i = 0; i < j; ++i) { // undo 0xff quoting
-      if (y[i] == IAC && y[i+1] == 0xff) {
-        y[i..i+1] = ({ 0xff });
-        --j;
+    payload_bytes = telnet_bytes[3..<3];
+    end = sizeof(payload_bytes) - 1;
+    for (index = 0; index < end; ++index) { // undo 0xff quoting
+      if (payload_bytes[index] == IAC && payload_bytes[index+1] == 0xff) {
+        payload_bytes[index..index+1] = ({ 0xff });
+        --end;
       }
     }
   }
 
   log = ts[TS_EXTRA, TSE_LOG];
   if (sizeof(log) > 4000) log = "..." + log[<3800..];
-  log += "sent " + telnet_to_text(x[1], x[2], y) +"\n";
+  log += "sent " + telnet_to_text(telnet_bytes[1], telnet_bytes[2], payload_bytes) +"\n";
   ts[TS_EXTRA, TSE_LOG] = log;
-  log_telnet_event("sent", x[1], x[2], y);
+  log_telnet_event("sent", telnet_bytes[1], telnet_bytes[2], payload_bytes);
 
-  return efun::binary_message(x);
+  return efun::binary_message(telnet_bytes);
 }
 
 // TODO: it's not quite complete
-private string telnet_to_text(int command, int option, int* args) {
-  string d_txt;
-  int i, j;
+private string telnet_to_text(int command, int option, int* option_data) {
+  string description;
+  int index, end;
 
-  d_txt = TELCMD2STRING(IAC) + " " +
+  description = TELCMD2STRING(IAC) + " " +
     TELCMD2STRING(command) + " " + TELOPT2STRING(option);
-  if (args && sizeof(args)) {
+  if (option_data && sizeof(option_data)) {
     if (command == SB && option == TELOPT_GMCP) {
-      d_txt += " " + to_string(args);
-      return d_txt;
+      description += " " + to_string(option_data);
+      return description;
     }
 
     if (command == SB && option == TELOPT_LINEMODE) {
-      switch (args[0]) {
+      switch (option_data[0]) {
         case LM_MODE:
-          if (sizeof(args) > 1) {
-            d_txt += " MODE" +
-              (args[1] & MODE_EDIT ? " EDIT" : " NOEDIT") +
-              (args[1] & MODE_TRAPSIG ? " TRAPSIG" : "") +
-              (args[1] & MODE_SOFT_TAB ? " SOFT_TAB" : "") +
-              (args[1] & MODE_LIT_ECHO ? " LIT_ECHO" : "") +
-              (args[1] & MODE_ACK ? " ACK" : "");
-            if (sizeof(args) == 2) return d_txt;
-            args = args[2..];
+          if (sizeof(option_data) > 1) {
+            description += " MODE" +
+              (option_data[1] & MODE_EDIT ? " EDIT" : " NOEDIT") +
+              (option_data[1] & MODE_TRAPSIG ? " TRAPSIG" : "") +
+              (option_data[1] & MODE_SOFT_TAB ? " SOFT_TAB" : "") +
+              (option_data[1] & MODE_LIT_ECHO ? " LIT_ECHO" : "") +
+              (option_data[1] & MODE_ACK ? " ACK" : "");
+            if (sizeof(option_data) == 2) return description;
+            option_data = option_data[2..];
           }
           break;
 
         case WILL: case WONT: case DO: case DONT:
-          d_txt += " " + TELCMD2STRING(args[0]);
-          args = args[1..];
-          if (sizeof(args) > 0 && args[0] == LM_FORWARDMASK) {
-            d_txt += " FORWARDMASK";
-            args = args[1..];
+          description += " " + TELCMD2STRING(option_data[0]);
+          option_data = option_data[1..];
+          if (sizeof(option_data) > 0 && option_data[0] == LM_FORWARDMASK) {
+            description += " FORWARDMASK";
+            option_data = option_data[1..];
           }
           break;
 
         case LM_SLC:
-          j = sizeof(args) - 2;
-          d_txt += " SLC";
-          for (i = 1; i < j; i += 3) {
-            d_txt += "\n          ";
-            d_txt += sprintf("%-6s %-23s %02x",
-              SLC2STRING(args[i]),
-               SLC_FLAGNAME[args[i+1] & SLC_LEVELBITS] +
-               (args[i+1] & SLC_FLUSHOUT ? " FOUT" : "") +
-               (args[i+1] & SLC_FLUSHIN  ? " FIN"  : "") +
-               (args[i+1] & SLC_ACK      ? " ACK"      : ""),
-               args[i+2]);
+          end = sizeof(option_data) - 2;
+          description += " SLC";
+          for (index = 1; index < end; index += 3) {
+            description += "\n          ";
+            description += sprintf("%-6s %-23s %02x",
+              SLC2STRING(option_data[index]),
+               SLC_FLAGNAME[option_data[index+1] & SLC_LEVELBITS] +
+               (option_data[index+1] & SLC_FLUSHOUT ? " FOUT" : "") +
+               (option_data[index+1] & SLC_FLUSHIN  ? " FIN"  : "") +
+               (option_data[index+1] & SLC_ACK      ? " ACK"      : ""),
+               option_data[index+2]);
           }
-          if (i > j) return d_txt;
-          args = args[i-3..]; // dump rest (is error)
+          if (index > end) return description;
+          option_data = option_data[index-3..]; // dump rest (is error)
           break;
 
       }
@@ -851,14 +855,14 @@ private string telnet_to_text(int command, int option, int* args) {
     }
 
     if (command == SB && option != TELOPT_NAWS && option != TELOPT_LINEMODE) {
-      d_txt += " " + TELQUAL2STRING(args[0]);
-      if (sizeof(args) > 1) d_txt += " (" +
-        implode(map(args[1..], (: sprintf("%02x", $1) :)), ",") + ")";
+      description += " " + TELQUAL2STRING(option_data[0]);
+      if (sizeof(option_data) > 1) description += " (" +
+        implode(map(option_data[1..], (: sprintf("%02x", $1) :)), ",") + ")";
     }
-    else if (sizeof(args)) d_txt +=
-      " (" + implode(map(args, (: sprintf("%02x", $1) :)), ",") + ")";
+    else if (sizeof(option_data)) description +=
+      " (" + implode(map(option_data, (: sprintf("%02x", $1) :)), ",") + ")";
   }
-  return d_txt;
+  return description;
 }
 
 // Full negotiation tries to set all our preferences
@@ -908,33 +912,33 @@ public void init_telnetneg() {
   init_client_capability_state();
 
   // set how we would like the options' states
-  set_callback(TELOPT_NAWS,     DO,   WONT, 0,           #'sb_naws);
-  set_callback(TELOPT_STATUS  , DONT, WILL, 0,           #'sb_status);
-  set_callback(TELOPT_TTYPE,    DO,   WONT, #'start_sb,  #'sb_ttype);
-  set_callback(TELOPT_TSPEED,   DO,   WONT, #'start_sb,  #'sb_tspeed);
-  set_callback(TELOPT_NEWENV,   DO,   WONT, #'start_sb,  #'sb_env);
-  set_callback(TELOPT_ENVIRON,  DO,   WONT, #'start_sb,  #'sb_env);
-  set_callback(TELOPT_XDISPLOC, DO,   WONT, #'start_sb,  #'sb_xdisp);
+  set_option_callbacks(TELOPT_NAWS,     DO,   WONT, 0,           #'sb_naws);
+  set_option_callbacks(TELOPT_STATUS  , DONT, WILL, 0,           #'sb_status);
+  set_option_callbacks(TELOPT_TTYPE,    DO,   WONT, #'start_sb,  #'sb_ttype);
+  set_option_callbacks(TELOPT_TSPEED,   DO,   WONT, #'start_sb,  #'sb_tspeed);
+  set_option_callbacks(TELOPT_NEWENV,   DO,   WONT, #'start_sb,  #'sb_env);
+  set_option_callbacks(TELOPT_ENVIRON,  DO,   WONT, #'start_sb,  #'sb_env);
+  set_option_callbacks(TELOPT_XDISPLOC, DO,   WONT, #'start_sb,  #'sb_xdisp);
 
-  set_callback(TELOPT_EOR,      DONT, WILL, #'start_eor, 0);
-  set_callback(TELOPT_LINEMODE, DO,   WONT, #'start_lm,  #'sb_line);
-  set_callback(TELOPT_TM ,      #'neg_tm, #'neg_tm, #'neg_tm, 0);
-  set_callback(TELOPT_BINARY,   #'neg_bin, #'neg_bin, 0, 0);
+  set_option_callbacks(TELOPT_EOR,      DONT, WILL, #'start_eor, 0);
+  set_option_callbacks(TELOPT_LINEMODE, DO,   WONT, #'start_lm,  #'sb_line);
+  set_option_callbacks(TELOPT_TM ,      #'neg_tm, #'neg_tm, #'neg_tm, 0);
+  set_option_callbacks(TELOPT_BINARY,   #'neg_bin, #'neg_bin, 0, 0);
 
-  set_callback(TELOPT_SGA,      #'neg_sga, #'neg_sga, #'cb_sga, 0);
-  set_callback(TELOPT_ECHO,     #'neg_echo, WONT, #'cb_echo, 0);
-  set_callback(TELOPT_GMCP,     DONT, WILL, #'start_gmcp, #'sb_gmcp);
+  set_option_callbacks(TELOPT_SGA,      #'neg_sga, #'neg_sga, #'cb_sga, 0);
+  set_option_callbacks(TELOPT_ECHO,     #'neg_echo, WONT, #'cb_echo, 0);
+  set_option_callbacks(TELOPT_GMCP,     DONT, WILL, #'start_gmcp, #'sb_gmcp);
 
 #ifdef __MCCP__
-  set_callback(TELOPT_COMPRESS2, DONT,      WILL,       #'start_mccp, 0);
-  set_callback(TELOPT_COMPRESS,  DONT,      #'neg_mccp, #'start_mccp, 0);
+    set_option_callbacks(TELOPT_COMPRESS2, DONT,      WILL,       #'start_mccp, 0);
+    set_option_callbacks(TELOPT_COMPRESS,  DONT,      #'neg_mccp, #'start_mccp, 0);
 #endif
 
 #ifdef __TLS__
   if (tls_available())
   {
-    set_callback(TELOPT_STARTTLS,       DO, WONT,       0,            #'sb_tls);
-    set_callback(TELOPT_AUTHENTICATION, DO, WONT,       #'start_auth, #'sb_auth);
+    set_option_callbacks(TELOPT_STARTTLS,       DO, WONT,       0,            #'sb_tls);
+    set_option_callbacks(TELOPT_AUTHENTICATION, DO, WONT,       #'start_auth, #'sb_auth);
   }
 #endif
 }
