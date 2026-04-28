@@ -627,10 +627,10 @@ private void transfer_client_session_state(object ob)
         ob->transfer_ts(state);
     }
 
-    if (function_exists("transfer_sbclient_state", ob))
+    if (function_exists("transfer_client_capability_state", ob))
     {
-        state = transfer_sbclient_state(0);
-        ob->transfer_sbclient_state(state);
+        state = transfer_client_capability_state(0);
+        ob->transfer_client_capability_state(state);
     }
 }
 

@@ -73,10 +73,10 @@
 #ifdef NEED_PRIVATE_PROTOTYPES
 #ifndef __TELNET_H_P_PROTO__
 #define __TELNET_H_P_PROTO__
-private int send(int* x);
+private int send(int* telnet_bytes);
 private void tel_error(string err);
 private void start_telnetneg();
-private string telnet_to_text(int command, int option, int* args);
+private string telnet_to_text(int command, int option, int* option_data);
 private void sb_ttype(int command, int option, int* optargs);
 private void sb_xdisp(int command, int option, int* optargs);
 private void sb_tspeed(int command, int option, int* optargs);
